@@ -35,25 +35,37 @@ export default function Home() {
   return (
     <div className="min-h-screen flex flex-col">
       {/* Hero Section */}
-      <section className="relative h-[80vh] flex items-center justify-center bg-blue-950 text-white">
-        <Image
-          src={slides[currentSlide].image}
+      <section className="relative h-[80vh] flex items-center justify-center bg-[#204878] text-white">
+        {/* <Image
+          src="/images/hero-bg-1.png"
           alt={slides[currentSlide].title}
           layout="fill"
           objectFit="cover"
-          className="opacity-50"
-        />
-        <div className="relative z-10 text-center">
-          <h1 className="text-4xl sm:text-6xl font-bold mb-4">
-            {slides[currentSlide].title}
-          </h1>
-          <p className="text-lg sm:text-xl">{slides[currentSlide].description}</p>
-        </div>
+          className="opacity-100"
+        /> */}
+        
+          {/* Slide Content */}
+          <div className="text-left w-1/2 ml-50">
+            <h1 className="text-4xl sm:text-6xl font-bold mb-4">
+              {slides[currentSlide].title}
+            </h1>
+            <p className="text-lg sm:text-xl">{slides[currentSlide].description}</p>
+          </div>
+          {/* Extra Image */}
+          <div className="w-1/2 flex justify-start">
+            <Image
+              src={`/images/slider-${currentSlide + 1}.png`} // Replace with your extra images
+              alt={`Extra Image ${currentSlide + 1}`}
+              width={400}
+              height={300}
+              className="rounded-lg animate-float"
+            />
+          </div>
         {/* Slider Controls */}
         <div>
           <button
             onClick={prevSlide}
-            className="absolute top-1/2 left-0 transform -translate-y-1/2 bg-white text-blue-950 p-2 rounded-full shadow hover:bg-gray-200 ml-4"
+            className="absolute top-1/2 left-0.5 transform -translate-y-1/2 bg-white text-blue-950 p-2 rounded-full shadow hover:bg-gray-200 ml-4"
           >
             &#8249;
           </button>

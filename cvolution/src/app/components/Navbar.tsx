@@ -18,7 +18,7 @@ export default function Navbar() {
   
     return (
       <div>
-        <nav className="block w-full max-w-screen px-4 py-4 mx-auto bg-[#0a396b] bg-opacity-90 sticky top-3 shadow lg:px-8 backdrop-blur-lg backdrop-saturate-150 z-[9999]">
+        <nav className="block w-full max-w-screen px-4 py-4 mx-auto bg-[#204878] bg-opacity-90 sticky top-3 lg:px-8 backdrop-blur-lg backdrop-saturate-150 z-[9999]">
           <div className="container flex flex-wrap items-center justify-between mx-auto text-slate-800">
             <Link
               href="/"
@@ -53,7 +53,7 @@ export default function Navbar() {
   
             {/* Mobile Menu */}
             <div
-              className={`fixed top-0 left-0 min-h-screen w-64 bg-blue-950 shadow-lg transform transition-transform duration-300 ease-in-out ${
+              className={`fixed top-0 left-0 min-h-screen w-64 bg-[#204878] shadow-lg transform transition-transform duration-300 ease-in-out ${
                 isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
               } lg:hidden z-50`}
             >
