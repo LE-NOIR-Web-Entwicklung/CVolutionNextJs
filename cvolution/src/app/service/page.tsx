@@ -5,7 +5,7 @@ import Image from "next/image";
 export default function Service() {
   const products = [
     {
-      name: "Product 1",
+      name: "Product-1",
       description: "This is a short description of Product 1.",
       image: "/images/product-1.jpg", 
     },
