@@ -41,8 +41,8 @@ export default function Service() {
       {/* Products Section */}
       <section className="py-16">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-12">
-            Discover Our <span className="text-blue-600">Products</span>
+          <h2 className="text-3xl font-bold text-center mb-12 text-gray-800">
+            Unser <span className="text-blue-300">Angebot</span>
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {products.map((product, index) => (
@@ -57,7 +57,7 @@ export default function Service() {
                   height={200}
                   className="mx-auto mb-4 rounded-lg"
                 />
-                <h3 className="text-xl font-bold mb-2">{product.name}</h3>
+                <h3 className="text-xl font-bold mb-2 text-gray-800">{product.name}</h3>
                 <p className="text-gray-600">{product.description}</p>
               </div>
             ))}

@@ -106,7 +106,7 @@ export default function Home() {
                   height={200}
                   className="mx-auto mb-4"
                 />
-                <h3 className="text-xl font-bold mb-2">Product {index + 1}</h3>
+                <h3 className="text-xl font-bold mb-2 text-gray-800">Product {index + 1}</h3>
                 <p className="text-gray-600">
                   This is a short description of product {index + 1}.
                 </p>
@@ -120,7 +120,7 @@ export default function Home() {
       <section className="py-16 bg-[#0a396b] bg-opacity-90">
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-12 text-white">
-            Meet Our <span className="text-blue-300">Team</span>
+            Unser <span className="text-blue-300">Team</span>
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-8">
             {[
