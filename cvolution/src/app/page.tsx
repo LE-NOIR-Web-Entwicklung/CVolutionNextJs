@@ -36,14 +36,6 @@ export default function Home() {
     <div className="min-h-screen flex flex-col">
       {/* Hero Section */}
       <section className="relative h-[80vh] flex items-center justify-center bg-[#204878] text-white">
-        {/* <Image
-          src="/images/hero-bg-1.png"
-          alt={slides[currentSlide].title}
-          layout="fill"
-          objectFit="cover"
-          className="opacity-100"
-        /> */}
-        
           {/* Slide Content */}
           <div className="text-left w-1/2 ml-50">
             <h1 className="text-4xl sm:text-6xl font-bold mb-4">
@@ -60,7 +52,7 @@ export default function Home() {
           {/* Extra Image */}
           <div className="w-1/2 flex justify-start">
             <Image
-              src={`/images/slider-${currentSlide + 1}.png`} // Replace with your extra images
+              src={`/images/slider-${currentSlide + 1}.png`} 
               alt={`Extra Image ${currentSlide + 1}`}
               width={400}
               height={300}
@@ -108,7 +100,7 @@ export default function Home() {
                 className="bg-white p-6 rounded-lg shadow-lg text-center"
               >
                 <Image
-                  src={`/images/product-${index + 1}.jpg`} // Replace with your product images
+                  src={`/images/product-${index + 1}.jpg`} 
                   alt={`Product ${index + 1}`}
                   width={200}
                   height={200}
@@ -148,7 +140,7 @@ export default function Home() {
                 className="bg-gray-100 p-6 rounded-lg shadow-lg text-center"
               >
                 <Image
-                  src={member.image} // Replace with your team images
+                  src={member.image} 
                   alt={member.name}
                   width={150}
                   height={150}

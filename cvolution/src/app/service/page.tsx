@@ -7,32 +7,32 @@ export default function Service() {
     {
       name: "Product 1",
       description: "This is a short description of Product 1.",
-      image: "/images/product-1.jpg", // Replace with your product images
+      image: "/images/product-1.jpg", 
     },
     {
       name: "Product 2",
       description: "This is a short description of Product 2.",
-      image: "/images/product-2.jpg", // Replace with your product images
+      image: "/images/product-2.jpg", 
     },
     {
       name: "Product 3",
       description: "This is a short description of Product 3.",
-      image: "/images/product-3.jpg", // Replace with your product images
+      image: "/images/product-3.jpg", 
     },
     {
       name: "Product 4",
       description: "This is a short description of Product 4.",
-      image: "/images/product-4.jpg", // Replace with your product images
+      image: "/images/product-4.jpg", 
     },
     {
       name: "Product 5",
       description: "This is a short description of Product 5.",
-      image: "/images/product-5.jpg", // Replace with your product images
+      image: "/images/product-5.jpg", 
     },
     {
       name: "Product 6",
       description: "This is a short description of Product 6.",
-      image: "/images/product-6.jpg", // Replace with your product images
+      image: "/images/product-6.jpg", 
     },
   ];
 
