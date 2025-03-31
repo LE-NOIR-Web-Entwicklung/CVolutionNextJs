@@ -6,19 +6,19 @@ import Image from "next/image";
 export default function Home() {
   const slides = [
     {
-      title: "Welcome to Our Store",
-      description: "Discover the best products and meet our amazing team.",
-      image: "/images/hero-bg.jpg", // Replace with your image path
+      title: "Lebenslauf",
+      description: "Ein professioneller Lebenslauf ist der Schlüssel zu einem erfolgreichen Bewerbungsprozess.",
+      link: "/service-cv"
     },
     {
-      title: "Quality Products",
-      description: "We offer the highest quality products for your needs.",
-      image: "/images/hero-bg-2.jpg", // Replace with your image path
+      title: "Lohnanalyse",
+      description: "Sind Sie unsicher, ob Ihr Gehalt Ihrer Qualifikation, Erfahrung und der aktuellen Marktlage entspricht? Mit unserer Lohnanalyse erhalten Sie eine fundierte Einschätzung Ihrer aktuellen Vergütung im Vergleich zu branchenüblichen Standards.",
+      link: "/service-salary"
     },
     {
-      title: "Join Our Team",
-      description: "Be part of our amazing journey and grow with us.",
-      image: "/images/hero-bg-3.jpg", // Replace with your image path
+      title: "Laufbahnberatung",
+      description: "Die Berufswelt verändert sich rasant, und manchmal ist es schwierig, den richtigen Weg zu finden. Ob Sie in Ihrer aktuellen Position unzufrieden sind, nach neuen Herausforderungen suchen oder Ihre Karriere strategisch weiterentwickeln möchten – unsere Laufbahnberatung bietet Ihnen Orientierung und Unterstützung.",
+      link: "/service-career"
     },
   ];
 
@@ -50,6 +50,12 @@ export default function Home() {
               {slides[currentSlide].title}
             </h1>
             <p className="text-lg sm:text-xl">{slides[currentSlide].description}</p>
+            <a
+              href={slides[currentSlide].link}
+              className="inline-block px-6 py-3 mt-4 text-white font-bold bg-[#4c6c93] rounded-lg shadow-lg hover:bg-[#1a3a66] transform hover:scale-105 transition duration-300"
+            >
+              Angebot
+            </a>
           </div>
           {/* Extra Image */}
           <div className="w-1/2 flex justify-start">
@@ -92,8 +98,8 @@ export default function Home() {
       {/* Products Section */}
       <section className="py-16 bg-gray-100">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-12">
-            Our <span className="text-blue-600">Products</span>
+          <h2 className="text-3xl font-bold text-center mb-12 text-gray-800">
+            Unser <span className="text-blue-300">Angebot</span>
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {Array.from({ length: 6 }).map((_, index) => (
@@ -157,13 +163,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-
-      {/* Footer */}
-      <footer className="bg-[#0a396b] text-white py-8">
-        <div className="container mx-auto px-4 text-center">
-          <p>&copy; {new Date().getFullYear()} - All Rights Reserved</p>
-        </div>
-      </footer>
     </div>
   );
 }
