@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import { FaLinkedin, FaPhone, FaEnvelope } from "react-icons/fa";
 
 export default function Home() {
   const slides = [
@@ -128,11 +129,17 @@ export default function Home() {
                 name: "Armend Mustafa",
                 position: "CEO / Managing Partner",
                 image: "/images/team-1.jpg",
+                phone: "+41764405151",
+                email: "armend@cvolution.ch",
+                linkedin: "https://www.linkedin.com/in/armend-mustafa-123456789/",
               },
               {
                 name: "Jan Eggenberger",
                 position: "Software Engineer",
                 image: "/images/team-2.jpg",
+                phone: "+41764405151",
+                email: "jan@cvolution.ch",
+                linkedin: "https://www.linkedin.com/in/jan-eggenberger-987654321/",
               },
             ].map((member, index) => (
               <div
@@ -150,6 +157,28 @@ export default function Home() {
                   {member.name}
                 </h3>
                 <p className="text-gray-600">{member.position}</p>
+                <div className="flex justify-center mt-4 space-x-4">
+                                  <a
+                                    href={`tel:${member.phone}`}
+                                    className="text-gray-600 hover:text-gray-800"
+                                  >
+                                    <FaPhone size={20} />
+                                  </a>
+                                  <a
+                                    href={`mailto:${member.email}`}
+                                    className="text-gray-600 hover:text-gray-800"
+                                  >
+                                    <FaEnvelope size={20} />
+                                  </a>
+                                  <a
+                                    href={member.linkedin}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-gray-600 hover:text-gray-800"
+                                  >
+                                    <FaLinkedin size={20} />
+                                  </a>
+                                </div>
               </div>
             ))}
           </div>
