@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import React from "react";
-import { PopupWidget } from "react-calendly";
 
 export default function ServiceCareer() {
   return (
