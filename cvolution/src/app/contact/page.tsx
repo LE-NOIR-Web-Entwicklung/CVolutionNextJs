@@ -1,9 +1,9 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { Suspense, useState } from "react";
 
-export default function Contact() {
+function ContactPage() {
   const searchParams = useSearchParams();
   const subject = searchParams.get("subject") || "";
   const [isAgbChecked, setIsAgbChecked] = useState(false); // State for the checkbox
@@ -148,3 +148,10 @@ export default function Contact() {
     </div>
   );
 }
+
+export default function Contact() {
+  return (
+    <Suspense>
+      <ContactPage />
+      </Suspense>
+      )};
