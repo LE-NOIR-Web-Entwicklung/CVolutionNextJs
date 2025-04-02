@@ -32,7 +32,7 @@ export default function Service() {
       description: "Gemeinsames Erarbeiten Ihrer individuellen Argumente. Formulierung eines überzeugenden Motivationsschreibens. Angepasst an spezifische Stellenanforderungen",
       image: "/images/copy-writing.png",
       price: "CHF 99",
-      link: "/service-cover-letter",
+      link: "/service-motivation",
     },
     {
       name: "RAV Unterstützung",
