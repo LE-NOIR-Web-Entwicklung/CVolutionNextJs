@@ -4,7 +4,7 @@ export default function DataProtection() {
   return (
     <div className="min-h-screen bg-gray-100 text-gray-800">
       <div className="container mx-auto px-4 py-16">
-        <h1 className="text-4xl font-bold text-center mb-8">Datenschutzerklärung</h1>
+        <h1 className="text-3xl font-bold text-center mb-8">Datenschutzerklärung</h1>
         <p className="text-lg leading-relaxed">
             Stand: Januar 2025
         </p>
