@@ -13,12 +13,12 @@ export default function Home() {
     },
     {
       title: "Lohnanalyse",
-      description: "Sind Sie unsicher, ob Ihr Gehalt Ihrer Qualifikation, Erfahrung und der aktuellen Marktlage entspricht? Mit unserer Lohnanalyse erhalten Sie eine fundierte Einschätzung Ihrer aktuellen Vergütung im Vergleich zu branchenüblichen Standards.",
+      description: "Erhalten Sie eine fundierte Einschätzung Ihrer aktuellen Vergütung im Vergleich zu branchenüblichen Standards.",
       link: "/service-salary"
     },
     {
-      title: "Laufbahnberatung",
-      description: "Die Berufswelt verändert sich rasant, und manchmal ist es schwierig, den richtigen Weg zu finden. Ob Sie in Ihrer aktuellen Position unzufrieden sind, nach neuen Herausforderungen suchen oder Ihre Karriere strategisch weiterentwickeln möchten – unsere Laufbahnberatung bietet Ihnen Orientierung und Unterstützung.",
+      title: "Laufbahn-Beratung",
+      description: "Unsere Laufbahnberatung bietet Ihnen Orientierung und Unterstützung.",
       link: "/service-career"
     },
   ];
@@ -45,8 +45,6 @@ export default function Home() {
       price: "ab CHF 79",
       link: "/service-salary",
     },
-    
-    
     {
       name: "Motivationsschreiben",
       description: "Gemeinsames Erarbeiten Ihrer individuellen Argumente. Formulierung eines überzeugenden Motivationsschreibens. Angepasst an spezifische Stellenanforderungen",
@@ -90,18 +88,18 @@ export default function Home() {
             <Image
               src={`/images/slider-${currentSlide + 1}.png`} 
               alt={`Extra Image ${currentSlide + 1}`}
-              width={400}
-              height={300}
+              width={300}
+              height={50}
               className="rounded-lg animate-float"
             />
           </div>
-          <h1 className="text-4xl sm:text-6xl font-bold mb-4">
+          <h2 className="text-3xl sm:text-6xl font-bold mb-2">
             {slides[currentSlide].title}
-          </h1>
-          <p className="text-lg sm:text-xl">{slides[currentSlide].description}</p>
+          </h2>
+          <p className="sm:text-xl">{slides[currentSlide].description}</p>
           <a
             href={slides[currentSlide].link}
-            className="inline-block px-6 py-3 mt-4 text-white font-bold bg-[#4c6c93] rounded-lg shadow-lg hover:bg-[#1a3a66] transform hover:scale-105 transition duration-300"
+            className="inline-block px-6 py-3 mt-2 text-white font-bold bg-[#4c6c93] rounded-lg shadow-lg hover:bg-[#1a3a66] transform hover:scale-105 transition duration-300"
           >
             Angebot
           </a>
