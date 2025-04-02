@@ -19,7 +19,7 @@ export default function Team() {
       image: "/images/team-2.jpg",
       phone: "+41764405151",
       email: "jan@cvolution.ch",
-      linkedin: "https://www.linkedin.com/in/jan-eggenberger-987654321/",
+      linkedin: "https://www.linkedin.com/in/jan-eggenberger-903517179",
     },
   ];
 
