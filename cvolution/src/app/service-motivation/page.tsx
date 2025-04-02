@@ -50,7 +50,7 @@ export default function ServiceMotivation() {
               href="/contact?subject=Motivationsschreiben"
               className="inline-block px-4 py-3 mt-4 text-white font-bold bg-[#204878] rounded-lg shadow-lg hover:bg-[#1a3a66] transform hover:scale-105 transition duration-300"
             >
-              Kontaktformular ausfüllen
+              Anfrage senden
             </a>
           </div>
         </div>

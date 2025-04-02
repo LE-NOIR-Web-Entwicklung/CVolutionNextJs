@@ -153,5 +153,5 @@ export default function Contact() {
   return (
     <Suspense>
       <ContactPage />
-      </Suspense>
-      )};
+    </Suspense>
+)};
