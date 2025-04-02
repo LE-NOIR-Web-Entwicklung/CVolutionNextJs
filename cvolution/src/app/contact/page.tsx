@@ -1,7 +1,7 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { Suspense, useState } from "react";
 
 function ContactPage() {
   const searchParams = useSearchParams();
@@ -188,5 +188,9 @@ function ContactPage() {
 }
 
 export default function Contact() {
-  return <ContactPage />;
+  return (
+    <Suspense>
+      <ContactPage />
+    </Suspense>
+    );
 }
