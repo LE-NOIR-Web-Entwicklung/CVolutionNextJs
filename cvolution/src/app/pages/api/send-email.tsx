@@ -12,19 +12,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     try {
       // Configure the SMTP transporter
       const transporter = nodemailer.createTransport({
-        host: "smtp.your-email-provider.com", // Replace with your SMTP host
-        port: 587, // Replace with your SMTP port
-        secure: false, // Use true for 465, false for other ports
+        host: "smtp-mail.outlook.com", 
+        port: 587, 
+        secure: false, 
         auth: {
-          user: "info@cvolution.ch", // Replace with your email
-          pass: "CVolution+2025", // Replace with your email password
+          user: "jan@cvolution.ch", 
+          pass: "CVolution+2025", 
         },
       });
 
       // Email options
       const mailOptions = {
         from: `"${name}" <${email}>`,
-        to: "info@cvolution.ch", // Replace with your recipient email
+        to: "jan@cvolution.ch", 
         subject: "New Contact Form Submission",
         text: message,
         html: `<p><strong>Name:</strong> ${name}</p>

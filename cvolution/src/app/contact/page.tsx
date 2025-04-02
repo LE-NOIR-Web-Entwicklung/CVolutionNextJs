@@ -1,12 +1,41 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { Suspense, useState } from "react";
+import { useState } from "react";
 
 function ContactPage() {
   const searchParams = useSearchParams();
-  const subject = searchParams.get("subject") || "";
+  const subjectFromParams = searchParams.get("subject") || ""; // Get subject from URL parameters
   const [isAgbChecked, setIsAgbChecked] = useState(false); // State for the checkbox
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    subject: subjectFromParams, // Pre-fill subject if provided via query params
+    address: "",
+    postalCode: "",
+    message: "",
+  });
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  // Check if all required fields are filled
+  const isFormValid =
+    formData.name.trim() !== "" &&
+    formData.email.trim() !== "" &&
+    formData.subject.trim() !== "" &&
+    formData.address.trim() !== "" &&
+    formData.postalCode.trim() !== "" &&
+    formData.message.trim() !== "" &&
+    isAgbChecked;
+
+  const mailtoLink = `mailto:info@cvolution.ch?subject=${encodeURIComponent(
+    formData.subject
+  )}&body=${encodeURIComponent(
+    `Name: ${formData.name}\nE-Mail: ${formData.email}\nStrasse + Nr: ${formData.address}\nPLZ + Ort: ${formData.postalCode}\nNachricht: ${formData.message}`
+  )}`;
 
   return (
     <div className="min-h-screen bg-white text-gray-800 flex items-center justify-center">
@@ -24,6 +53,8 @@ function ContactPage() {
               type="text"
               id="name"
               name="name"
+              value={formData.name}
+              onChange={handleInputChange}
               className="w-full px-4 py-2 border rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-[#204878]"
               placeholder="Name"
               required
@@ -39,6 +70,8 @@ function ContactPage() {
               type="email"
               id="email"
               name="email"
+              value={formData.email}
+              onChange={handleInputChange}
               className="w-full px-4 py-2 border rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-[#204878]"
               placeholder="E-Mail Adresse"
               required
@@ -54,11 +87,11 @@ function ContactPage() {
               type="text"
               id="subject"
               name="subject"
-              value={subject || undefined} // Use `value` only if `subject` is pre-filled
-              defaultValue={!subject ? "" : undefined} // Use `defaultValue` if `subject` is not pre-filled
-              readOnly={!!subject} // Make the field readonly only if `subject` is pre-filled
+              value={formData.subject}
+              onChange={handleInputChange}
+              readOnly={!!subjectFromParams} // Make the field readonly only if `subjectFromParams` is set
               className={`w-full px-4 py-2 border rounded-lg ${
-                subject ? "bg-gray-100 cursor-not-allowed" : "bg-white"
+                subjectFromParams ? "bg-gray-100 cursor-not-allowed" : "bg-white"
               } focus:outline-none focus:ring-2 focus:ring-[#204878]`}
               placeholder="Betreff"
               required
@@ -74,6 +107,8 @@ function ContactPage() {
               type="text"
               id="address"
               name="address"
+              value={formData.address}
+              onChange={handleInputChange}
               className="w-full px-4 py-2 bg-white border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#204878]"
               placeholder="Strasse + Hausnummer"
               required
@@ -89,6 +124,8 @@ function ContactPage() {
               type="text"
               id="postalCode"
               name="postalCode"
+              value={formData.postalCode}
+              onChange={handleInputChange}
               className="w-full bg-white px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#204878]"
               placeholder="PLZ + Ort"
               required
@@ -104,6 +141,8 @@ function ContactPage() {
               id="message"
               name="message"
               rows={5}
+              value={formData.message}
+              onChange={handleInputChange}
               className="w-full px-4 bg-white py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#204878]"
               placeholder="Ihre Nachricht an uns"
               required
@@ -131,17 +170,16 @@ function ContactPage() {
 
           {/* Submit Button */}
           <div>
-            <button
-              type="submit"
-              disabled={!isAgbChecked} // Disable button if checkbox is not checked
-              className={`w-full px-6 py-3 font-bold rounded-lg transition duration-300 ${
-                isAgbChecked
+            <a
+              href={isFormValid ? mailtoLink : "#"}
+              className={`w-full px-6 py-3 font-bold rounded-lg transition duration-300 block text-center ${
+                isFormValid
                   ? "bg-[#204878] text-white hover:bg-[#4c6c93]"
-                  : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                  : "bg-gray-300 text-gray-500 cursor-not-allowed pointer-events-none"
               }`}
             >
               Senden
-            </button>
+            </a>
           </div>
         </form>
       </div>
@@ -150,8 +188,5 @@ function ContactPage() {
 }
 
 export default function Contact() {
-  return (
-    <Suspense>
-      <ContactPage />
-    </Suspense>
-)};
+  return <ContactPage />;
+}
