@@ -5,34 +5,48 @@ import Image from "next/image";
 export default function Service() {
   const products = [
     {
-      name: "Product-1",
-      description: "This is a short description of Product 1.",
-      image: "/images/product-1.jpg", 
+      name: "Laufbahnberatung",
+      description: "Analyse Ihrer Stärken, Interessen und Ziele. Erarbeitung individueller Karriere-Strategien. Beratung zu Weiterbildung und beruflicher Neuorientierung",
+      image: "/images/talk.png",
+      price: "CHF 149 / Stunde",
+      link: "/service-career",
     },
     {
-      name: "Product 2",
-      description: "This is a short description of Product 2.",
-      image: "/images/product-2.jpg", 
+      name: "Lebenslauf",
+      description: "Analyse Ihrer bisherigen beruflichen Laufbahn. Individuelle Gestaltung eines professionellen Lebenslaufs. Anpassung an die gewünschte Position und Branche",
+      image: "/images/resume.png",
+      price: "CHF 99",
+      link: "/service-cv",
     },
     {
-      name: "Product 3",
-      description: "This is a short description of Product 3.",
-      image: "/images/product-3.jpg", 
+      name: "Lohnanalyse",
+      description: "Transparenter Vergleich mit branchenüblichen Gehältern. Individuelle Einschätzung basierend auf Ihrer Position und Erfahrung. Wertvolle Argumente für Ihre Gehaltsverhandlung",
+      image: "/images/search.png",
+      price: "ab CHF 79",
+      link: "/service-salary",
+    },
+    
+    
+    {
+      name: "Motivationsschreiben",
+      description: "Gemeinsames Erarbeiten Ihrer individuellen Argumente. Formulierung eines überzeugenden Motivationsschreibens. Angepasst an spezifische Stellenanforderungen",
+      image: "/images/copy-writing.png",
+      price: "CHF 99",
+      link: "/service-cover-letter",
     },
     {
-      name: "Product 4",
-      description: "This is a short description of Product 4.",
-      image: "/images/product-4.jpg", 
+      name: "RAV Unterstützung",
+      description: "Unterstützung bei der Erfüllung von RAV-Vorgaben. Erstellung von Lebenslauf und Motivationsschreiben. Vorbereitung auf Bewerbungsgespräche",
+      image: "/images/customer-service.png",
+      price: "ab CHF 99",
+      link: "/service-rav",
     },
     {
-      name: "Product 5",
-      description: "This is a short description of Product 5.",
-      image: "/images/product-5.jpg", 
-    },
-    {
-      name: "Product 6",
-      description: "This is a short description of Product 6.",
-      image: "/images/product-6.jpg", 
+      name: "Videobewerbung",
+      description: "Entwicklung eines persönlichen Konzepts und Skripts. Unterstützung bei der Aufnahme. Professionelle Bearbeitung und Feinschliff des Videos",
+      image: "/images/video.png",
+      price: "CHF 199",
+      link: "/service-video",
     },
   ];
 
@@ -53,12 +67,19 @@ export default function Service() {
                 <Image
                   src={product.image}
                   alt={product.name}
-                  width={200}
-                  height={200}
+                  width={75}
+                  height={75}
                   className="mx-auto mb-4 rounded-lg"
                 />
                 <h3 className="text-xl font-bold mb-2 text-gray-800">{product.name}</h3>
                 <p className="text-gray-600">{product.description}</p>
+                <p className="text-gray-600 mt-2">Preis: {product.price}</p>
+                <a
+                    href={products[index].link}
+                    className="inline-block px-6 py-3 mt-4 text-white font-bold bg-[#4c6c93] rounded-lg shadow-lg hover:bg-[#1a3a66] transform hover:scale-105 transition duration-300"
+                  >
+                    Angebot
+                  </a>
               </div>
             ))}
           </div>
