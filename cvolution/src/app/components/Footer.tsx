@@ -15,7 +15,7 @@ export default function Footer() {
             <ul className="space-y-2 text-sm">
               <li>Email: <a href="mailto:info@cvolution.ch" className="hover:underline">info@cvolution.ch</a></li>
               <li>Telefon: <a href="tel:+41764405151" className="hover:underline">+41 76 440 51 51</a></li>
-              <li>Adresse: Kasernenstrasse 28, 5000 Aarau</li>
+              <li>Adresse: <a href="https://maps.app.goo.gl/w6xbQW3mxBxoj6sa8">Kasernenstrasse 28, 5000 Aarau</a></li>
             </ul>
             <div className="flex space-x-4 mt-4">
               <a
