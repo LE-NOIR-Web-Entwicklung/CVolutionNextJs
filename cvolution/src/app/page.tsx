@@ -84,21 +84,9 @@ export default function Home() {
     <div className="min-h-screen flex flex-col">
       {/* Hero Section */}
       <section className="relative h-[80vh] flex items-center justify-center bg-[#204878] text-white">
-          {/* Slide Content */}
-          <div className="text-left w-1/2 ml-50">
-            <h1 className="text-4xl sm:text-6xl font-bold mb-4">
-              {slides[currentSlide].title}
-            </h1>
-            <p className="text-lg sm:text-xl">{slides[currentSlide].description}</p>
-            <a
-              href={slides[currentSlide].link}
-              className="inline-block px-6 py-3 mt-4 text-white font-bold bg-[#4c6c93] rounded-lg shadow-lg hover:bg-[#1a3a66] transform hover:scale-105 transition duration-300"
-            >
-              Angebot
-            </a>
-          </div>
-          {/* Extra Image */}
-          <div className="w-1/2 flex justify-start">
+        {/* Slide Content */}
+        <div className="text-center w-1/2">
+          <div className="flex justify-center">
             <Image
               src={`/images/slider-${currentSlide + 1}.png`} 
               alt={`Extra Image ${currentSlide + 1}`}
@@ -107,6 +95,18 @@ export default function Home() {
               className="rounded-lg animate-float"
             />
           </div>
+          <h1 className="text-4xl sm:text-6xl font-bold mb-4">
+            {slides[currentSlide].title}
+          </h1>
+          <p className="text-lg sm:text-xl">{slides[currentSlide].description}</p>
+          <a
+            href={slides[currentSlide].link}
+            className="inline-block px-6 py-3 mt-4 text-white font-bold bg-[#4c6c93] rounded-lg shadow-lg hover:bg-[#1a3a66] transform hover:scale-105 transition duration-300"
+          >
+            Angebot
+          </a>
+        </div>
+
         {/* Slider Controls */}
         <div>
           <button
