@@ -64,7 +64,7 @@ export default function About() {
                 name: "Jan Eggenberger",
                 position: "Software Engineer",
                 image: "/images/team-2.jpg",
-                phone: "+41764405151",
+                phone: "+41796654892",
                 email: "jan@cvolution.ch",
                 linkedin: "https://www.linkedin.com/in/jan-eggenberger-903517179",
               },
