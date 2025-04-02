@@ -183,7 +183,7 @@ export default function Home() {
                 image: "/images/team-1.jpg",
                 phone: "+41764405151",
                 email: "armend@cvolution.ch",
-                linkedin: "https://www.linkedin.com/in/armend-mustafa-123456789/",
+                linkedin: "https://www.linkedin.com/in/armend-mustafa/",
               },
               {
                 name: "Jan Eggenberger",
