@@ -27,7 +27,7 @@ export default function About() {
           <div className="w-full lg:w-2/3">
             <h2 className="text-3xl font-bold mb-8 text-left lg:text-left">Wir sind CVolution</h2>
             <p className="text-lg leading-relaxed mb-8">
-              Mit über 10 Jahren Erfahrung in der Rekrutierung und im HR wissen wir genau, worauf es ankommt, um bei potenziellen Arbeitgebern zu überzeugen. Wir haben mehr als 10'000 Lebensläufe gesichtet und kennen die Kriterien, die den Unterschied machen.
+              Mit über 10 Jahren Erfahrung in der Rekrutierung und im HR wissen wir genau, worauf es ankommt, um bei potenziellen Arbeitgebern zu überzeugen. Wir haben mehr als 10&apos;000 Lebensläufe gesichtet und kennen die Kriterien, die den Unterschied machen.
             </p>
 
             <p className="text-lg leading-relaxed mb-8">
