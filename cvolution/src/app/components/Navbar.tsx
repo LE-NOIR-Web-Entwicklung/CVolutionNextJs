@@ -127,7 +127,7 @@ export default function Navbar() {
           <div
             className={`mobile-menu fixed top-0 left-0 min-h-screen w-64 bg-[#204878] shadow-lg transform transition-transform duration-300 ease-in-out ${
               isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
-            } lg:hidden z-50`}
+            } block lg:hidden z-50`} // Ensure the menu is only visible on small screens
           >
             <div className="flex items-center justify-between border-b pb-4 px-4">
               <Link
