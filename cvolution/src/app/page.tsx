@@ -81,35 +81,35 @@ export default function Home() {
   return (
     <div className="min-h-screen flex flex-col">
       {/* Hero Section */}
-      <section className="relative h-[80vh] flex items-center justify-center bg-[#204878] text-white">
+      <section className="relative h-[85vh] flex flex-col items-center justify-center bg-[#204878] text-white">
         {/* Slide Content */}
-        <div className="text-center w-1/2">
+        <div className="text-center w-11/12 sm:w-3/4 lg:w-1/2">
           <div className="flex justify-center">
             <Image
-              src={`/images/slider-${currentSlide + 1}.png`} 
+              src={`/images/slider-${currentSlide + 1}.png`}
               alt={`Extra Image ${currentSlide + 1}`}
-              width={300}
+              width={200}
               height={50}
               className="rounded-lg animate-float"
             />
           </div>
-          <h2 className="text-3xl sm:text-6xl font-bold mb-2">
+          <h2 className="text-2xl sm:text-4xl lg:text-6xl font-bold">
             {slides[currentSlide].title}
           </h2>
-          <p className="sm:text-xl">{slides[currentSlide].description}</p>
-          <a
+          <p className="text-sm sm:text-lg lg:text-xl">{slides[currentSlide].description}</p>
+          {/* <a
             href={slides[currentSlide].link}
-            className="inline-block px-6 py-3 mt-2 text-white font-bold bg-[#4c6c93] rounded-lg shadow-lg hover:bg-[#1a3a66] transform hover:scale-105 transition duration-300"
+            className="inline-block px-6 py-3 mt-4 text-white font-bold bg-[#4c6c93] rounded-lg shadow-lg hover:bg-[#1a3a66] transform hover:scale-105 transition duration-300"
           >
             Angebot
-          </a>
+          </a> */}
         </div>
 
         {/* Slider Controls */}
         <div>
           <button
             onClick={prevSlide}
-            className="absolute top-1/2 left-0.5 transform -translate-y-1/2 bg-white text-blue-950 p-2 rounded-full shadow hover:bg-gray-200 ml-4"
+            className="absolute top-1/2 left-4 transform -translate-y-1/2 bg-white text-blue-950 p-2 rounded-full shadow hover:bg-gray-200"
           >
             &#8249;
           </button>
@@ -120,6 +120,7 @@ export default function Home() {
             &#8250;
           </button>
         </div>
+
         {/* Dots Indicator */}
         <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
           {slides.map((_, index) => (
