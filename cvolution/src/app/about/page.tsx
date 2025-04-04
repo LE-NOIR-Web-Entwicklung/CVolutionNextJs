@@ -9,19 +9,10 @@ export default function About() {
       {/* Content Section */}
       <section className="py-16 px-4 lg:px-16">
       <div className="text-center">
-        <h2 className="text-3xl font-bold mb-4">Über <span className="text-blue-300">Uns</span></h2>
+        <h2 className="text-3xl font-bold mb-8">Über <span className="text-blue-300">Uns</span></h2>
       </div>
         <div className="container mx-auto flex flex-col lg:flex-row items-center">
-          {/* Image Section */}
-          <div className="w-full lg:w-1/3 mb-0 lg:mb-0">
-            <Image
-              src="/images/about.png" 
-              alt="About Us"
-              width={600}
-              height={600}
-              className="rounded-lg"
-            />
-          </div>
+          
 
           {/* Text Section */}
           <div className="w-full lg:w-2/3">
@@ -41,6 +32,17 @@ export default function About() {
             <p className="text-lg leading-relaxed mb-8">
               Wir legen grossen Wert auf Präzision, Kreativität und Individualität, damit Ihre Bewerbung auffällt und überzeugt. Mit unserer langjährigen Erfahrung und Expertise sind wir der ideale Partner für Ihren beruflichen Erfolg.
             </p>
+          </div>
+
+          {/* Image Section */}
+          <div className="w-full lg:w-1/3 mb-0 lg:mb-0">
+            <Image
+              src="/images/about.png" 
+              alt="About Us"
+              width={600}
+              height={600}
+              className="rounded-lg"
+            />
           </div>
         </div>
       </section>
