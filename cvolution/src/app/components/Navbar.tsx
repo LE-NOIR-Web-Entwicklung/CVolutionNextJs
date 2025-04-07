@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 
 export default function Navbar() {
   const [openDropdown, setOpenDropdown] = useState<string | null>(null); // State to track which dropdown is open
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false); // State for mobile menu
   const dropdownRef = useRef<HTMLDivElement>(null); // Ref for the desktop dropdown
 
   const toggleDropdown = (dropdownName: string) => {
@@ -12,6 +13,15 @@ export default function Navbar() {
 
   const closeDropdown = () => {
     setOpenDropdown(null);
+  };
+
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen((prev) => !prev);
+  };
+
+  const closeMobileMenu = () => {
+    setIsMobileMenuOpen(false);
+    closeDropdown();
   };
 
   // Close the dropdown when clicking outside of it
@@ -72,6 +82,27 @@ export default function Navbar() {
           >
             <img src="/images/logo.png" className="h-10" alt="Logo" />
           </Link>
+
+          {/* Mobile Menu Button */}
+          <button
+            className="lg:hidden text-white focus:outline-none"
+            onClick={toggleMobileMenu}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="w-6 h-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M4 6h16M4 12h16M4 18h16"
+              />
+            </svg>
+          </button>
 
           {/* Desktop Menu */}
           <div className="hidden lg:block">
@@ -137,6 +168,74 @@ export default function Navbar() {
               ))}
             </ul>
           </div>
+
+          {/* Mobile Menu */}
+          {isMobileMenuOpen && (
+            <div className="lg:hidden absolute top-16 left-0 w-full bg-[#204878] text-white shadow-lg z-50">
+              <ul className="flex flex-col gap-4 p-4">
+                {navItems.map((item, index) => (
+                  <li key={index} className="relative">
+                    {item.dropdown ? (
+                      <div>
+                        <div className="flex items-center justify-between">
+                          <Link
+                            href={item.href}
+                            className="hover:text-gray-300"
+                            onClick={closeMobileMenu} // Close menu after navigation
+                          >
+                            {item.name}
+                          </Link>
+                          <button
+                            className="text-white hover:text-gray-300"
+                            onClick={() => toggleDropdown(item.name)}
+                          >
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              className={`w-4 h-4 ml-1 transform ${
+                                openDropdown === item.name ? "rotate-180" : ""
+                              }`}
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                d="M19 9l-7 7-7-7"
+                              />
+                            </svg>
+                          </button>
+                        </div>
+                        {openDropdown === item.name && (
+                          <ul className="mt-2 pl-4 text-sm">
+                            {item.items.map((subItem, idx) => (
+                              <li key={idx} className="py-1 hover:text-gray-300">
+                                <Link
+                                  href={subItem.href}
+                                  onClick={closeMobileMenu} // Close menu after navigation
+                                >
+                                  {subItem.name}
+                                </Link>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                    ) : (
+                      <Link
+                        href={item.href}
+                        className="hover:text-gray-300"
+                        onClick={closeMobileMenu} // Close menu after navigation
+                      >
+                        {item.name}
+                      </Link>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
       </nav>
     </div>
