@@ -60,11 +60,11 @@ export default function Home() {
       link: "/service-rav",
     },
     {
-      name: "Videobewerbung",
-      description: "Entwicklung eines persönlichen Konzepts und Skripts. Unterstützung bei der Aufnahme. Professionelle Bearbeitung und Feinschliff des Videos",
-      image: "/images/video.png",
-      price: "CHF 199",
-      link: "/service-video",
+      name: "Check",
+      description: "Wir prüfen deinen Lebenslauf, deine Arbeitszeugnisse und weitere Bewerbungsdokumente auf Inhalt, Aufbau, Gestaltung und Formulierungen",
+      image: "/images/checked.png",
+      price: "CHF 49",
+      link: "/service-check",
     },
   ];
 

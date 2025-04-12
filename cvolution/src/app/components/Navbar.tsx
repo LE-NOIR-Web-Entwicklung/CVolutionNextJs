@@ -56,7 +56,7 @@ export default function Navbar() {
         { name: "Lohnanalyse", href: "/service-salary" },
         { name: "Motivationsschreiben", href: "/service-motivation" },
         { name: "RAV Unterstützung", href: "/service-rav" },
-        { name: "Videobewerbung", href: "/service-video" },
+        { name: "Check", href: "/service-check" },
       ],
     },
     {

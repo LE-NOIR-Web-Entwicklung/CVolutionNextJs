@@ -18,7 +18,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "CVolution GmbH",
   icons: {
-    icon: "/images/logo.ico",
+    icon: "/images/logo-new.ico",
   },
   description: "Unsere Bewerbung, deine Entwicklung.",
 };
