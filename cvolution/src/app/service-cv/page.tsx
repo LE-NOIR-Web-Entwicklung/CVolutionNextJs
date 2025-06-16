@@ -1,8 +1,43 @@
 "use client";
 
+import { useState } from "react";
+
+
 import Image from "next/image";
+import { sendEmail } from "../../../lib/resend";
 
 export default function ServiceCV() {
+
+  const [showForm, setShowForm] = useState(false);
+    const [name, setName] = useState("");
+    const [email, setEmail] = useState("");
+    const [submitted, setSubmitted] = useState(false);
+    const [error, setError] = useState("");
+    const [service] = useState("Lebenslauf");
+  
+    const handleSubmit = async (e: React.FormEvent) => {
+      e.preventDefault();
+      setError("");
+      if (!name || !email) {
+        setError("Bitte Name und E-Mail angeben.");
+        return;
+      }
+      try {
+        await sendEmail(name, email, service);
+        setSubmitted(true);
+        setShowForm(false);
+        setTimeout(() => {
+          setSubmitted(false);
+          setName("");
+          setEmail("");
+          // Redirect after 3 seconds
+          window.location.href =
+            "https://www.saferpay.com/SecurePayGate/MultiUsePayment/364685/17772867/c1b94ab8-a0bf-4852-94dd-8c49a820373b";
+        }, 3000);
+      } catch {
+        setError("Fehler beim Senden der Anfrage. Bitte versuchen Sie es erneut.");
+      }
+  };
   return (
     <div className="min-h-screen bg-white text-gray-800">
       <div className="container mx-auto px-4 py-16">
@@ -45,12 +80,57 @@ export default function ServiceCV() {
             <p className="text-xl font-bold mb-4 text-[#204878]">
               Preis: CHF 99
             </p>
-            <a
-              href="/contact?subject=Lebenslauf/CV"
-              className="inline-block px-4 py-3 mt-4 text-white font-bold bg-[#204878] rounded-lg shadow-lg hover:bg-[#1a3a66] transform hover:scale-105 transition duration-300"
-            >
-              Jetzt Buchen
-            </a>
+                        {!showForm && !submitted && (
+              <button
+                onClick={() => setShowForm(true)}
+                className="inline-block px-4 py-3 mt-4 text-white font-bold bg-[#204878] rounded-lg shadow-lg hover:bg-[#1a3a66] transform hover:scale-105 transition duration-300"
+              >
+                Anfrage senden
+              </button>
+            )}
+            {showForm && !submitted && (
+              <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+                <div>
+                  <label className="block mb-1 font-semibold">Name</label>
+                  <input
+                    type="text"
+                    className="w-full border rounded px-3 py-2"
+                    value={name}
+                    onChange={e => setName(e.target.value)}
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block mb-1 font-semibold">E-Mail</label>
+                  <input
+                    type="email"
+                    className="w-full border rounded px-3 py-2"
+                    value={email}
+                    onChange={e => setEmail(e.target.value)}
+                    required
+                  />
+                </div>
+                {error && <p className="text-red-600">{error}</p>}
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-[#204878] text-white rounded font-bold hover:bg-[#1a3a66] transition"
+                >
+                  Absenden
+                </button>
+                <button
+                  type="button"
+                  className="ml-2 px-4 py-2 bg-gray-200 rounded font-bold hover:bg-gray-300 transition"
+                  onClick={() => setShowForm(false)}
+                >
+                  Abbrechen
+                </button>
+              </form>
+            )}
+            {submitted && (
+              <p className="mt-6 text-green-700 font-bold">
+                Vielen Dank für Ihre Anfrage! Wir leiten Sie in Kürze zur Bezahlung weiter. Bitte warten Sie einen Moment.
+              </p>
+            )}
           </div>
         </div>
       </div>
