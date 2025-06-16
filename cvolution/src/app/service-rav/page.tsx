@@ -82,7 +82,7 @@ export default function ServiceRAV() {
                 onClick={() => setShowForm(true)}
                 className="inline-block px-4 py-3 mt-4 text-white font-bold bg-[#204878] rounded-lg shadow-lg hover:bg-[#1a3a66] transform hover:scale-105 transition duration-300"
               >
-                Anfrage senden
+                Jetzt kaufen
               </button>
             )}
             {showForm && !submitted && (
