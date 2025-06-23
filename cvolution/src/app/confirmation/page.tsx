@@ -35,7 +35,7 @@ export default function Confirmation() {
         localStorage.removeItem("confirmationService"); // Clear the service after sending
       }
       if (storedName) {
-        localStorage.removeItem("confirmationName");
+        localStorage.removeItem("confirmationName"); // Clear the name after sending
       }
     }
   }, []);
