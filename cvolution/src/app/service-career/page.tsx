@@ -2,7 +2,6 @@
 
 import { useState } from "react";
   import Image from "next/image";
-  import { sendEmail } from "../../../lib/resend";
 
 export default function ServiceCareer() {
     const [showForm, setShowForm] = useState(false);
@@ -20,11 +19,11 @@ export default function ServiceCareer() {
         return;
       }
       try {
-        await sendEmail(name, email, service);
         // Save email to sessionStorage for confirmation page
         if (typeof window !== "undefined") {
           localStorage.setItem("confirmationEmail", email);
           localStorage.setItem("confirmationService", service);
+          localStorage.setItem("confirmationName", name);
   
         }
         setSubmitted(true);
@@ -92,16 +91,6 @@ export default function ServiceCareer() {
             <p className="text-xl font-bold mb-4 text-[#204878]">
               Preis: CHF 149 / Stunde
             </p>
-
-            {/* <a
-                href="https://calendly.com/armend-cvolution/kennenlern-gesprach"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-block px-4 py-3 mt-4 text-white font-bold bg-[#204878] rounded-lg shadow-lg hover:bg-[#1a3a66] transform hover:scale-105 transition duration-300"
-                >
-                    Jetzt Termin vereinbaren
-            </a> */}
-
                          {!showForm && !submitted && (
               <button
                 onClick={() => setShowForm(true)}
@@ -137,7 +126,7 @@ export default function ServiceCareer() {
                   type="submit"
                   className="px-4 py-2 bg-[#204878] text-white rounded font-bold hover:bg-[#1a3a66] transition"
                 >
-                  Absenden
+                  Bestellung abschliessen
                 </button>
                 <button
                   type="button"

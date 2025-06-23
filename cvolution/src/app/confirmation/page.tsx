@@ -11,6 +11,7 @@ export default function Confirmation() {
     if (typeof window !== "undefined") {
       const storedEmail = localStorage.getItem("confirmationEmail");
       const storedService = localStorage.getItem("confirmationService");
+      const storedName = localStorage.getItem("confirmationName");
       if (storedEmail) {
         setEmail(storedEmail);
         // Call API to send confirmation mail
@@ -19,11 +20,22 @@ export default function Confirmation() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email: storedEmail }),
         });
+        // Call API to send info mail
+        if (storedName && storedService) {
+          fetch("/api/send-info", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name: storedName, email: storedEmail, service: storedService }),
+          });
+        }
         localStorage.removeItem("confirmationEmail"); // Clear the email after sending
       }
       if (storedService) {
         setService(storedService);
         localStorage.removeItem("confirmationService"); // Clear the service after sending
+      }
+      if (storedName) {
+        localStorage.removeItem("confirmationName");
       }
     }
   }, []);
