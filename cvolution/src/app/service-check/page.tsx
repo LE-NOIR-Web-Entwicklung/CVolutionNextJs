@@ -20,6 +20,12 @@ export default function ServiceCheck() {
     }
     try {
       await sendEmail(name, email, service);
+      // Save email to sessionStorage for confirmation page
+      if (typeof window !== "undefined") {
+        localStorage.setItem("confirmationEmail", email);
+        localStorage.setItem("confirmationService", service);
+
+      }
       setSubmitted(true);
       setShowForm(false);
       setTimeout(() => {
