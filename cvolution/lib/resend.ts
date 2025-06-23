@@ -25,7 +25,7 @@ export const sendEmail = async (name: string, email: string, service: string) =>
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12l2 2l4-4" stroke="#204878" />
                         </svg>
                     </div>
-                    <p style="color: #888; font-size: 0.95rem; text-align: center;">Diese Anfrage wurde über das CVolution Kontaktformular gestellt.<br/>Bitte zeitnah bearbeiten.</p>
+                    <p style="color: #888; font-size: 0.95rem; text-align: center;">Diese Anfrage wurde über das CVolution Bestellformular gestellt.<br/>Bitte zeitnah bearbeiten.</p>
                     <hr style="margin: 32px 0 16px 0; border: none; border-top: 1px solid #e5e7eb;" />
                     <a href="https://cvolution.ch" style="color: #204878; text-decoration: none; font-weight: bold; text-align: center; display: block;">www.cvolution.ch</a>
                 </div>
