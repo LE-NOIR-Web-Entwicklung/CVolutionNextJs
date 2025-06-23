@@ -5,10 +5,12 @@ import { useEffect, useState } from "react";
 
 export default function Confirmation() {
   const [email, setEmail] = useState("");
+  const [service, setService] = useState("");
 
   useEffect(() => {
     if (typeof window !== "undefined") {
       const storedEmail = localStorage.getItem("confirmationEmail");
+      const storedService = localStorage.getItem("confirmationService");
       if (storedEmail) {
         setEmail(storedEmail);
         // Call API to send confirmation mail
@@ -18,14 +20,17 @@ export default function Confirmation() {
           body: JSON.stringify({ email: storedEmail }),
         });
         localStorage.removeItem("confirmationEmail"); // Clear the email after sending
+      }
+      if (storedService) {
+        setService(storedService);
         localStorage.removeItem("confirmationService"); // Clear the service after sending
       }
     }
   }, []);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
-      <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full text-center">
+    <div className="min-h-[60vh] flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 py-8">
+      <div className="bg-white rounded-lg shadow-lg p-4 sm:p-6 max-w-md w-full text-center mt-8 mb-8">
         <div className="flex justify-start mb-2">
           <Link
             href="/"
@@ -62,6 +67,43 @@ export default function Confirmation() {
         </div>
         <p className="mt-6 text-gray-500">
           Sie werden in Kürze eine E-Mail mit weiteren Informationen erhalten.
+        </p>
+        {service.toLowerCase() === "laufbahnberatung" && (
+          <a
+            href="https://calendly.com/armend-cvolution/kennenlern-gesprach"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-block mt-6 mb-6 px-6 py-3 bg-[#204878] text-white font-bold rounded-lg shadow-lg hover:bg-[#1a3a66] transform hover:scale-105 transition duration-300"
+          >
+            Termin für Laufbahnberatung buchen
+          </a>
+        )}
+        {service.toLowerCase() === "lohnanalyse" && (
+          <a
+            href="https://calendly.com/armend-cvolution/lohnanalyse"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-block mt-6 mb-6 px-6 py-3 bg-[#204878] text-white font-bold rounded-lg shadow-lg hover:bg-[#1a3a66] transform hover:scale-105 transition duration-300"
+          >
+            Termin für Lohnanalyse buchen
+          </a>
+        )}
+        <p className="mt-2 text-gray-600 text-sm">
+          Bei Problemen oder Fragen kontaktieren Sie uns gerne unter
+          <a
+            href="mailto:info@cvolution.ch"
+            className="text-[#204878] underline ml-1"
+          >
+            info@cvolution.ch
+          </a>
+          {" "}oder telefonisch unter
+          <a
+            href="tel:+41764405151"
+            className="text-[#204878] underline ml-1"
+          >
+            076 440 51 51
+          </a>
+          .
         </p>
       </div>
     </div>

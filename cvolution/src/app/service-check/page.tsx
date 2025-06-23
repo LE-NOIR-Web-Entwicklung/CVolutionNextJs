@@ -4,7 +4,7 @@ import Image from "next/image";
 import { sendEmail } from "../../../lib/resend";
 
 export default function ServiceCheck() {
-   const [showForm, setShowForm] = useState(false);
+  const [showForm, setShowForm] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [submitted, setSubmitted] = useState(false);
