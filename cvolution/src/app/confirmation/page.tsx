@@ -18,7 +18,7 @@ export default function Confirmation() {
         fetch("/api/send-confirmation", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email: storedEmail }),
+          body: JSON.stringify({ email: storedEmail, service: storedService }),
         });
         // Call API to send info mail
         if (storedName && storedService) {

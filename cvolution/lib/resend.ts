@@ -34,7 +34,21 @@ export const sendEmail = async (name: string, email: string, service: string) =>
     }); 
 }
 
-export const sendConfirmationEmail = async (email: string) => {
+export const sendConfirmationEmail = async (email: string, service: string) => {
+    let customMessage = `<p style=\"color: #333; font-size: 1.1rem; margin-bottom: 24px;\">Wir haben Ihre Anfrage erhalten und werden uns in Kürze bei Ihnen melden.</p>`;
+    if (service && service.toLowerCase() === "lebenslauf") {
+        customMessage = `
+            <p style=\"color: #333; font-size: 1.1rem; margin-bottom: 24px;\">Vielen Dank für deine Bestellung!<br />
+            Es freut uns, dass du mit unserer Unterstützung den nächsten Karriereschritt gehen möchtest.</p>
+            <h2 style=\"color: #204878; font-size: 1.1rem; margin-bottom: 12px;\">Wie geht es weiter?</h2>
+            <p style=\"color: #333; font-size: 1.1rem; margin-bottom: 16px;\">Im Anhang findest du unsere 4 Topseller-Lebensläufe. Welche dürfen wir für dich erstellen?<br />
+            <a href=\"https://1drv.ms/f/c/b90389d448c1c616/EhXyumsKpldDpvb6DOnDYPoBcQw-_mBWn4wzybsuTFpSZQ?e=2haAaD\" style=\"color: #204878; text-decoration: underline; font-weight: bold;\" target=\"_blank\">Hier ansehen</a></p>
+            <p style=\"color: #333; font-size: 1.1rem; margin-bottom: 16px;\">Sende uns bitte deinen aktuellen Lebenslauf oder den Link zu deinem LinkedIn-Profil per E-Mail an <a href=\"mailto:info@cvolution.ch\" style=\"color: #204878; text-decoration: underline;\">info@cvolution.ch</a> – das hilft uns bei der Ausarbeitung.<br />
+            Hast du auch Arbeitszeugnisse zur Hand, können wir deinen CV noch aussagekräftiger gestalten.</p>
+            <p style=\"color: #333; font-size: 1.1rem; margin-bottom: 16px;\">Falls du keine Unterlagen zur Verfügung hast, ist das kein Problem – melde dich einfach telefonisch bei uns unter <a href=\"tel:+41764405151\" style=\"color: #204878; text-decoration: underline;\">076 440 51 51</a>.</p>
+            <p style=\"color: #333; font-size: 1.1rem;\">Wir freuen uns auf die Zusammenarbeit mit dir!</p>
+        `;
+    }
     await resend.emails.send({
         from: "CVolution <info@cvolution.ch>",
         to: email,
@@ -44,7 +58,7 @@ export const sendConfirmationEmail = async (email: string) => {
                 <div style="max-width: 480px; margin: 0 auto; background: #fff; border-radius: 12px; box-shadow: 0 2px 8px rgba(32,72,120,0.08); padding: 32px 24px; text-align: center;">
                     <img src="https://cvolution.ch/images/logo.png" alt="CVolution Logo" style="width: 80px; margin-bottom: 24px;" />
                     <h1 style="color: #204878; font-size: 2rem; margin-bottom: 16px;">Vielen Dank für Ihre Bestellung!</h1>
-                    <p style="color: #333; font-size: 1.1rem; margin-bottom: 24px;">Wir haben Ihre Anfrage erhalten und werden uns in Kürze bei Ihnen melden.</p>
+                    ${customMessage}
                     <div style="margin: 32px 0;">
                         <svg width="64" height="64" fill="none" viewBox="0 0 24 24" stroke="#22c55e" style="display: block; margin: 0 auto;">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
