@@ -18,6 +18,7 @@ export default function Confirmation() {
           body: JSON.stringify({ email: storedEmail }),
         });
         localStorage.removeItem("confirmationEmail"); // Clear the email after sending
+        localStorage.removeItem("confirmationService"); // Clear the service after sending
       }
     }
   }, []);
