@@ -93,7 +93,7 @@ export default function ServiceMotivation() {
             {showForm && !submitted && (
               <form onSubmit={handleSubmit} className="mt-6 space-y-4">
                 <div>
-                  <label className="block mb-1 font-semibold">Name</label>
+                  <label className="block mb-1 font-semibold">Name + Vorname</label>
                   <input
                     type="text"
                     className="w-full border rounded px-3 py-2"
