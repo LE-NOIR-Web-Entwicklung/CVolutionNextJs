@@ -5,7 +5,7 @@ import { Suspense, useState } from "react";
 
 function ContactPage() {
   const searchParams = useSearchParams();
-  const subjectFromParams = searchParams.get("subject") || ""; // Get subject from URL parameters
+  const subjectFromParams = searchParams?.get("subject") || ""; // Get subject from URL parameters
   const [isAgbChecked, setIsAgbChecked] = useState(false); // State for the checkbox
   const [formData, setFormData] = useState({
     name: "",

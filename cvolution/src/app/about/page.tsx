@@ -56,7 +56,7 @@ export default function About() {
             {[
               {
                 name: "Armend Mustafa",
-                position: "CEO / Managing Partner",
+                position: "CEO | Managing Partner",
                 image: "/images/team-1.jpg",
                 phone: "+41764405151",
                 email: "armend@cvolution.ch",
@@ -64,7 +64,7 @@ export default function About() {
               },
               {
                 name: "Jan Eggenberger",
-                position: "Software Engineer",
+                position: "CTO | Software Engineer",
                 image: "/images/team-2.jpg",
                 phone: "+41796654892",
                 email: "jan@cvolution.ch",
