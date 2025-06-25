@@ -7,7 +7,7 @@ export default function Team() {
   const teamMembers = [
     {
       name: "Armend Mustafa",
-      position: "Managing Partner",
+      position: "CEO | Managing Partner",
       image: "/images/team-1.jpg",
       phone: "+41764405151",
       email: "armend@cvolution.ch",
@@ -15,7 +15,7 @@ export default function Team() {
     },
     {
       name: "Jan Eggenberger",
-      position: "Software Engineer",
+      position: "CTO | Software Engineer",
       image: "/images/team-2.jpg",
       phone: "+41796654892",
       email: "jan@cvolution.ch",
