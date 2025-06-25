@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -55,30 +54,30 @@ export const Dashboard: React.FC = () => {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
         {/* Main Content Tabs */}
-        <Tabs defaultValue="linkedin" className="space-y-4 sm:space-y-6">
+        <Tabs defaultValue="profile" className="space-y-4 sm:space-y-6">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             {/* Mobile Tab Navigation */}
             <div className="w-full sm:hidden">
               <TabsList className="grid w-full grid-cols-3 h-auto">
                 {/* <TabsTrigger value="linkedin" className="text-xs p-2">LinkedIn</TabsTrigger> */}
-                <TabsTrigger value="profile" className="text-xs p-2 text-gray-600">Profil</TabsTrigger>
-                <TabsTrigger value="experience" className="text-xs p-2 text-gray-600">Erfahrung</TabsTrigger>
+                <TabsTrigger value="profile" className="text-xs p-2 text-gray-600 data-[state=active]:bg-[#204878] data-[state=active]:text-white">Profil</TabsTrigger>
+                <TabsTrigger value="experience" className="text-xs p-2 text-gray-600 data-[state=active]:bg-[#204878] data-[state=active]:text-white">Erfahrung</TabsTrigger>
               </TabsList>
               <TabsList className="grid w-full grid-cols-3 h-auto mt-2">
-                <TabsTrigger value="education" className="text-xs p-2 text-gray-600">Bildung</TabsTrigger>
-                <TabsTrigger value="skills" className="text-xs p-2 text-gray-600">Skills</TabsTrigger>
-                <TabsTrigger value="languages" className="text-xs p-2 text-gray-600">Sprachen</TabsTrigger>
+                <TabsTrigger value="education" className="text-xs p-2 text-gray-600 data-[state=active]:bg-[#204878] data-[state=active]:text-white">Bildung</TabsTrigger>
+                <TabsTrigger value="skills" className="text-xs p-2 text-gray-600 data-[state=active]:bg-[#204878] data-[state=active]:text-white">Skills</TabsTrigger>
+                <TabsTrigger value="languages" className="text-xs p-2 text-gray-600 data-[state=active]:bg-[#204878] data-[state=active]:text-white">Sprachen</TabsTrigger>
               </TabsList>
             </div>
 
             {/* Desktop Tab Navigation */}
             <TabsList className="hidden sm:grid w-full max-w-2xl grid-cols-6">
               {/* <TabsTrigger value="linkedin">LinkedIn</TabsTrigger> */}
-              <TabsTrigger value="profile" className='text-gray-600'>Profil</TabsTrigger>
-              <TabsTrigger value="experience" className='text-gray-600'>Erfahrung</TabsTrigger>
-              <TabsTrigger value="education" className='text-gray-600'>Bildung</TabsTrigger>
-              <TabsTrigger value="skills" className='text-gray-600'>Fähigkeiten</TabsTrigger>
-              <TabsTrigger value="languages"className='text-gray-600'>Sprachen</TabsTrigger>
+              <TabsTrigger value="profile" className="text-gray-600 data-[state=active]:bg-[#204878] data-[state=active]:text-white">Profil</TabsTrigger>
+              <TabsTrigger value="experience" className="text-gray-600 data-[state=active]:bg-[#204878] data-[state=active]:text-white">Erfahrung</TabsTrigger>
+              <TabsTrigger value="education" className="text-gray-600 data-[state=active]:bg-[#204878] data-[state=active]:text-white">Bildung</TabsTrigger>
+              <TabsTrigger value="skills" className="text-gray-600 data-[state=active]:bg-[#204878] data-[state=active]:text-white">Fähigkeiten</TabsTrigger>
+              <TabsTrigger value="languages" className="text-gray-600 data-[state=active]:bg-[#204878] data-[state=active]:text-white">Sprachen</TabsTrigger>
             </TabsList>
             
             <CVExportDialog>
@@ -90,9 +89,9 @@ export const Dashboard: React.FC = () => {
             </CVExportDialog>
           </div>
 
-          <TabsContent value="linkedin">
+          {/* <TabsContent value="linkedin">
             <LinkedInExtractor />
-          </TabsContent>
+          </TabsContent> */}
 
           <TabsContent value="profile">
             <ProfileSection />

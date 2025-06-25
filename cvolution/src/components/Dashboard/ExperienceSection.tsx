@@ -6,7 +6,6 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Plus, Edit, Trash2, Save, X } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
@@ -136,116 +135,139 @@ export const ExperienceSection: React.FC = () => {
     }
   };
 
-  const ExperienceForm: React.FC<{ experience?: Experience }> = ({ experience }) => (
-    <form onSubmit={(e) => handleSave(e, experience?.id)} className="space-y-4">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+  const ExperienceForm: React.FC<{ experience?: Experience }> = ({ experience }) => {
+    // If end_date is not set, treat as current
+    const initialIsCurrent = experience?.is_current ?? (!experience?.end_date);
+    const [isCurrent, setIsCurrent] = useState<boolean>(initialIsCurrent);
+    const [startDate, setStartDate] = useState<Date | null>(experience?.start_date ? new Date(experience.start_date) : null);
+    const [endDate, setEndDate] = useState<Date | null>(experience?.end_date ? new Date(experience.end_date) : null);
+
+    useEffect(() => {
+      setStartDate(experience?.start_date ? new Date(experience.start_date) : null);
+      setEndDate(experience?.end_date ? new Date(experience.end_date) : null);
+      setIsCurrent(experience?.is_current ?? (!experience?.end_date));
+    }, [experience]);
+
+    return (
+      <form onSubmit={(e) => handleSave(e, experience?.id)} className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="text-sm font-medium text-black">Berufsbezeichnung *</label>
+            <Input
+              name="job_title"
+              defaultValue={experience?.job_title || ''}
+              placeholder="Softwareentwickler"
+              required
+              className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+            />
+          </div>
+          <div>
+            <label className="text-sm font-medium text-black">Unternehmen *</label>
+            <Input
+              name="company"
+              defaultValue={experience?.company || ''}
+              placeholder="Firmenname"
+              required
+              className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="text-sm font-medium text-black">Beschäftigungsart *</label>
+            <Select name="employment_type" defaultValue={experience?.employment_type || 'full_time'}>
+              <SelectTrigger className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
+                <SelectValue className="text-black" />
+              </SelectTrigger>
+              <SelectContent className="bg-white text-black border border-gray-200 rounded-lg shadow-lg">
+                <SelectItem value="full_time" className="text-black hover:bg-blue-50">Vollzeit</SelectItem>
+                <SelectItem value="part_time" className="text-black hover:bg-blue-50">Teilzeit</SelectItem>
+                <SelectItem value="contract" className="text-black hover:bg-blue-50">Vertrag</SelectItem>
+                <SelectItem value="internship" className="text-black hover:bg-blue-50">Praktikum</SelectItem>
+                <SelectItem value="freelance" className="text-black hover:bg-blue-50">Freiberuflich</SelectItem>
+                <SelectItem value="volunteer" className="text-black hover:bg-blue-50">Ehrenamt</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <label className="text-sm font-medium text-black">Standort</label>
+            <Input
+              name="location"
+              defaultValue={experience?.location || ''}
+              placeholder="Stadt, Land"
+              className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="text-sm font-medium text-black">Startdatum</label>
+            <Input
+              name="start_date"
+              type="date"
+              defaultValue={experience?.start_date || ''}
+              required
+              className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+            />
+          </div>
+          <div>
+            <label className="text-sm font-medium text-black">Enddatum</label>
+            <Input
+              name="end_date"
+              type="date"
+              defaultValue={experience?.end_date || ''}
+              disabled={experience?.is_current || false}
+              className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+            />
+          </div>
+        </div>
+
+        <div className="flex items-center space-x-2 mt-2">
+          <input
+            type="checkbox"
+            name="is_current"
+            id="is_current"
+            defaultChecked={experience?.is_current || false}
+            className="w-5 h-5 text-[#204878] border-gray-300 mr-4 rounded focus:ring-[#204878]"
+          />
+          <label htmlFor="is_current" className="text-sm text-black select-none cursor-pointer">
+            Ich arbeite hier noch
+          </label>
+        </div>
+
         <div>
-          <label className="text-sm font-medium text-gray-700">Jobtitel *</label>
-          <Input
-            name="job_title"
-            defaultValue={experience?.job_title || ''}
-            placeholder="Softwareentwickler"
-            required
+          <label className="text-sm font-medium text-black">Beschreibung</label>
+          <Textarea
+            name="description"
+            defaultValue={experience?.description || ''}
+            placeholder="Beschreiben Sie Ihre Rolle und Leistungen..."
+            rows={4}
+            className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
           />
         </div>
-        <div>
-          <label className="text-sm font-medium text-gray-700">Unternehmen *</label>
-          <Input
-            name="company"
-            defaultValue={experience?.company || ''}
-            placeholder="Firmenname"
-            required
-          />
-        </div>
-      </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label className="text-sm font-medium text-gray-700">Beschäftigungsart</label>
-          <Select name="employment_type" defaultValue={experience?.employment_type || 'full_time'}>
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="full_time">Vollzeit</SelectItem>
-              <SelectItem value="part_time">Teilzeit</SelectItem>
-              <SelectItem value="contract">Vertrag</SelectItem>
-              <SelectItem value="internship">Praktikum</SelectItem>
-              <SelectItem value="freelance">Freiberuflich</SelectItem>
-              <SelectItem value="volunteer">Ehrenamt</SelectItem>
-            </SelectContent>
-          </Select>
+        <div className="flex space-x-3">
+          <Button type="submit" className="w-full bg-[#204878] hover:bg-[#4c6c93] text-white font-bold rounded-lg py-3 transition duration-200">
+            <Save className="h-4 w-4 mr-2" />
+            Speichern
+          </Button>
+          <Button
+            type="button"
+            onClick={() => {
+              setEditingId(null);
+              setIsAdding(false);
+            }}
+            className="w-full bg-gray-200 hover:bg-gray-300 text-black font-bold rounded-lg py-3 transition duration-200"
+          >
+            <X className="h-4 w-4 mr-2" />
+            Abbrechen
+          </Button>
         </div>
-        <div>
-          <label className="text-sm font-medium text-gray-700">Standort</label>
-          <Input
-            name="location"
-            defaultValue={experience?.location || ''}
-            placeholder="Stadt, Land"
-          />
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label className="text-sm font-medium text-gray-700">Startdatum *</label>
-          <Input
-            name="start_date"
-            type="date"
-            defaultValue={experience?.start_date || ''}
-            required
-          />
-        </div>
-        <div>
-          <label className="text-sm font-medium text-gray-700">Enddatum</label>
-          <Input
-            name="end_date"
-            type="date"
-            defaultValue={experience?.end_date || ''}
-            disabled={experience?.is_current || false}
-          />
-        </div>
-      </div>
-
-      <div className="flex items-center space-x-2">
-        <Checkbox
-          name="is_current"
-          id="is_current"
-          defaultChecked={experience?.is_current || false}
-        />
-        <label htmlFor="is_current" className="text-sm text-gray-700">
-          Ich arbeite hier noch
-        </label>
-      </div>
-
-      <div>
-        <label className="text-sm font-medium text-gray-700">Beschreibung</label>
-        <Textarea
-          name="description"
-          defaultValue={experience?.description || ''}
-          placeholder="Beschreiben Sie Ihre Rolle und Leistungen..."
-          rows={4}
-        />
-      </div>
-
-      <div className="flex space-x-3">
-        <Button type="submit" className="bg-blue-600 hover:bg-blue-700">
-          <Save className="h-4 w-4 mr-2" />
-          Speichern
-        </Button>
-        <Button
-          type="button"
-          onClick={() => {
-            setEditingId(null);
-            setIsAdding(false);
-          }}
-        >
-          <X className="h-4 w-4 mr-2" />
-          Abbrechen
-        </Button>
-      </div>
-    </form>
-  );
+      </form>
+    );
+  };
 
   if (isLoading) {
     return (
@@ -259,24 +281,24 @@ export const ExperienceSection: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <Card>
+      <div className="bg-white p-6 rounded-lg shadow-lg mb-8">
         <CardHeader>
           <div className="flex justify-between items-center">
             <div>
-              <CardTitle>Berufserfahrung</CardTitle>
-              <CardDescription>Ihre berufliche Laufbahn</CardDescription>
+              <CardTitle className="text-xl font-bold text-black mb-1">Berufserfahrung</CardTitle>
+              <CardDescription className="text-black">Ihre bisherigen beruflichen Stationen</CardDescription>
             </div>
-            <Button onClick={() => setIsAdding(true)} className="bg-blue-600 hover:bg-blue-700">
+            <Button onClick={() => setIsAdding(true)} className="bg-[#204878] hover:bg-[#4c6c93] text-white font-bold rounded-lg px-4 py-2">
               <Plus className="h-4 w-4" />
             </Button>
           </div>
         </CardHeader>
-      </Card>
+      </div>
 
       {isAdding && (
         <Card>
           <CardHeader>
-            <CardTitle>Neue Erfahrung hinzufügen</CardTitle>
+            <CardTitle className="text-black">Neue Erfahrung hinzufügen</CardTitle>
           </CardHeader>
           <CardContent>
             <ExperienceForm />
@@ -293,32 +315,34 @@ export const ExperienceSection: React.FC = () => {
               <div className="space-y-4">
                 <div className="flex justify-between items-start">
                   <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-gray-900">{experience.job_title}</h3>
-                    <p className="text-gray-600">{experience.company}</p>
-                    <p className="text-sm text-gray-500">
+                    <h3 className="text-lg font-semibold text-black">{experience.job_title}</h3>
+                    <p className="text-black">{experience.company}</p>
+                    <p className="text-sm text-black">
                       {new Date(experience.start_date).toLocaleDateString()} - 
                       {experience.is_current ? ' Aktuell' : 
                        experience.end_date ? ` ${new Date(experience.end_date).toLocaleDateString()}` : ' Aktuell'}
                     </p>
                     {experience.location && (
-                      <p className="text-sm text-gray-500">{experience.location}</p>
+                      <p className="text-sm text-black">{experience.location}</p>
                     )}
                   </div>
                   <div className="flex space-x-2">
                     <Button
                       onClick={() => setEditingId(experience.id)}
+                      className="bg-[#204878] hover:bg-[#4c6c93] text-white font-bold rounded-lg px-3 py-2"
                     >
                       <Edit className="h-4 w-4" />
                     </Button>
                     <Button
                       onClick={() => handleDelete(experience.id)}
+                      className="bg-[#204878] hover:bg-[#4c6c93] text-white font-bold rounded-lg px-3 py-2"
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
                 </div>
                 {experience.description && (
-                  <p className="text-gray-700 whitespace-pre-wrap">{experience.description}</p>
+                  <p className="text-black whitespace-pre-wrap">{experience.description}</p>
                 )}
               </div>
             )}
@@ -329,7 +353,7 @@ export const ExperienceSection: React.FC = () => {
       {experiences.length === 0 && !isAdding && (
         <Card>
           <CardContent className="text-center py-12">
-            <p className="text-gray-500">Noch keine Berufserfahrung hinzugefügt.</p>
+            <p className="text-black">Noch keine Berufserfahrung hinzugefügt.</p>
           </CardContent>
         </Card>
       )}

@@ -121,32 +121,33 @@ export const LanguagesSection: React.FC = () => {
     <form onSubmit={(e) => handleSave(e, language?.id)} className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="text-sm font-medium text-gray-700">Sprache *</label>
+          <label className="text-sm font-medium text-black">Sprache *</label>
           <Input
             name="language_name"
             defaultValue={language?.language_name || ''}
             placeholder="Deutsch, Englisch, Spanisch, etc."
             required
+            className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
           />
         </div>
         <div>
-          <label className="text-sm font-medium text-gray-700">Kenntnisstand *</label>
+          <label className="text-sm font-medium text-black">Niveau *</label>
           <Select name="proficiency" defaultValue={language?.proficiency || 'intermediate'}>
-            <SelectTrigger>
-              <SelectValue />
+            <SelectTrigger className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
+              <SelectValue className="text-black" />
             </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="beginner">Anfänger</SelectItem>
-              <SelectItem value="intermediate">Mittelstufe</SelectItem>
-              <SelectItem value="advanced">Fortgeschritten</SelectItem>
-              <SelectItem value="expert">Experte</SelectItem>
-              <SelectItem value="native">Muttersprache</SelectItem>
+            <SelectContent className="z-50 bg-white border border-gray-200 shadow-lg text-black">
+              <SelectItem value="beginner" className="text-black hover:bg-blue-50">Anfänger</SelectItem>
+              <SelectItem value="intermediate" className="text-black hover:bg-blue-50">Mittelstufe</SelectItem>
+              <SelectItem value="advanced" className="text-black hover:bg-blue-50">Fortgeschritten</SelectItem>
+              <SelectItem value="expert" className="text-black hover:bg-blue-50">Experte</SelectItem>
+              <SelectItem value="native" className="text-black hover:bg-blue-50">Muttersprache</SelectItem>
             </SelectContent>
           </Select>
         </div>
       </div>
       <div className="flex space-x-3">
-        <Button type="submit" className="bg-blue-600 hover:bg-blue-700">
+        <Button type="submit" className="w-full bg-[#204878] hover:bg-[#4c6c93] text-white font-bold rounded-lg py-3 transition duration-200">
           <Save className="h-4 w-4 mr-2" />
           Speichern
         </Button>
@@ -156,6 +157,7 @@ export const LanguagesSection: React.FC = () => {
             setEditingId(null);
             setIsAdding(false);
           }}
+          className="w-full bg-gray-200 hover:bg-gray-300 text-black font-bold rounded-lg py-3 transition duration-200"
         >
           <X className="h-4 w-4 mr-2" />
           Abbrechen
@@ -176,24 +178,24 @@ export const LanguagesSection: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <Card>
+      <div className="bg-white p-6 rounded-lg shadow-lg mb-8">
         <CardHeader>
           <div className="flex justify-between items-center">
             <div>
-              <CardTitle>Sprachen</CardTitle>
-              <CardDescription>Ihre Sprachkenntnisse und Kompetenzen</CardDescription>
+              <CardTitle className="text-xl font-bold text-black mb-1">Sprachen</CardTitle>
+              <CardDescription className="text-black">Ihre Sprachkenntnisse und Kompetenzen</CardDescription>
             </div>
-            <Button onClick={() => setIsAdding(true)} className="bg-blue-600 hover:bg-blue-700">
+            <Button onClick={() => setIsAdding(true)} className="bg-[#204878] hover:bg-[#4c6c93] text-white font-bold rounded-lg px-4 py-2">
               <Plus className="h-4 w-4" />
             </Button>
           </div>
         </CardHeader>
-      </Card>
+      </div>
 
       {isAdding && (
         <Card>
           <CardHeader>
-            <CardTitle>Neue Sprache hinzufügen</CardTitle>
+            <CardTitle className="text-black">Neue Sprache hinzufügen</CardTitle>
           </CardHeader>
           <CardContent>
             <LanguageForm />
@@ -209,8 +211,8 @@ export const LanguagesSection: React.FC = () => {
             ) : (
               <div className="flex justify-between items-start">
                 <div className="flex-1">
-                  <h4 className="font-semibold text-gray-900">{language.language_name}</h4>
-                  <Badge className="text-xs mt-1">
+                  <h4 className="font-semibold text-black">{language.language_name}</h4>
+                  <Badge className="text-xs text-black bg-gray-200">
                     {language.proficiency === 'beginner' && 'Anfänger'}
                     {language.proficiency === 'intermediate' && 'Mittelstufe'}
                     {language.proficiency === 'advanced' && 'Fortgeschritten'}
@@ -221,11 +223,13 @@ export const LanguagesSection: React.FC = () => {
                 <div className="flex space-x-1">
                   <Button
                     onClick={() => setEditingId(language.id)}
+                    className="bg-[#204878] hover:bg-[#4c6c93] text-white font-bold rounded-lg px-3 py-2"
                   >
                     <Edit className="h-3 w-3" />
                   </Button>
                   <Button
                     onClick={() => handleDelete(language.id)}
+                    className="bg-[#204878] hover:bg-[#4c6c93] text-white font-bold rounded-lg px-3 py-2"
                   >
                     <Trash2 className="h-3 w-3" />
                   </Button>
@@ -239,7 +243,7 @@ export const LanguagesSection: React.FC = () => {
       {languages.length === 0 && !isAdding && (
         <Card>
           <CardContent className="text-center py-12">
-            <p className="text-gray-500 mb-4">Noch keine Sprachen hinzugefügt.</p>
+            <p className="text-black mb-4">Noch keine Sprachen hinzugefügt.</p>
           </CardContent>
         </Card>
       )}

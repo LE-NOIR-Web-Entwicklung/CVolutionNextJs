@@ -577,58 +577,56 @@ export const CVExportDialog: React.FC<CVExportDialogProps> = ({ children }) => {
       <DialogTrigger asChild>
         {children}
       </DialogTrigger>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
+      <DialogContent className="max-w-4xl w-full max-h-[90vh] overflow-y-auto bg-white p-2 sm:p-4 md:p-8 rounded-2xl shadow-lg border-0">
+        <DialogHeader className="space-y-1 p-0 mb-6">
+          <DialogTitle className="flex flex-col sm:flex-row items-center gap-2 text-xl sm:text-2xl text-center text-black font-bold">
             <FileText className="h-5 w-5" />
             Lebenslauf exportieren
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-center text-black text-sm sm:text-base">
             Wählen Sie ein Template und generieren Sie Ihren professionellen Lebenslauf
           </DialogDescription>
         </DialogHeader>
-
         <div className="space-y-6">
           <div>
-            <label className="text-sm font-medium text-gray-700 flex items-center gap-2 mb-3">
+            <label className="text-sm font-medium text-black flex items-center gap-2 mb-3">
               <Palette className="h-4 w-4" />
               Template auswählen
             </label>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
               {templates.map((template) => (
                 <Card 
                   key={template.id}
-                  className={`cursor-pointer transition-all ${
+                  className={`cursor-pointer transition-all border-0 ${
                     selectedTemplate === template.id 
                       ? 'ring-2 ring-blue-500 bg-blue-50' 
                       : 'hover:shadow-md'
                   }`}
                   onClick={() => setSelectedTemplate(template.id)}
                 >
-                  <CardContent className="p-4">
-                    <div className="aspect-[3/4] mb-3 bg-gray-100 rounded overflow-hidden">
+                  <CardContent className="p-2 sm:p-4">
+                    <div className="aspect-[3/4] mb-2 sm:mb-3 bg-gray-100 rounded overflow-hidden">
                       <img 
                         src={template.preview} 
                         alt={template.name}
                         className="w-full h-full object-cover"
                       />
                     </div>
-                    <h3 className="font-semibold text-gray-900">{template.name}</h3>
-                    <p className="text-sm text-gray-600 mt-1">{template.description}</p>
+                    <h3 className="font-semibold text-black text-base sm:text-lg">{template.name}</h3>
+                    <p className="text-xs sm:text-sm text-gray-600 mt-1">{template.description}</p>
                   </CardContent>
                 </Card>
               ))}
             </div>
           </div>
-
-          <div className="flex justify-between items-center pt-4 border-t">
-            <p className="text-sm text-gray-600">
+          <div className="flex flex-col sm:flex-row justify-between items-center pt-4 border-t border-gray-200 gap-3 sm:gap-0">
+            <p className="text-xs sm:text-sm text-black text-center sm:text-left">
               Ausgewähltes Template: <strong>{templates.find(t => t.id === selectedTemplate)?.name}</strong>
             </p>
             <Button 
               onClick={handleGenerateCV}
               disabled={isGenerating}
-              className="bg-green-600 hover:bg-green-700"
+              className="bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg px-3 sm:px-4 py-2 transition duration-200 w-full sm:w-auto"
             >
               <Download className="h-4 w-4 mr-2" />
               {isGenerating ? 'Wird generiert...' : 'PDF generieren'}

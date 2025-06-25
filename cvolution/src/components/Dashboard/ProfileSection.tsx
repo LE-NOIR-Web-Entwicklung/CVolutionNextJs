@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -7,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { Save, Edit, Upload, Camera } from 'lucide-react';
+import { Save, Edit, Camera } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
 interface Profile {
@@ -96,7 +95,6 @@ export const ProfileSection: React.FC = () => {
     }
 
     setIsUploadingPhoto(true);
-
     try {
       const fileExt = file.name.split('.').pop();
       const fileName = `${user.id}/profile.${fileExt}`;
@@ -207,84 +205,87 @@ export const ProfileSection: React.FC = () => {
 
   if (!isEditing) {
     return (
-      <Card>
-        <CardHeader>
+      <div className="bg-white p-8 rounded-2xl shadow-lg mb-8">
+        <CardHeader className="pb-4 border-b border-gray-100">
           <div className="flex justify-between items-center">
             <div>
-              <CardTitle>Persönliches Profil</CardTitle>
-              <CardDescription>Ihre professionellen Informationen</CardDescription>
+              <CardTitle className="text-xl font-bold text-black mb-1">Persönliches Profil</CardTitle>
+              <CardDescription className="text-black">Ihre professionellen Informationen</CardDescription>
             </div>
-            <Button onClick={() => setIsEditing(true)} >
+            <Button onClick={() => setIsEditing(true)} className="bg-[#204878] hover:bg-[#4c6c93] text-white font-bold rounded-lg px-4 py-2">
               <Edit className="h-4 w-4 mr-2" />
               Bearbeiten
             </Button>
           </div>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-4 pt-6">
           <div className="flex items-center space-x-4 mb-6">
-            <Avatar className="h-20 w-20">
+            <Avatar className="h-20 w-20 border-2 border-blue-200">
               <AvatarImage 
                 src={profile?.profile_picture_url || ''} 
                 alt={profile?.full_name || 'Profil'} 
               />
-              <AvatarFallback className="text-lg">
+              <AvatarFallback className="text-lg bg-blue-100 text-black">
                 {profile?.full_name?.split(' ').map(n => n[0]).join('') || 'U'}
               </AvatarFallback>
             </Avatar>
             <div>
-              <h3 className="text-lg font-semibold">{profile?.full_name || 'Nicht angegeben'}</h3>
-              <p className="text-gray-600">{profile?.headline || 'Keine Schlagzeile'}</p>
+              <h3 className="text-lg font-bold text-black mb-1">{profile?.full_name || 'Nicht angegeben'}</h3>
+              <p className="text-black text-sm">{profile?.headline || 'Keine Schlagzeile'}</p>
             </div>
           </div>
-
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="text-sm font-medium text-gray-700">Standort</label>
-              <p className="text-gray-900">{profile?.location || 'Nicht angegeben'}</p>
+              <label className="text-sm font-medium text-black">E-Mail</label>
+              <p className="text-black">{user?.email || 'Nicht angegeben'}</p>
             </div>
             <div>
-              <label className="text-sm font-medium text-gray-700">Telefon</label>
-              <p className="text-gray-900">{profile?.phone || 'Nicht angegeben'}</p>
+              <label className="text-sm font-medium text-black">Standort</label>
+              <p className="text-black">{profile?.location || 'Nicht angegeben'}</p>
             </div>
             <div>
-              <label className="text-sm font-medium text-gray-700">LinkedIn-URL</label>
-              <p className="text-gray-900">{profile?.linkedin_url || 'Nicht angegeben'}</p>
+              <label className="text-sm font-medium text-black">Telefon</label>
+              <p className="text-black">{profile?.phone || 'Nicht angegeben'}</p>
             </div>
             <div>
-              <label className="text-sm font-medium text-gray-700">Website</label>
-              <p className="text-gray-900">{profile?.website || 'Nicht angegeben'}</p>
+              <label className="text-sm font-medium text-black">LinkedIn-URL</label>
+              <p className="text-black">{profile?.linkedin_url || 'Nicht angegeben'}</p>
+            </div>
+            <div>
+              <label className="text-sm font-medium text-black">Website</label>
+              <p className="text-black">{profile?.website || 'Nicht angegeben'}</p>
             </div>
           </div>
           <div>
-            <label className="text-sm font-medium text-gray-700">Berufliche Zusammenfassung</label>
-            <p className="text-gray-900 mt-1">{profile?.summary || 'Nicht angegeben'}</p>
+            <label className="text-sm font-medium text-black">Berufliche Zusammenfassung</label>
+            <p className="text-black mt-1">{profile?.summary || 'Nicht angegeben'}</p>
           </div>
         </CardContent>
-      </Card>
+      </div>
     );
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Profil bearbeiten</CardTitle>
-        <CardDescription>Aktualisieren Sie Ihre professionellen Informationen</CardDescription>
+    <div className="bg-white p-8 rounded-2xl shadow-lg mb-8">
+      <CardHeader className="pb-4 border-b border-gray-100">
+        <CardTitle className="text-xl font-bold text-black mb-1">Profil bearbeiten</CardTitle>
+        <CardDescription className="text-black">Aktualisieren Sie Ihre professionellen Informationen</CardDescription>
       </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSave} className="space-y-4">
+      <CardContent className="pt-6">
+        <form onSubmit={handleSave} className="space-y-6">
           <div className="flex items-center space-x-4 mb-6">
-            <Avatar className="h-20 w-20">
+            <Avatar className="h-20 w-20 border-2 border-blue-200">
               <AvatarImage 
                 src={profile?.profile_picture_url || ''} 
                 alt={profile?.full_name || 'Profil'} 
               />
-              <AvatarFallback className="text-lg">
+              <AvatarFallback className="text-lg bg-blue-100 text-black">
                 {profile?.full_name?.split(' ').map(n => n[0]).join('') || 'U'}
               </AvatarFallback>
             </Avatar>
             <div>
               <label htmlFor="profile-photo" className="cursor-pointer">
-                <Button type="button" asChild>
+                <Button type="button" asChild className="bg-[#204878] hover:bg-[#4c6c93] text-white font-bold rounded-lg px-4 py-2">
                   <span>
                     {isUploadingPhoto ? (
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600" />
@@ -306,10 +307,9 @@ export const ProfileSection: React.FC = () => {
               <p className="text-xs text-gray-500 mt-1">Max 5MB, JPG/PNG</p>
             </div>
           </div>
-
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label htmlFor="full_name" className="text-sm font-medium text-gray-700">
+              <label htmlFor="full_name" className="text-sm font-medium text-black">
                 Vollständiger Name
               </label>
               <Input
@@ -317,10 +317,23 @@ export const ProfileSection: React.FC = () => {
                 name="full_name"
                 defaultValue={profile?.full_name || ''}
                 placeholder="Ihr vollständiger Name"
+                className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
               />
             </div>
             <div>
-              <label htmlFor="headline" className="text-sm font-medium text-gray-700">
+              <label htmlFor="email" className="text-sm font-medium text-black">
+                E-Mail
+              </label>
+              <Input
+                id="email"
+                name="email"
+                value={user?.email || ''}
+                readOnly
+                className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black opacity-70 cursor-not-allowed"
+              />
+            </div>
+            <div>
+              <label htmlFor="headline" className="text-sm font-medium text-black">
                 Berufliche Schlagzeile
               </label>
               <Input
@@ -328,10 +341,11 @@ export const ProfileSection: React.FC = () => {
                 name="headline"
                 defaultValue={profile?.headline || ''}
                 placeholder="z.B. Senior-Softwareentwickler"
+                className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
               />
             </div>
             <div>
-              <label htmlFor="location" className="text-sm font-medium text-gray-700">
+              <label htmlFor="location" className="text-sm font-medium text-black">
                 Standort
               </label>
               <Input
@@ -339,10 +353,11 @@ export const ProfileSection: React.FC = () => {
                 name="location"
                 defaultValue={profile?.location || ''}
                 placeholder="Stadt, Land"
+                className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
               />
             </div>
             <div>
-              <label htmlFor="phone" className="text-sm font-medium text-gray-700">
+              <label htmlFor="phone" className="text-sm font-medium text-black">
                 Telefon
               </label>
               <Input
@@ -350,10 +365,11 @@ export const ProfileSection: React.FC = () => {
                 name="phone"
                 defaultValue={profile?.phone || ''}
                 placeholder="+49 (123) 456-7890"
+                className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
               />
             </div>
             <div>
-              <label htmlFor="linkedin_url" className="text-sm font-medium text-gray-700">
+              <label htmlFor="linkedin_url" className="text-sm font-medium text-black">
                 LinkedIn-URL
               </label>
               <Input
@@ -361,10 +377,11 @@ export const ProfileSection: React.FC = () => {
                 name="linkedin_url"
                 defaultValue={profile?.linkedin_url || ''}
                 placeholder="https://linkedin.com/in/ihrprofil"
+                className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
               />
             </div>
             <div>
-              <label htmlFor="website" className="text-sm font-medium text-gray-700">
+              <label htmlFor="website" className="text-sm font-medium text-black">
                 Website
               </label>
               <Input
@@ -372,11 +389,12 @@ export const ProfileSection: React.FC = () => {
                 name="website"
                 defaultValue={profile?.website || ''}
                 placeholder="https://ihrewebsite.com"
+                className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
               />
             </div>
           </div>
           <div>
-            <label htmlFor="summary" className="text-sm font-medium text-gray-700">
+            <label htmlFor="summary" className="text-sm font-medium text-black">
               Berufliche Zusammenfassung
             </label>
             <Textarea
@@ -385,19 +403,20 @@ export const ProfileSection: React.FC = () => {
               defaultValue={profile?.summary || ''}
               placeholder="Kurze Beschreibung Ihres beruflichen Hintergrunds und Ihrer Ziele..."
               rows={4}
+              className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             />
           </div>
           <div className="flex space-x-3">
-            <Button type="submit" disabled={isSaving} className="bg-blue-600 hover:bg-blue-700">
+            <Button type="submit" disabled={isSaving} className="w-full bg-[#204878] hover:bg-[#4c6c93] text-white font-bold rounded-lg py-3 transition duration-200">
               <Save className="h-4 w-4 mr-2" />
               {isSaving ? 'Speichern...' : 'Änderungen speichern'}
             </Button>
-            <Button type="button" onClick={() => setIsEditing(false)}>
+            <Button type="button" onClick={() => setIsEditing(false)} className="w-full bg-gray-200 hover:bg-gray-300 text-black font-bold rounded-lg py-3 transition duration-200">
               Abbrechen
             </Button>
           </div>
         </form>
       </CardContent>
-    </Card>
+    </div>
   );
 };

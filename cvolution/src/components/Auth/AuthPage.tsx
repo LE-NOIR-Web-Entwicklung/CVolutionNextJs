@@ -74,31 +74,29 @@ export const AuthPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gray-100 flex items-center justify-center py-12 px-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">CVolution GmbH</h1>
-          <p className="text-gray-600">Professionelle Lebenslauf-Management-Plattform</p>
+          <h1 className="text-3xl font-bold text-black mb-2 tracking-tight">CVolution GmbH</h1>
+          <p className="text-black text-base">Professionelle Lebenslauf-Management-Plattform</p>
         </div>
-
-        <Card className="shadow-xl border-0">
-          <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl text-center text-gray-900">Willkommen</CardTitle>
-            <CardDescription className="text-center text-gray-600">
+        <div className="bg-white p-8 rounded-2xl shadow-lg">
+          <CardHeader className="space-y-1 p-0 mb-6">
+            <CardTitle className="text-2xl text-center text-black font-bold">Willkommen</CardTitle>
+            <CardDescription className="text-center text-black text-base">
               Melden Sie sich in Ihrem Konto an oder erstellen Sie ein neues
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-0">
             <Tabs defaultValue="signin" className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="signin" >Anmelden</TabsTrigger>
-                <TabsTrigger value="signup">Registrieren</TabsTrigger>
+              <TabsList className="grid w-full grid-cols-2 bg-gray-100 rounded-lg mb-6">
+                <TabsTrigger value="signin" className="rounded-lg data-[state=active]:bg-[#204878] data-[state=active]:text-white text-black font-semibold">Anmelden</TabsTrigger>
+                <TabsTrigger value="signup" className="rounded-lg data-[state=active]:bg-[#204878] data-[state=active]:text-white text-black font-semibold">Registrieren</TabsTrigger>
               </TabsList>
-              
               <TabsContent value="signin">
-                <form onSubmit={handleSignIn} className="space-y-4">
-                  <div className="space-y-2">
-                    <label htmlFor="signin-email" className="text-sm font-medium text-gray-700">
+                <form onSubmit={handleSignIn} className="space-y-5">
+                  <div className="space-y-2 text-left">
+                    <label htmlFor="signin-email" className="text-sm font-medium text-black">
                       E-Mail
                     </label>
                     <Input
@@ -107,11 +105,11 @@ export const AuthPage: React.FC = () => {
                       type="email"
                       placeholder="ihre@email.com"
                       required
-                      className="w-full"
+                      className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                     />
                   </div>
-                  <div className="space-y-2">
-                    <label htmlFor="signin-password" className="text-sm font-medium text-gray-700">
+                  <div className="space-y-2 text-left">
+                    <label htmlFor="signin-password" className="text-sm font-medium text-black">
                       Passwort
                     </label>
                     <Input
@@ -120,19 +118,18 @@ export const AuthPage: React.FC = () => {
                       type="password"
                       placeholder="••••••••"
                       required
-                      className="w-full"
+                      className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                     />
                   </div>
-                  <Button type="submit" className="w-full bg-[#4c6c93] hover:bg-[#1a3a66]" disabled={isLoading}>
+                  <Button type="submit" className="w-full bg-[#204878] hover:bg-[#4c6c93] text-white font-bold rounded-lg py-3 transition duration-200" disabled={isLoading}>
                     {isLoading ? "Anmeldung läuft..." : "Anmelden"}
                   </Button>
                 </form>
               </TabsContent>
-              
               <TabsContent value="signup">
-                <form onSubmit={handleSignUp} className="space-y-4">
-                  <div className="space-y-2">
-                    <label htmlFor="signup-name" className="text-sm font-medium text-gray-700">
+                <form onSubmit={handleSignUp} className="space-y-5">
+                  <div className="space-y-2 text-left">
+                    <label htmlFor="signup-name" className="text-sm font-medium text-black">
                       Vollständiger Name
                     </label>
                     <Input
@@ -141,11 +138,11 @@ export const AuthPage: React.FC = () => {
                       type="text"
                       placeholder="Ihr vollständiger Name"
                       required
-                      className="w-full"
+                      className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                     />
                   </div>
-                  <div className="space-y-2">
-                    <label htmlFor="signup-email" className="text-sm font-medium text-gray-700">
+                  <div className="space-y-2 text-left">
+                    <label htmlFor="signup-email" className="text-sm font-medium text-black">
                       E-Mail
                     </label>
                     <Input
@@ -154,11 +151,11 @@ export const AuthPage: React.FC = () => {
                       type="email"
                       placeholder="ihre@email.com"
                       required
-                      className="w-full"
+                      className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                     />
                   </div>
-                  <div className="space-y-2">
-                    <label htmlFor="signup-password" className="text-sm font-medium text-gray-700">
+                  <div className="space-y-2 text-left">
+                    <label htmlFor="signup-password" className="text-sm font-medium text-black">
                       Passwort
                     </label>
                     <Input
@@ -167,18 +164,18 @@ export const AuthPage: React.FC = () => {
                       type="password"
                       placeholder="••••••••"
                       required
-                      className="w-full"
+                      className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                       minLength={6}
                     />
                   </div>
-                  <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700" disabled={isLoading}>
+                  <Button type="submit" className="w-full bg-[#204878] hover:bg-[#4c6c93] text-white font-bold rounded-lg py-3 transition duration-200" disabled={isLoading}>
                     {isLoading ? "Konto wird erstellt..." : "Konto erstellen"}
                   </Button>
                 </form>
               </TabsContent>
             </Tabs>
           </CardContent>
-        </Card>
+        </div>
       </div>
     </div>
   );

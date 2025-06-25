@@ -138,54 +138,60 @@ export const EducationSection: React.FC = () => {
     <form onSubmit={(e) => handleSave(e, education?.id)} className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="text-sm font-medium text-gray-700">Institution *</label>
+          <label className="text-sm font-medium text-black">Institution *</label>
           <Input
             name="institution"
             defaultValue={education?.institution || ''}
             placeholder="Universität für Technologie"
             required
+            className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
           />
         </div>
         <div>
-          <label className="text-sm font-medium text-gray-700">Abschluss *</label>
+          <label className="text-sm font-medium text-black">Abschluss *</label>
           <Input
             name="degree"
             defaultValue={education?.degree || ''}
             placeholder="Bachelor of Science"
             required
+            className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
           />
         </div>
         <div>
-          <label className="text-sm font-medium text-gray-700">Studienrichtung</label>
+          <label className="text-sm font-medium text-black">Studienrichtung</label>
           <Input
             name="field_of_study"
             defaultValue={education?.field_of_study || ''}
             placeholder="Informatik"
+            className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
           />
         </div>
         <div>
-          <label className="text-sm font-medium text-gray-700">Note/Abschluss</label>
+          <label className="text-sm font-medium text-black">Note/Abschluss</label>
           <Input
             name="grade"
             defaultValue={education?.grade || ''}
             placeholder="1,5 oder Sehr gut"
+            className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
           />
         </div>
         <div>
-          <label className="text-sm font-medium text-gray-700">Startdatum</label>
+          <label className="text-sm font-medium text-black">Startdatum</label>
           <Input
             name="start_date"
             type="date"
             defaultValue={education?.start_date || ''}
+            className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
           />
         </div>
         <div>
-          <label className="text-sm font-medium text-gray-700">Enddatum</label>
+          <label className="text-sm font-medium text-black">Enddatum</label>
           <Input
             name="end_date"
             type="date"
             defaultValue={education?.end_date || ''}
             disabled={education?.is_current}
+            className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
           />
           <div className="flex items-center mt-2">
             <input
@@ -193,25 +199,26 @@ export const EducationSection: React.FC = () => {
               name="is_current"
               id="is_current"
               defaultChecked={education?.is_current}
-              className="mr-2"
+              className="w-5 h-5 text-[#204878] border-gray-300 mr-4 rounded focus:ring-[#204878]"
             />
-            <label htmlFor="is_current" className="text-sm text-gray-600">
+            <label htmlFor="is_current" className="text-sm text-black">
               Ich studiere hier noch
             </label>
           </div>
         </div>
       </div>
       <div>
-        <label className="text-sm font-medium text-gray-700">Beschreibung</label>
+        <label className="text-sm font-medium text-black">Beschreibung</label>
         <Textarea
           name="description"
           defaultValue={education?.description || ''}
           placeholder="Bemerkenswerte Leistungen, Kurse oder Aktivitäten..."
           rows={3}
+          className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
         />
       </div>
       <div className="flex space-x-3">
-        <Button type="submit" className="bg-blue-600 hover:bg-blue-700">
+        <Button type="submit" className="w-full bg-[#204878] hover:bg-[#4c6c93] text-white font-bold rounded-lg py-3 transition duration-200">
           <Save className="h-4 w-4 mr-2" />
           Speichern
         </Button>
@@ -221,6 +228,7 @@ export const EducationSection: React.FC = () => {
             setEditingId(null);
             setIsAdding(false);
           }}
+          className="w-full bg-gray-200 hover:bg-gray-300 text-black font-bold rounded-lg py-3 transition duration-200"
         >
           <X className="h-4 w-4 mr-2" />
           Abbrechen
@@ -241,24 +249,24 @@ export const EducationSection: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <Card>
+      <div className="bg-white p-6 rounded-lg shadow-lg mb-8">
         <CardHeader>
           <div className="flex justify-between items-center">
             <div>
-              <CardTitle>Bildung</CardTitle>
-              <CardDescription>Ihr Bildungshintergrund</CardDescription>
+              <CardTitle className="text-xl font-bold text-black mb-1">Bildung</CardTitle>
+              <CardDescription className="text-black">Ihr Bildungshintergrund</CardDescription>
             </div>
-            <Button onClick={() => setIsAdding(true)} className="bg-blue-600 hover:bg-blue-700">
+            <Button onClick={() => setIsAdding(true)} className="bg-[#204878] hover:bg-[#4c6c93] text-white font-bold rounded-lg px-4 py-2">
               <Plus className="h-4 w-4" />
             </Button>
           </div>
         </CardHeader>
-      </Card>
+      </div>
 
       {isAdding && (
         <Card>
           <CardHeader>
-            <CardTitle>Neue Bildung hinzufügen</CardTitle>
+            <CardTitle className="text-black">Neue Bildung hinzufügen</CardTitle>
           </CardHeader>
           <CardContent>
             <EducationForm />
@@ -281,7 +289,7 @@ export const EducationSection: React.FC = () => {
                       <p className="text-gray-600">{edu.field_of_study}</p>
                     )}
                     <div className="flex items-center space-x-2 mt-2">
-                      {edu.grade && <Badge>{edu.grade}</Badge>}
+                      {edu.grade && <Badge className="text-xs text-black bg-gray-200">{edu.grade}</Badge>}
                       {edu.start_date && (
                         <span className="text-sm text-gray-500">
                           {new Date(edu.start_date).toLocaleDateString()} -{' '}
@@ -294,11 +302,13 @@ export const EducationSection: React.FC = () => {
                   <div className="flex space-x-2">
                     <Button
                       onClick={() => setEditingId(edu.id)}
+                      className="bg-[#204878] hover:bg-[#4c6c93] text-white font-bold rounded-lg px-3 py-2"
                     >
                       <Edit className="h-4 w-4" />
                     </Button>
                     <Button
                       onClick={() => handleDelete(edu.id)}
+                      className="bg-[#204878] hover:bg-[#4c6c93] text-white font-bold rounded-lg px-3 py-2"
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
