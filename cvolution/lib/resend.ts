@@ -58,6 +58,16 @@ export const sendConfirmationEmail = async (email: string, service: string) => {
             <p style=\"color: #333; font-size: 1.1rem; margin-bottom: 16px;\">Bitte sende uns zudem eine aktuelle Lohnabrechnung sowie eine Übersicht der dir gebotenen Benefits zu.</p>
             <p style=\"color: #333; font-size: 1.1rem;\">Wir freuen uns auf die Zusammenarbeit mit dir!</p>
         `;
+    } else if (service && service.toLowerCase() === "laufbahnberatung") {
+        customMessage = `
+            <p style=\"color: #333; font-size: 1.1rem; margin-bottom: 24px;\">Vielen Dank für deine Bestellung!<br />
+            Wir freuen uns, dich auf deinem beruflichen Weg begleiten zu dürfen.</p>
+            <h2 style=\"color: #204878; font-size: 1.1rem; margin-bottom: 12px;\">Wie geht es weiter?</h2>
+            <p style=\"color: #333; font-size: 1.1rem; margin-bottom: 16px;\">Über den folgenden Link kannst du direkt einen Termin für das Erstgespräch buchen.<br />
+            <a href=\"https://calendly.com/armend-cvolution/kennenlern-gesprach\" style=\"color: #204878; text-decoration: underline; font-weight: bold;\" target=\"_blank\">Termin buchen</a></p>
+            <p style=\"color: #333; font-size: 1.1rem; margin-bottom: 16px;\">Bitte sende uns vorab, falls vorhanden, deinen aktuellen Lebenslauf oder relevante Unterlagen per E-Mail an <a href=\"mailto:info@cvolution.ch\" style=\"color: #204878; text-decoration: underline;\">info@cvolution.ch</a>.</p>
+            <p style=\"color: #333; font-size: 1.1rem;\">Wir freuen uns auf die Zusammenarbeit mit dir!</p>
+        `;
     }
     await resend.emails.send({
         from: "CVolution <info@cvolution.ch>",
