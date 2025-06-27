@@ -1,13 +1,26 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import { Card, CardContent } from '@/components/ui/card';
 import { Download, FileText, Palette } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+
+// ⇢ If you ever refactor the preview, export the base component here so it stays in sync
+//   with the printing / exporting layout.
 import { CVPreview } from './CVPreview';
+
+/** *******************************************************************************************
+ *  TYPES & CONSTANTS
+ ********************************************************************************************/
 
 interface CVExportDialogProps {
   children: React.ReactNode;
@@ -15,68 +28,137 @@ interface CVExportDialogProps {
 
 export type CVTemplate = 'classic' | 'modern' | 'minimal';
 
+const TEMPLATES: Record<CVTemplate, { id: CVTemplate; name: string; description: string; preview: string }> = {
+  classic: {
+    id: 'classic',
+    name: 'Klassisch',
+    description: 'Traditionelles Lebenslauf‑Layout mit klarer Struktur',
+    preview: '/lovable-uploads/cdc6fbed-c846-4243-b7ea-4eb12246f389.png',
+  },
+  modern: {
+    id: 'modern',
+    name: 'Modern',
+    description: 'Zeitgemäßes Design mit Farbakzenten',
+    preview: '/lovable-uploads/52816b4d-4592-4ac6-a2ca-7eba6c6d86d2.png',
+  },
+  minimal: {
+    id: 'minimal',
+    name: 'Minimal',
+    description: 'Sauberes, minimalistisches Design',
+    preview: '/lovable-uploads/f40ab6d8-a47e-4e91-b431-58002f60e221.png',
+  },
+};
+
+/** *******************************************************************************************
+ *  MAIN COMPONENT
+ ********************************************************************************************/
+
 export const CVExportDialog: React.FC<CVExportDialogProps> = ({ children }) => {
   const { user } = useAuth();
+
   const [selectedTemplate, setSelectedTemplate] = useState<CVTemplate>('classic');
   const [isGenerating, setIsGenerating] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
+  const [previewData, setPreviewData] = useState<any | null>(null);
 
-  const templates = [
-    {
-      id: 'classic' as CVTemplate,
-      name: 'Klassisch',
-      description: 'Traditionelles Lebenslauf-Layout mit klarer Struktur',
-      preview: '/lovable-uploads/cdc6fbed-c846-4243-b7ea-4eb12246f389.png'
-    },
-    {
-      id: 'modern' as CVTemplate,
-      name: 'Modern',
-      description: 'Zeitgemäßes Design mit Farbakzenten',
-      preview: '/lovable-uploads/52816b4d-4592-4ac6-a2ca-7eba6c6d86d2.png'
-    },
-    {
-      id: 'minimal' as CVTemplate,
-      name: 'Minimal',
-      description: 'Sauberes, minimalistisches Design',
-      preview: '/lovable-uploads/f40ab6d8-a47e-4e91-b431-58002f60e221.png'
+  // Fetch preview data when dialog opens or user changes
+  useEffect(() => {
+    if (isOpen && user) {
+      (async () => {
+        const [profileData, experiencesData, educationData, skillsData, languagesData] = await Promise.all([
+          supabase.from('profiles').select('*').eq('user_id', user.id).single(),
+          supabase.from('experiences').select('*').eq('user_id', user.id).order('start_date', { ascending: false }),
+          supabase.from('education').select('*').eq('user_id', user.id).order('start_date', { ascending: false }),
+          supabase.from('skills').select('*').eq('user_id', user.id).order('category', { ascending: true }),
+          supabase.from('languages').select('*').eq('user_id', user.id).order('language_name', { ascending: true })
+        ]);
+        setPreviewData({
+          profile: profileData.data,
+          experiences: experiencesData.data || [],
+          education: educationData.data || [],
+          skills: skillsData.data || [],
+          languages: languagesData.data || [],
+        });
+      })();
+    } else if (!isOpen) {
+      setPreviewData(null);
     }
-  ];
+  }, [isOpen, user]);
 
-  const handleGenerateCV = async () => {
+  /** **************************************
+   * DATA HELPERS
+   ***************************************/
+
+  const fetchAllData = async () => {
+    if (!user) return null;
+
+    const [profileData, experiencesData, educationData, skillsData, languagesData] = await Promise.all([
+      supabase.from('profiles').select('*').eq('user_id', user.id).single(),
+      supabase
+        .from('experiences')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('start_date', { ascending: false }),
+      supabase
+        .from('education')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('start_date', { ascending: false }),
+      supabase.from('skills').select('*').eq('user_id', user.id).order('category', { ascending: true }),
+      supabase
+        .from('languages')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('language_name', { ascending: true }),
+    ]);
+
+    return {
+      profile: profileData.data,
+      experiences: experiencesData.data || [],
+      education: educationData.data || [],
+      skills: skillsData.data || [],
+      languages: languagesData.data || [],
+    };
+  };
+
+  /** **************************************
+   * EXPORT ACTIONS
+   ***************************************/
+
+  /**
+   * Opens a new window and prints its content to PDF via the browser dialog. This keeps
+   * dependencies small and works on every platform the browser supports.
+   */
+  const handleGeneratePDF = async () => {
     if (!user) return;
 
     setIsGenerating(true);
-
     try {
-      // Fetch all user data
-      const [profileData, experiencesData, educationData, skillsData, languagesData] = await Promise.all([
-        supabase.from('profiles').select('*').eq('user_id', user.id).single(),
-        supabase.from('experiences').select('*').eq('user_id', user.id).order('start_date', { ascending: false }),
-        supabase.from('education').select('*').eq('user_id', user.id).order('start_date', { ascending: false }),
-        supabase.from('skills').select('*').eq('user_id', user.id).order('category', { ascending: true }),
-        supabase.from('languages').select('*').eq('user_id', user.id).order('language_name', { ascending: true })
-      ]);
+      const cvData = await fetchAllData();
+      if (!cvData) return;
 
-      const cvData = {
-        profile: profileData.data,
-        experiences: experiencesData.data || [],
-        education: educationData.data || [],
-        skills: skillsData.data || [],
-        languages: languagesData.data || [],
-        template: selectedTemplate
+      const win = window.open('', '_blank');
+      if (!win) return;
+
+      win.document.write(generateHTML(cvData, selectedTemplate));
+      win.document.close();
+
+      win.onload = () => {
+        // wait a tick so that images / fonts are loaded – otherwise the printout may be blank
+        setTimeout(() => {
+          win.print();
+          win.close();
+        }, 500);
       };
-
-      // Generate PDF using the CV data
-      await generatePDF(cvData);
 
       toast({
         title: 'Lebenslauf generiert',
-        description: `Ihr ${templates.find(t => t.id === selectedTemplate)?.name} Lebenslauf wurde erfolgreich erstellt.`,
+        description: `Ihr ${TEMPLATES[selectedTemplate].name} Lebenslauf wurde erfolgreich erstellt.`,
       });
-
       setIsOpen(false);
-    } catch (error) {
-      console.error('Error generating CV:', error);
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error(err);
       toast({
         title: 'Fehler',
         description: 'Der Lebenslauf konnte nicht generiert werden. Bitte versuchen Sie es erneut.',
@@ -87,496 +169,423 @@ export const CVExportDialog: React.FC<CVExportDialogProps> = ({ children }) => {
     }
   };
 
-  const generatePDF = async (cvData: any) => {
-    // Create a new window with the CV content
-    const printWindow = window.open('', '_blank');
-    if (!printWindow) return;
+  const handleExportHTML = async () => {
+    if (!user) return;
 
-    // Generate HTML content based on template
-    const htmlContent = generateHTMLContent(cvData);
-    
-    printWindow.document.write(htmlContent);
-    printWindow.document.close();
-    
-    // Wait for content to load then print
-    printWindow.onload = () => {
-      setTimeout(() => {
-        printWindow.print();
-        printWindow.close();
-      }, 500);
-    };
+    const cvData = await fetchAllData();
+    if (!cvData) return;
+
+    const blob = new Blob([generateHTML(cvData, selectedTemplate)], { type: 'text/html' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `Lebenslauf-${user.email || 'CV'}.html`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
-  const generateHTMLContent = (cvData: any) => {
-    const { profile, experiences, education, skills, languages, template } = cvData;
+  const handleExportWord = async () => {
+    // html‑docx‑js has to be included via <script> tag → available on window
+    const htmlDocx = (window as any).htmlDocx;
+    if (!htmlDocx) {
+      alert('Word‑Export ist nicht verfügbar. Bitte aktivieren Sie html‑docx‑js.');
+      return;
+    }
 
-    const getTemplateStyles = () => {
-      switch (template) {
-        case 'classic':
-          return `
-            body { 
-              font-family: Arial, sans-serif; 
-              color: #000; 
-              background: white; 
-              line-height: 1.2;
-              max-width: 210mm;
-              margin: 0 auto;
-              padding: 15mm;
-              font-size: 11px;
-            }
-            .header { 
-              margin-bottom: 20px;
-              display: flex;
-              align-items: flex-start;
-              gap: 20px;
-            }
-            .profile-image {
-              width: 80px;
-              height: 80px;
-              border-radius: 50%;
-              object-fit: cover;
-              flex-shrink: 0;
-            }
-            .header-content {
-              flex-grow: 1;
-            }
-            .name { 
-              font-size: 22px; 
-              font-weight: bold; 
-              margin-bottom: 4px;
-              color: #000;
-            }
-            .contact-info { 
-              font-size: 10px;
-              margin-bottom: 15px;
-              line-height: 1.3;
-            }
-            .section-title { 
-              font-weight: bold; 
-              font-size: 12px;
-              color: #000;
-              margin: 15px 0 8px 0; 
-              text-transform: uppercase;
-              letter-spacing: 0.5px;
-            }
-            .section-content {
-              margin-bottom: 15px;
-              padding-left: 10px;
-            }
-            .item { 
-              margin-bottom: 12px; 
-              break-inside: avoid;
-            }
-            .item-header {
-              display: flex;
-              justify-content: space-between;
-              align-items: baseline;
-              margin-bottom: 2px;
-            }
-            .item-title { 
-              font-weight: bold; 
-              font-size: 11px; 
-              color: #000;
-            }
-            .item-company { 
-              font-size: 10px; 
-              color: #000;
-              margin-bottom: 2px;
-            }
-            .item-date { 
-              font-size: 9px; 
-              color: #666;
-              white-space: nowrap;
-            }
-            .item-description { 
-              font-size: 10px; 
-              color: #333; 
-              margin-top: 3px;
-              line-height: 1.3;
-            }
-            .skills-container {
-              display: flex;
-              flex-wrap: wrap;
-              gap: 8px;
-            }
-            .skill-item {
-              font-size: 10px;
-              color: #000;
-              background: transparent;
-              display: inline-block;
-            }
-            .two-column {
-              display: grid;
-              grid-template-columns: 1fr 1fr;
-              gap: 20px;
-            }
-            @media print {
-              body { 
-                -webkit-print-color-adjust: exact; 
-                print-color-adjust: exact; 
-                margin: 0;
-                padding: 15mm;
-              }
-            }
-          `;
-        case 'modern':
-          return `
-            body { 
-              font-family: Arial, sans-serif; 
-              color: #333; 
-              background: white;
-              line-height: 1.3;
-              max-width: 210mm;
-              margin: 0 auto;
-              padding: 0;
-              font-size: 11px;
-            }
-            .header { 
-              background: #1e40af; 
-              color: white; 
-              padding: 25px 30px; 
-              margin-bottom: 0;
-              display: flex;
-              align-items: center;
-              gap: 25px;
-            }
-            .profile-image {
-              width: 100px;
-              height: 100px;
-              border-radius: 50%;
-              object-fit: cover;
-              border: 4px solid white;
-              flex-shrink: 0;
-            }
-            .header-content {
-              flex-grow: 1;
-            }
-            .name { 
-              font-size: 26px; 
-              font-weight: bold; 
-              margin-bottom: 6px;
-              color: white;
-            }
-            .title { 
-              font-size: 14px; 
-              margin-bottom: 10px;
-              color: #e0e7ff;
-              font-weight: normal;
-            }
-            .contact-info { 
-              font-size: 11px;
-              color: #e0e7ff;
-              line-height: 1.4;
-            }
-            .content-area {
-              padding: 25px 30px;
-            }
-            .section-title { 
-              color: #1e40af; 
-              font-weight: bold; 
-              font-size: 13px;
-              margin: 20px 0 10px 0; 
-              text-transform: uppercase;
-              letter-spacing: 0.5px;
-            }
-            .section-title:first-child {
-              margin-top: 0;
-            }
-            .item { 
-              margin-bottom: 15px; 
-              break-inside: avoid;
-            }
-            .item-header {
-              display: flex;
-              justify-content: space-between;
-              align-items: baseline;
-              margin-bottom: 3px;
-            }
-            .item-title { 
-              font-weight: bold; 
-              font-size: 12px; 
-              color: #1e40af;
-            }
-            .item-company { 
-              color: #333; 
-              margin-bottom: 3px; 
-              font-size: 11px;
-            }
-            .item-date { 
-              font-size: 10px; 
-              color: #666;
-              white-space: nowrap;
-            }
-            .item-description { 
-              font-size: 10px; 
-              color: #555; 
-              margin-top: 4px;
-              line-height: 1.4;
-            }
-            .skills-container {
-              display: flex;
-              flex-wrap: wrap;
-              gap: 8px;
-            }
-            .skill-item {
-              background: #eff6ff;
-              color: #1e40af;
-              padding: 4px 10px;
-              border-radius: 12px;
-              font-size: 10px;
-              font-weight: 500;
-              display: inline-block;
-            }
-            @media print {
-              body { 
-                -webkit-print-color-adjust: exact; 
-                print-color-adjust: exact; 
-                margin: 0;
-                padding: 0;
-              }
-            }
-          `;
-        case 'minimal':
-          return `
-            body { 
-              font-family: Arial, sans-serif; 
-              color: #2d3748; 
-              background: white; 
-              line-height: 1.4;
-              max-width: 210mm;
-              margin: 0 auto;
-              padding: 20mm;
-              font-size: 11px;
-            }
-            .header { 
-              border-bottom: 1px solid #e2e8f0; 
-              padding-bottom: 20px; 
-              margin-bottom: 25px; 
-              display: flex;
-              align-items: center;
-              gap: 20px;
-            }
-            .profile-image {
-              width: 80px;
-              height: 80px;
-              border-radius: 50%;
-              object-fit: cover;
-              flex-shrink: 0;
-            }
-            .header-content {
-              flex-grow: 1;
-            }
-            .name { 
-              font-size: 28px; 
-              font-weight: 300; 
-              margin-bottom: 6px;
-              color: #2d3748;
-              letter-spacing: -0.5px;
-            }
-            .title { 
-              font-size: 13px; 
-              margin-bottom: 12px;
-              color: #718096;
-              font-weight: normal;
-            }
-            .contact-info { 
-              font-size: 10px;
-              color: #a0aec0;
-              line-height: 1.5;
-            }
-            .section-title { 
-              font-weight: normal; 
-              font-size: 11px; 
-              margin: 25px 0 12px 0; 
-              color: #4a5568; 
-              text-transform: uppercase;
-              letter-spacing: 1px;
-            }
-            .section-title:first-child {
-              margin-top: 0;
-            }
-            .item { 
-              margin-bottom: 16px; 
-              break-inside: avoid;
-            }
-            .item-header {
-              display: flex;
-              justify-content: space-between;
-              align-items: baseline;
-              margin-bottom: 3px;
-            }
-            .item-title { 
-              font-weight: 500; 
-              font-size: 12px; 
-              color: #2d3748;
-            }
-            .item-company { 
-              color: #718096; 
-              margin-bottom: 3px; 
-              font-size: 11px;
-            }
-            .item-date { 
-              font-size: 9px; 
-              color: #a0aec0;
-              white-space: nowrap;
-            }
-            .item-description { 
-              font-size: 10px; 
-              color: #718096; 
-              margin-top: 4px;
-              line-height: 1.4;
-            }
-            .skills-container {
-              display: flex;
-              flex-wrap: wrap;
-              gap: 6px;
-            }
-            .skill-item {
-              border: 1px solid #e2e8f0;
-              color: #718096;
-              padding: 3px 8px;
-              font-size: 9px;
-              background: #f7fafc;
-              display: inline-block;
-            }
-            @media print {
-              body { 
-                -webkit-print-color-adjust: exact; 
-                print-color-adjust: exact; 
-                margin: 0;
-                padding: 20mm;
-              }
-            }
-          `;
-        default:
-          return '';
+    if (!user) return;
+
+    const cvData = await fetchAllData();
+    if (!cvData) return;
+
+    const blob = htmlDocx.asBlob(generateHTML(cvData, selectedTemplate));
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `Lebenslauf-${user.email || 'CV'}.docx`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  /** **************************************
+   * HTML GENERATION – THIS IS WHERE THE LOOK & FEEL LIVES
+   ***************************************/
+
+  interface FullCVData {
+    profile: any;
+    experiences: any[];
+    education: any[];
+    skills: any[];
+    languages: any[];
+  }
+
+  const generateHTML = (data: FullCVData, template: CVTemplate): string => {
+    const { profile, experiences, education, skills, languages } = data;
+
+    const fmt = (date: string): string => {
+      if (!date) return '';
+      const d = new Date(date);
+      return d.toLocaleDateString('de-DE', { month: '2-digit', year: 'numeric' });
+    };
+
+    // -------------------------------------------------------------------------
+    //  SHARED STYLES
+    // -------------------------------------------------------------------------
+    const baseStyle = `
+      @page {
+        margin: 0;
       }
+      * {
+        box-sizing: border-box;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      body {
+        margin: 0;
+        font-family: 'Inter', Arial, sans-serif;
+        font-size: 12px;
+        line-height: 1.4;
+      }
+      h1, h2, h3, h4, h5, h6 { margin: 0; }
+    `;
+
+    // -------------------------------------------------------------------------
+    //  TEMPLATE‑SPECIFIC STYLES
+    // -------------------------------------------------------------------------
+    const styles: Record<CVTemplate, string> = {
+      /**
+       *  MODERN – strong colour bars left / right (see 52816b4d-…)
+       */
+      modern: `
+        ${baseStyle}
+
+        /* side bars */
+        .side-bar {
+          position: fixed;
+          top: 0;
+          bottom: 0;
+          width: 66px;
+          background: #005d89; /* the exact hue from the design */
+          z-index: -1;
+        }
+        .side-bar.left { left: 0; }
+        .side-bar.right { right: 0; }
+
+        main {
+          margin: 0 66px;
+          padding: 36px 28px 64px 28px;
+        }
+
+        /* header */
+        .name {
+          font-size: 32px;
+          font-weight: 800;
+          color: #0f4f75;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+          line-height: 1.1;
+        }
+        .headline {
+          font-size: 14px;
+          font-weight: 500;
+          color: #94a3b8;
+          margin-top: 4px;
+        }
+        .profile-wrapper {
+          display: flex;
+          gap: 24px;
+        }
+        .profile-img {
+          width: 170px;
+          height: 170px;
+          object-fit: cover;
+          border-radius: 4px;
+          flex-shrink: 0;
+          box-shadow: 0 2px 8px #0001;
+        }
+        /* tables */
+        .info-table {
+          width: 100%;
+          border-collapse: collapse;
+          margin-top: 24px;
+        }
+        .info-table th {
+          text-align: left;
+          width: 110px;
+          padding-right: 8px;
+          font-weight: 600;
+        }
+        .info-table td { padding-bottom: 4px; }
+
+        /* section */
+        section {
+          margin-top: 32px;
+        }
+        section h3 {
+          color: #0f4f75;
+          font-size: 15px;
+          font-weight: 700;
+          margin-bottom: 6px;
+          border-bottom: 2px solid #0f4f75;
+          display: inline-block;
+          padding-bottom: 2px;
+        }
+        .exp-item + .exp-item { margin-top: 18px; }
+        .exp-role { font-weight: 700; }
+        .exp-company { font-weight: 600; }
+        .exp-dates {
+          font-size: 11px;
+          color: #475569;
+        }
+
+        ul.bullet {
+          margin: 4px 0 0 18px;
+          padding: 0;
+        }
+        ul.bullet li { margin-bottom: 2px; }
+      `,
+
+      /**
+       *  CLASSIC – black frame, strong rules (see cdc6fbed-…)
+       */
+      classic: `
+        ${baseStyle}
+
+        body { padding: 24mm; }
+        main {
+          border: 1px solid #000;
+          padding: 20mm 20mm 22mm 20mm;
+        }
+        .top-rule {
+          border-top: 3px solid #000;
+          margin-top: 12px;
+        }
+        .name {
+          font-size: 20px;
+          font-weight: 700;
+          margin-bottom: 2px;
+        }
+        .profile-grid {
+          display: grid;
+          grid-template-columns: 1fr 160px;
+          gap: 24px;
+        }
+        .profile-img {
+          width: 160px;
+          height: 160px;
+          object-fit: cover;
+          border-radius: 4px;
+        }
+        .info-table { width: 100%; border-collapse: collapse; }
+        .info-table th { text-align: left; width: 90px; font-weight: 600; }
+        .info-table td { padding-bottom: 3px; }
+        section { margin-top: 18px; }
+        section h3 {
+          font-size: 14px;
+          font-weight: 700;
+          border-bottom: 3px solid #000;
+          display: inline-block;
+          padding-bottom: 2px;
+          margin-bottom: 6px;
+        }
+        .exp-item + .exp-item { margin-top: 12px; }
+        .exp-role { font-weight: 700; }
+        .exp-company { font-weight: 600; }
+        .exp-dates { font-size: 11px; }
+        ul.bullet { margin: 4px 0 0 18px; padding: 0; }
+        ul.bullet li { margin-bottom: 2px; }
+      `,
+
+      /**
+       *  MINIMAL – subtle grey margins (see f40ab6d8-…)
+       */
+      minimal: `
+        ${baseStyle}
+
+        /* grey outer columns */
+        .side-bar {
+          position: fixed;
+          top: 0;
+          bottom: 0;
+          width: 70px;
+          background: #f1f1f1;
+          z-index: -1;
+        }
+        .side-bar.left { left: 0; }
+        .side-bar.right { right: 0; }
+
+        main {
+          margin: 0 70px;
+          padding: 32px 24px 64px 24px;
+        }
+
+        .name {
+          font-size: 32px;
+          font-weight: 800;
+          line-height: 1;
+          text-transform: uppercase;
+        }
+        .headline {
+          font-size: 14px;
+          color: #9ca3af;
+          margin-top: 4px;
+        }
+        .header {
+          display: flex;
+          gap: 32px;
+          margin-bottom: 32px;
+        }
+        .profile-img {
+          width: 180px;
+          height: 180px;
+          object-fit: cover;
+          border-radius: 4px;
+        }
+        .info-table {
+          width: 100%;
+          border-collapse: collapse;
+        }
+        .info-table th { text-align: left; width: 100px; font-weight: 600; }
+        .info-table td { padding-bottom: 4px; }
+
+        section { margin-top: 36px; }
+        section h3 {
+          font-size: 14px;
+          font-weight: 700;
+          border-bottom: 2px solid #d1d5db;
+          padding-bottom: 2px;
+          margin-bottom: 10px;
+        }
+        .exp-item + .exp-item { margin-top: 16px; }
+        .exp-role { font-weight: 700; }
+        .exp-company { font-weight: 600; }
+        .exp-dates { font-size: 11px; color: #6b7280; }
+        ul.bullet { margin: 4px 0 0 18px; padding: 0; }
+        ul.bullet li { margin-bottom: 2px; }
+      `,
     };
 
-    const formatDate = (dateString: string) => {
-      if (!dateString) return '';
-      const date = new Date(dateString);
-      return date.toLocaleDateString('de-DE', { month: '2-digit', year: 'numeric' });
-    };
+    // -------------------------------------------------------------------------
+    //  HTML BODY (shared skeleton – template variants are handled via CSS)
+    // -------------------------------------------------------------------------
 
-    const contentArea = template === 'modern' ? 'content-area' : '';
+    const profileImgHTML = profile?.profile_picture_url
+      ? `<img class="profile-img" src="${profile.profile_picture_url}" alt="Profilbild" />`
+      : '';
 
-    // Generate profile image HTML if available
-    const profileImageHTML = profile?.profile_picture_url ? 
-      `<img src="${profile.profile_picture_url}" alt="Profilbild" class="profile-image" />` : '';
+    const contactTable = `
+      <table class="info-table">
+        ${profile?.location ? `<tr><th>Adresse</th><td>${profile.location}</td></tr>` : ''}
+        ${profile?.phone ? `<tr><th>Tel.</th><td>${profile.phone}</td></tr>` : ''}
+        ${user?.email ? `<tr><th>E‑Mail</th><td>${user.email}</td></tr>` : ''}
+        ${profile?.birthdate ? `<tr><th>Geb.</th><td>${profile.birthdate}</td></tr>` : ''}
+      </table>`;
+
+    const experienceHTML = experiences
+      .map(
+        (exp) => `
+        <div class="exp-item">
+          <div class="exp-role">${exp.job_title}</div>
+          <div class="exp-company">${exp.company}${exp.location ? `, ${exp.location}` : ''}</div>
+          <div class="exp-dates">${fmt(exp.start_date)} – ${exp.is_current ? 'heute' : fmt(exp.end_date)}</div>
+          ${exp.description ? `<ul class="bullet">${exp.description
+            .split('\n')
+            .map((d: string) => `<li>${d}</li>`) // assume newline separated
+            .join('')}</ul>`
+            : ''}
+        </div>`
+      )
+      .join('');
+
+    const educationHTML = education
+      .map(
+        (edu) => `
+        <div class="exp-item">
+          <div class="exp-role">${edu.degree}</div>
+          <div class="exp-company">${edu.institution}</div>
+          <div class="exp-dates">${fmt(edu.start_date)} – ${edu.is_current ? 'heute' : fmt(edu.end_date)}</div>
+          ${edu.field_of_study ? `<div>${edu.field_of_study}</div>` : ''}
+        </div>`
+      )
+      .join('');
+
+    const skillsHTML = skills.length
+      ? `<div class="skills"><strong>Fähigkeiten: </strong>${skills
+          .map((s) => s.skill_name)
+          .join(', ')}</div>`
+      : '';
+
+    const languagesHTML = languages.length
+      ? `<div class="languages"><strong>Sprachen: </strong>${languages
+          .map((l) => `${l.language_name} (${l.proficiency})`)
+          .join(', ')}</div>`
+      : '';
+
+    // -------------------------------------------------------------------------
 
     return `
       <!DOCTYPE html>
-      <html>
+      <html lang="de">
         <head>
-          <meta charset="utf-8">
-          <title>Lebenslauf - ${profile?.full_name || 'Unbekannt'}</title>
-          <style>
-            * { margin: 0; padding: 0; box-sizing: border-box; }
-            ${getTemplateStyles()}
-          </style>
+          <meta charset="utf-8" />
+          <title>Lebenslauf</title>
+          <style>${styles[template]}</style>
         </head>
         <body>
-          <div class="header">
-            ${profileImageHTML}
-            <div class="header-content">
-              <div class="name">${profile?.full_name || 'Ihr Name'}</div>
-              ${profile?.headline ? `<div class="title">${profile.headline}</div>` : ''}
-              <div class="contact-info">
-                ${profile?.location ? `${profile.location}<br>` : ''}
-                ${profile?.phone ? `${profile.phone}<br>` : ''}
-                ${user?.email ? `${user.email}<br>` : ''}
-                ${profile?.linkedin_url ? `LinkedIn: ${profile.linkedin_url}<br>` : ''}
-                ${profile?.website ? `Website: ${profile.website}` : ''}
-              </div>
-            </div>
-          </div>
+          <!-- decorative side bars for modern & minimal -->
+          <div class="side-bar left"></div>
+          <div class="side-bar right"></div>
+          <main>
+            <!-- HEADER -------------------------------------------------------->
+            ${template === 'classic'
+              ? `<div class="profile-grid">
+                   <div>
+                     <h2 class="name">${profile?.full_name || 'Ihr Name'}</h2>
+                     ${contactTable}
+                   </div>
+                   ${profileImgHTML}
+                 </div>
+                 <div class="top-rule"></div>`
+              : `<div class="header">
+                   <div>
+                     <h1 class="name">${profile?.full_name || 'Ihr Name'}</h1>
+                     ${profile?.headline ? `<div class="headline">${profile.headline}</div>` : ''}
+                     ${contactTable}
+                   </div>
+                   ${profileImgHTML}
+                 </div>`}
 
-          <div class="${contentArea}">
-            ${profile?.summary ? `
-              <div class="section-title">Berufliche Zusammenfassung</div>
-              <div class="item-description">${profile.summary}</div>
-            ` : ''}
+            <!-- EXPERIENCE ---------------------------------------------------->
+            <section>
+              <h3>Berufliche Erfahrung</h3>
+              ${experienceHTML}
+            </section>
 
-            ${experiences.length > 0 ? `
-              <div class="section-title">Berufserfahrung</div>
-              <div class="section-content">
-                ${experiences.map((exp: any) => `
-                  <div class="item">
-                    <div class="item-header">
-                      <div class="item-title">${exp.job_title}</div>
-                      <div class="item-date">
-                        ${formatDate(exp.start_date)} - ${exp.is_current ? 'heute' : formatDate(exp.end_date)}
-                      </div>
-                    </div>
-                    <div class="item-company">${exp.company}${exp.location ? `, ${exp.location}` : ''}</div>
-                    ${exp.description ? `<div class="item-description">${exp.description}</div>` : ''}
-                  </div>
-                `).join('')}
-              </div>
-            ` : ''}
+            <!-- EDUCATION ----------------------------------------------------->
+            ${education.length
+              ? `<section>
+                   <h3>Ausbildung</h3>
+                   ${educationHTML}
+                 </section>`
+              : ''}
 
-            ${education.length > 0 ? `
-              <div class="section-title">Ausbildung</div>
-              <div class="section-content">
-                ${education.map((edu: any) => `
-                  <div class="item">
-                    <div class="item-header">
-                      <div class="item-title">${edu.degree}</div>
-                      <div class="item-date">
-                        ${formatDate(edu.start_date)} - ${edu.is_current ? 'heute' : formatDate(edu.end_date)}
-                      </div>
-                    </div>
-                    <div class="item-company">${edu.institution}</div>
-                    ${edu.field_of_study ? `<div class="item-description">${edu.field_of_study}</div>` : ''}
-                    ${edu.grade ? `<div class="item-description">Note: ${edu.grade}</div>` : ''}
-                  </div>
-                `).join('')}
-              </div>
-            ` : ''}
-
-            <div class="two-column">
-              ${skills.length > 0 ? `
-                <div>
-                  <div class="section-title">Fähigkeiten</div>
-                  <div class="skills-container">
-                    ${skills.map((skill: any) => `
-                      <div class="skill-item">${skill.skill_name}</div>
-                    `).join('')}
-                  </div>
-                </div>
-              ` : ''}
-
-              ${languages.length > 0 ? `
-                <div>
-                  <div class="section-title">Sprachen</div>
-                  <div class="skills-container">
-                    ${languages.map((lang: any) => `
-                      <div class="skill-item">
-                        ${lang.language_name} (${
-                          lang.proficiency === 'beginner' ? 'Grundkenntnisse' :
-                          lang.proficiency === 'intermediate' ? 'Mittelstufe' :
-                          lang.proficiency === 'advanced' ? 'Fortgeschritten' :
-                          lang.proficiency === 'expert' ? 'Experte' :
-                          lang.proficiency === 'native' ? 'Muttersprache' : lang.proficiency
-                        })
-                      </div>
-                    `).join('')}
-                  </div>
-                </div>
-              ` : ''}
-            </div>
-          </div>
+            <!-- SKILLS & LANGUAGES ------------------------------------------->
+            ${(skills.length || languages.length)
+              ? `<section>
+                   ${skillsHTML}
+                   ${languagesHTML}
+                 </section>`
+              : ''}
+          </main>
         </body>
       </html>
     `;
   };
 
+  /** *************************************************************************************** */
+
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-        {children}
-      </DialogTrigger>
+      <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="max-w-4xl w-full max-h-[90vh] overflow-y-auto bg-white p-2 sm:p-4 md:p-8 rounded-2xl shadow-lg border-0">
         <DialogHeader className="space-y-1 p-0 mb-6">
           <DialogTitle className="flex flex-col sm:flex-row items-center gap-2 text-xl sm:text-2xl text-center text-black font-bold">
@@ -587,6 +596,10 @@ export const CVExportDialog: React.FC<CVExportDialogProps> = ({ children }) => {
             Wählen Sie ein Template und generieren Sie Ihren professionellen Lebenslauf
           </DialogDescription>
         </DialogHeader>
+
+        {/* ------------------------------------------------------------------ */}
+        {/*  TEMPLATE SELECTION GRID                                           */}
+        {/* ------------------------------------------------------------------ */}
         <div className="space-y-6">
           <div>
             <label className="text-sm font-medium text-black flex items-center gap-2 mb-3">
@@ -594,43 +607,67 @@ export const CVExportDialog: React.FC<CVExportDialogProps> = ({ children }) => {
               Template auswählen
             </label>
             <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
-              {templates.map((template) => (
-                <Card 
-                  key={template.id}
+              {(Object.values(TEMPLATES) as typeof TEMPLATES[CVTemplate][]).map((tpl) => (
+                <Card
+                  key={tpl.id}
+                  onClick={() => setSelectedTemplate(tpl.id)}
                   className={`cursor-pointer transition-all border-0 ${
-                    selectedTemplate === template.id 
-                      ? 'ring-2 ring-blue-500 bg-blue-50' 
-                      : 'hover:shadow-md'
+                    selectedTemplate === tpl.id ? 'ring-2 ring-blue-500 bg-blue-50' : 'hover:shadow-md'
                   }`}
-                  onClick={() => setSelectedTemplate(template.id)}
                 >
                   <CardContent className="p-2 sm:p-4">
                     <div className="aspect-[3/4] mb-2 sm:mb-3 bg-gray-100 rounded overflow-hidden">
-                      <img 
-                        src={template.preview} 
-                        alt={template.name}
-                        className="w-full h-full object-cover"
-                      />
+                      <img src={tpl.preview} alt={tpl.name} className="w-full h-full object-cover" />
                     </div>
-                    <h3 className="font-semibold text-black text-base sm:text-lg">{template.name}</h3>
-                    <p className="text-xs sm:text-sm text-gray-600 mt-1">{template.description}</p>
+                    <h3 className="font-semibold text-black text-base sm:text-lg">{tpl.name}</h3>
+                    <p className="text-xs sm:text-sm text-gray-600 mt-1">{tpl.description}</p>
                   </CardContent>
                 </Card>
               ))}
             </div>
           </div>
+
+          {/* ----------------------------------------------------------------*/}
+          {/*  PREVIEW                                                         */}
+          {/* ----------------------------------------------------------------*/}
+          <div className="hidden md:block min-h-[400px]">
+            {previewData ? (
+              <CVPreview template={selectedTemplate} data={previewData} />
+            ) : (
+              <div className="text-gray-400 text-center py-12">Vorschau wird geladen ...</div>
+            )}
+          </div>
+
+          {/* ----------------------------------------------------------------*/}
+          {/*  ACTIONS                                                         */}
+          {/* ----------------------------------------------------------------*/}
           <div className="flex flex-col sm:flex-row justify-between items-center pt-4 border-t border-gray-200 gap-3 sm:gap-0">
             <p className="text-xs sm:text-sm text-black text-center sm:text-left">
-              Ausgewähltes Template: <strong>{templates.find(t => t.id === selectedTemplate)?.name}</strong>
+              Ausgewähltes Template: <strong>{TEMPLATES[selectedTemplate].name}</strong>
             </p>
-            <Button 
-              onClick={handleGenerateCV}
-              disabled={isGenerating}
-              className="bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg px-3 sm:px-4 py-2 transition duration-200 w-full sm:w-auto"
-            >
-              <Download className="h-4 w-4 mr-2" />
-              {isGenerating ? 'Wird generiert...' : 'PDF generieren'}
-            </Button>
+            <div className="flex gap-2 w-full sm:w-auto">
+              <Button
+                onClick={handleGeneratePDF}
+                disabled={isGenerating}
+                className="bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg px-4 py-2 transition duration-200 w-full sm:w-auto"
+              >
+                <Download className="h-4 w-4 mr-2" /> PDF exportieren
+              </Button>
+              <Button
+                onClick={handleExportWord}
+                disabled={isGenerating}
+                className="bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg px-4 py-2 transition duration-200 w-full sm:w-auto"
+              >
+                <Download className="h-4 w-4 mr-2" /> Word exportieren
+              </Button>
+              <Button
+                onClick={handleExportHTML}
+                disabled={isGenerating}
+                className="bg-yellow-500 hover:bg-yellow-600 text-white font-bold rounded-lg px-4 py-2 transition duration-200 w-full sm:w-auto"
+              >
+                <Download className="h-4 w-4 mr-2" /> HTML exportieren
+              </Button>
+            </div>
           </div>
         </div>
       </DialogContent>
