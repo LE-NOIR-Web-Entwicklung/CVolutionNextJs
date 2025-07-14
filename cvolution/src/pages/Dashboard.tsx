@@ -10,8 +10,7 @@ import { toast } from '@/hooks/use-toast';
 import { ProfileSection } from '@/components/Dashboard/ProfileSection';
 import { ExperienceSection } from '@/components/Dashboard/ExperienceSection';
 import { EducationSection } from '@/components/Dashboard/EducationSection';
-import { SkillsSection } from '@/components/Dashboard/SkillsSection';
-import { LanguagesSection } from '@/components/Dashboard/LanguagesSection';
+import { SkillsAndLanguagesSection } from '@/components/Dashboard/SkillsAndLanguagesSection';
 import { LinkedInExtractor } from '@/components/LinkedInExtractor';
 import { CVExportDialog } from '@/components/CVExport/CVExportDialog';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -35,7 +34,7 @@ export const Dashboard: React.FC = () => {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
               <Badge variant="secondary" className="text-gray-600 sm:ml-3 text-xs sm:text-sm hidden sm:inline-flex">
-                Professionelle Lebenslauf-Plattform
+                Self-Service Lebenslauf-Plattform
               </Badge>
             </div>
             <div className="flex items-center space-x-2 sm:space-x-4">
@@ -65,8 +64,7 @@ export const Dashboard: React.FC = () => {
               </TabsList>
               <TabsList className="grid w-full grid-cols-3 h-auto mt-2">
                 <TabsTrigger value="education" className="text-xs p-2 text-gray-600 data-[state=active]:bg-[#204878] data-[state=active]:text-white">Bildung</TabsTrigger>
-                <TabsTrigger value="skills" className="text-xs p-2 text-gray-600 data-[state=active]:bg-[#204878] data-[state=active]:text-white">Skills</TabsTrigger>
-                <TabsTrigger value="languages" className="text-xs p-2 text-gray-600 data-[state=active]:bg-[#204878] data-[state=active]:text-white">Sprachen</TabsTrigger>
+                <TabsTrigger value="skills" className="text-xs p-2 text-gray-600 data-[state=active]:bg-[#204878] data-[state=active]:text-white min-w-[180px]">Sprachen und Fähigkeiten</TabsTrigger>
               </TabsList>
             </div>
 
@@ -76,8 +74,7 @@ export const Dashboard: React.FC = () => {
               <TabsTrigger value="profile" className="text-gray-600 data-[state=active]:bg-[#204878] data-[state=active]:text-white">Profil</TabsTrigger>
               <TabsTrigger value="experience" className="text-gray-600 data-[state=active]:bg-[#204878] data-[state=active]:text-white">Erfahrung</TabsTrigger>
               <TabsTrigger value="education" className="text-gray-600 data-[state=active]:bg-[#204878] data-[state=active]:text-white">Bildung</TabsTrigger>
-              <TabsTrigger value="skills" className="text-gray-600 data-[state=active]:bg-[#204878] data-[state=active]:text-white">Fähigkeiten</TabsTrigger>
-              <TabsTrigger value="languages" className="text-gray-600 data-[state=active]:bg-[#204878] data-[state=active]:text-white">Sprachen</TabsTrigger>
+              <TabsTrigger value="skills" className="text-gray-600 data-[state=active]:bg-[#204878] data-[state=active]:text-white col-span-2 min-w-[180px]">Sprachen & Fähigkeiten</TabsTrigger>
             </TabsList>
             
             <CVExportDialog>
@@ -106,11 +103,11 @@ export const Dashboard: React.FC = () => {
           </TabsContent>
 
           <TabsContent value="skills">
-            <SkillsSection />
+            <SkillsAndLanguagesSection />
           </TabsContent>
 
           <TabsContent value="languages">
-            <LanguagesSection />
+            <SkillsAndLanguagesSection />
           </TabsContent>
         </Tabs>
       </div>

@@ -315,9 +315,9 @@ export const ProfileSection: React.FC = () => {
               <Input
                 id="full_name"
                 name="full_name"
-                defaultValue={profile?.full_name || ''}
-                placeholder="Ihr vollständiger Name"
-                className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                value={profile?.full_name || ''}
+                readOnly
+                className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black opacity-70 cursor-not-allowed"
               />
             </div>
             <div>
@@ -327,9 +327,9 @@ export const ProfileSection: React.FC = () => {
               <Input
                 id="email"
                 name="email"
-                value={user?.email || ''}
-                readOnly
-                className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black opacity-70 cursor-not-allowed"
+                defaultValue={user?.email || ''}
+                placeholder="Ihre E-Mail-Adresse"
+                className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
               />
             </div>
             <div>
