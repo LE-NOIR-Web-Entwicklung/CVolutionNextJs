@@ -41,9 +41,9 @@ export const Dashboard: React.FC = () => {
               <span className="text-xs sm:text-sm text-gray-600 hidden md:inline">
                 Willkommen, {user?.email}
               </span>
-              <Button variant="outline" size="sm" onClick={handleSignOut} className="text-xs sm:text-sm">
+              <Button variant="outline" size="sm" onClick={handleSignOut} className="text-xs sm:text-sm bg-[#204878]">
                 <LogOut className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                <span className="hidden sm:inline">Abmelden</span>
+                <span className="hidden sm:inline ">Abmelden</span>
                 <span className="sm:hidden">Exit</span>
               </Button>
             </div>

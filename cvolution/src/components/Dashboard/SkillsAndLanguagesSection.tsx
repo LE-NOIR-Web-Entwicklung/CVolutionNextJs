@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Plus, Edit, Trash2, Save, X } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 
 // Skill type
 interface Skill {
@@ -334,164 +335,171 @@ export const SkillsAndLanguagesSection: React.FC = () => {
   }, {} as Record<string, Skill[]>);
 
   return (
-    <div className="space-y-12">
+    <Tabs defaultValue="languages" className="space-y-8">
+      <TabsList className="mb-4">
+        <TabsTrigger value="languages" className="text-black data-[state=active]:bg-[#204878]">Sprachen</TabsTrigger>
+        <TabsTrigger value="skills" className="text-black data-[state=active]:bg-[#204878]">Fähigkeiten</TabsTrigger>
+      </TabsList>
 
-      {/* Languages Section */}
-      <div>
-        <div className="bg-white p-6 rounded-lg shadow-lg mb-8">
-          <CardHeader>
-            <div className="flex justify-between items-center">
-              <div>
-                <CardTitle className="text-xl font-bold text-black mb-1">Sprachen</CardTitle>
-                <CardDescription className="text-black">Ihre Sprachkenntnisse und Kompetenzen</CardDescription>
-              </div>
-              <Button onClick={() => setIsAddingLanguage(true)} className="bg-[#204878] hover:bg-[#4c6c93] text-white font-bold rounded-lg px-4 py-2">
-                <Plus className="h-4 w-4" />
-              </Button>
-            </div>
-          </CardHeader>
-        </div>
-        {isAddingLanguage && (
-          <Card>
+      <TabsContent value="languages">
+        <div>
+          <div className="bg-white p-6 rounded-lg shadow-lg mb-8">
             <CardHeader>
-              <CardTitle className="text-black">Neue Sprache hinzufügen</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <LanguageForm />
-            </CardContent>
-          </Card>
-        )}
-        {languages.map((language) => (
-          <Card key={language.id}>
-            <CardContent className="pt-6">
-              {languagesEditingId === language.id ? (
-                <LanguageForm language={language} />
-              ) : (
-                <div className="flex justify-between items-start">
-                  <div className="flex-1">
-                    <h4 className="font-semibold text-black">{language.language_name}</h4>
-                    <Badge className="text-xs text-black bg-gray-200">
-                      {language.proficiency === 'Anfänger' && 'Anfänger'}
-                      {language.proficiency === 'Mitlere Kentnisse' && 'Mittelstufe'}
-                      {language.proficiency === 'Gute Kenntnisse' && 'Fortgeschritten'}
-                      {language.proficiency === 'Sehr gute Kenntnisse' && 'Experte'}
-                      {language.proficiency === 'Muttersprache' && 'Muttersprache'}
-                    </Badge>
-                  </div>
-                  <div className="flex space-x-1">
-                    <Button
-                      onClick={() => setLanguagesEditingId(language.id)}
-                      className="bg-[#204878] hover:bg-[#4c6c93] text-white font-bold rounded-lg px-3 py-2"
-                    >
-                      <Edit className="h-3 w-3" />
-                    </Button>
-                    <Button
-                      onClick={() => handleDeleteLanguage(language.id)}
-                      className="bg-[#204878] hover:bg-[#4c6c93] text-white font-bold rounded-lg px-3 py-2"
-                    >
-                      <Trash2 className="h-3 w-3" />
-                    </Button>
-                  </div>
+              <div className="flex justify-between items-center">
+                <div>
+                  <CardTitle className="text-xl font-bold text-black mb-1">Sprachen</CardTitle>
+                  <CardDescription className="text-black">Ihre Sprachkenntnisse und Kompetenzen</CardDescription>
                 </div>
-              )}
-            </CardContent>
-          </Card>
-        ))}
-        {languages.length === 0 && !isAddingLanguage && (
-          <Card>
-            <CardContent className="text-center py-12">
-              <p className="text-black mb-4">Noch keine Sprachen hinzugefügt.</p>
-            </CardContent>
-          </Card>
-        )}
-      </div>
-      {/* Skills Section */}
-      <div>
-        <div className="bg-white p-6 rounded-lg shadow-lg mb-8">
-          <CardHeader>
-            <div className="flex justify-between items-center">
-              <div>
-                <CardTitle className="text-xl font-bold text-black mb-1">Fähigkeiten</CardTitle>
-                <CardDescription className="text-black">Ihre beruflichen Fähigkeiten und Kompetenzen</CardDescription>
+                <Button onClick={() => setIsAddingLanguage(true)} className="bg-[#204878] hover:bg-[#4c6c93] text-white font-bold rounded-lg px-4 py-2">
+                  <Plus className="h-4 w-4" />
+                </Button>
               </div>
-              <Button onClick={() => setIsAddingSkill(true)} className="bg-[#204878] hover:bg-[#4c6c93] text-white font-bold rounded-lg px-4 py-2">
-                <Plus className="h-4 w-4" />
-              </Button>
-            </div>
-          </CardHeader>
+            </CardHeader>
+          </div>
+          {isAddingLanguage && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-black">Neue Sprache hinzufügen</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <LanguageForm />
+              </CardContent>
+            </Card>
+          )}
+          {languages.map((language) => (
+            <Card key={language.id}>
+              <CardContent className="pt-6">
+                {languagesEditingId === language.id ? (
+                  <LanguageForm language={language} />
+                ) : (
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-black">{language.language_name}</h4>
+                      <Badge className="text-xs text-black bg-gray-200">
+                        {language.proficiency === 'Anfänger' && 'Anfänger'}
+                        {language.proficiency === 'Mitlere Kentnisse' && 'Mittelstufe'}
+                        {language.proficiency === 'Gute Kenntnisse' && 'Fortgeschritten'}
+                        {language.proficiency === 'Sehr gute Kenntnisse' && 'Experte'}
+                        {language.proficiency === 'Muttersprache' && 'Muttersprache'}
+                      </Badge>
+                    </div>
+                    <div className="flex space-x-1">
+                      <Button
+                        onClick={() => setLanguagesEditingId(language.id)}
+                        className="bg-[#204878] hover:bg-[#4c6c93] text-white font-bold rounded-lg px-3 py-2"
+                      >
+                        <Edit className="h-3 w-3" />
+                      </Button>
+                      <Button
+                        onClick={() => handleDeleteLanguage(language.id)}
+                        className="bg-[#204878] hover:bg-[#4c6c93] text-white font-bold rounded-lg px-3 py-2"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          ))}
+          {languages.length === 0 && !isAddingLanguage && (
+            <Card>
+              <CardContent className="text-center py-12">
+                <p className="text-black mb-4">Noch keine Sprachen hinzugefügt.</p>
+              </CardContent>
+            </Card>
+          )}
         </div>
-        {isAddingSkill && (
-          <Card>
+      </TabsContent>
+
+      <TabsContent value="skills">
+        <div>
+          <div className="bg-white p-6 rounded-lg shadow-lg mb-8">
             <CardHeader>
-              <CardTitle className="text-black">Neue Fähigkeit hinzufügen</CardTitle>
+              <div className="flex justify-between items-center">
+                <div>
+                  <CardTitle className="text-xl font-bold text-black mb-1">Fähigkeiten</CardTitle>
+                  <CardDescription className="text-black">Ihre beruflichen Fähigkeiten und Kompetenzen</CardDescription>
+                </div>
+                <Button onClick={() => setIsAddingSkill(true)} className="bg-[#204878] hover:bg-[#4c6c93] text-white font-bold rounded-lg px-4 py-2">
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
             </CardHeader>
-            <CardContent>
-              <SkillForm />
-            </CardContent>
-          </Card>
-        )}
-        {Object.entries(groupedSkills).map(([category, categorySkills]) => (
-          <Card key={category}>
-            <CardHeader>
-              <CardTitle className="text-lg text-black">{category}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {categorySkills.map((skill) => (
-                  <div key={skill.id} className="border rounded-lg p-4 space-y-2">
-                    {skillsEditingId === skill.id ? (
-                      <SkillForm skill={skill} />
-                    ) : (
-                      <>
-                        <div className="flex justify-between items-start">
-                          <div className="flex-1">
-                            <h4 className="font-semibold text-black">{skill.skill_name}</h4>
-                            <div className="flex flex-wrap gap-1 mt-1">
-                              <Badge className="text-xs text-black bg-gray-200">
-                                {skill.proficiency === 'Anfänger' && 'Anfänger'}
-                                {skill.proficiency === 'Mitlere Kentnisse' && 'Mitlere Kentnisse'}
-                                {skill.proficiency === 'Gute Kenntnisse' && 'Gute Kenntnisse'}
-                                {skill.proficiency === 'Sehr gute Kenntnisse' && 'Sehr gute Kenntnisse'}
-                                {skill.proficiency === 'Experte' && 'Experte'}
-                              </Badge>
-                              {skill.years_of_experience && (
+          </div>
+          {isAddingSkill && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-black">Neue Fähigkeit hinzufügen</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <SkillForm />
+              </CardContent>
+            </Card>
+          )}
+          {Object.entries(groupedSkills).map(([category, categorySkills]) => (
+            <Card key={category}>
+              <CardHeader>
+                <CardTitle className="text-lg text-black">{category}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {categorySkills.map((skill) => (
+                    <div key={skill.id} className="border rounded-lg p-4 space-y-2">
+                      {skillsEditingId === skill.id ? (
+                        <SkillForm skill={skill} />
+                      ) : (
+                        <>
+                          <div className="flex justify-between items-start">
+                            <div className="flex-1">
+                              <h4 className="font-semibold text-black">{skill.skill_name}</h4>
+                              <div className="flex flex-wrap gap-1 mt-1">
                                 <Badge className="text-xs text-black bg-gray-200">
-                                  {skill.years_of_experience} Jahre
+                                  {skill.proficiency === 'Anfänger' && 'Anfänger'}
+                                  {skill.proficiency === 'Mitlere Kentnisse' && 'Mitlere Kentnisse'}
+                                  {skill.proficiency === 'Gute Kenntnisse' && 'Gute Kenntnisse'}
+                                  {skill.proficiency === 'Sehr gute Kenntnisse' && 'Sehr gute Kenntnisse'}
+                                  {skill.proficiency === 'Experte' && 'Experte'}
                                 </Badge>
-                              )}
+                                {skill.years_of_experience && (
+                                  <Badge className="text-xs text-black bg-gray-200">
+                                    {skill.years_of_experience} Jahre
+                                  </Badge>
+                                )}
+                              </div>
+                            </div>
+                            <div className="flex space-x-1">
+                              <Button
+                                onClick={() => setSkillsEditingId(skill.id)}
+                                className="bg-[#204878] hover:bg-[#4c6c93] text-white font-bold rounded-lg px-3 py-2"
+                              >
+                                <Edit className="h-3 w-3" />
+                              </Button>
+                              <Button
+                                onClick={() => handleDeleteSkill(skill.id)}
+                                className="bg-[#204878] hover:bg-[#4c6c93] text-white font-bold rounded-lg px-3 py-2"
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </Button>
                             </div>
                           </div>
-                          <div className="flex space-x-1">
-                            <Button
-                              onClick={() => setSkillsEditingId(skill.id)}
-                              className="bg-[#204878] hover:bg-[#4c6c93] text-white font-bold rounded-lg px-3 py-2"
-                            >
-                              <Edit className="h-3 w-3" />
-                            </Button>
-                            <Button
-                              onClick={() => handleDeleteSkill(skill.id)}
-                              className="bg-[#204878] hover:bg-[#4c6c93] text-white font-bold rounded-lg px-3 py-2"
-                            >
-                              <Trash2 className="h-3 w-3" />
-                            </Button>
-                          </div>
-                        </div>
-                      </>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-        {skills.length === 0 && !isAddingSkill && (
-          <Card>
-            <CardContent className="text-center py-12">
-              <p className="text-black mb-4">Noch keine Fähigkeiten hinzugefügt.</p>
-            </CardContent>
-          </Card>
-        )}
-      </div>
-    </div>
+                        </>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+          {skills.length === 0 && !isAddingSkill && (
+            <Card>
+              <CardContent className="text-center py-12">
+                <p className="text-black mb-4">Noch keine Fähigkeiten hinzugefügt.</p>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      </TabsContent>
+    </Tabs>
   );
 };
