@@ -1,6 +1,9 @@
 import React from 'react';
 import { Document, Page, View, Text, Image, StyleSheet } from '@react-pdf/renderer';
 
+// Placeholder image (can be replaced with your own image URL or base64 string)
+const PLACEHOLDER_IMG = 'https://via.placeholder.com/110x130.png?text=Foto';
+
 const styles = StyleSheet.create({
   page: {
     backgroundColor: '#fff',
@@ -141,9 +144,59 @@ const styles = StyleSheet.create({
   },
 });
 
-const PLACEHOLDER_IMG = 'https://randomuser.me/api/portraits/men/1.jpg';
 
-export const LebenslaufPDF_Classic = () => (
+// Supabase field mapping
+interface Profile {
+  full_name?: string;
+  location?: string;
+  phone?: string;
+  email?: string;
+  birthdate?: string;
+  marital_status?: string;
+  hometown?: string;
+  profile_picture_url?: string;
+}
+
+interface Experience {
+  job: string | undefined;
+  period?: string; // e.g. '02.2022 – heute'
+  position?: string;
+  company?: string;
+  tasks?: string[];
+}
+
+interface Education {
+  period?: string;
+  school?: string;
+  degree?: string;
+  description?: string;
+}
+
+interface Language {
+  language_name?: string;
+  proficiency?: string;
+}
+
+interface Skill {
+  category?: string | null;
+  skill_name?: string;
+}
+
+interface LebenslaufPDF_ClassicProps {
+  profile?: Profile;
+  experiences?: Experience[];
+  education?: Education[];
+  languages?: Language[];
+  skills?: Skill[];
+}
+
+export const LebenslaufPDF_Classic = ({
+  profile,
+  experiences,
+  education,
+  languages,
+  skills,
+}: LebenslaufPDF_ClassicProps) => (
   <Document>
     <Page size="A4" style={styles.page}>
       {/* Header */}
@@ -153,65 +206,53 @@ export const LebenslaufPDF_Classic = () => (
           <View style={styles.contactTable}>
             <View style={styles.contactRow}>
               <Text style={styles.contactLabel}>Name</Text>
-              <Text style={styles.contactValue}>Max Mustermann</Text>
+              <Text style={styles.contactValue}>{profile?.full_name || ''}</Text>
             </View>
             <View style={styles.contactRow}>
-              <Text style={styles.contactLabel}>Adresse</Text>
-              <Text style={styles.contactValue}>Musterstrasse 12, 5000 Musterstadt</Text>
+              <Text style={styles.contactLabel}>Standort</Text>
+              <Text style={styles.contactValue}>{profile?.location || ''}</Text>
             </View>
             <View style={styles.contactRow}>
               <Text style={styles.contactLabel}>Tel.</Text>
-              <Text style={styles.contactValue}>076 000 00 00</Text>
+              <Text style={styles.contactValue}>{profile?.phone || ''}</Text>
             </View>
             <View style={styles.contactRow}>
               <Text style={styles.contactLabel}>E-Mail</Text>
-              <Text style={styles.contactValue}>max.mustermann@muster.ch</Text>
+              <Text style={styles.contactValue}>{profile?.email || ''}</Text>
             </View>
             <View style={styles.contactRow}>
               <Text style={styles.contactLabel}>Geburtsdatum</Text>
-              <Text style={styles.contactValue}>10. Januar 1990</Text>
+              <Text style={styles.contactValue}>{profile?.birthdate || ''}</Text>
             </View>
             <View style={styles.contactRow}>
               <Text style={styles.contactLabel}>Zivilstand</Text>
-              <Text style={styles.contactValue}>verheiratet, 2 Kinder / ledig</Text>
+              <Text style={styles.contactValue}>{profile?.marital_status || ''}</Text>
             </View>
             <View style={styles.contactRow}>
               <Text style={styles.contactLabel}>Heimatort</Text>
-              <Text style={styles.contactValue}>Musterstadt, Schweiz</Text>
+              <Text style={styles.contactValue}>{profile?.hometown || ''}</Text>
             </View>
           </View>
         </View>
         <View style={styles.rightCol}>
-          <Image src={PLACEHOLDER_IMG} style={styles.profilePic} />
+          <Image src={profile?.profile_picture_url || PLACEHOLDER_IMG} style={styles.profilePic} />
         </View>
       </View>
       {/* Berufliche Erfahrung */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Berufliche Erfahrung</Text>
-        {[{
-          period: '02.2022 – heute',
-          job: 'Stellentitel',
-          company: 'Mustermann AG, Musterstadt AG',
-          tasks: ['Tätigkeit', 'Tätigkeit', 'Tätigkeit', 'Tätigkeit'],
-        }, {
-          period: '05.2020 – 02.2022',
-          job: 'Stellentitel',
-          company: 'Mustermann AG, Musterstadt AG',
-          tasks: ['Tätigkeit', 'Tätigkeit', 'Tätigkeit', 'Tätigkeit'],
-        }, {
-          period: '03.2019 – 05.2020',
-          job: 'Stellentitel',
-          company: 'Mustermann AG, Musterstadt AG',
-          tasks: ['Tätigkeit', 'Tätigkeit', 'Tätigkeit'],
-        }].map((exp, i) => (
+        {(experiences || []).slice().reverse().map((exp, i) => (
           <View key={i} style={styles.expBlock}>
             <View style={styles.expHeader}>
-              <Text style={styles.expPeriod}>{exp.period}</Text>
-              <Text style={styles.expPosition}>{exp.job},</Text>
-              <Text style={styles.expCompany}>{exp.company}</Text>
+              <Text style={styles.expPeriod}>{exp.period || ''}</Text>
+              <Text style={styles.expPosition}>
+                {exp.position || exp.job || ''}
+                {exp.position || exp.job ? ',' : ''}
+              </Text>
+              <Text style={styles.expCompany}>{exp.company || ''}</Text>
             </View>
             <View style={styles.expTasks}>
-              {exp.tasks.map((task, t) => (
+              {(exp.tasks || []).map((task, t) => (
                 <Text key={t} style={styles.bullet}>• {task}</Text>
               ))}
             </View>
@@ -221,16 +262,10 @@ export const LebenslaufPDF_Classic = () => (
       {/* Ausbildungen */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Ausbildungen / Weiterbildungen</Text>
-        {[{
-          period: '02.2020 – 06.2020',
-          text: 'Weiterbildung zur Personalassistentin, Musterschule AG',
-        }, {
-          period: '08.2015 – 07.2018',
-          text: 'Ausbildung zur Kauffrau AG, Musterschule AG',
-        }].map((edu, i) => (
+        {(education || []).map((edu, i) => (
           <View key={i} style={styles.eduBlock}>
-            <Text style={styles.eduPeriod}>{edu.period}</Text>
-            <Text style={styles.eduText}>{edu.text}</Text>
+            <Text style={styles.eduPeriod}>{edu.period || ''}</Text>
+            <Text style={styles.eduText}>{[edu.degree, edu.school, edu.description].filter(Boolean).join(', ')}</Text>
           </View>
         ))}
       </View>
@@ -240,19 +275,17 @@ export const LebenslaufPDF_Classic = () => (
         <View style={styles.skillSection}>
           <Text style={styles.skillTitle}>Sprachen</Text>
           <View style={styles.skillRow}>
-            <Text style={styles.skillLabel}>Deutsch</Text>
-            <Text style={styles.skillValue}>Muttersprache</Text>
-            <Text style={styles.skillLabel}>Englisch</Text>
-            <Text style={styles.skillValue}>Gute Kenntnisse</Text>
-            <Text style={styles.skillLabel}>Französisch</Text>
-            <Text style={styles.skillValue}>Gute Kenntnisse</Text>
+            {(languages || []).map((lang, i) => (
+              <React.Fragment key={i}>
+                <Text style={styles.skillLabel}>{lang.language_name || ''}</Text>
+                <Text style={styles.skillValue}>{lang.proficiency || ''}</Text>
+              </React.Fragment>
+            ))}
           </View>
-          <Text style={[styles.skillTitle, { marginTop: 6 }]}>Führerschein</Text>
-          <Text style={styles.skillValue}>Kategorie B</Text>
           <Text style={[styles.skillTitle, { marginTop: 6 }]}>Programme</Text>
-          <Text style={styles.skillValue}>SAP</Text>
+          <Text style={styles.skillValue}>{(skills || []).filter(s => s.category === 'Programme').map(s => s.skill_name).join(', ')}</Text>
         </View>
       </View>
     </Page>
   </Document>
-); 
+);

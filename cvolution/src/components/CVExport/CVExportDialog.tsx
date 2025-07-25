@@ -34,17 +34,77 @@ export const CVExportDialog: React.FC<CVExportDialogProps> = ({ children }) => {
 
   useEffect(() => {
     if (!user) return;
-    // Lade Profil
-    supabase.from('profiles').select('*').eq('user_id', user.id).single().then(({ data }) => setProfile(data || {}));
+    // Lade Profil inkl. Bild
+    supabase
+      .from('profiles')
+      .select('*')
+      .eq('user_id', user.id)
+      .single()
+      .then(async ({ data }) => {
+        if (data && data.profile_picture_url) {
+          // Falls Bild-URL ein Supabase Storage Pfad ist, hole die öffentliche URL
+          if (data.profile_picture_url.startsWith('profile-photos/')) {
+            const { data: urlData } = supabase.storage
+              .from('profile-photos')
+              .getPublicUrl(data.profile_picture_url.replace('profile-photos/', ''));
+            if (urlData && urlData.publicUrl) {
+              data.profile_picture_url = urlData.publicUrl;
+            }
+          }
+        }
+        setProfile(data || {});
+        // Nach dem Laden: Profilname ausgeben
+        console.log('Profilname:', data?.full_name);
+        console.log('Profilbild:', data?.profile_picture_url);
+      });
     // Lade Erfahrungen
-    supabase.from('experiences').select('*').eq('user_id', user.id).then(({ data }) => setExperiences(data || []));
+    supabase
+      .from('experiences')
+      .select('*')
+      .eq('user_id', user.id)
+      .then(({ data }) => {
+        setExperiences(data || []);
+        // Erste Erfahrung ausgeben
+        if (data && data.length > 0) {
+          console.log('Erste Erfahrung:', data[0]);
+        }
+      });
+    // Lade Bildung
+    supabase
+      .from('education')
+      .select('*')
+      .eq('user_id', user.id)
+      .then(({ data }) => {
+        // Erste Bildung ausgeben
+        if (data && data.length > 0) {
+          console.log('Erste Bildung:', data[0]);
+        }
+      });
     // Lade Sprachen
-    supabase.from('languages').select('*').eq('user_id', user.id).then(({ data }) => setLanguages(data || []));
+    supabase
+      .from('languages')
+      .select('*')
+      .eq('user_id', user.id)
+      .then(({ data }) => {
+        setLanguages(data || []);
+        // Erste Sprache ausgeben
+        if (data && data.length > 0) {
+          console.log('Erste Sprache:', data[0]);
+        }
+      });
     // Lade Programme (z.B. aus skills mit Kategorie 'Programme')
-    supabase.from('skills').select('*').eq('user_id', user.id).then(({ data }) => {
-      setPrograms((data || []).filter(s => s.category === 'Programme').map(s => s.skill_name));
-      setSkills((data || []).map(s => ({ category: s.category, value: s.skill_name })));
-    });
+    supabase
+      .from('skills')
+      .select('*')
+      .eq('user_id', user.id)
+      .then(({ data }) => {
+        setPrograms((data || []).filter(s => s.category === 'Programme').map(s => s.skill_name));
+        setSkills((data || []).map(s => ({ category: s.category, value: s.skill_name })));
+        // Erste Fähigkeit ausgeben
+        if (data && data.length > 0) {
+          console.log('Erste Fähigkeit:', data[0]);
+        }
+      });
   }, [user]);
 
   const templates = [
@@ -76,7 +136,36 @@ export const CVExportDialog: React.FC<CVExportDialogProps> = ({ children }) => {
     try {
       let pdfComponent;
       if (selectedTemplate === 'classic') {
-        pdfComponent = <LebenslaufPDF_Classic />;
+        // Map email and birthdate from profile and user
+        const profileData = {
+          ...profile,
+          email: profile?.email || user?.email || '',
+          birthdate: profile?.birthdate || profile?.geburtsdatum || '',
+        };
+        // Map experiences to expected format
+        const experiencesData = (experiences || []).map(exp => ({
+          job: exp.job || exp.position || '',
+          period: exp.period || `${exp.start_date || ''} – ${exp.end_date || 'heute'}`,
+          position: exp.position || '',
+          company: exp.company || '',
+          tasks: exp.tasks || (exp.description ? [exp.description] : []),
+        }));
+        // Map education from state if available
+        const educationData: any[] = [];
+        // Pass programs as skills with category 'Programme'
+        const skillsData = [
+          ...skills,
+          ...programs.map(program => ({ category: 'Programme', skill_name: program })),
+        ];
+        pdfComponent = (
+          <LebenslaufPDF_Classic
+            profile={profileData}
+            experiences={experiencesData}
+            education={educationData}
+            languages={languages}
+            skills={skillsData}
+          />
+        );
       } else if (selectedTemplate === 'minimal') {
         pdfComponent = (
           <LebenslaufPDF_Minimal
