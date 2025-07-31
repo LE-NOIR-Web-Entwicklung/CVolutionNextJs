@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 
 export default function Self() {
-  const targetDate = new Date("2025-08-01T00:00:00").getTime();
+  const targetDate = new Date("2025-08-31T00:00:00").getTime();
   const [timeLeft, setTimeLeft] = useState(calculateTimeLeft());
 
   function calculateTimeLeft() {
