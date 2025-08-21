@@ -12,11 +12,41 @@ import { ExperienceSection } from '@/components/Dashboard/ExperienceSection';
 import { EducationSection } from '@/components/Dashboard/EducationSection';
 import { SkillsAndLanguagesSection } from '@/components/Dashboard/SkillsAndLanguagesSection';
 import { LinkedInExtractor } from '@/components/LinkedInExtractor';
-import { CVExportDialog } from '@/components/CVExport/CVExportDialog';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { CVExportButton } from '@/components/CVExport/CVExportButton';
+import { CVExportModal } from '@/components/CVExport/CVExportModal';
 
 export const Dashboard: React.FC = () => {
   const { user, signOut } = useAuth();
+  const [cvModalOpen, setCVModalOpen] = useState(false);
+  const [profileData, setProfileData] = useState<any>(null);
+  const [experiencesData, setExperiencesData] = useState<any[]>([]);
+  const [educationData, setEducationData] = useState<any[]>([]);
+  const [skillsData, setSkillsData] = useState<any[]>([]);
+  const [languagesData, setLanguagesData] = useState<any[]>([]);
+
+  // Fetch all data for export
+  useEffect(() => {
+    const fetchAll = async () => {
+      if (!user) return;
+      // Profile
+      const { data: profile } = await supabase.from('profiles').select('*').eq('user_id', user.id).single();
+      setProfileData(profile);
+      // Experiences
+      const { data: experiences } = await supabase.from('experiences').select('*').eq('user_id', user.id);
+      setExperiencesData(experiences || []);
+      // Education
+      const { data: education } = await supabase.from('education').select('*').eq('user_id', user.id);
+      setEducationData(education || []);
+      // Skills
+      const { data: skills } = await supabase.from('skills').select('*').eq('user_id', user.id);
+      setSkillsData(skills || []);
+      // Languages
+      const { data: languages } = await supabase.from('languages').select('*').eq('user_id', user.id);
+      setLanguagesData(languages || []);
+    };
+    fetchAll();
+  }, [user, cvModalOpen]);
 
   const handleSignOut = async () => {
     await signOut();
@@ -24,6 +54,10 @@ export const Dashboard: React.FC = () => {
       title: 'Abgemeldet',
       description: 'Sie wurden erfolgreich abgemeldet.',
     });
+  };
+
+  const handleExportClick = () => {
+    setCVModalOpen(true);
   };
 
   return (
@@ -76,15 +110,23 @@ export const Dashboard: React.FC = () => {
               <TabsTrigger value="education" className="text-gray-600 data-[state=active]:bg-[#204878] data-[state=active]:text-white">Bildung</TabsTrigger>
               <TabsTrigger value="skills" className="text-gray-600 data-[state=active]:bg-[#204878] data-[state=active]:text-white col-span-2 min-w-[180px]">Sprachen & Fähigkeiten</TabsTrigger>
             </TabsList>
-            
-            <CVExportDialog>
-              <Button className="bg-green-600 hover:bg-green-700 w-full sm:w-auto">
-                <Download className="h-4 w-4 mr-2" />
-                <span className="hidden sm:inline">Lebenslauf exportieren</span>
-                <span className="sm:hidden">Export</span>
-              </Button>
-            </CVExportDialog>
+            {/* CV Export Button below desktop navigation */}
+            <div className="hidden sm:block ml-4">
+              <CVExportButton onExport={handleExportClick} />
+            </div>
           </div>
+
+          {/* CV Export Modal */}
+          <CVExportModal
+            open={cvModalOpen}
+            onClose={() => setCVModalOpen(false)}
+            user={user}
+            profile={profileData}
+            experiences={experiencesData}
+            education={educationData}
+            skills={skillsData}
+            languages={languagesData}
+          />
 
           {/* <TabsContent value="linkedin">
             <LinkedInExtractor />
