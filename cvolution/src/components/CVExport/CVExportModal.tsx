@@ -24,7 +24,7 @@ export const CVExportModal: React.FC<CVExportModalProps> = ({ open, onClose, use
 // Remove incorrect destructuring, use selectedDesign directly
 
   //create a function to select selectedDesign
-  const handleDesignSelect = (design: string) => {
+  const handleDesignSelect = (design: CVDesign) => {
     confirmedDesign = design;
     //save confirmeddesign in localstorage
     localStorage.setItem("confirmedDesign", design);
