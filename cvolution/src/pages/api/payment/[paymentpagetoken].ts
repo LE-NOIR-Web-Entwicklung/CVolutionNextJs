@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
 
-let tokens: string[] = [];
+const tokens: string[] = [];
 
 export default function handler(req: NextApiRequest, res: NextApiResponse) {
   const { paymentpagetoken } = req.query;
