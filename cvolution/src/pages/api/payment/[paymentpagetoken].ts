@@ -1,4 +1,6 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
+import { NextApiRequest, NextApiResponse } from "next";
+
+let tokens: string[] = [];
 
 export default function handler(req: NextApiRequest, res: NextApiResponse) {
   const { paymentpagetoken } = req.query;
@@ -7,8 +9,7 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
     return res.status(400).json({ error: 'Missing or invalid paymentpagetoken' });
   }
 
-  // You can process the token here (e.g., validate, store in DB, etc.)
-  console.log('Received paymentpagetoken:', paymentpagetoken);
+  tokens.push(paymentpagetoken);
 
-  res.status(200).json({ token: paymentpagetoken, message: 'Token received successfully' });
+  res.status(200).json({ token: paymentpagetoken, message: 'Token stored in memory' });
 }
