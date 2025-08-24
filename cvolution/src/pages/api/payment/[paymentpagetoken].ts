@@ -1,17 +1,14 @@
-import { useRouter } from 'next/router';
-import { useEffect } from 'react';
+import type { NextApiRequest, NextApiResponse } from 'next';
 
-export default function PaymentTokenPage() {
-  const router = useRouter();
-  const { paymentpagetoken } = router.query;
+export default function handler(req: NextApiRequest, res: NextApiResponse) {
+  const { paymentpagetoken } = req.query;
 
-  useEffect(() => {
-    if (typeof paymentpagetoken === 'string') {
-      // Optional: API-Call, falls du noch etwas validieren willst
-      // fetch(`/api/payment/${paymentpagetoken}`);
+  if (!paymentpagetoken || typeof paymentpagetoken !== 'string') {
+    return res.status(400).json({ error: 'Missing or invalid paymentpagetoken' });
+  }
 
-      // Im localStorage speichern
-      localStorage.setItem('paymentpagetoken', paymentpagetoken);
-    }
-  }, [paymentpagetoken]);
+  // You can process the token here (e.g., validate, store in DB, etc.)
+  console.log('Received paymentpagetoken:', paymentpagetoken);
+
+  res.status(200).json({ token: paymentpagetoken, message: 'Token received successfully' });
 }
