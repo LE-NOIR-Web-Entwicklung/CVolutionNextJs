@@ -20,20 +20,36 @@ interface CVExportModalProps {
 export const CVExportModal: React.FC<CVExportModalProps> = ({ open, onClose, user, profile, experiences, education, skills, languages }) => {
   const [isExporting, setIsExporting] = useState(false);
   const [selectedDesign, setSelectedDesign] = useState<CVDesign>('design1');
+  let confirmedDesign = "";
+// Remove incorrect destructuring, use selectedDesign directly
+
+  //create a function to select selectedDesign
+  const handleDesignSelect = (design: string) => {
+    confirmedDesign = design;
+    //save confirmeddesign in localstorage
+    localStorage.setItem("confirmedDesign", design);
+    console.log("Selected Design:", design);
+    console.log("Confirmed Design:", confirmedDesign);
+    //update the state
+  };
+
 
   // Export-Button wird jetzt durch PDFDownloadLink ersetzt
 
   return (
-    <Dialog open={open} onOpenChange={onClose}>
-  <DialogContent className="max-w-4xl bg-white rounded-3xl shadow-2xl border-2 border-blue-200 p-8">
+   <Dialog open={open} onOpenChange={onClose}>
+      <DialogContent className="max-w-4xl bg-white rounded-3xl shadow-2xl border-2 border-blue-200 p-8">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold text-[#204878] mb-1">CV Exportieren</DialogTitle>
-          <DialogDescription className="text-black">Wählen Sie ein Design und exportieren Sie Ihren Lebenslauf als PDF.</DialogDescription>
+          <DialogDescription className="text-black">
+            Wählen Sie ein Design und exportieren Sie Ihren Lebenslauf als PDF.
+          </DialogDescription>
         </DialogHeader>
         <div className="bg-blue-50 rounded-2xl p-8 my-6 flex justify-center">
-          <CVDesignSelector selected={selectedDesign} onSelect={setSelectedDesign} />
+          <CVDesignSelector selected={selectedDesign} onSelect={handleDesignSelect} />
         </div>
         <DialogFooter>
+          
           <PDFDownloadLink
             document={
               <CVPdfDocument
@@ -43,7 +59,7 @@ export const CVExportModal: React.FC<CVExportModalProps> = ({ open, onClose, use
                 education={education}
                 skills={skills}
                 languages={languages}
-                design={selectedDesign}
+                design={confirmedDesign}
               />
             }
             fileName="Lebenslauf.pdf"
@@ -56,7 +72,9 @@ export const CVExportModal: React.FC<CVExportModalProps> = ({ open, onClose, use
               </Button>
             )}
           </PDFDownloadLink>
-          <Button onClick={onClose} className="bg-gray-200 hover:bg-gray-300 text-black font-bold rounded-lg py-3 transition duration-200 px-6">Abbrechen</Button>
+          <Button onClick={onClose} className="bg-gray-200 hover:bg-gray-300 text-black font-bold rounded-lg py-3 transition duration-200 px-6">
+            Abbrechen
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

@@ -8,7 +8,7 @@ interface CVPdfDocumentProps {
     education: any[];
     skills: any[];
     languages: any[];
-    design: 'design1' | 'design2' | 'design3';
+    design: string;
 }
 
 // Design 1 (default)
@@ -76,10 +76,13 @@ export const CVPdfDocument: React.FC<CVPdfDocumentProps> = (props) => {
       const year = d.getFullYear();
       return `${day}.${month}.${year}`;
     }
-  if (design === 'design2') {
+  //read design from localstorage
+  const confirmedDesign = localStorage.getItem("confirmedDesign");
+  console.log("Confirmed Design in CVPdfDocument:", confirmedDesign);
+  if (confirmedDesign === 'design2') {
     return <CVPdfDesign2 user={user} profile={profile} experiences={experiences} education={education} skills={skills} languages={languages} />;
   }
-  if (design === 'design3') {
+  if (confirmedDesign === 'design3') {
     return <CVPdfDesign3 user={user} profile={profile} experiences={experiences} education={education} skills={skills} languages={languages} />;
   }
   // Default: Design 1

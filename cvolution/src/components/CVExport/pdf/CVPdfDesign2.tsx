@@ -1,126 +1,173 @@
 import { Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/renderer';
 
 interface CVPdfDesign2Props {
-    user: any;
-    profile: any;
-    experiences: any[];
-    education: any[];
-    skills: any[];
-    languages: any[];
+  user: any;
+  profile: any;
+  experiences: any[];
+  education: any[];
+  skills: any[];
+  languages: any[];
 }
 
 const styles = StyleSheet.create({
   page: {
-    fontFamily: 'Times-Roman',
-    backgroundColor: '#f7f9fc',
-    padding: 40,
-    fontSize: 12,
-    color: '#204878',
+    flexDirection: "row", // Sidebar links, Inhalt, Sidebar rechts
+    fontSize: 11,
+    fontFamily: "Helvetica",
+  },
+  profilePic: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    marginBottom: 10,
+  },
+  sidebar: {
+    width: "12%",
+    backgroundColor: "#f2f2f2",
+  },
+  main: {
+    flexGrow: 1,
+    flexDirection: "column", // Inhalt wieder spaltenweise
+    padding: 25,
   },
   header: {
-    borderBottom: '2px solid #204878',
-    marginBottom: 16,
-    paddingBottom: 8,
-    flexDirection: 'row',
-    alignItems: 'center',
+    marginBottom: 15,
   },
   name: {
     fontSize: 22,
-    fontWeight: 'bold',
-    color: '#204878',
+    fontWeight: "bold",
+    color: "#000",
   },
   headline: {
     fontSize: 12,
-    color: '#4c6c93',
-    marginBottom: 8,
-  },
-  profilePic: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    marginLeft: 16,
-    border: '2px solid #204878',
+    color: "gray",
+    marginBottom: 10,
   },
   sectionTitle: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    marginTop: 16,
-    marginBottom: 8,
-    color: '#204878',
-    borderBottom: '1px solid #204878',
+    fontSize: 13,
+    fontWeight: "bold",
+    marginTop: 18,
+    marginBottom: 6,
+    color: "#000",
+    borderBottom: "1 solid #000",
+    paddingBottom: 3,
   },
-  itemTitle: {
-    fontSize: 11,
-    fontWeight: 'bold',
-    color: '#204878',
-  },
-  itemSubtitle: {
-    fontSize: 10,
-    color: '#4c6c93',
-  },
-  itemText: {
-    fontSize: 10,
-    color: '#333',
-    marginBottom: 4,
-  },
-  skill: {
-    fontSize: 10,
-    color: '#204878',
-    marginBottom: 2,
-  },
-  language: {
-    fontSize: 10,
-    color: '#204878',
-    marginBottom: 2,
-  },
+  itemTitle: { fontSize: 11, fontWeight: "bold", marginTop: 8 },
+  itemSubtitle: { fontSize: 10, color: "gray" },
+  itemText: { fontSize: 10, marginBottom: 6 },
+  skill: { fontSize: 10, marginBottom: 3 },
+  language: { fontSize: 10, marginBottom: 3 },
 });
+ function formatDate(dateString: string) {
+      if (!dateString) return "";
+      const d = new Date(dateString);
+      if (isNaN(d.getTime())) return dateString;
+      const day = String(d.getDate()).padStart(2, "0");
+      const month = String(d.getMonth() + 1).padStart(2, "0");
+      const year = d.getFullYear();
+      return `${day}.${month}.${year}`;
+    }
 
-export const CVPdfDesign2: React.FC<CVPdfDesign2Props> = ({ user, profile, experiences, education, skills, languages }) => (
-  <Document>
-    <Page size="A4" style={styles.page}>
+export const CVPdfDesign2: React.FC<CVPdfDesign2Props> = ({
+  user,
+  profile,
+  experiences,
+  education,
+  skills,
+  languages,
+}) => (
+   <Document>
+  <Page size="A4" style={styles.page}>
+    {/* Linke Sidebar */}
+    <View style={styles.sidebar}></View>
+
+    {/* Mittelteil */}
+    <View style={styles.main}>
       <View style={styles.header}>
-        <View style={{ flex: 1 }}>
-          <Text style={styles.name}>{profile?.full_name}</Text>
-          <Text style={styles.headline}>{profile?.headline}</Text>
-          <Text style={styles.itemText}>{profile?.summary}</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          {/* Bild links */}
+          {/* Name und Position rechts daneben */}
+          <View style={{ marginRight: 30 }}>
+            <Text style={styles.name}>{profile?.full_name}</Text>
+            <Text style={styles.headline}>{profile?.headline}</Text>
+          </View>
+          {profile?.profile_picture_url ? (
+<View style={{ width: 100, height: 120, backgroundColor: 'lightgray', borderRadius: 1, justifyContent: 'center', alignItems: 'center' }}>
+              <Text style={{ color: '#888', fontSize: 18 }}>Foto</Text>
+            </View>
+              ) : (
+            <View style={{ width: 100, height: 120, backgroundColor: 'lightgray', borderRadius: 1, justifyContent: 'center', alignItems: 'center' }}>
+              <Text style={{ color: '#888', fontSize: 18 }}>Foto</Text>
+            </View>
+          )}
         </View>
-        {profile?.profile_picture_url && (
-          <Image src={profile.profile_picture_url} style={styles.profilePic} />
-        )}
       </View>
+
+      {/*füge eine view mit kontaktdaten hinzu*/}
+      <View>
+        <Text style={styles.sectionTitle}>Kontaktdaten</Text>
+        <Text style={styles.itemText}>Standort: {profile?.location}</Text>
+        <Text style={styles.itemText}>Telefon: {profile?.phone}</Text>
+        <Text style={styles.itemText}>E-Mail: {user?.email}</Text>
+        {/* <Text style={styles.itemText}>Geburtstag: {profile?.birthday}</Text> */}
+      </View>
+
       <View>
         <Text style={styles.sectionTitle}>Berufserfahrung</Text>
         {experiences.map((exp) => (
           <View key={exp.id}>
-            <Text style={styles.itemTitle}>{exp.job_title} <Text style={styles.itemSubtitle}>@ {exp.company}</Text></Text>
-            <Text style={styles.itemSubtitle}>{exp.start_date} - {exp.is_current ? 'heute' : exp.end_date}</Text>
+            <Text style={styles.itemTitle}>
+              {exp.job_title}
+              <Text style={styles.itemTitle}>, {exp.company}</Text>
+              <Text style={styles.itemTitle}>, {exp.location}</Text>
+            </Text>
+              <Text style={styles.itemSubtitle}>
+                {formatDate(exp.start_date)} - {exp.is_current ? "heute" : formatDate(exp.end_date)}
+              </Text>
+            <Text style={styles.itemTitle}>Tätigkeiten</Text>
             <Text style={styles.itemText}>{exp.description}</Text>
           </View>
         ))}
       </View>
+
       <View>
         <Text style={styles.sectionTitle}>Bildung</Text>
         {education.map((edu) => (
           <View key={edu.id}>
-            <Text style={styles.itemTitle}>{edu.degree} <Text style={styles.itemSubtitle}>@ {edu.institution}</Text></Text>
-            <Text style={styles.itemSubtitle}>{edu.start_date} - {edu.is_current ? 'heute' : edu.end_date}</Text>
+            <Text style={styles.itemTitle}>
+              {edu.degree}
+              <Text style={styles.itemTitle}>, {edu.institution}</Text>
+            </Text>
+              <Text style={styles.itemSubtitle}>
+                {formatDate(edu.start_date)} - {edu.is_current ? "heute" : formatDate(edu.end_date)}
+              </Text>
             <Text style={styles.itemSubtitle}>{edu.field_of_study}</Text>
             <Text style={styles.itemText}>{edu.description}</Text>
           </View>
         ))}
       </View>
+
       <View>
-        <Text style={styles.sectionTitle}>Fähigkeiten</Text>
+        <Text style={styles.sectionTitle}>Kenntnisse & Fähigkeiten</Text>
+        <Text style={styles.itemTitle}>Fähigkeiten</Text>
         {skills.map((skill) => (
-          <Text key={skill.id} style={styles.skill}>{skill.skill_name} ({skill.proficiency})</Text>
+          <Text key={skill.id} style={styles.skill}>
+            {skill.skill_name} ({skill.proficiency})
+          </Text>
         ))}
-      </View>
-      <View>
-        <Text style={styles.sectionTitle}>Sprachen</Text>
+        <Text style={styles.itemTitle}>Sprachen</Text>
         {languages.map((lang) => (
-          <Text key={lang.id} style={styles.language}>{lang.language_name} ({lang.proficiency})</Text>
+          <Text key={lang.id} style={styles.language}>
+            {lang.language_name} ({lang.proficiency})
+          </Text>
         ))}
-      </View>
-    </Page>
-  </Document>
+        </View>
+
+    </View>
+
+    {/* Rechte Sidebar */}
+    <View style={styles.sidebar}></View>
+  </Page>
+</Document>
+
 );

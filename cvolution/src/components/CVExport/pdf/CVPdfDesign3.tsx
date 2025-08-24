@@ -11,7 +11,7 @@ interface CVPdfDesign3Props {
 
 const styles = StyleSheet.create({
   page: {
-    fontFamily: 'Montserrat',
+    fontFamily: 'Helvetica',
     backgroundColor: '#eaf0fa',
     padding: 40,
     fontSize: 12,
