@@ -12,33 +12,48 @@ export default function Confirmation() {
       const storedEmail = localStorage.getItem("confirmationEmail");
       const storedService = localStorage.getItem("confirmationService");
       const storedName = localStorage.getItem("confirmationName");
-      if (storedEmail) {
-        setEmail(storedEmail);
-        // Call API to send confirmation mail
-        fetch("/api/send-confirmation", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email: storedEmail, service: storedService }),
-        });
-        // Call API to send info mail
-        if (storedName && storedService) {
-          fetch("/api/send-info", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ name: storedName, email: storedEmail, service: storedService }),
-          });
+// Check if payment tokens are filled in memory
+    fetch("/api/payment/tokens")
+      .then(res => res.json())
+      .then(data => {
+        if (data.tokens && data.tokens.length > 0) {
+          // Tokens exist, proceed with confirmation logic
+          if (storedEmail) {
+            setEmail(storedEmail);
+
+            // Call API to send confirmation mail
+            fetch("/api/send-confirmation", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ email: storedEmail, service: storedService }),
+            });
+
+            // Call API to send info mail
+            if (storedName && storedService) {
+              fetch("/api/send-info", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ name: storedName, email: storedEmail, service: storedService }),
+              });
+            }
+            localStorage.removeItem("confirmationEmail");
+          }
+          if (storedService) {
+            setService(storedService);
+            localStorage.removeItem("confirmationService");
+          }
+          if (storedName) {
+            localStorage.removeItem("confirmationName");
+          }
+        } else {
+          // No payment tokens in memory, handle accordingly (optional)
+          console.warn("No payment tokens found in memory.");
         }
-        localStorage.removeItem("confirmationEmail"); // Clear the email after sending
-      }
-      if (storedService) {
-        setService(storedService);
-        localStorage.removeItem("confirmationService"); // Clear the service after sending
-      }
-      if (storedName) {
-        localStorage.removeItem("confirmationName"); // Clear the name after sending
-      }
-    }
-  }, []);
+
+        fetch("/api/payment/irgendeinToken", { method: "DELETE" });
+      });
+  }
+}, []);
 
   return (
     <div className="min-h-[60vh] flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 py-8">
