@@ -19,7 +19,7 @@ interface CVExportModalProps {
 
 export const CVExportModal: React.FC<CVExportModalProps> = ({ open, onClose, user, profile, experiences, education, skills, languages }) => {
   const [isExporting, setIsExporting] = useState(false);
-  const [selectedDesign, setSelectedDesign] = useState<CVDesign>('design1');
+  const [selectedDesign, setSelectedDesign] = useState<CVDesign>('design2');
   let confirmedDesign = "";
 // Remove incorrect destructuring, use selectedDesign directly
 

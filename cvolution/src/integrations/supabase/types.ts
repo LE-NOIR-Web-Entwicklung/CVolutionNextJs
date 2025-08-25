@@ -147,6 +147,9 @@ export type Database = {
           updated_at: string
           user_id: string
           website: string | null
+          birthdate: string | null
+          civil_status: string | null
+          place_of_origin: string | null
         }
         Insert: {
           created_at?: string

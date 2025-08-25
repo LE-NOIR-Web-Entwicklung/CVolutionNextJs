@@ -19,6 +19,9 @@ interface Profile {
   phone: string | null;
   linkedin_url: string | null;
   website: string | null;
+  birthdate: string | null; // <-- hinzugefügt
+  civil_status: string | null;   // <-- Zivilstand
+  place_of_origin: string | null;
 }
 
 export const ProfileSection: React.FC = () => {
@@ -61,6 +64,9 @@ export const ProfileSection: React.FC = () => {
           phone: '',
           linkedin_url: '',
           website: '',
+          birthdate: '',
+          civil_status: '',
+          place_of_origin: '',
         });
       }
     } catch (error) {
@@ -164,6 +170,9 @@ export const ProfileSection: React.FC = () => {
       phone: formData.get('phone') as string,
       linkedin_url: formData.get('linkedin_url') as string,
       website: formData.get('website') as string,
+      birthdate: formData.get('birthdate') as string, // <-- hinzugefügt
+      civil_status: formData.get('civil_status') as string,
+      place_of_origin: formData.get('place_of_origin') as string,
     };
 
     try {
@@ -248,8 +257,20 @@ export const ProfileSection: React.FC = () => {
               <p className="text-black">{profile?.phone || 'Nicht angegeben'}</p>
             </div>
             <div>
-              <label className="text-sm font-medium text-black">LinkedIn-URL</label>
-              <p className="text-black">{profile?.linkedin_url || 'Nicht angegeben'}</p>
+              <label className="text-sm font-medium text-black">Geburtsdatum</label>
+              <p className="text-black">
+                {profile?.birthdate
+                  ? new Date(profile.birthdate).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })
+                  : 'Nicht angegeben'}
+              </p>
+            </div>
+            <div>
+              <label className="text-sm font-medium text-black">Zivilstand</label>
+              <p className="text-black">{profile?.civil_status || 'Nicht angegeben'}</p>
+            </div>
+            <div>
+              <label className="text-sm font-medium text-black">Heimatort</label>
+              <p className="text-black">{profile?.place_of_origin || 'Nicht angegeben'}</p>
             </div>
             <div>
               <label className="text-sm font-medium text-black">Website</label>
@@ -369,6 +390,42 @@ export const ProfileSection: React.FC = () => {
               />
             </div>
             <div>
+              <label htmlFor="birthdate" className="text-sm font-medium text-black">
+                Geburtsdatum
+              </label>
+              <Input
+                id="birthdate"
+                name="birthdate"
+                type="date"
+                defaultValue={profile?.birthdate || ''}
+                className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+              />
+            </div>
+            <div>
+              <label htmlFor="civil_status" className="text-sm font-medium text-black">
+                Zivilstand
+              </label>
+              <Input
+                id="civil_status"
+                name="civil_status"
+                defaultValue={profile?.civil_status || ''}
+                placeholder="Ledig, verheiratet, ..."
+                className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+              />
+            </div>
+            <div>
+              <label htmlFor="place_of_origin" className="text-sm font-medium text-black">
+                Heimatort
+              </label>
+              <Input
+                id="place_of_origin"
+                name="place_of_origin"
+                defaultValue={profile?.place_of_origin || ''}
+                placeholder="z.B. Zürich"
+                className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+              />
+            </div>
+            {/* <div>
               <label htmlFor="linkedin_url" className="text-sm font-medium text-black">
                 LinkedIn-URL
               </label>
@@ -379,7 +436,7 @@ export const ProfileSection: React.FC = () => {
                 placeholder="https://linkedin.com/in/ihrprofil"
                 className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
               />
-            </div>
+            </div> */}
             <div>
               <label htmlFor="website" className="text-sm font-medium text-black">
                 Website

@@ -120,7 +120,9 @@ export const CVPdfDocument: React.FC<CVPdfDocumentProps> = (props) => {
         <Text style={styles.itemText}>Standort: {profile?.location}</Text>
         <Text style={styles.itemText}>Telefon: {profile?.phone}</Text>
         <Text style={styles.itemText}>E-Mail: {user?.email}</Text>
-        {/* <Text style={styles.itemText}>Geburtstag: {profile?.birthday}</Text> */}
+        <Text style={styles.itemText}>Geburtstag: {new Date(profile?.birthday).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })}</Text>
+        <Text style={styles.itemText}>Zivilstand: {profile?.civil_status}</Text>
+        <Text style={styles.itemText}>Heimatort: {profile?.place_of_origin}</Text>
       </View>
 
       <View>
