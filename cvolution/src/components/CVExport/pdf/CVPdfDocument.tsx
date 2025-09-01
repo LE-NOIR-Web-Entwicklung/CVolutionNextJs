@@ -8,7 +8,8 @@ interface CVPdfDocumentProps {
     education: any[];
     skills: any[];
     languages: any[];
-    design: string;
+    design?: 'design1' | 'design2' | 'design3'; // <-- add design prop
+
 }
 
 // Design 1 (default)
@@ -66,6 +67,7 @@ const styles = StyleSheet.create({
 
 export const CVPdfDocument: React.FC<CVPdfDocumentProps> = (props) => {
   const { user, profile, experiences, education, skills, languages, design } = props;
+
     // Hilfsfunktion für Datumsformatierung
     function formatDate(dateString: string) {
       if (!dateString) return "";
@@ -76,23 +78,20 @@ export const CVPdfDocument: React.FC<CVPdfDocumentProps> = (props) => {
       const year = d.getFullYear();
       return `${day}.${month}.${year}`;
     }
-  //read design from localstorage
-  const confirmedDesign = localStorage.getItem("confirmedDesign");
-  console.log("Confirmed Design in CVPdfDocument:", confirmedDesign);
-  if (confirmedDesign === 'design2') {
+  console.log("CVPdfDocument design prop:", design);
+  
+   if (design === 'design2') {
     return <CVPdfDesign2 user={user} profile={profile} experiences={experiences} education={education} skills={skills} languages={languages} />;
   }
-  if (confirmedDesign === 'design3') {
+  if (design === 'design3') {
     return <CVPdfDesign3 user={user} profile={profile} experiences={experiences} education={education} skills={skills} languages={languages} />;
   }
   // Default: Design 1
   return (
    <Document>
   <Page size="A4" style={styles.page}>
-    {/* Linke Sidebar */}
     <View style={styles.sidebar}></View>
 
-    {/* Mittelteil */}
     <View style={styles.main}>
       <View style={styles.header}>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
@@ -106,7 +105,6 @@ export const CVPdfDocument: React.FC<CVPdfDocumentProps> = (props) => {
               <Text style={{ color: '#888', fontSize: 18 }}>Foto</Text>
             </View>
           )}
-          {/* Name und Position rechts daneben */}
           <View style={{ marginLeft: 16 }}>
             <Text style={styles.name}>{profile?.full_name}</Text>
             <Text style={styles.headline}>{profile?.headline}</Text>
@@ -114,7 +112,6 @@ export const CVPdfDocument: React.FC<CVPdfDocumentProps> = (props) => {
         </View>
       </View>
 
-      {/*füge eine view mit kontaktdaten hinzu*/}
       <View>
         <Text style={styles.sectionTitle}>Kontaktdaten</Text>
         <Text style={styles.itemText}>Standort: {profile?.location}</Text>
@@ -125,56 +122,80 @@ export const CVPdfDocument: React.FC<CVPdfDocumentProps> = (props) => {
         <Text style={styles.itemText}>Heimatort: {profile?.place_of_origin}</Text>
       </View>
 
-      <View>
-        <Text style={styles.sectionTitle}>Berufserfahrung</Text>
-        {experiences.map((exp) => (
-          <View key={exp.id}>
-            <Text style={styles.itemTitle}>
-              {exp.job_title}
-              <Text style={styles.itemTitle}>, {exp.company}</Text>
-              <Text style={styles.itemTitle}>, {exp.location}</Text>
-            </Text>
+<View>
+  <Text style={styles.sectionTitle}>Berufserfahrung</Text>
+  <View
+    render={() =>
+      Array.isArray(experiences)
+        ? experiences.map((exp) => (
+            <View key={exp.id ?? Math.random()}>
+              <Text style={styles.itemTitle}>
+                {exp.job_title || ""}
+                <Text style={styles.itemTitle}>, {exp.company || ""}</Text>
+                <Text style={styles.itemTitle}>, {exp.location || ""}</Text>
+              </Text>
               <Text style={styles.itemSubtitle}>
                 {formatDate(exp.start_date)} - {exp.is_current ? "heute" : formatDate(exp.end_date)}
               </Text>
-            <Text style={styles.itemTitle}>Tätigkeiten</Text>
-            <Text style={styles.itemText}>{exp.description}</Text>
-          </View>
-        ))}
-      </View>
+              <Text style={styles.itemTitle}>Tätigkeiten</Text>
+              <Text style={styles.itemText}>{exp.description || ""}</Text>
+            </View>
+          ))
+        : []
+    }
+  />
+</View>
 
-      <View>
-        <Text style={styles.sectionTitle}>Bildung</Text>
-        {education.map((edu) => (
-          <View key={edu.id}>
-            <Text style={styles.itemTitle}>
-              {edu.degree}
-              <Text style={styles.itemTitle}>, {edu.institution}</Text>
-            </Text>
+<View>
+  <Text style={styles.sectionTitle}>Bildung</Text>
+  <View
+    render={() =>
+      Array.isArray(education)
+        ? education.map((edu) => (
+            <View key={edu.id ?? Math.random()}>
+              <Text style={styles.itemTitle}>
+                {edu.degree || ""}
+                <Text style={styles.itemTitle}>, {edu.institution || ""}</Text>
+              </Text>
               <Text style={styles.itemSubtitle}>
                 {formatDate(edu.start_date)} - {edu.is_current ? "heute" : formatDate(edu.end_date)}
               </Text>
-            <Text style={styles.itemSubtitle}>{edu.field_of_study}</Text>
-            <Text style={styles.itemText}>{edu.description}</Text>
-          </View>
-        ))}
-      </View>
+              <Text style={styles.itemSubtitle}>{edu.field_of_study || ""}</Text>
+              <Text style={styles.itemText}>{edu.description || ""}</Text>
+            </View>
+          ))
+        : []
+    }
+  />
+</View>
 
-      <View>
-        <Text style={styles.sectionTitle}>Kenntnisse & Fähigkeiten</Text>
-        <Text style={styles.itemTitle}>Fähigkeiten</Text>
-        {skills.map((skill) => (
-          <Text key={skill.id} style={styles.skill}>
-            {skill.skill_name} ({skill.proficiency})
-          </Text>
-        ))}
-        <Text style={styles.itemTitle}>Sprachen</Text>
-        {languages.map((lang) => (
-          <Text key={lang.id} style={styles.language}>
-            {lang.language_name} ({lang.proficiency})
-          </Text>
-        ))}
-        </View>
+<View>
+  <Text style={styles.sectionTitle}>Kenntnisse & Fähigkeiten</Text>
+  <Text style={styles.itemTitle}>Fähigkeiten</Text>
+  <View
+    render={() =>
+      Array.isArray(skills)
+        ? skills.map((skill) => (
+            <Text key={skill.id ?? Math.random()} style={styles.skill}>
+              {skill.skill_name || ""} ({skill.proficiency || ""})
+            </Text>
+          ))
+        : []
+    }
+  />
+  <Text style={styles.itemTitle}>Sprachen</Text>
+  <View
+    render={() =>
+      Array.isArray(languages)
+        ? languages.map((lang) => (
+            <Text key={lang.id ?? Math.random()} style={styles.language}>
+              {lang.language_name || ""} ({lang.proficiency || ""})
+            </Text>
+          ))
+        : []
+    }
+  />
+</View>
 
     </View>
 

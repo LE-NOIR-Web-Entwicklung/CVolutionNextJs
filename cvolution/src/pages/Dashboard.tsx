@@ -120,12 +120,12 @@ export const Dashboard: React.FC = () => {
           <CVExportModal
             open={cvModalOpen}
             onClose={() => setCVModalOpen(false)}
-            user={user}
-            profile={profileData}
-            experiences={experiencesData}
-            education={educationData}
-            skills={skillsData}
-            languages={languagesData}
+            user={user || {}} // Fallback auf leeres Objekt
+            profile={profileData || {}} // Fallback auf leeres Objekt
+            experiences={Array.isArray(experiencesData) ? experiencesData : []}
+            education={Array.isArray(educationData) ? educationData : []}
+            skills={Array.isArray(skillsData) ? skillsData : []}
+            languages={Array.isArray(languagesData) ? languagesData : []}
           />
 
           {/* <TabsContent value="linkedin">

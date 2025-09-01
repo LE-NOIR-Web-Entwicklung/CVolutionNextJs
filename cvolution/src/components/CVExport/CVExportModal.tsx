@@ -3,8 +3,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Button } from '@/components/ui/button';
 import { Download } from 'lucide-react';
 import { CVDesignSelector, CVDesign } from './CVDesignSelector';
-import { PDFDownloadLink } from '@react-pdf/renderer';
+// import { PDFDownloadLink } from '@react-pdf/renderer';
 import { CVPdfDocument } from './pdf/CVPdfDocument';
+import dynamic from 'next/dynamic';
+import { pdf } from '@react-pdf/renderer';
+
 
 interface CVExportModalProps {
   open: boolean;
@@ -16,28 +19,45 @@ interface CVExportModalProps {
   skills: any[];
   languages: any[];
 }
+const PDFDownloadLink = dynamic(
+  () => import('@react-pdf/renderer').then(mod => mod.PDFDownloadLink),
+  { ssr: false }
+);
 
-export const CVExportModal: React.FC<CVExportModalProps> = ({ open, onClose, user, profile, experiences, education, skills, languages }) => {
-  const [isExporting, setIsExporting] = useState(false);
-  const [selectedDesign, setSelectedDesign] = useState<CVDesign>('design2');
-  let confirmedDesign = "";
-// Remove incorrect destructuring, use selectedDesign directly
+export const CVExportModal: React.FC<CVExportModalProps> = ({
+  open, onClose, user, profile, experiences, education, skills, languages
+}) => {
+  const [selectedDesign, setSelectedDesign] = useState<CVDesign>('design1');
+  const [loading, setLoading] = useState(false);
 
-  //create a function to select selectedDesign
-  const handleDesignSelect = (design: CVDesign) => {
-    confirmedDesign = design;
-    //save confirmeddesign in localstorage
-    localStorage.setItem("confirmedDesign", design);
-    console.log("Selected Design:", design);
-    console.log("Confirmed Design:", confirmedDesign);
-    //update the state
+
+  const handleExport = async () => {
+    setLoading(true);
+    const doc = (
+      <CVPdfDocument
+        key={selectedDesign}
+        user={user || {}}
+        profile={profile || {}}
+        experiences={experiences || []}
+        education={education || []}
+        skills={skills || []}
+        languages={languages || []}
+        design={selectedDesign}
+      />
+    );
+    const blob = await pdf(doc).toBlob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'Lebenslauf.pdf';
+    a.click();
+    window.URL.revokeObjectURL(url);
+    setLoading(false);
   };
 
 
-  // Export-Button wird jetzt durch PDFDownloadLink ersetzt
-
   return (
-   <Dialog open={open} onOpenChange={onClose}>
+    <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl bg-white rounded-3xl shadow-2xl border-2 border-blue-200 p-8">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold text-[#204878] mb-1">CV Exportieren</DialogTitle>
@@ -46,32 +66,17 @@ export const CVExportModal: React.FC<CVExportModalProps> = ({ open, onClose, use
           </DialogDescription>
         </DialogHeader>
         <div className="bg-blue-50 rounded-2xl p-8 my-6 flex justify-center">
-          <CVDesignSelector selected={selectedDesign} onSelect={handleDesignSelect} />
+          <CVDesignSelector selected={selectedDesign} onSelect={setSelectedDesign} />
         </div>
-        <DialogFooter>
-          
-          <PDFDownloadLink
-            document={
-              <CVPdfDocument
-                user={user}
-                profile={profile}
-                experiences={experiences}
-                education={education}
-                skills={skills}
-                languages={languages}
-                design={confirmedDesign}
-              />
-            }
-            fileName="Lebenslauf.pdf"
-            style={{ textDecoration: 'none' }}
+       <DialogFooter>
+          <Button
+            onClick={handleExport}
+            disabled={loading}
+            className="bg-[#204878] hover:bg-[#4c6c93] text-white font-bold rounded-lg py-3 transition duration-200 px-6"
           >
-            {({ loading }) => (
-              <Button disabled={loading} className="bg-[#204878] hover:bg-[#4c6c93] text-white font-bold rounded-lg py-3 transition duration-200 px-6">
-                <Download className="h-4 w-4 mr-2" />
-                {loading ? 'Exportiere...' : 'Als PDF exportieren'}
-              </Button>
-            )}
-          </PDFDownloadLink>
+            <Download className="h-4 w-4 mr-2" />
+            {loading ? 'Exportiere...' : 'Als PDF exportieren'}
+          </Button>
           <Button onClick={onClose} className="bg-gray-200 hover:bg-gray-300 text-black font-bold rounded-lg py-3 transition duration-200 px-6">
             Abbrechen
           </Button>

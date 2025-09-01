@@ -152,7 +152,7 @@ export const CVPdfDesign3: React.FC<CVPdfDesign3Props> = ({
           </View>
           <View style={styles.contactRow}>
             <Text style={styles.label}>Geburtsdatum</Text>
-            <Text style={styles.value}>{profile?.birthdate || ""}</Text>
+            <Text style={styles.value}>{profile?.birthday || ""}</Text>
           </View>
           <View style={styles.contactRow}>
             <Text style={styles.label}>Zivilstand</Text>
