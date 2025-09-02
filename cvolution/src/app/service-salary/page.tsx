@@ -79,7 +79,7 @@ export default function ServiceSalary() {
               berufliche Zukunft besser planen.
             </p>
             <p className="text-xl font-bold mb-4 text-[#204878]">
-              Preis: ab CHF 79
+              Preis: CHF 79
             </p>
                          {!showForm && !submitted && (
               <button
