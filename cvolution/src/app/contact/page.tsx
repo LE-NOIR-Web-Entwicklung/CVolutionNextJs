@@ -31,11 +31,51 @@ function ContactPage() {
     formData.message.trim() !== "" &&
     isAgbChecked;
 
-  const mailtoLink = `mailto:info@cvolution.ch?subject=${encodeURIComponent(
-    formData.subject
-  )}&body=${encodeURIComponent(
-    `Name: ${formData.name}\nE-Mail: ${formData.email}\nStrasse + Nr: ${formData.address}\nPLZ + Ort: ${formData.postalCode}\nNachricht: ${formData.message}`
-  )}`;
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitSuccess, setSubmitSuccess] = useState<string | null>(null);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!isFormValid) return;
+    setIsSubmitting(true);
+    setSubmitSuccess(null);
+    setSubmitError(null);
+    try {
+      const res = await fetch("/api/send-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          service: formData.subject,
+          address: formData.address,
+          postalCode: formData.postalCode,
+          message: formData.message,
+        }),
+      });
+      console.log(formData);
+      if (res.ok) {
+        setSubmitSuccess("Ihre Nachricht wurde erfolgreich versendet.");
+        setFormData({
+          name: "",
+          email: "",
+          subject: subjectFromParams,
+          address: "",
+          postalCode: "",
+          message: "",
+        });
+        setIsAgbChecked(false);
+      } else {
+        const data = await res.json();
+        setSubmitError(data.message || "Fehler beim Senden der Nachricht.");
+      }
+    } catch (err) {
+      setSubmitError("Fehler beim Senden der Nachricht.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-white text-gray-800 flex items-center justify-center">
@@ -43,7 +83,13 @@ function ContactPage() {
         <h1 className="text-3xl font-bold mb-6 text-center text-[#204878]">
           Kontaktieren Sie uns
         </h1>
-        <form className="space-y-6">
+        {submitSuccess && (
+          <div className="mb-4 p-3 bg-green-100 text-green-800 rounded">{submitSuccess}</div>
+        )}
+        {submitError && (
+          <div className="mb-4 p-3 bg-red-100 text-red-800 rounded">{submitError}</div>
+        )}
+        <form className="space-y-6" onSubmit={handleSubmit}>
           {/* Name Field */}
           <div>
             <label htmlFor="name" className="block text-lg font-bold mb-2 text-[#204878]">
@@ -170,16 +216,17 @@ function ContactPage() {
 
           {/* Submit Button */}
           <div>
-            <a
-              href={isFormValid ? mailtoLink : "#"}
+            <button
+              type="submit"
+              disabled={!isFormValid || isSubmitting}
               className={`w-full px-6 py-3 font-bold rounded-lg transition duration-300 block text-center ${
-                isFormValid
+                isFormValid && !isSubmitting
                   ? "bg-[#204878] text-white hover:bg-[#4c6c93]"
                   : "bg-gray-300 text-gray-500 cursor-not-allowed pointer-events-none"
               }`}
             >
-              Senden
-            </a>
+              {isSubmitting ? "Wird gesendet..." : "Senden"}
+            </button>
           </div>
         </form>
       </div>
@@ -192,5 +239,5 @@ export default function Contact() {
     <Suspense>
       <ContactPage />
     </Suspense>
-    );
+  );
 }

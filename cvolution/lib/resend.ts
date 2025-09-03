@@ -4,7 +4,14 @@ import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-export const sendEmail = async (name: string, email: string, service: string) => {
+export const sendEmail = async (
+    name: string,
+    email: string,
+    service: string,
+    address?: string,
+    postalCode?: string,
+    message?: string
+) => {
     await resend.emails.send({
         from: "CVolution <info@cvolution.ch>",
         to: "info@cvolution.ch",
@@ -18,11 +25,14 @@ export const sendEmail = async (name: string, email: string, service: string) =>
                         <p style="color: #333; font-size: 1.1rem;"><strong>Name:</strong> ${name}</p>
                         <p style="color: #333; font-size: 1.1rem;"><strong>E-Mail:</strong> ${email}</p>
                         <p style="color: #333; font-size: 1.1rem;"><strong>Service:</strong> ${service}</p>
+                        ${address ? `<p style='color: #333; font-size: 1.1rem;'><strong>Strasse + Nr:</strong> ${address}</p>` : ""}
+                        ${postalCode ? `<p style='color: #333; font-size: 1.1rem;'><strong>PLZ + Ort:</strong> ${postalCode}</p>` : ""}
+                        ${message ? `<p style='color: #333; font-size: 1.1rem;'><strong>Nachricht:</strong> ${message}</p>` : ""}
                     </div>
                     <div style="margin: 32px 0; text-align: center;">
                         <svg width="48" height="48" fill="none" viewBox="0 0 24 24" stroke="#204878" style="display: block; margin: 0 auto;">
-                          <circle cx="12" cy="12" r="10" stroke="#204878" stroke-width="2" fill="#e6eef7" />
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12l2 2l4-4" stroke="#204878" />
+                            <circle cx="12" cy="12" r="10" stroke="#204878" stroke-width="2" fill="#e6eef7" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12l2 2l4-4" stroke="#204878" />
                         </svg>
                     </div>
                     <p style="color: #888; font-size: 0.95rem; text-align: center;">Diese Anfrage wurde über das CVolution Bestellformular gestellt.<br/>Bitte zeitnah bearbeiten.</p>
@@ -31,8 +41,10 @@ export const sendEmail = async (name: string, email: string, service: string) =>
                 </div>
             </div>
         `
-    }); 
-}
+    });
+};
+
+
 
 export const sendConfirmationEmail = async (email: string, service: string) => {
     let customMessage = `<p style=\"color: #333; font-size: 1.1rem; margin-bottom: 24px;\">Wir haben Ihre Anfrage erhalten und werden uns in Kürze bei Ihnen melden.</p>`;
