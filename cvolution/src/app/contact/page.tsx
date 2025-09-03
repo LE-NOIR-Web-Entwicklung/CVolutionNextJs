@@ -54,7 +54,6 @@ function ContactPage() {
           message: formData.message,
         }),
       });
-      console.log(formData);
       if (res.ok) {
         setSubmitSuccess("Ihre Nachricht wurde erfolgreich versendet.");
         setFormData({
@@ -70,8 +69,9 @@ function ContactPage() {
         const data = await res.json();
         setSubmitError(data.message || "Fehler beim Senden der Nachricht.");
       }
-    } catch (err) {
-      setSubmitError("Fehler beim Senden der Nachricht.");
+    } catch (error) {
+      console.log(error);
+      setSubmitError("Fehler beim Senden der Nachricht." );
     } finally {
       setIsSubmitting(false);
     }
