@@ -194,8 +194,7 @@ export const CVPdfDesign3: React.FC<CVPdfDesign3Props> = ({
         </View>
       ))}
 
-      {/* Ausbildungen / Weiterbildungen */}
-      <Text style={styles.sectionTitle}>Ausbildungen / Weiterbildungen</Text>
+      <Text style={styles.sectionTitle}>Aus- & Weiterbildungen</Text>
       {education?.map((edu) => (
         <View key={String(edu.id)} style={styles.eduRow}>
           <Text style={styles.expDate}>

@@ -147,7 +147,7 @@ export const CVPdfDocument: React.FC<CVPdfDocumentProps> = (props) => {
 </View>
 
 <View>
-  <Text style={styles.sectionTitle}>Bildung</Text>
+  <Text style={styles.sectionTitle}>Aus- & Weiterbildungen</Text>
   <View
     render={() =>
       Array.isArray(education)

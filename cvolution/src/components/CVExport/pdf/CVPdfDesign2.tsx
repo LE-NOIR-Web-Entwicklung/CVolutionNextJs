@@ -133,7 +133,7 @@ export const CVPdfDesign2: React.FC<CVPdfDesign2Props> = ({
       </View>
 
       <View>
-        <Text style={styles.sectionTitle}>Bildung</Text>
+        <Text style={styles.sectionTitle}>Aus- & Weiterbildungen</Text>
         {education.map((edu) => (
           <View key={edu.id}>
             <Text style={styles.itemTitle}>
