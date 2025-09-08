@@ -229,12 +229,13 @@ export const ProfileSection: React.FC = () => {
         </CardHeader>
         <CardContent className="space-y-4 pt-6">
           <div className="flex items-center space-x-4 mb-6">
-            <Avatar className="h-20 w-20 border-2 border-blue-200">
+            <Avatar className="h-32 w-24 border-2 border-blue-200 rounded-lg overflow-hidden">
               <AvatarImage 
                 src={profile?.profile_picture_url || ''} 
                 alt={profile?.full_name || 'Profil'} 
+                className="object-cover h-32 w-24 rounded-lg"
               />
-              <AvatarFallback className="text-lg bg-blue-100 text-black">
+              <AvatarFallback className="text-lg bg-blue-100 text-black h-32 w-24 flex items-center justify-center rounded-lg">
                 {profile?.full_name?.split(' ').map(n => n[0]).join('') || 'U'}
               </AvatarFallback>
             </Avatar>
@@ -295,12 +296,13 @@ export const ProfileSection: React.FC = () => {
       <CardContent className="pt-6">
         <form onSubmit={handleSave} className="space-y-6">
           <div className="flex items-center space-x-4 mb-6">
-            <Avatar className="h-20 w-20 border-2 border-blue-200">
+            <Avatar className="h-32 w-24 border-2 border-blue-200 rounded-lg overflow-hidden">
               <AvatarImage 
                 src={profile?.profile_picture_url || ''} 
                 alt={profile?.full_name || 'Profil'} 
+                className="object-cover h-32 w-24 rounded-lg"
               />
-              <AvatarFallback className="text-lg bg-blue-100 text-black">
+              <AvatarFallback className="text-lg bg-blue-100 text-black h-32 w-24 flex items-center justify-center rounded-lg">
                 {profile?.full_name?.split(' ').map(n => n[0]).join('') || 'U'}
               </AvatarFallback>
             </Avatar>

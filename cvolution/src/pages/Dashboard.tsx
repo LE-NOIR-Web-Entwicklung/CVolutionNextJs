@@ -2,17 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { LogOut, Download, LinkedinIcon, Menu } from 'lucide-react';
+import { LogOut} from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { ProfileSection } from '@/components/Dashboard/ProfileSection';
 import { ExperienceSection } from '@/components/Dashboard/ExperienceSection';
 import { EducationSection } from '@/components/Dashboard/EducationSection';
 import { SkillsAndLanguagesSection } from '@/components/Dashboard/SkillsAndLanguagesSection';
-import { LinkedInExtractor } from '@/components/LinkedInExtractor';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { CVExportButton } from '@/components/CVExport/CVExportButton';
 import { CVExportModal } from '@/components/CVExport/CVExportModal';
 

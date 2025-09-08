@@ -1,3 +1,12 @@
+// Format date as MM.YYYY (month and year only)
+const formatDate = (dateString: string) => {
+  if (!dateString) return "";
+  const d = new Date(dateString);
+  if (isNaN(d.getTime())) return dateString;
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const year = d.getFullYear();
+  return `${month}.${year}`;
+};
 import React from "react";
 import { Document, Page, Text, View, StyleSheet, Image } from "@react-pdf/renderer";
 
@@ -152,7 +161,7 @@ export const CVPdfDesign3: React.FC<CVPdfDesign3Props> = ({
           </View>
           <View style={styles.contactRow}>
             <Text style={styles.label}>Geburtsdatum</Text>
-            <Text style={styles.value}>{profile?.birthday || ""}</Text>
+            <Text style={styles.value}>{profile?.birthday ? formatDate(profile.birthday) : ""}</Text>
           </View>
           <View style={styles.contactRow}>
             <Text style={styles.label}>Zivilstand</Text>
@@ -174,7 +183,11 @@ export const CVPdfDesign3: React.FC<CVPdfDesign3Props> = ({
       {experiences?.map((exp) => (
         <View key={String(exp.id)} style={styles.expRow}>
           <Text style={styles.expDate}>
-            {formatRange(exp.start_date, exp.end_date, exp.is_current)}
+            {formatRange(
+              exp.start_date ? formatDate(exp.start_date) : "",
+              exp.end_date ? formatDate(exp.end_date) : "",
+              exp.is_current
+            )}
           </Text>
           <View style={styles.expBody}>
             <Text style={styles.expTitle}>
@@ -182,7 +195,7 @@ export const CVPdfDesign3: React.FC<CVPdfDesign3Props> = ({
               {exp.location ? `, ${exp.location}` : ""}
             </Text>
             {Array.isArray(exp?.tasks) && exp.tasks.length > 0 ? (
-              exp.tasks.map((t, i) => (
+              exp.tasks.map((t: string | number | bigint | boolean | React.ReactElement<unknown, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | React.ReactPortal | Promise<string | number | bigint | boolean | React.ReactPortal | React.ReactElement<unknown, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | null | undefined> | null | undefined, i: React.Key | null | undefined) => (
                 <Text key={i} style={styles.bullet}>
                   • {t}
                 </Text>
@@ -198,7 +211,11 @@ export const CVPdfDesign3: React.FC<CVPdfDesign3Props> = ({
       {education?.map((edu) => (
         <View key={String(edu.id)} style={styles.eduRow}>
           <Text style={styles.expDate}>
-            {formatRange(edu.start_date, edu.end_date, edu.is_current)}
+            {formatRange(
+              edu.start_date ? formatDate(edu.start_date) : "",
+              edu.end_date ? formatDate(edu.end_date) : "",
+              edu.is_current
+            )}
           </Text>
           <View style={styles.expBody}>
             <Text>

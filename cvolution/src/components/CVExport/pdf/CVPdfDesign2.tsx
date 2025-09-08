@@ -49,7 +49,7 @@ const styles = StyleSheet.create({
     marginTop: 18,
     marginBottom: 6,
     color: "#000",
-    borderBottom: "1 solid #000",
+    borderBottom: "1 solid #f2f2f2",
     paddingBottom: 3,
   },
   itemTitle: { fontSize: 11, fontWeight: "bold", marginTop: 8 },
@@ -65,7 +65,7 @@ const styles = StyleSheet.create({
       const day = String(d.getDate()).padStart(2, "0");
       const month = String(d.getMonth() + 1).padStart(2, "0");
       const year = d.getFullYear();
-      return `${day}.${month}.${year}`;
+      return `${month}.${year}`;
     }
 
 export const CVPdfDesign2: React.FC<CVPdfDesign2Props> = ({
@@ -164,7 +164,6 @@ export const CVPdfDesign2: React.FC<CVPdfDesign2Props> = ({
           </Text>
         ))}
         </View>
-
     </View>
 
     {/* Rechte Sidebar */}
