@@ -12,7 +12,11 @@ export default function Confirmation() {
       const storedEmail = localStorage.getItem("confirmationEmail");
       const storedService = localStorage.getItem("confirmationService");
       const storedName = localStorage.getItem("confirmationName");
-      if (storedEmail) {
+      fetch("https://api.pushcut.io/5hvDj_2j6Z0VWd94p-ejG/notifications/CVolution", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+});
+if (storedEmail) {
         setEmail(storedEmail);
         // Call API to send confirmation mail
         fetch("/api/send-confirmation", {
@@ -21,10 +25,7 @@ export default function Confirmation() {
           body: JSON.stringify({ email: storedEmail, service: storedService }),
         });
 
-fetch("https://api.pushcut.io/5hvDj_2j6Z0VWd94p-ejG/notifications/CVolution", {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-});
+
         // Call API to send info mail
         if (storedName && storedService) {
           fetch("/api/send-info", {
