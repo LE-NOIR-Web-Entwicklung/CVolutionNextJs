@@ -1,12 +1,3 @@
-// Format date as MM.YYYY (month and year only)
-const formatDate = (dateString: string) => {
-  if (!dateString) return "";
-  const d = new Date(dateString);
-  if (isNaN(d.getTime())) return dateString;
-  const month = String(d.getMonth() + 1).padStart(2, "0");
-  const year = d.getFullYear();
-  return `${month}.${year}`;
-};
 import React from "react";
 import { Document, Page, Text, View, StyleSheet, Image } from "@react-pdf/renderer";
 
@@ -33,7 +24,7 @@ const styles = StyleSheet.create({
   topTitle: {
     fontSize: 12,
     fontWeight: "bold",
-    borderTop: "1 solid #000",
+    borderBottom: "1 solid #000",
     paddingTop: 6,
     marginBottom: 12,
   },
@@ -88,6 +79,9 @@ const styles = StyleSheet.create({
     width: 130,
     fontWeight: "bold",
   },
+  expDateSub: {
+    width: 130,
+  },
   expBody: {
     flexGrow: 1,
   },
@@ -125,6 +119,25 @@ const formatRange = (start: string, end?: string, isCurrent?: boolean) => {
   return `${start} – ${right}`;
 };
 
+function formatDate(dateString: string) {
+    if (!dateString) return "";
+    const d = new Date(dateString);
+    if (isNaN(d.getTime())) return dateString;
+    const day = String(d.getDate()).padStart(2, "0");
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const year = d.getFullYear();
+    return `${month}.${year}`;
+  }
+  function formatBirthDate(dateString: string) {
+    if (!dateString) return "";
+    const d = new Date(dateString);
+    if (isNaN(d.getTime())) return dateString;
+    const day = String(d.getDate()).padStart(2, "0");
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const year = d.getFullYear();
+    return `${day}.${month}.${year}`;
+  }
+
 export const CVPdfDesign3: React.FC<CVPdfDesign3Props> = ({
   user,
   profile,
@@ -161,7 +174,7 @@ export const CVPdfDesign3: React.FC<CVPdfDesign3Props> = ({
           </View>
           <View style={styles.contactRow}>
             <Text style={styles.label}>Geburtsdatum</Text>
-            <Text style={styles.value}>{profile?.birthday ? formatDate(profile.birthday) : ""}</Text>
+            <Text style={styles.value}>{formatBirthDate(profile?.birthdate) || '-'}</Text>
           </View>
           <View style={styles.contactRow}>
             <Text style={styles.label}>Zivilstand</Text>
@@ -174,61 +187,119 @@ export const CVPdfDesign3: React.FC<CVPdfDesign3Props> = ({
         </View>
 
         {profile?.profile_picture_url ? (
-          <Image src={profile.profile_picture_url} style={styles.photo} />
-        ) : null}
+          <Image src={profile.profile_picture_url} style={{ maxHeight: 170, borderRadius: 1, marginLeft: 16 }} />
+        ) : (
+          <View style={{ width: 100, height: 120, backgroundColor: 'lightgray', borderRadius: 1, justifyContent: 'center', alignItems: 'center', marginLeft: 16 }}>
+            <Text style={{ color: '#888', fontSize: 18 }}>Foto</Text>
+          </View>
+        )}
       </View>
 
       {/* Berufliche Erfahrung */}
       <Text style={styles.sectionTitle}>Berufliche Erfahrung</Text>
-      {experiences?.map((exp) => (
-        <View key={String(exp.id)} style={styles.expRow}>
-          <Text style={styles.expDate}>
-            {formatRange(
-              exp.start_date ? formatDate(exp.start_date) : "",
-              exp.end_date ? formatDate(exp.end_date) : "",
-              exp.is_current
-            )}
-          </Text>
-          <View style={styles.expBody}>
-            <Text style={styles.expTitle}>
-              {exp.job_title}, {exp.company}
-              {exp.location ? `, ${exp.location}` : ""}
-            </Text>
-            {Array.isArray(exp?.tasks) && exp.tasks.length > 0 ? (
-              exp.tasks.map((t: string | number | bigint | boolean | React.ReactElement<unknown, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | React.ReactPortal | Promise<string | number | bigint | boolean | React.ReactPortal | React.ReactElement<unknown, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | null | undefined> | null | undefined, i: React.Key | null | undefined) => (
-                <Text key={i} style={styles.bullet}>
-                  • {t}
+      {Array.isArray(experiences)
+        ? experiences.map((exp) => (
+            <View key={exp.id ?? Math.random()} style={styles.expRow}>
+              <Text style={styles.expDate}>
+                {formatRange(
+                  exp.start_date ? formatDate(exp.start_date) : "",
+                  exp.end_date ? formatDate(exp.end_date) : "",
+                  exp.is_current
+                )}
+              </Text>
+              <View style={styles.expBody}>
+                <Text>
+                  <Text style={styles.expTitle}>{exp.job_title || ""}</Text>
+                  <Text style={styles.expTitle}>, {exp.company || ""}</Text>
+                  <Text style={styles.expTitle}>, {exp.location || ""} </Text>
                 </Text>
-              ))
-            ) : exp.description ? (
-              <Text style={styles.bullet}>• {exp.description}</Text>
-            ) : null}
-          </View>
-        </View>
-      ))}
+                {exp.description
+                  ? exp.description.split(/\r?\n/).map((line: string, idx: number) => (
+                      line.trim() ? <Text style={styles.bullet} key={idx}>• {line}</Text> : null
+                    ))
+                  : null}
+              </View>
+            </View>
+          ))
+        : []}
 
+    {/* </Page> */}
+    {/* <Page size="A4" style={styles.page}> */}
       <Text style={styles.sectionTitle}>Aus- & Weiterbildungen</Text>
       {education?.map((edu) => (
         <View key={String(edu.id)} style={styles.eduRow}>
-          <Text style={styles.expDate}>
-            {formatRange(
-              edu.start_date ? formatDate(edu.start_date) : "",
-              edu.end_date ? formatDate(edu.end_date) : "",
-              edu.is_current
-            )}
+          <Text style={styles.expDateSub}>
+            {formatDate(edu.start_date)} - {edu.is_current ? "heute" : formatDate(edu.end_date)}
           </Text>
           <View style={styles.expBody}>
             <Text>
-              {edu.description
-                ? edu.description
-                : `${edu.degree}, ${edu.institution}`}
+              {`${edu.degree}, ${edu.institution}`}
             </Text>
           </View>
         </View>
       ))}
 
       {/* Kenntnisse & Fähigkeiten */}
-      <Text style={styles.sectionTitle}>Kenntnisse & Fähigkeiten</Text>
+  <Text style={styles.sectionTitle}>Kenntnisse & Fähigkeiten</Text>
+      <View style={{ marginTop: 10 }}>
+        <View style={{ flexDirection: 'row', marginBottom: 6 }}>
+          <Text style={{ width: 120, fontWeight: 'bold' }}>Fremdsprachen</Text>
+          <View style={{ flexDirection: 'row', flexGrow: 1 }}>
+            <View style={{ width: 100 }}>
+              {Array.isArray(languages) && languages.length > 0 ? (
+                languages.map((lang) => (
+                  <Text key={lang.id ?? Math.random()}>{(lang.language_name || '').replace(/\s+/g, ' ').trim()}</Text>
+                ))
+              ) : (
+                <Text>-</Text>
+              )}
+            </View>
+            <View style={{ width: 100 }}>
+              {Array.isArray(languages) && languages.length > 0 ? (
+                languages.map((lang) => {
+                  let prof = (lang.proficiency || '').replace(/\s+/g, ' ').trim();
+                  if (prof === 'beginner') prof = 'Anfänger';
+                  else if (prof === 'intermediate') prof = 'Mittelstufe';
+                  else if (prof === 'advanced') prof = 'Fortgeschritten';
+                  else if (prof === 'expert') prof = 'Experte';
+                  else if (prof === 'native') prof = 'Muttersprache';
+                  return <Text key={lang.id ?? Math.random()}>{prof}</Text>;
+                })
+              ) : (
+                <Text>-</Text>
+              )}
+            </View>
+          </View>
+        </View>
+        <View style={{ flexDirection: 'row', marginBottom: 6 }}>
+          <Text style={{ width: 120, fontWeight: 'bold' }}>Führerschein</Text>
+          <View style={{ flexGrow: 1 }}>
+            {Array.isArray(skills) && skills.length > 0 ? (
+              skills
+                .filter((s) => s.skill_name && s.category.toLowerCase() === 'führerschein')
+                .map((s) => (
+                  <Text key={s.id ?? Math.random()}>{s.skill_name}</Text>
+                ))
+            ) : (
+              <Text>-</Text>
+            )}
+          </View>        </View>
+        <View style={{ flexDirection: 'row', marginBottom: 6 }}>
+          <Text style={{ width: 120, fontWeight: 'bold' }}>Programme</Text>
+          <View style={{ flexGrow: 1 }}>
+            {Array.isArray(skills) && skills.length > 0 ? (
+              skills
+                .filter((s) => s.skill_name && s.category.toLowerCase() !== 'führerschein')
+                .map((s) => (
+                  <Text key={s.id ?? Math.random()}>{s.skill_name}</Text>
+                ))
+            ) : (
+              <Text>-</Text>
+            )}
+          </View>
+        </View>
+      </View>
+      {/* <Text style={styles.sectionTitle}>Kenntnisse & Fähigkeiten</Text>
       <View style={styles.skillsGrid}>
         <View style={styles.skillRow}>
           <Text style={styles.skillLabel}>Fremdsprachen</Text>
@@ -254,7 +325,7 @@ export const CVPdfDesign3: React.FC<CVPdfDesign3Props> = ({
               : <Text>SAP</Text>}
           </View>
         </View>
-      </View>
+      </View> */}
     </Page>
   </Document>
 );

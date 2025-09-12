@@ -245,17 +245,28 @@ export const CVPdfDocument: React.FC<CVPdfDocumentProps> = (props) => {
               </View>
               <View style={{ flexDirection: 'row', marginBottom: 6 }}>
                 <Text style={{ width: 120, fontWeight: 'bold' }}>Führerschein</Text>
-                <Text>Kategorie B</Text>
-              </View>
+                <View style={{ flexGrow: 1 }}>
+                  {Array.isArray(skills) && skills.length > 0 ? (
+                    skills
+                      .filter((s) => s.skill_name && s.category.toLowerCase() === 'führerschein')
+                      .map((s) => (
+                        <Text key={s.id ?? Math.random()}>{s.skill_name}</Text>
+                      ))
+                  ) : (
+                    <Text>-</Text>
+                  )}
+                </View>        </View>
               <View style={{ flexDirection: 'row', marginBottom: 6 }}>
                 <Text style={{ width: 120, fontWeight: 'bold' }}>Programme</Text>
                 <View style={{ flexGrow: 1 }}>
                   {Array.isArray(skills) && skills.length > 0 ? (
-                    skills.map((s) => (
-                      <Text key={s.id ?? Math.random()}>{s.skill_name}</Text>
-                    ))
+                    skills
+                      .filter((s) => s.skill_name && s.category.toLowerCase() !== 'führerschein')
+                      .map((s) => (
+                        <Text key={s.id ?? Math.random()}>{s.skill_name}</Text>
+                      ))
                   ) : (
-                    <Text>SAP</Text>
+                    <Text>-</Text>
                   )}
                 </View>
               </View>
