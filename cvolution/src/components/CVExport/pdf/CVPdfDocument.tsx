@@ -59,7 +59,7 @@ const styles = StyleSheet.create({
   },
   itemTitle: { fontSize: 11, fontWeight: "bold", marginTop: 8 },
   itemSubtitle: { fontSize: 10, color: "gray" },
-  itemText: { fontSize: 10, marginBottom: 20 },
+  itemText: { fontSize: 10, marginBottom: 10 },
   skill: { fontSize: 10, marginBottom: 3 },
   language: { fontSize: 10, marginBottom: 3 },
 });
@@ -122,12 +122,24 @@ export const CVPdfDocument: React.FC<CVPdfDocumentProps> = (props) => {
           </View>
           <View>
             <Text style={styles.sectionTitle}>Kontaktdaten</Text>
-            <Text style={styles.itemText}>Standort: {profile?.location}</Text>
-            <Text style={styles.itemText}>Telefon: {profile?.phone}</Text>
-            <Text style={styles.itemText}>E-Mail: {user?.email}</Text>
-            <Text style={styles.itemText}>Geburtstag: {formatBirthDate(profile?.birthdate)}</Text>
-            <Text style={styles.itemText}>Zivilstand: {profile?.civil_status}</Text>
-            <Text style={styles.itemText}>Heimatort: {profile?.place_of_origin}</Text>
+            <View style={{ flexDirection: 'row', marginTop: 6 }}>
+              <View style={{ flexDirection: 'column', width: 60 }}>
+                <Text style={styles.itemText}>Standort:</Text>
+                <Text style={styles.itemText}>Telefon:</Text>
+                <Text style={styles.itemText}>E-Mail:</Text>
+                <Text style={styles.itemText}>Geburtstag:</Text>
+                <Text style={styles.itemText}>Zivilstand:</Text>
+                <Text style={styles.itemText}>Heimatort:</Text>
+              </View>
+              <View style={{ flexDirection: 'column', marginLeft: 0, flexGrow: 1 }}>
+                <Text style={styles.itemText}>{profile?.location || '-'}</Text>
+                <Text style={styles.itemText}>{profile?.phone || '-'}</Text>
+                <Text style={styles.itemText}>{user?.email || '-'}</Text>
+                <Text style={styles.itemText}>{formatBirthDate(profile?.birthdate) || '-'}</Text>
+                <Text style={styles.itemText}>{profile?.civil_status || '-'}</Text>
+                <Text style={styles.itemText}>{profile?.place_of_origin || '-'}</Text>
+              </View>
+            </View>
           </View>
           <View>
             <Text style={styles.sectionTitle}>Berufserfahrung</Text>
@@ -148,8 +160,12 @@ export const CVPdfDocument: React.FC<CVPdfDocumentProps> = (props) => {
                           </Text>
                         </Text>
                   
-                        <Text style={styles.itemTitle}>Tätigkeiten</Text>
-                        <Text style={styles.itemText}>{exp.description || ""}</Text>
+                        <Text style={styles.itemSubtitle}> </Text>
+                        {exp.description
+                          ? exp.description.split(/\r?\n/).map((line: string, idx: number) => (
+                              line.trim() ? <Text style={styles.itemText} key={idx}>• {line}</Text> : null
+                            ))
+                          : null}
                       </View>
                     ))
                   : []
@@ -184,7 +200,11 @@ export const CVPdfDocument: React.FC<CVPdfDocumentProps> = (props) => {
 
                         </Text>
                         <Text style={styles.itemSubtitle}>{edu.field_of_study || ""}</Text>
-                        <Text style={styles.itemText}>{edu.description || ""}</Text>
+                        {edu.description
+                          ? edu.description.split(/\r?\n/).map((line: string, idx: number) => (
+                              line.trim() ? <Text style={styles.itemText} key={idx}>• {line}</Text> : null
+                            ))
+                          : null}
                       </View>
                     ))
                   : []
