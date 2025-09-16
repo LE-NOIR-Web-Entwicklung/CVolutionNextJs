@@ -6,7 +6,6 @@ import { CVDesignSelector, CVDesign } from './CVDesignSelector';
 // import { PDFDownloadLink } from '@react-pdf/renderer';
 import { CVPdfDocument } from './pdf/CVPdfDocument';
 import dynamic from 'next/dynamic';
-import { pdf } from '@react-pdf/renderer';
 
 
 interface CVExportModalProps {
@@ -19,10 +18,6 @@ interface CVExportModalProps {
   skills: any[];
   languages: any[];
 }
-const PDFDownloadLink = dynamic(
-  () => import('@react-pdf/renderer').then(mod => mod.PDFDownloadLink),
-  { ssr: false }
-);
 
 export const CVExportModal: React.FC<CVExportModalProps> = ({
   open, onClose, user, profile, experiences, education, skills, languages
@@ -33,6 +28,7 @@ export const CVExportModal: React.FC<CVExportModalProps> = ({
 
   const handleExport = async () => {
     setLoading(true);
+    const pdf = (await import('@react-pdf/renderer')).pdf;
     const doc = (
       <CVPdfDocument
         key={selectedDesign}
