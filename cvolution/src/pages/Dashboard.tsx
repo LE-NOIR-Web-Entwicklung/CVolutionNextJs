@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -15,6 +16,7 @@ import { CVExportModal } from '@/components/CVExport/CVExportModal';
 
 export const Dashboard: React.FC = () => {
   const { user, signOut } = useAuth();
+  const router = useRouter();
   const [cvModalOpen, setCVModalOpen] = useState(false);
   const [profileData, setProfileData] = useState<any>(null);
   const [experiencesData, setExperiencesData] = useState<any[]>([]);
@@ -51,6 +53,7 @@ export const Dashboard: React.FC = () => {
       title: 'Abgemeldet',
       description: 'Sie wurden erfolgreich abgemeldet.',
     });
+  router.push('/self');
   };
 
   const handleExportClick = () => {
