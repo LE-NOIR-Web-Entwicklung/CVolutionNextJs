@@ -215,7 +215,7 @@ export const CVPdfDesign3: React.FC<CVPdfDesign3Props> = ({
                 </Text>
                 {exp.description
                   ? exp.description.split(/\r?\n/).map((line: string, idx: number) => (
-                      line.trim() ? <Text style={styles.bullet} key={idx}>• {line}</Text> : null
+                      line.trim() ? <Text style={styles.bullet} key={idx}>{line}</Text> : null
                     ))
                   : null}
               </View>
@@ -233,7 +233,7 @@ export const CVPdfDesign3: React.FC<CVPdfDesign3Props> = ({
           </Text>
           <View style={styles.expBody}>
             <Text>
-              {`${edu.degree}, ${edu.institution}`}
+              {`${edu.degree}, ${edu.institution}, ${edu.place}`}
             </Text>
           </View>
         </View>
@@ -258,9 +258,9 @@ export const CVPdfDesign3: React.FC<CVPdfDesign3Props> = ({
               {Array.isArray(languages) && languages.length > 0 ? (
                 languages.map((lang) => {
                   let prof = (lang.proficiency || '').replace(/\s+/g, ' ').trim();
-                  if (prof === 'beginner') prof = 'Anfänger';
-                  else if (prof === 'intermediate') prof = 'Mittelstufe';
-                  else if (prof === 'advanced') prof = 'Fortgeschritten';
+                  if (prof === 'beginner') prof = 'C1';
+                  else if (prof === 'intermediate') prof = 'C2';
+                  else if (prof === 'advanced') prof = 'B2';
                   else if (prof === 'expert') prof = 'Experte';
                   else if (prof === 'native') prof = 'Muttersprache';
                   return <Text key={lang.id ?? Math.random()}>{prof}</Text>;
@@ -285,7 +285,7 @@ export const CVPdfDesign3: React.FC<CVPdfDesign3Props> = ({
             )}
           </View>        </View>
         <View style={{ flexDirection: 'row', marginBottom: 6 }}>
-          <Text style={{ width: 120, fontWeight: 'bold' }}>Programme</Text>
+          <Text style={{ width: 120, fontWeight: 'bold' }}>Fähigkeiten</Text>
           <View style={{ flexGrow: 1 }}>
             {Array.isArray(skills) && skills.length > 0 ? (
               skills
@@ -318,7 +318,7 @@ export const CVPdfDesign3: React.FC<CVPdfDesign3Props> = ({
         </View>
 
         <View style={styles.skillRow}>
-          <Text style={styles.skillLabel}>Programme</Text>
+          <Text style={styles.skillLabel}>Fähigkeiten</Text>
           <View style={styles.expBody}>
             {skills?.length
               ? skills.map((s) => <Text key={String(s.id)}>{s.skill_name}</Text>)

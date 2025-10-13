@@ -9,6 +9,8 @@ interface CVPdfDesign2Props {
   languages: any[];
 }
 
+// (Sorting logic moved inside the component)
+
 const styles = StyleSheet.create({
   page: {
     flexDirection: "row", // Sidebar links, Inhalt, Sidebar rechts
@@ -58,6 +60,7 @@ const styles = StyleSheet.create({
   skill: { fontSize: 10, marginBottom: 3 },
   language: { fontSize: 10, marginBottom: 3 },
 });
+
 function formatDate(dateString: string) {
     if (!dateString) return "";
     const d = new Date(dateString);
@@ -76,6 +79,7 @@ function formatDate(dateString: string) {
     const year = d.getFullYear();
     return `${day}.${month}.${year}`;
   }
+  
 
 export const CVPdfDesign2: React.FC<CVPdfDesign2Props> = ({
   user,
@@ -85,6 +89,7 @@ export const CVPdfDesign2: React.FC<CVPdfDesign2Props> = ({
   skills,
   languages,
 }) => (
+  
   <Document>
     {/* First page: header, contact, experience */}
     <Page size="A4" style={styles.page}>
@@ -109,7 +114,7 @@ export const CVPdfDesign2: React.FC<CVPdfDesign2Props> = ({
           <Text style={styles.sectionTitle}>Kontaktdaten</Text>
           <View style={{ flexDirection: 'row', marginTop: 6 }}>
             <View style={{ flexDirection: 'column', width: 60 }}>
-              <Text style={styles.itemText}>Standort:</Text>
+             <Text style={styles.itemText}>Standort:</Text>
               <Text style={styles.itemText}>Telefon:</Text>
               <Text style={styles.itemText}>E-Mail:</Text>
               <Text style={styles.itemText}>Geburtstag:</Text>
@@ -148,7 +153,7 @@ export const CVPdfDesign2: React.FC<CVPdfDesign2Props> = ({
                       <Text style={styles.itemSubtitle}> </Text>
                       {exp.description
                         ? exp.description.split(/\r?\n/).map((line: string, idx: number) => (
-                            line.trim() ? <Text style={styles.itemText} key={idx}>• {line}</Text> : null
+                            line.trim() ? <Text style={styles.itemText} key={idx}>{line}</Text> : null
                           ))
                         : null}
                     </View>
@@ -177,6 +182,7 @@ export const CVPdfDesign2: React.FC<CVPdfDesign2Props> = ({
                       </Text>
                       <Text>
                         <Text style={styles.itemTitle}>{edu.institution || ""} | </Text>
+                        <Text style={styles.itemTitle}>{edu.place || ""} | </Text>
                         <Text style={styles.itemText}>
                           {formatDate(edu.start_date)} - {edu.is_current ? "heute" : formatDate(edu.end_date)}
                         </Text>
@@ -187,7 +193,7 @@ export const CVPdfDesign2: React.FC<CVPdfDesign2Props> = ({
                       <Text style={styles.itemSubtitle}>{edu.field_of_study || ""}</Text>
                       {edu.description
                         ? edu.description.split(/\r?\n/).map((line: string, idx: number) => (
-                            line.trim() ? <Text style={styles.itemText} key={idx}>• {line}</Text> : null
+                            line.trim() ? <Text style={styles.itemText} key={idx}>{line}</Text> : null
                           ))
                         : null}
                     </View>
@@ -215,9 +221,9 @@ export const CVPdfDesign2: React.FC<CVPdfDesign2Props> = ({
                   {Array.isArray(languages) && languages.length > 0 ? (
                     languages.map((lang) => {
                       let prof = lang.proficiency;
-                      if (prof === 'beginner') prof = 'Anfänger';
-                      else if (prof === 'intermediate') prof = 'Mittelstufe';
-                      else if (prof === 'advanced') prof = 'Fortgeschritten';
+                      if (prof === 'beginner') prof = 'C1';
+                      else if (prof === 'intermediate') prof = 'C2';
+                      else if (prof === 'advanced') prof = 'B2';
                       else if (prof === 'expert') prof = 'Experte';
                       else if (prof === 'native') prof = 'Muttersprache';
                       return <Text key={lang.id ?? Math.random()}>{prof}</Text>;
@@ -242,7 +248,7 @@ export const CVPdfDesign2: React.FC<CVPdfDesign2Props> = ({
                 )}
               </View>        </View>
             <View style={{ flexDirection: 'row', marginBottom: 6 }}>
-              <Text style={{ width: 120, fontWeight: 'bold' }}>Programme</Text>
+              <Text style={{ width: 120, fontWeight: 'bold' }}>Fähigkeiten</Text>
               <View style={{ flexGrow: 1 }}>
                 {Array.isArray(skills) && skills.length > 0 ? (
                   skills

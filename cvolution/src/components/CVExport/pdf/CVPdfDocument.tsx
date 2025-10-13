@@ -1,3 +1,4 @@
+
 import { CVPdfDesign2 } from './CVPdfDesign2';
 import { CVPdfDesign3 } from './CVPdfDesign3';
 
@@ -79,6 +80,30 @@ export const CVPdfDocument: React.FC<CVPdfDocumentProps> = (props) => {
       return `${month}.${year}`;
     }
 
+    // Sortiere experiences: aktuell zuerst, dann nach neustem Enddatum
+    const sortedExperiences = Array.isArray(experiences)
+      ? [...experiences].sort((a, b) => {
+          if (a.is_current && !b.is_current) return -1;
+          if (!a.is_current && b.is_current) return 1;
+          // Beide nicht aktuell: nach Enddatum absteigend
+          const aDate = a.end_date ? new Date(a.end_date).getTime() : 0;
+          const bDate = b.end_date ? new Date(b.end_date).getTime() : 0;
+          return bDate - aDate;
+        })
+      : [];
+
+          // Sortiere education: aktuell zuerst, dann nach neustem Enddatum
+    const sortedEducation = Array.isArray(education)
+      ? [...education].sort((a, b) => {
+          if (a.is_current && !b.is_current) return -1;
+          if (!a.is_current && b.is_current) return 1;
+          // Beide nicht aktuell: nach Enddatum absteigend
+          const aDate = a.end_date ? new Date(a.end_date).getTime() : 0;
+          const bDate = b.end_date ? new Date(b.end_date).getTime() : 0;
+          return bDate - aDate;
+        })
+      : [];
+
     function formatBirthDate(dateString: string) {
       if (!dateString) return "";
       const d = new Date(dateString);
@@ -92,10 +117,10 @@ export const CVPdfDocument: React.FC<CVPdfDocumentProps> = (props) => {
   console.log("CVPdfDocument profile picture URL:", profile?.profile_picture_url);
 
    if (design === 'design2') {
-    return <CVPdfDesign2 user={user} profile={profile} experiences={experiences} education={education} skills={skills} languages={languages} />;
+    return <CVPdfDesign2 user={user} profile={profile} experiences={sortedExperiences} education={sortedEducation} skills={skills} languages={languages} />;
   }
   if (design === 'design3') {
-    return <CVPdfDesign3 user={user} profile={profile} experiences={experiences} education={education} skills={skills} languages={languages} />;
+    return <CVPdfDesign3 user={user} profile={profile} experiences={sortedExperiences} education={sortedEducation} skills={skills} languages={languages} />;
   }
   // Default: Design 1
   return (
@@ -145,8 +170,8 @@ export const CVPdfDocument: React.FC<CVPdfDocumentProps> = (props) => {
             <Text style={styles.sectionTitle}>Berufserfahrung</Text>
             <View
               render={() =>
-                Array.isArray(experiences)
-                  ? experiences.map((exp) => (
+                Array.isArray(sortedExperiences)
+                  ? sortedExperiences.map((exp) => (
                       <View key={exp.id ?? Math.random()}>
                         <Text style={styles.itemTitle}>
                           {exp.job_title || ""}
@@ -163,7 +188,7 @@ export const CVPdfDocument: React.FC<CVPdfDocumentProps> = (props) => {
                         <Text style={styles.itemSubtitle}> </Text>
                         {exp.description
                           ? exp.description.split(/\r?\n/).map((line: string, idx: number) => (
-                              line.trim() ? <Text style={styles.itemText} key={idx}>• {line}</Text> : null
+                              line.trim() ? <Text style={styles.itemText} key={idx}>{line}</Text> : null
                             ))
                           : null}
                       </View>
@@ -184,14 +209,15 @@ export const CVPdfDocument: React.FC<CVPdfDocumentProps> = (props) => {
             <Text style={styles.sectionTitle}>Aus- & Weiterbildungen</Text>
             <View
               render={() =>
-                Array.isArray(education)
-                  ? education.map((edu) => (
+                Array.isArray(sortedEducation)
+                  ? sortedEducation.map((edu) => (
                       <View key={edu.id ?? Math.random()}>
                         <Text style={styles.itemTitle}>
                           {edu.degree || ""}
                         </Text>
                         <Text>
                           <Text style={styles.itemTitle}>{edu.institution || ""} | </Text>
+                          <Text style={styles.itemTitle}>{edu.place || ""} | </Text>
                           <Text style={styles.itemText}>
                             {formatDate(edu.start_date)} - {edu.is_current ? "heute" : formatDate(edu.end_date)}
                           </Text>
@@ -202,7 +228,7 @@ export const CVPdfDocument: React.FC<CVPdfDocumentProps> = (props) => {
                         <Text style={styles.itemSubtitle}>{edu.field_of_study || ""}</Text>
                         {edu.description
                           ? edu.description.split(/\r?\n/).map((line: string, idx: number) => (
-                              line.trim() ? <Text style={styles.itemText} key={idx}>• {line}</Text> : null
+                              line.trim() ? <Text style={styles.itemText} key={idx}>{line}</Text> : null
                             ))
                           : null}
                       </View>
@@ -230,9 +256,9 @@ export const CVPdfDocument: React.FC<CVPdfDocumentProps> = (props) => {
                     {Array.isArray(languages) && languages.length > 0 ? (
                       languages.map((lang) => {
                         let prof = lang.proficiency;
-                        if (prof === 'beginner') prof = 'Anfänger';
-                        else if (prof === 'intermediate') prof = 'Mittelstufe';
-                        else if (prof === 'advanced') prof = 'Fortgeschritten';
+                        if (prof === 'beginner') prof = 'C1';
+                        else if (prof === 'intermediate') prof = 'C2';
+                        else if (prof === 'advanced') prof = 'B2';
                         else if (prof === 'expert') prof = 'Experte';
                         else if (prof === 'native') prof = 'Muttersprache';
                         return <Text key={lang.id ?? Math.random()}>{prof}</Text>;
@@ -257,7 +283,7 @@ export const CVPdfDocument: React.FC<CVPdfDocumentProps> = (props) => {
                   )}
                 </View>        </View>
               <View style={{ flexDirection: 'row', marginBottom: 6 }}>
-                <Text style={{ width: 120, fontWeight: 'bold' }}>Programme</Text>
+                <Text style={{ width: 120, fontWeight: 'bold' }}>Fähigkeiten</Text>
                 <View style={{ flexGrow: 1 }}>
                   {Array.isArray(skills) && skills.length > 0 ? (
                     skills

@@ -32,7 +32,17 @@ export const ExperienceSection: React.FC = () => {
   useEffect(() => {
     fetchExperiences();
   }, [user]);
-
+// Hilfsfunktion zum Formatieren von YYYY-MM oder YYYY-MM-DD nach MM.YYYY
+function formatMonthYear(dateStr?: string | null) {
+  if (!dateStr) return '';
+  const parts = dateStr.split('-');
+  if (parts.length >= 2) {
+    const year = parts[0];
+    const month = parts[1];
+    return `${month}.${year}`;
+  }
+  return dateStr;
+}
   const fetchExperiences = async () => {
     if (!user) return;
 
@@ -63,6 +73,16 @@ export const ExperienceSection: React.FC = () => {
     }
   };
 
+  function parseMonthYearToDate(str?: string | null) {
+  if (!str) return null;
+  const match = str.match(/^(\d{2})\.(\d{4})$/);
+  if (match) {
+    const [_, mm, yyyy] = match;
+    return `${yyyy}-${mm}-01`;
+  }
+  return str; // falls schon korrekt
+}
+
   const handleSave = async (e: React.FormEvent<HTMLFormElement>, id?: string) => {
     e.preventDefault();
     if (!user) return;
@@ -74,8 +94,8 @@ export const ExperienceSection: React.FC = () => {
       company: formData.get('company') as string,
       employment_type: formData.get('employment_type') as 'full_time' | 'part_time' | 'contract' | 'internship' | 'freelance' | 'volunteer',
       location: formData.get('location') as string || null,
-      start_date: formData.get('start_date') as string,
-      end_date: formData.get('is_current') === 'on' ? null : formData.get('end_date') as string || null,
+      start_date: parseMonthYearToDate(formData.get('start_date') as string) || '',
+      end_date: formData.get('is_current') === 'on' ? null : (parseMonthYearToDate(formData.get('end_date') as string) || null),
       is_current: formData.get('is_current') === 'on',
       description: formData.get('description') as string || null,
     };
@@ -175,22 +195,6 @@ export const ExperienceSection: React.FC = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="text-sm font-medium text-black">Beschäftigungsart *</label>
-            <Select name="employment_type" defaultValue={experience?.employment_type || 'full_time'}>
-              <SelectTrigger className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
-                <SelectValue className="text-black" />
-              </SelectTrigger>
-              <SelectContent className="bg-white text-black border border-gray-200 rounded-lg shadow-lg">
-                <SelectItem value="full_time" className="text-black hover:bg-blue-50">Vollzeit</SelectItem>
-                <SelectItem value="part_time" className="text-black hover:bg-blue-50">Teilzeit</SelectItem>
-                <SelectItem value="contract" className="text-black hover:bg-blue-50">Vertrag</SelectItem>
-                <SelectItem value="internship" className="text-black hover:bg-blue-50">Praktikum</SelectItem>
-                <SelectItem value="freelance" className="text-black hover:bg-blue-50">Freiberuflich</SelectItem>
-                <SelectItem value="volunteer" className="text-black hover:bg-blue-50">Ehrenamt</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div>
             <label className="text-sm font-medium text-black">Standort</label>
             <Input
               name="location"
@@ -206,9 +210,14 @@ export const ExperienceSection: React.FC = () => {
             <label className="text-sm font-medium text-black">Startdatum</label>
             <Input
               name="start_date"
-              type="date"
-              defaultValue={experience?.start_date || ''}
-              required
+              type="text"
+              pattern="\d{2}\.\d{4}" // erlaubt nur "MM.YYYY"
+              placeholder="MM.YYYY"
+              defaultValue={
+                experience?.start_date
+                  ? experience.start_date.slice(5, 7) + '.' + experience.start_date.slice(0, 4)
+                  : ''
+              }
               className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             />
           </div>
@@ -216,8 +225,14 @@ export const ExperienceSection: React.FC = () => {
             <label className="text-sm font-medium text-black">Enddatum</label>
             <Input
               name="end_date"
-              type="date"
-              defaultValue={experience?.end_date || ''}
+              type="text"
+              pattern="\d{2}\.\d{4}" // erlaubt nur "MM.YYYY"
+              placeholder="MM.YYYY"
+              defaultValue={
+                experience?.end_date
+                  ? experience.end_date.slice(5, 7) + '.' + experience.end_date.slice(0, 4)
+                  : ''
+              }
               disabled={experience?.is_current || false}
               className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             />
@@ -242,9 +257,30 @@ export const ExperienceSection: React.FC = () => {
           <Textarea
             name="description"
             defaultValue={experience?.description || ''}
-            placeholder="Beschreiben Sie Ihre Rolle und Leistungen..."
+            placeholder={"• Durchführen von administrativen Aufgaben"}
             rows={4}
             className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+            onKeyDown={e => {
+              if (e.key === 'Enter') {
+                const textarea = e.target as HTMLTextAreaElement;
+                const value = textarea.value;
+                const selectionStart = textarea.selectionStart;
+                const before = value.substring(0, selectionStart);
+                const after = value.substring(selectionStart);
+                textarea.value = before + '\n• ' + after;
+                e.preventDefault();
+              }
+            }}
+            onFocus={e => {
+              const textarea = e.target as HTMLTextAreaElement;
+              if (textarea.value === '') {
+                textarea.value = '• ';
+                // Set cursor after bullet
+                setTimeout(() => {
+                  textarea.selectionStart = textarea.selectionEnd = 2;
+                }, 0);
+              }
+            }}
           />
         </div>
 
@@ -318,10 +354,14 @@ export const ExperienceSection: React.FC = () => {
                     <h3 className="text-lg font-semibold text-black">{experience.job_title}</h3>
                     <p className="text-black">{experience.company}</p>
                     <p className="text-sm text-black">
-                      {new Date(experience.start_date).toLocaleDateString()} - 
-                      {experience.is_current ? ' Aktuell' : 
-                       experience.end_date ? ` ${new Date(experience.end_date).toLocaleDateString()}` : ' Aktuell'}
+                      {formatMonthYear(experience.start_date)} -
+                      {experience.is_current
+                        ? ' Aktuell'
+                        : experience.end_date
+                          ? ` ${formatMonthYear(experience.end_date)}`
+                          : ' Aktuell'}
                     </p>
+
                     {experience.location && (
                       <p className="text-sm text-black">{experience.location}</p>
                     )}

@@ -13,12 +13,10 @@ interface Education {
   id: string;
   institution: string;
   degree: string;
-  field_of_study: string | null;
   start_date: string | null;
   end_date: string | null;
   is_current: boolean;
-  grade: string | null;
-  description: string | null;
+  place: string | null;
 }
 
 export const EducationSection: React.FC = () => {
@@ -32,6 +30,17 @@ export const EducationSection: React.FC = () => {
     fetchEducation();
   }, [user]);
 
+// Hilfsfunktion zum Formatieren von YYYY-MM oder YYYY-MM-DD nach MM.YYYY
+function formatMonthYear(dateStr?: string | null) {
+  if (!dateStr) return '';
+  const parts = dateStr.split('-');
+  if (parts.length >= 2) {
+    const year = parts[0];
+    const month = parts[1];
+    return `${month}.${year}`;
+  }
+  return dateStr;
+}
   const fetchEducation = async () => {
     if (!user) return;
 
@@ -61,6 +70,16 @@ export const EducationSection: React.FC = () => {
       setIsLoading(false);
     }
   };
+  // Hilfsfunktion: MM.YYYY -> YYYY-MM-01
+function parseMonthYearToDate(str?: string | null) {
+  if (!str) return null;
+  const match = str.match(/^(\d{2})\.(\d{4})$/);
+  if (match) {
+    const [_, mm, yyyy] = match;
+    return `${yyyy}-${mm}-01`;
+  }
+  return str; // falls schon korrekt
+}
 
   const handleSave = async (e: React.FormEvent<HTMLFormElement>, id?: string) => {
     e.preventDefault();
@@ -71,13 +90,12 @@ export const EducationSection: React.FC = () => {
       user_id: user.id,
       institution: formData.get('institution') as string,
       degree: formData.get('degree') as string,
-      field_of_study: formData.get('field_of_study') as string || null,
-      start_date: formData.get('start_date') as string || null,
-      end_date: formData.get('end_date') as string || null,
+      start_date: parseMonthYearToDate(formData.get('start_date') as string),
+      end_date: parseMonthYearToDate(formData.get('end_date') as string),
       is_current: formData.get('is_current') === 'on',
-      grade: formData.get('grade') as string || null,
-      description: formData.get('description') as string || null,
+      place: formData.get('place') as string || null,
     };
+
 
     try {
       if (id) {
@@ -157,21 +175,13 @@ export const EducationSection: React.FC = () => {
             className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
           />
         </div>
-        {/* <div>
-          <label className="text-sm font-medium text-black">Studienrichtung</label>
-          <Input
-            name="field_of_study"
-            defaultValue={education?.field_of_study || ''}
-            placeholder="Informatik"
-            className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-          />
-        </div> */}
         <div>
-          <label className="text-sm font-medium text-black">Note/Abschluss</label>
+          <label className="text-sm font-medium text-black">Ort *</label>
           <Input
-            name="grade"
-            defaultValue={education?.grade || ''}
-            placeholder="1,5 oder Sehr gut"
+            name="place"
+            defaultValue={education?.place || ''}
+            placeholder="Zürich, Schweiz"
+            required
             className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
           />
         </div>
@@ -179,8 +189,15 @@ export const EducationSection: React.FC = () => {
           <label className="text-sm font-medium text-black">Startdatum</label>
           <Input
             name="start_date"
-            type="date"
-            defaultValue={education?.start_date || ''}
+            type="text"
+            pattern="\d{2}\.\d{4}" // erlaubt nur "MM.YYYY"
+            placeholder="MM.YYYY"
+            defaultValue={
+              education?.start_date
+                ? education.start_date.slice(5, 7) + '.' + education.start_date.slice(0, 4)
+                : ''
+            }
+            disabled={education?.is_current || false}
             className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
           />
         </div>
@@ -188,9 +205,15 @@ export const EducationSection: React.FC = () => {
           <label className="text-sm font-medium text-black">Enddatum</label>
           <Input
             name="end_date"
-            type="date"
-            defaultValue={education?.end_date || ''}
-            disabled={education?.is_current}
+            type="text"
+            pattern="\d{2}\.\d{4}" // erlaubt nur "MM.YYYY"
+            placeholder="MM.YYYY"
+            defaultValue={
+              education?.end_date
+                ? education.end_date.slice(5, 7) + '.' + education.end_date.slice(0, 4)
+                : ''
+            }
+            disabled={education?.is_current || false}
             className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
           />
           <div className="flex items-center mt-2">
@@ -206,16 +229,6 @@ export const EducationSection: React.FC = () => {
             </label>
           </div>
         </div>
-      </div>
-      <div>
-        <label className="text-sm font-medium text-black">Beschreibung</label>
-        <Textarea
-          name="description"
-          defaultValue={education?.description || ''}
-          placeholder="Bemerkenswerte Leistungen, Kurse oder Aktivitäten..."
-          rows={3}
-          className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-        />
       </div>
       <div className="flex space-x-3">
         <Button type="submit" className="w-full bg-[#204878] hover:bg-[#4c6c93] text-white font-bold rounded-lg py-3 transition duration-200">
@@ -285,20 +298,22 @@ export const EducationSection: React.FC = () => {
                   <div className="flex-1">
                     <h3 className="text-lg font-semibold text-gray-900">{edu.degree}</h3>
                     <p className="text-gray-600">{edu.institution}</p>
-                    {edu.field_of_study && (
-                      <p className="text-gray-600">{edu.field_of_study}</p>
-                    )}
+                    <p className="text-gray-600">{edu.place}</p>
                     <div className="flex items-center space-x-2 mt-2">
-                      {edu.grade && <Badge className="text-xs text-black bg-gray-200">{edu.grade}</Badge>}
                       {edu.start_date && (
                         <span className="text-sm text-gray-500">
-                          {new Date(edu.start_date).toLocaleDateString()} -{' '}
-                          {edu.is_current ? 'Aktuell' : 
-                           edu.end_date ? new Date(edu.end_date).toLocaleDateString() : 'N/A'}
+                          {formatMonthYear(edu.start_date)} -
+                      {edu.is_current
+                        ? ' Aktuell'
+                        : edu.end_date
+                          ? ` ${formatMonthYear(edu.end_date)}`
+                          : ' Aktuell'}
                         </span>
                       )}
+                      
                     </div>
                   </div>
+
                   <div className="flex space-x-2">
                     <Button
                       onClick={() => setEditingId(edu.id)}
@@ -314,9 +329,6 @@ export const EducationSection: React.FC = () => {
                     </Button>
                   </div>
                 </div>
-                {edu.description && (
-                  <p className="text-gray-700 mt-3">{edu.description}</p>
-                )}
               </div>
             )}
           </CardContent>

@@ -241,7 +241,6 @@ export const ProfileSection: React.FC = () => {
             </Avatar>
             <div>
               <h3 className="text-lg font-bold text-black mb-1">{profile?.full_name || 'Nicht angegeben'}</h3>
-              <p className="text-black text-sm">{profile?.headline || 'Keine Schlagzeile'}</p>
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -250,8 +249,12 @@ export const ProfileSection: React.FC = () => {
               <p className="text-black">{user?.email || 'Nicht angegeben'}</p>
             </div>
             <div>
-              <label className="text-sm font-medium text-black">Standort</label>
+              <label className="text-sm font-medium text-black">Wohnort</label>
               <p className="text-black">{profile?.location || 'Nicht angegeben'}</p>
+            </div>
+            <div>
+              <label className="text-sm font-medium text-black">Heimatort</label>
+              <p className="text-black">{profile?.place_of_origin || 'Nicht angegeben'}</p>
             </div>
             <div>
               <label className="text-sm font-medium text-black">Telefon</label>
@@ -269,18 +272,6 @@ export const ProfileSection: React.FC = () => {
               <label className="text-sm font-medium text-black">Zivilstand</label>
               <p className="text-black">{profile?.civil_status || 'Nicht angegeben'}</p>
             </div>
-            <div>
-              <label className="text-sm font-medium text-black">Heimatort</label>
-              <p className="text-black">{profile?.place_of_origin || 'Nicht angegeben'}</p>
-            </div>
-            <div>
-              <label className="text-sm font-medium text-black">Website</label>
-              <p className="text-black">{profile?.website || 'Nicht angegeben'}</p>
-            </div>
-          </div>
-          <div>
-            <label className="text-sm font-medium text-black">Berufliche Zusammenfassung</label>
-            <p className="text-black mt-1">{profile?.summary || 'Nicht angegeben'}</p>
           </div>
         </CardContent>
       </div>
@@ -333,11 +324,12 @@ export const ProfileSection: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label htmlFor="full_name" className="text-sm font-medium text-black">
-                Vollständiger Name
+                Vorname, Nachname
               </label>
               <Input
                 id="full_name"
                 name="full_name"
+                placeholder='Max Mustermann'
                 value={profile?.full_name || ''}
                 readOnly
                 className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black opacity-70 cursor-not-allowed"
@@ -351,31 +343,31 @@ export const ProfileSection: React.FC = () => {
                 id="email"
                 name="email"
                 defaultValue={user?.email || ''}
-                placeholder="Ihre E-Mail-Adresse"
-                className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-              />
-            </div>
-            <div>
-              <label htmlFor="headline" className="text-sm font-medium text-black">
-                Berufliche Schlagzeile
-              </label>
-              <Input
-                id="headline"
-                name="headline"
-                defaultValue={profile?.headline || ''}
-                placeholder="z.B. Senior-Softwareentwickler"
+                placeholder="max.mustermann@mustermann.ch"
                 className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
               />
             </div>
             <div>
               <label htmlFor="location" className="text-sm font-medium text-black">
-                Standort
+                Wohnort
               </label>
               <Input
                 id="location"
                 name="location"
                 defaultValue={profile?.location || ''}
-                placeholder="Stadt, Land"
+                placeholder="Musterstrasse 1, 5000 Musterstadt"
+                className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+              />
+            </div>
+            <div>
+              <label htmlFor="place_of_origin" className="text-sm font-medium text-black">
+                Heimatort
+              </label>
+              <Input
+                id="place_of_origin"
+                name="place_of_origin"
+                defaultValue={profile?.place_of_origin || ''}
+                placeholder="Musterstrasse 1, 5000 Musterstadt"
                 className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
               />
             </div>
@@ -387,7 +379,7 @@ export const ProfileSection: React.FC = () => {
                 id="phone"
                 name="phone"
                 defaultValue={profile?.phone || ''}
-                placeholder="+49 (123) 456-7890"
+                placeholder="+41 76 000 00 00"
                 className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
               />
             </div>
@@ -415,55 +407,6 @@ export const ProfileSection: React.FC = () => {
                 className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
               />
             </div>
-            <div>
-              <label htmlFor="place_of_origin" className="text-sm font-medium text-black">
-                Heimatort
-              </label>
-              <Input
-                id="place_of_origin"
-                name="place_of_origin"
-                defaultValue={profile?.place_of_origin || ''}
-                placeholder="z.B. Zürich"
-                className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-              />
-            </div>
-            {/* <div>
-              <label htmlFor="linkedin_url" className="text-sm font-medium text-black">
-                LinkedIn-URL
-              </label>
-              <Input
-                id="linkedin_url"
-                name="linkedin_url"
-                defaultValue={profile?.linkedin_url || ''}
-                placeholder="https://linkedin.com/in/ihrprofil"
-                className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-              />
-            </div> */}
-            <div>
-              <label htmlFor="website" className="text-sm font-medium text-black">
-                Website
-              </label>
-              <Input
-                id="website"
-                name="website"
-                defaultValue={profile?.website || ''}
-                placeholder="https://ihrewebsite.com"
-                className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-              />
-            </div>
-          </div>
-          <div>
-            <label htmlFor="summary" className="text-sm font-medium text-black">
-              Berufliche Zusammenfassung
-            </label>
-            <Textarea
-              id="summary"
-              name="summary"
-              defaultValue={profile?.summary || ''}
-              placeholder="Kurze Beschreibung Ihres beruflichen Hintergrunds und Ihrer Ziele..."
-              rows={4}
-              className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-            />
           </div>
           <div className="flex space-x-3">
             <Button type="submit" disabled={isSaving} className="w-full bg-[#204878] hover:bg-[#4c6c93] text-white font-bold rounded-lg py-3 transition duration-200">

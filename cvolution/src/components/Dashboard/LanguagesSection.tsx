@@ -137,9 +137,9 @@ export const LanguagesSection: React.FC = () => {
               <SelectValue className="text-black" />
             </SelectTrigger>
             <SelectContent className="z-50 bg-white border border-gray-200 shadow-lg text-black">
-              <SelectItem value="beginner" className="text-black hover:bg-blue-50">Anfänger</SelectItem>
-              <SelectItem value="intermediate" className="text-black hover:bg-blue-50">Mittelstufe</SelectItem>
-              <SelectItem value="advanced" className="text-black hover:bg-blue-50">Fortgeschritten</SelectItem>
+              <SelectItem value="beginner" className="text-black hover:bg-blue-50">C1</SelectItem>
+              <SelectItem value="intermediate" className="text-black hover:bg-blue-50">C2</SelectItem>
+              <SelectItem value="advanced" className="text-black hover:bg-blue-50">B2</SelectItem>
               <SelectItem value="expert" className="text-black hover:bg-blue-50">Experte</SelectItem>
               <SelectItem value="native" className="text-black hover:bg-blue-50">Muttersprache</SelectItem>
             </SelectContent>
@@ -213,9 +213,9 @@ export const LanguagesSection: React.FC = () => {
                 <div className="flex-1">
                   <h4 className="font-semibold text-black">{language.language_name}</h4>
                   <Badge className="text-xs text-black bg-gray-200">
-                    {language.proficiency === 'beginner' && 'Anfänger'}
-                    {language.proficiency === 'intermediate' && 'Mittelstufe'}
-                    {language.proficiency === 'advanced' && 'Fortgeschritten'}
+                    {language.proficiency === 'beginner' && 'C1'}
+                    {language.proficiency === 'intermediate' && 'C2'}
+                    {language.proficiency === 'advanced' && 'B2'}
                     {language.proficiency === 'expert' && 'Experte'}
                     {language.proficiency === 'native' && 'Muttersprache'}
                   </Badge>

@@ -16,7 +16,7 @@ export type Database = {
           description: string | null
           end_date: string | null
           field_of_study: string | null
-          grade: string | null
+          place: string | null
           id: string
           institution: string
           is_current: boolean | null
@@ -30,7 +30,7 @@ export type Database = {
           description?: string | null
           end_date?: string | null
           field_of_study?: string | null
-          grade?: string | null
+          place?: string | null
           id?: string
           institution: string
           is_current?: boolean | null
@@ -44,7 +44,7 @@ export type Database = {
           description?: string | null
           end_date?: string | null
           field_of_study?: string | null
-          grade?: string | null
+          place?: string | null
           id?: string
           institution?: string
           is_current?: boolean | null

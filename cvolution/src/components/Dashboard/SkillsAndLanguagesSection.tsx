@@ -14,7 +14,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 interface Skill {
   id: string;
   skill_name: string;
-  proficiency: 'Anfänger' | 'Mitlere Kentnisse' | 'Gute Kenntnisse' | 'Sehr gute Kenntnisse' | 'Experte';
+  proficiency: 'Anfänger' | 'Gut' | 'Sehr gut';
   years_of_experience: number | null;
   category: string | null;
 }
@@ -23,7 +23,8 @@ interface Skill {
 interface Language {
   id: string;
   language_name: string;
-proficiency: 'Anfänger' | 'Mitlere Kentnisse' | 'Gute Kenntnisse' | 'Sehr gute Kenntnisse' | 'Muttersprache';}
+  proficiency: 'C1' | 'C2' | 'B2' | 'Muttersprache';
+}
 
 export const SkillsAndLanguagesSection: React.FC = () => {
   const { user } = useAuth();
@@ -61,14 +62,14 @@ export const SkillsAndLanguagesSection: React.FC = () => {
             skill.proficiency === 'beginner'
               ? 'Anfänger'
               : skill.proficiency === 'intermediate'
-              ? 'Mitlere Kentnisse'
+              ? 'Gut'
               : skill.proficiency === 'advanced'
-              ? 'Gute Kenntnisse'
-              : skill.proficiency === 'expert'
-              ? 'Sehr gute Kenntnisse'
-              : skill.proficiency === 'native'
-              ? 'Experte'
-              : skill.proficiency,
+              ? 'Sehr gut'
+              : (
+                  skill.proficiency === 'expert' || skill.proficiency === 'native'
+                    ? 'Sehr gut'
+                    : skill.proficiency
+                ),
         }))
       );
     } catch (error) {
@@ -98,16 +99,18 @@ export const SkillsAndLanguagesSection: React.FC = () => {
           ...language,
           proficiency:
             language.proficiency === 'beginner'
-              ? 'Anfänger'
+              ? 'C1'
               : language.proficiency === 'intermediate'
-              ? 'Mitlere Kentnisse'
+              ? 'C2'
               : language.proficiency === 'advanced'
-              ? 'Gute Kenntnisse'
-              : language.proficiency === 'expert'
-              ? 'Sehr gute Kenntnisse'
+              ? 'B2'
               : language.proficiency === 'native'
               ? 'Muttersprache'
-              : language.proficiency,
+              : (
+                  language.proficiency === 'expert'
+                    ? 'C2' // fallback or handle as needed, here mapped to 'C2'
+                    : language.proficiency
+                ),
         }))
       );
     } catch (error) {
@@ -139,11 +142,10 @@ export const SkillsAndLanguagesSection: React.FC = () => {
               <SelectValue className="text-black" />
             </SelectTrigger>
             <SelectContent className="z-50 bg-white border border-gray-200 shadow-lg text-black">
-              <SelectItem value="beginner" className="text-black hover:bg-blue-50">Anfänger</SelectItem>
-              <SelectItem value="intermediate" className="text-black hover:bg-blue-50">Mittelstufe</SelectItem>
-              <SelectItem value="advanced" className="text-black hover:bg-blue-50">Fortgeschritten</SelectItem>
-              <SelectItem value="expert" className="text-black hover:bg-blue-50">Experte</SelectItem>
               <SelectItem value="native" className="text-black hover:bg-blue-50">Muttersprache</SelectItem>
+              <SelectItem value="beginner" className="text-black hover:bg-blue-50">C1</SelectItem>
+              <SelectItem value="intermediate" className="text-black hover:bg-blue-50">C2</SelectItem>
+              <SelectItem value="advanced" className="text-black hover:bg-blue-50">B2</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -173,16 +175,16 @@ export const SkillsAndLanguagesSection: React.FC = () => {
     <form onSubmit={(e) => handleSaveSkill(e, skill?.id)} className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="text-sm font-medium text-black">Fähigkeitsname *</label>
+          <label className="text-sm font-medium text-black">Fähigkeit *</label>
           <Input
             name="skill_name"
             defaultValue={skill?.skill_name || ''}
-            placeholder="JavaScript, React, etc."
+            placeholder="SAP, MS Office, Instandhaltung, Bauführung..."
             required
             className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
           />
         </div>
-        <div>
+        {/* <div>
           <label className="text-sm font-medium text-black">Kategorie</label>
           <Input
             name="category"
@@ -190,7 +192,7 @@ export const SkillsAndLanguagesSection: React.FC = () => {
             placeholder="Programmierung, Design, etc."
             className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
           />
-        </div>
+        </div> */}
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
@@ -200,9 +202,9 @@ export const SkillsAndLanguagesSection: React.FC = () => {
               <SelectValue className="text-black" />
             </SelectTrigger>
             <SelectContent className="z-50 bg-white border border-gray-200 shadow-lg text-black">
-              <SelectItem value="beginner" className="text-black hover:bg-blue-50">Anfänger</SelectItem>
-              <SelectItem value="intermediate" className="text-black hover:bg-blue-50">Mittelstufe</SelectItem>
-              <SelectItem value="advanced" className="text-black hover:bg-blue-50">Fortgeschritten</SelectItem>
+              <SelectItem value="beginner" className="text-black hover:bg-blue-50">C1</SelectItem>
+              <SelectItem value="intermediate" className="text-black hover:bg-blue-50">C2</SelectItem>
+              <SelectItem value="advanced" className="text-black hover:bg-blue-50">B2</SelectItem>
               <SelectItem value="expert" className="text-black hover:bg-blue-50">Experte</SelectItem>
               <SelectItem value="native" className="text-black hover:bg-blue-50">Muttersprachlich</SelectItem>
             </SelectContent>
@@ -376,10 +378,9 @@ export const SkillsAndLanguagesSection: React.FC = () => {
                     <div className="flex-1">
                       <h4 className="font-semibold text-black">{language.language_name}</h4>
                       <Badge className="text-xs text-black bg-gray-200">
-                        {language.proficiency === 'Anfänger' && 'Anfänger'}
-                        {language.proficiency === 'Mitlere Kentnisse' && 'Mittelstufe'}
-                        {language.proficiency === 'Gute Kenntnisse' && 'Fortgeschritten'}
-                        {language.proficiency === 'Sehr gute Kenntnisse' && 'Experte'}
+                        {language.proficiency === 'C1' && 'C1'}
+                        {language.proficiency === 'C2' && 'C2'}
+                        {language.proficiency === 'B2' && 'B2'}
                         {language.proficiency === 'Muttersprache' && 'Muttersprache'}
                       </Badge>
                     </div>
@@ -456,16 +457,9 @@ export const SkillsAndLanguagesSection: React.FC = () => {
                               <div className="flex flex-wrap gap-1 mt-1">
                                 <Badge className="text-xs text-black bg-gray-200">
                                   {skill.proficiency === 'Anfänger' && 'Anfänger'}
-                                  {skill.proficiency === 'Mitlere Kentnisse' && 'Mitlere Kentnisse'}
-                                  {skill.proficiency === 'Gute Kenntnisse' && 'Gute Kenntnisse'}
-                                  {skill.proficiency === 'Sehr gute Kenntnisse' && 'Sehr gute Kenntnisse'}
-                                  {skill.proficiency === 'Experte' && 'Experte'}
+                                  {skill.proficiency === 'Gut' && 'Gut'}
+                                  {skill.proficiency === 'Sehr gut' && 'Sehr gut'}
                                 </Badge>
-                                {skill.years_of_experience && (
-                                  <Badge className="text-xs text-black bg-gray-200">
-                                    {skill.years_of_experience} Jahre
-                                  </Badge>
-                                )}
                               </div>
                             </div>
                             <div className="flex space-x-1">

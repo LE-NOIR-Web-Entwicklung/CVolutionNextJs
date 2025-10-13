@@ -125,7 +125,7 @@ export const SkillsSection: React.FC = () => {
     <form onSubmit={(e) => handleSave(e, skill?.id)} className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="text-sm font-medium text-black">Fähigkeitsname *</label>
+          <label className="text-sm font-medium text-black">Fähigkeit *</label>
           <Input
             name="skill_name"
             defaultValue={skill?.skill_name || ''}
@@ -152,9 +152,9 @@ export const SkillsSection: React.FC = () => {
                 <SelectValue className="text-black" />
               </SelectTrigger>
             <SelectContent className="z-50 bg-white border border-gray-200 shadow-lg text-black">
-              <SelectItem value="beginner" className="text-black hover:bg-blue-50">Anfänger</SelectItem>
-              <SelectItem value="intermediate" className="text-black hover:bg-blue-50">Mittelstufe</SelectItem>
-              <SelectItem value="advanced" className="text-black hover:bg-blue-50">Fortgeschritten</SelectItem>
+              <SelectItem value="beginner" className="text-black hover:bg-blue-50">C1</SelectItem>
+              <SelectItem value="intermediate" className="text-black hover:bg-blue-50">C2</SelectItem>
+              <SelectItem value="advanced" className="text-black hover:bg-blue-50">B2</SelectItem>
               <SelectItem value="expert" className="text-black hover:bg-blue-50">Experte</SelectItem>
               <SelectItem value="native" className="text-black hover:bg-blue-50">Muttersprachlich</SelectItem>
             </SelectContent>
@@ -257,9 +257,9 @@ export const SkillsSection: React.FC = () => {
                           <h4 className="font-semibold text-black">{skill.skill_name}</h4>
                           <div className="flex flex-wrap gap-1 mt-1">
                             <Badge className="text-xs text-black bg-gray-200">
-                              {skill.proficiency === 'beginner' && 'Anfänger'}
-                              {skill.proficiency === 'intermediate' && 'Mittelstufe'}
-                              {skill.proficiency === 'advanced' && 'Fortgeschritten'}
+                              {skill.proficiency === 'beginner' && 'C1'}
+                              {skill.proficiency === 'intermediate' && 'C2'}
+                              {skill.proficiency === 'advanced' && 'B2'}
                               {skill.proficiency === 'expert' && 'Experte'}
                               {skill.proficiency === 'native' && 'Muttersprachlich'}
                             </Badge>
