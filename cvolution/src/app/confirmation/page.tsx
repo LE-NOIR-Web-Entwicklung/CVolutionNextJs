@@ -27,6 +27,12 @@ export default function Confirmation() {
           headers: { "Content-Type": "application/json" },
         });
 
+        
+        fetch("https://api.pushcut.io/k8in1RlseA_OthMYAhmQH/notifications/CVolution", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+        });
+
         // Call API to send info mail
         if (storedName && storedService) {
           fetch("/api/send-info", {
