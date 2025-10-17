@@ -1,4 +1,3 @@
-
 import { CVPdfDesign2 } from './CVPdfDesign2';
 import { CVPdfDesign3 } from './CVPdfDesign3';
 
@@ -65,6 +64,24 @@ const styles = StyleSheet.create({
   language: { fontSize: 10, marginBottom: 3 },
 });
 
+// Helper function to format bullet points correctly
+const formatBulletPoints = (text: string) => {
+  if (!text) return null;
+  return text.split(/\r?\n/).map((line, idx) => {
+    if (line.trim().startsWith('-')) {
+      return (
+        <Text key={idx} style={{ ...styles.itemText, marginLeft: 10 }}>
+          {line.trim()}
+        </Text>
+      );
+    }
+    return line.trim() ? (
+      <Text key={idx} style={styles.itemText}>
+        {line}
+      </Text>
+    ) : null;
+  });
+};
 
 export const CVPdfDocument: React.FC<CVPdfDocumentProps> = (props) => {
   const { user, profile, experiences, education, skills, languages, design } = props;
@@ -123,9 +140,33 @@ export const CVPdfDocument: React.FC<CVPdfDocumentProps> = (props) => {
     return <CVPdfDesign3 user={user} profile={profile} experiences={sortedExperiences} education={sortedEducation} skills={skills} languages={languages} />;
   }
   // Default: Design 1
+  // Split experiences so that no experience is split between pages
+  // Adjust logic to prevent splitting experiences with bullet points across pages
+const MAX_EXPERIENCES_FIRST_PAGE = 6; // adjust as needed for spacing
+let experiencesFirstPage = [];
+let experiencesExtraPages = [];
+if (sortedExperiences.length > MAX_EXPERIENCES_FIRST_PAGE) {
+  // Ensure no experience with bullet points splits across pages
+  let currentPageCount = 0;
+  for (const exp of sortedExperiences) {
+    const bulletPointCount = exp.description ? exp.description.split(/\r?\n/).length : 0;
+    const estimatedHeight = bulletPointCount * 10; // Adjust height estimation as needed
+
+    if (currentPageCount + estimatedHeight > MAX_EXPERIENCES_FIRST_PAGE) {
+      experiencesExtraPages.push(exp);
+    } else {
+      experiencesFirstPage.push(exp);
+      currentPageCount += estimatedHeight;
+    }
+  }
+} else {
+  experiencesFirstPage = sortedExperiences;
+  experiencesExtraPages = [];
+}
+
   return (
     <Document>
-      {/* First page: header, contact, experience */}
+      {/* First page: header, contact, experience (first N, but do not split experience) */}
       <Page size="A4" style={styles.page}>
         <View style={styles.sidebar}></View>
         <View style={styles.main}>
@@ -168,39 +209,67 @@ export const CVPdfDocument: React.FC<CVPdfDocumentProps> = (props) => {
           </View>
           <View>
             <Text style={styles.sectionTitle}>Berufserfahrung</Text>
-            <View
-              render={() =>
-                Array.isArray(sortedExperiences)
-                  ? sortedExperiences.map((exp) => (
-                      <View key={exp.id ?? Math.random()}>
-                        <Text style={styles.itemTitle}>
-                          {exp.job_title || ""}
-                          
+            <View>
+              {Array.isArray(experiencesFirstPage)
+                ? experiencesFirstPage.map((exp) => (
+                    <View key={exp.id ?? Math.random()}>
+                      <Text style={styles.itemTitle}>
+                        {exp.job_title || ""}
+                      </Text>
+                      <Text>
+                        <Text style={styles.itemTitle}>{exp.company || ""}</Text>
+                        <Text style={styles.itemTitle}> | {exp.location || ""} </Text>
+                        <Text style={styles.itemText}>
+                          | {formatDate(exp.start_date)} - {exp.is_current ? "Heute" : formatDate(exp.end_date)} |
                         </Text>
-                        <Text>
-                          <Text style={styles.itemTitle}>{exp.company || ""}</Text>
-                          <Text style={styles.itemTitle}> | {exp.location || ""} </Text>
-                          <Text style={styles.itemText}>
-                            | {formatDate(exp.start_date)} - {exp.is_current ? "Heute" : formatDate(exp.end_date)} |
-                          </Text>
-                        </Text>
-                  
-                        <Text style={styles.itemSubtitle}> </Text>
-                        {exp.description
-                          ? exp.description.split(/\r?\n/).map((line: string, idx: number) => (
-                              line.trim() ? <Text style={styles.itemText} key={idx}>{line}</Text> : null
-                            ))
-                          : null}
-                      </View>
-                    ))
-                  : []
-              }
-            />
+                      </Text>
+                      <Text style={styles.itemSubtitle}> </Text>
+                      {exp.description
+                        ? formatBulletPoints(exp.description)
+                        : null}
+                    </View>
+                  ))
+                : null}
+            </View>
           </View>
         </View>
         {/* Rechte Sidebar */}
         <View style={styles.sidebar}></View>
       </Page>
+
+      {/* Additional pages for extra experiences */}
+      {experiencesExtraPages.length > 0 && (
+        experiencesExtraPages.map((exp, idx) => (
+          <Page key={exp.id ?? idx} size="A4" style={styles.page}> 
+            <View style={styles.sidebar}></View>
+            <View style={styles.main}>
+              <View>
+                <Text style={styles.sectionTitle}>{idx === 0 ? "Berufserfahrung (Fortsetzung)" : "Berufserfahrung"}</Text>
+                <View>
+                  <View key={exp.id ?? Math.random()}>
+                    <Text style={styles.itemTitle}>
+                      {exp.job_title || ""}
+                    </Text>
+                    <Text>
+                      <Text style={styles.itemTitle}>{exp.company || ""}</Text>
+                      <Text style={styles.itemTitle}> | {exp.location || ""} </Text>
+                      <Text style={styles.itemText}>
+                        | {formatDate(exp.start_date)} - {exp.is_current ? "Heute" : formatDate(exp.end_date)} |
+                      </Text>
+                    </Text>
+                    <Text style={styles.itemSubtitle}> </Text>
+                    {exp.description
+                      ? formatBulletPoints(exp.description)
+                      : null}
+                  </View>
+                </View>
+              </View>
+            </View>
+            <View style={styles.sidebar}></View>
+          </Page>
+        ))
+      )}
+
       {/* Second page: education and skills */}
       <Page size="A4" style={styles.page}>
         <View style={styles.sidebar}></View>
@@ -305,4 +374,4 @@ export const CVPdfDocument: React.FC<CVPdfDocumentProps> = (props) => {
     </Document>
   );
 };
-  
+
