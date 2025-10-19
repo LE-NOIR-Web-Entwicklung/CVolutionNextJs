@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useImperativeHandle, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -26,7 +26,7 @@ interface Language {
   proficiency: 'C1' | 'C2' | 'B2' | 'Muttersprache';
 }
 
-export const SkillsAndLanguagesSection: React.FC = () => {
+const SkillsAndLanguagesSection = React.forwardRef<{ saveSkillsAndLanguages: () => void }, {}>((props, ref) => {
   const { user } = useAuth();
 
   // Skills state
@@ -40,6 +40,27 @@ export const SkillsAndLanguagesSection: React.FC = () => {
   const [isLanguagesLoading, setIsLanguagesLoading] = useState(true);
   const [languagesEditingId, setLanguagesEditingId] = useState<string | null>(null);
   const [isAddingLanguage, setIsAddingLanguage] = useState(false);
+
+  // Refs for forms
+  const addSkillFormRef = useRef<HTMLFormElement>(null);
+  const editSkillFormRefs = useRef<{ [id: string]: HTMLFormElement | null }>({});
+  const addLanguageFormRef = useRef<HTMLFormElement>(null);
+  const editLanguageFormRefs = useRef<{ [id: string]: HTMLFormElement | null }>({});
+
+  useImperativeHandle(ref, () => ({
+    saveSkillsAndLanguages: () => {
+      if (isAddingSkill && addSkillFormRef.current) {
+        addSkillFormRef.current.requestSubmit();
+      } else if (skillsEditingId && editSkillFormRefs.current[skillsEditingId]) {
+        editSkillFormRefs.current[skillsEditingId]?.requestSubmit();
+      }
+      if (isAddingLanguage && addLanguageFormRef.current) {
+        addLanguageFormRef.current.requestSubmit();
+      } else if (languagesEditingId && editLanguageFormRefs.current[languagesEditingId]) {
+        editLanguageFormRefs.current[languagesEditingId]?.requestSubmit();
+      }
+    }
+  }));
 
   // Fetch skills
   useEffect(() => {
@@ -122,125 +143,133 @@ export const SkillsAndLanguagesSection: React.FC = () => {
   };
 
   // Language form
-  const LanguageForm: React.FC<{ language?: Language }> = ({ language }) => (
-    <form onSubmit={(e) => handleSaveLanguage(e, language?.id)} className="space-y-4">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label className="text-sm font-medium text-black">Sprache *</label>
-          <Input
-            name="language_name"
-            defaultValue={language?.language_name || ''}
-            placeholder="Deutsch, Englisch, Spanisch, etc."
-            required
-            className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-          />
+  const LanguageForm: React.FC<{ language?: Language }> = ({ language }) => {
+    const formInstanceRef = useRef<HTMLFormElement>(null);
+    useEffect(() => {
+      if (language?.id) {
+        editLanguageFormRefs.current[language.id] = formInstanceRef.current;
+        return () => {
+          editLanguageFormRefs.current[language.id] = null;
+        };
+      }
+    }, [language?.id]);
+    return (
+      <form
+        ref={language?.id ? formInstanceRef : addLanguageFormRef}
+        onSubmit={(e) => handleSaveLanguage(e, language?.id)}
+        className="space-y-4"
+      >
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="text-sm font-medium text-black">Sprache *</label>
+            <Input
+              name="language_name"
+              defaultValue={language?.language_name || ''}
+              placeholder="Deutsch, Englisch, Spanisch, etc."
+              required
+              className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+            />
+          </div>
+          <div>
+            <label className="text-sm font-medium text-black">Niveau *</label>
+            <Select name="proficiency" defaultValue={language?.proficiency || 'intermediate'}>
+              <SelectTrigger className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
+                <SelectValue className="text-black" />
+              </SelectTrigger>
+              <SelectContent className="z-50 bg-white border border-gray-200 shadow-lg text-black">
+                <SelectItem value="native" className="text-black hover:bg-blue-50">Muttersprache</SelectItem>
+                <SelectItem value="beginner" className="text-black hover:bg-blue-50">C1</SelectItem>
+                <SelectItem value="intermediate" className="text-black hover:bg-blue-50">C2</SelectItem>
+                <SelectItem value="advanced" className="text-black hover:bg-blue-50">B2</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
-        <div>
-          <label className="text-sm font-medium text-black">Niveau *</label>
-          <Select name="proficiency" defaultValue={language?.proficiency || 'intermediate'}>
-            <SelectTrigger className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
-              <SelectValue className="text-black" />
-            </SelectTrigger>
-            <SelectContent className="z-50 bg-white border border-gray-200 shadow-lg text-black">
-              <SelectItem value="native" className="text-black hover:bg-blue-50">Muttersprache</SelectItem>
-              <SelectItem value="beginner" className="text-black hover:bg-blue-50">C1</SelectItem>
-              <SelectItem value="intermediate" className="text-black hover:bg-blue-50">C2</SelectItem>
-              <SelectItem value="advanced" className="text-black hover:bg-blue-50">B2</SelectItem>
-            </SelectContent>
-          </Select>
+        <div className="flex space-x-3">
+          <Button type="submit" className="w-full bg-[#204878] hover:bg-[#4c6c93] text-white font-bold rounded-lg py-3 transition duration-200">
+            <Save className="h-4 w-4 mr-2" />
+            Speichern
+          </Button>
+          <Button
+            type="button"
+            onClick={() => {
+              setLanguagesEditingId(null);
+              setIsAddingLanguage(false);
+            }}
+            className="w-full bg-gray-200 hover:bg-gray-300 text-black font-bold rounded-lg py-3 transition duration-200"
+          >
+            <X className="h-4 w-4 mr-2" />
+            Abbrechen
+          </Button>
         </div>
-      </div>
-      <div className="flex space-x-3">
-        <Button type="submit" className="w-full bg-[#204878] hover:bg-[#4c6c93] text-white font-bold rounded-lg py-3 transition duration-200">
-          <Save className="h-4 w-4 mr-2" />
-          Speichern
-        </Button>
-        <Button
-          type="button"
-          onClick={() => {
-            setLanguagesEditingId(null);
-            setIsAddingLanguage(false);
-          }}
-          className="w-full bg-gray-200 hover:bg-gray-300 text-black font-bold rounded-lg py-3 transition duration-200"
-        >
-          <X className="h-4 w-4 mr-2" />
-          Abbrechen
-        </Button>
-      </div>
-    </form>
-  );
+      </form>
+    );
+  };
 
   // Skill form
-  const SkillForm: React.FC<{ skill?: Skill }> = ({ skill }) => (
-    <form onSubmit={(e) => handleSaveSkill(e, skill?.id)} className="space-y-4">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label className="text-sm font-medium text-black">Fähigkeit *</label>
-          <Input
-            name="skill_name"
-            defaultValue={skill?.skill_name || ''}
-            placeholder="SAP, MS Office, Instandhaltung, Bauführung..."
-            required
-            className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-          />
+  const SkillForm: React.FC<{ skill?: Skill }> = ({ skill }) => {
+    const formInstanceRef = useRef<HTMLFormElement>(null);
+    useEffect(() => {
+      if (skill?.id) {
+        editSkillFormRefs.current[skill.id] = formInstanceRef.current;
+        return () => {
+          editSkillFormRefs.current[skill.id] = null;
+        };
+      }
+    }, [skill?.id]);
+    return (
+      <form
+        ref={skill?.id ? formInstanceRef : addSkillFormRef}
+        onSubmit={(e) => handleSaveSkill(e, skill?.id)}
+        className="space-y-4"
+      >
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="text-sm font-medium text-black">Fähigkeit *</label>
+            <Input
+              name="skill_name"
+              defaultValue={skill?.skill_name || ''}
+              placeholder="SAP, MS Office, Instandhaltung, Bauführung..."
+              required
+              className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+            />
+          </div>
+          <div>
+            <label className="text-sm font-medium text-black">Kenntnisstand *</label>
+            <Select name="proficiency" defaultValue={skill?.proficiency || 'intermediate'}>
+              <SelectTrigger className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
+                <SelectValue className="text-black" />
+              </SelectTrigger>
+              <SelectContent className="z-50 bg-white border border-gray-200 shadow-lg text-black">
+                <SelectItem value="beginner" className="text-black hover:bg-blue-50">C1</SelectItem>
+                <SelectItem value="intermediate" className="text-black hover:bg-blue-50">C2</SelectItem>
+                <SelectItem value="advanced" className="text-black hover:bg-blue-50">B2</SelectItem>
+                <SelectItem value="expert" className="text-black hover:bg-blue-50">Experte</SelectItem>
+                <SelectItem value="native" className="text-black hover:bg-blue-50">Muttersprachlich</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
-        {/* <div>
-          <label className="text-sm font-medium text-black">Kategorie</label>
-          <Input
-            name="category"
-            defaultValue={skill?.category || ''}
-            placeholder="Programmierung, Design, etc."
-            className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-          />
-        </div> */}
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label className="text-sm font-medium text-black">Kenntnisstand *</label>
-          <Select name="proficiency" defaultValue={skill?.proficiency || 'intermediate'}>
-            <SelectTrigger className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
-              <SelectValue className="text-black" />
-            </SelectTrigger>
-            <SelectContent className="z-50 bg-white border border-gray-200 shadow-lg text-black">
-              <SelectItem value="beginner" className="text-black hover:bg-blue-50">C1</SelectItem>
-              <SelectItem value="intermediate" className="text-black hover:bg-blue-50">C2</SelectItem>
-              <SelectItem value="advanced" className="text-black hover:bg-blue-50">B2</SelectItem>
-              <SelectItem value="expert" className="text-black hover:bg-blue-50">Experte</SelectItem>
-              <SelectItem value="native" className="text-black hover:bg-blue-50">Muttersprachlich</SelectItem>
-            </SelectContent>
-          </Select>
+        <div className="flex space-x-3">
+          <Button type="submit" className="w-full bg-[#204878] hover:bg-[#4c6c93] text-white font-bold rounded-lg py-3 transition duration-200">
+            <Save className="h-4 w-4 mr-2" />
+            Speichern
+          </Button>
+          <Button
+            type="button"
+            onClick={() => {
+              setSkillsEditingId(null);
+              setIsAddingSkill(false);
+            }}
+            className="w-full bg-gray-200 hover:bg-gray-300 text-black font-bold rounded-lg py-3 transition duration-200"
+          >
+            <X className="h-4 w-4 mr-2" />
+            Abbrechen
+          </Button>
         </div>
-        <div>
-          <label className="text-sm font-medium text-black">Jahre Erfahrung</label>
-          <Input
-            name="years_of_experience"
-            type="number"
-            defaultValue={skill?.years_of_experience || ''}
-            placeholder="Jahre"
-            min="0"
-            className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-          />
-        </div>
-      </div>
-      <div className="flex space-x-3">
-        <Button type="submit" className="w-full bg-[#204878] hover:bg-[#4c6c93] text-white font-bold rounded-lg py-3 transition duration-200">
-          <Save className="h-4 w-4 mr-2" />
-          Speichern
-        </Button>
-        <Button
-          type="button"
-          onClick={() => {
-            setSkillsEditingId(null);
-            setIsAddingSkill(false);
-          }}
-          className="w-full bg-gray-200 hover:bg-gray-300 text-black font-bold rounded-lg py-3 transition duration-200"
-        >
-          <X className="h-4 w-4 mr-2" />
-          Abbrechen
-        </Button>
-      </div>
-    </form>
-  );
+      </form>
+    );
+  };
 
   // Save skill
   const handleSaveSkill = async (e: React.FormEvent<HTMLFormElement>, id?: string) => {
@@ -328,7 +357,7 @@ export const SkillsAndLanguagesSection: React.FC = () => {
 
   // Group skills by category
   const groupedSkills = skills.reduce((acc, skill) => {
-    const category = skill.category || 'Andere';
+    const category = skill.category || 'Fähigkeiten';
     if (!acc[category]) {
       acc[category] = [];
     }
@@ -489,4 +518,5 @@ export const SkillsAndLanguagesSection: React.FC = () => {
       </section>
     </div>
   );
-};
+});
+export default SkillsAndLanguagesSection;

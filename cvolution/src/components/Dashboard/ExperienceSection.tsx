@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useImperativeHandle, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -22,12 +22,24 @@ interface Experience {
   skills_used: string[] | null;
 }
 
-export const ExperienceSection: React.FC = () => {
+const ExperienceSection = React.forwardRef<{ saveExperiences: () => void }, {}>((props, ref) => {
   const { user } = useAuth();
   const [experiences, setExperiences] = useState<Experience[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isAdding, setIsAdding] = useState(false);
+  const addFormRef = useRef<HTMLFormElement>(null);
+  const editFormRefs = useRef<{ [id: string]: HTMLFormElement | null }>({});
+
+  useImperativeHandle(ref, () => ({
+    saveExperiences: () => {
+      if (isAdding && addFormRef.current) {
+        addFormRef.current.requestSubmit();
+      } else if (editingId && editFormRefs.current[editingId]) {
+        editFormRefs.current[editingId]?.requestSubmit();
+      }
+    }
+  }));
 
   useEffect(() => {
     fetchExperiences();
@@ -161,6 +173,7 @@ function formatMonthYear(dateStr?: string | null) {
     const [isCurrent, setIsCurrent] = useState<boolean>(initialIsCurrent);
     const [startDate, setStartDate] = useState<Date | null>(experience?.start_date ? new Date(experience.start_date) : null);
     const [endDate, setEndDate] = useState<Date | null>(experience?.end_date ? new Date(experience.end_date) : null);
+    const formInstanceRef = useRef<HTMLFormElement>(null);
 
     useEffect(() => {
       setStartDate(experience?.start_date ? new Date(experience.start_date) : null);
@@ -168,8 +181,21 @@ function formatMonthYear(dateStr?: string | null) {
       setIsCurrent(experience?.is_current ?? (!experience?.end_date));
     }, [experience]);
 
+    useEffect(() => {
+      if (experience?.id) {
+        editFormRefs.current[experience.id] = formInstanceRef.current;
+        return () => {
+          editFormRefs.current[experience.id] = null;
+        };
+      }
+    }, [experience?.id]);
+
     return (
-      <form onSubmit={(e) => handleSave(e, experience?.id)} className="space-y-4">
+      <form
+        ref={experience?.id ? formInstanceRef : addFormRef}
+        onSubmit={(e) => handleSave(e, experience?.id)}
+        className="space-y-4"
+      >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="text-sm font-medium text-black">Berufsbezeichnung *</label>
@@ -399,4 +425,5 @@ function formatMonthYear(dateStr?: string | null) {
       )}
     </div>
   );
-};
+});
+export default ExperienceSection;

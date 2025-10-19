@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useImperativeHandle, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -19,12 +19,24 @@ interface Education {
   place: string | null;
 }
 
-export const EducationSection: React.FC = () => {
+const EducationSection = React.forwardRef<{ saveEducation: () => void }, {}>((props, ref) => {
   const { user } = useAuth();
   const [education, setEducation] = useState<Education[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isAdding, setIsAdding] = useState(false);
+  const addFormRef = useRef<HTMLFormElement>(null);
+  const editFormRefs = useRef<{ [id: string]: HTMLFormElement | null }>({});
+
+  useImperativeHandle(ref, () => ({
+    saveEducation: () => {
+      if (isAdding && addFormRef.current) {
+        addFormRef.current.requestSubmit();
+      } else if (editingId && editFormRefs.current[editingId]) {
+        editFormRefs.current[editingId]?.requestSubmit();
+      }
+    }
+  }));
 
   useEffect(() => {
     fetchEducation();
@@ -152,8 +164,22 @@ function parseMonthYearToDate(str?: string | null) {
     }
   };
 
-  const EducationForm: React.FC<{ education?: Education }> = ({ education }) => (
-    <form onSubmit={(e) => handleSave(e, education?.id)} className="space-y-4">
+  const EducationForm: React.FC<{ education?: Education }> = ({ education }) => {
+    const formInstanceRef = useRef<HTMLFormElement>(null);
+    useEffect(() => {
+      if (education?.id) {
+        editFormRefs.current[education.id] = formInstanceRef.current;
+        return () => {
+          editFormRefs.current[education.id] = null;
+        };
+      }
+    }, [education?.id]);
+    return (
+      <form
+        ref={education?.id ? formInstanceRef : addFormRef}
+        onSubmit={(e) => handleSave(e, education?.id)}
+        className="space-y-4"
+      >
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label className="text-sm font-medium text-black">Institution *</label>
@@ -248,7 +274,8 @@ function parseMonthYearToDate(str?: string | null) {
         </Button>
       </div>
     </form>
-  );
+    );
+  };
 
   if (isLoading) {
     return (
@@ -344,4 +371,5 @@ function parseMonthYearToDate(str?: string | null) {
       )}
     </div>
   );
-};
+});
+export default EducationSection;

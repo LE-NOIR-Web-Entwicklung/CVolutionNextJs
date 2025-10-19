@@ -189,7 +189,7 @@ export const CVPdfDesign3: React.FC<CVPdfDesign3Props> = ({
         {profile?.profile_picture_url ? (
           <Image src={profile.profile_picture_url} style={{ maxHeight: 170, borderRadius: 1, marginLeft: 16 }} />
         ) : (
-          <View style={{ width: 100, height: 120, backgroundColor: 'lightgray', borderRadius: 1, justifyContent: 'center', alignItems: 'center', marginLeft: 16 }}>
+          <View style={{ width: 80, height: 100, backgroundColor: 'lightgray', borderRadius: 1, justifyContent: 'center', alignItems: 'center', marginLeft: 16 }}>
             <Text style={{ color: '#888', fontSize: 18 }}>Foto</Text>
           </View>
         )}
@@ -276,7 +276,7 @@ export const CVPdfDesign3: React.FC<CVPdfDesign3Props> = ({
           <View style={{ flexGrow: 1 }}>
             {Array.isArray(skills) && skills.length > 0 ? (
               skills
-                .filter((s) => s.skill_name && s.category.toLowerCase() === 'führerschein')
+                .filter((s) => s.skill_name && s.category && s.category.toLowerCase() === 'führerschein')
                 .map((s) => (
                   <Text key={s.id ?? Math.random()}>{s.skill_name}</Text>
                 ))
@@ -289,7 +289,7 @@ export const CVPdfDesign3: React.FC<CVPdfDesign3Props> = ({
           <View style={{ flexGrow: 1 }}>
             {Array.isArray(skills) && skills.length > 0 ? (
               skills
-                .filter((s) => s.skill_name && s.category.toLowerCase() !== 'führerschein')
+                .filter((s) => s.skill_name && (!s.category || s.category.toLowerCase() !== 'führerschein'))
                 .map((s) => (
                   <Text key={s.id ?? Math.random()}>{s.skill_name}</Text>
                 ))
@@ -299,33 +299,6 @@ export const CVPdfDesign3: React.FC<CVPdfDesign3Props> = ({
           </View>
         </View>
       </View>
-      {/* <Text style={styles.sectionTitle}>Kenntnisse & Fähigkeiten</Text>
-      <View style={styles.skillsGrid}>
-        <View style={styles.skillRow}>
-          <Text style={styles.skillLabel}>Fremdsprachen</Text>
-          <View style={styles.expBody}>
-            {languages?.map((lang) => (
-              <Text key={String(lang.id)}>
-                {lang.language_name} {lang.proficiency ? ` ${lang.proficiency}` : ""}
-              </Text>
-            ))}
-          </View>
-        </View>
-
-        <View style={styles.skillRow}>
-          <Text style={styles.skillLabel}>Führerschein</Text>
-          <Text>Kategorie B</Text>
-        </View>
-
-        <View style={styles.skillRow}>
-          <Text style={styles.skillLabel}>Fähigkeiten</Text>
-          <View style={styles.expBody}>
-            {skills?.length
-              ? skills.map((s) => <Text key={String(s.id)}>{s.skill_name}</Text>)
-              : <Text>SAP</Text>}
-          </View>
-        </View>
-      </View> */}
     </Page>
   </Document>
 );

@@ -7,10 +7,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { LogOut} from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
-import { ProfileSection } from '@/components/Dashboard/ProfileSection';
-import { ExperienceSection } from '@/components/Dashboard/ExperienceSection';
-import { EducationSection } from '@/components/Dashboard/EducationSection';
-import { SkillsAndLanguagesSection } from '@/components/Dashboard/SkillsAndLanguagesSection';
+import ProfileSection from '@/components/Dashboard/ProfileSection';
+import ExperienceSection from '@/components/Dashboard/ExperienceSection';
+import EducationSection from '@/components/Dashboard/EducationSection';
+import SkillsAndLanguagesSection from '@/components/Dashboard/SkillsAndLanguagesSection';
 import { CVExportButton } from '@/components/CVExport/CVExportButton';
 import { CVExportModal } from '@/components/CVExport/CVExportModal';
 
@@ -23,6 +23,11 @@ export const Dashboard: React.FC = () => {
   const [educationData, setEducationData] = useState<any[]>([]);
   const [skillsData, setSkillsData] = useState<any[]>([]);
   const [languagesData, setLanguagesData] = useState<any[]>([]);
+  const [activeTab, setActiveTab] = useState('profile');
+  const profileSectionRef = React.useRef<{ saveProfile: () => void }>(null);
+  const experienceSectionRef = React.useRef<{ saveExperiences: () => void }>(null);
+  const educationSectionRef = React.useRef<{ saveEducation: () => void }>(null);
+  const skillsAndLanguagesSectionRef = React.useRef<{ saveSkillsAndLanguages: () => void }>(null);
 
   // Fetch all data for export
   useEffect(() => {
@@ -60,6 +65,23 @@ export const Dashboard: React.FC = () => {
     setCVModalOpen(true);
   };
 
+  // Detect tab change and trigger save when leaving profile tab
+  const handleTabChange = (newTab: string) => {
+    if (activeTab === 'profile' && profileSectionRef.current) {
+      profileSectionRef.current.saveProfile();
+    }
+    if (activeTab === 'experience' && experienceSectionRef.current) {
+      experienceSectionRef.current.saveExperiences();
+    }
+    if (activeTab === 'education' && educationSectionRef.current) {
+      educationSectionRef.current.saveEducation();
+    }
+    if ((activeTab === 'skills' || activeTab === 'languages') && skillsAndLanguagesSectionRef.current) {
+      skillsAndLanguagesSectionRef.current.saveSkillsAndLanguages();
+    }
+    setActiveTab(newTab);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -87,7 +109,7 @@ export const Dashboard: React.FC = () => {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
         {/* Main Content Tabs */}
-        <Tabs defaultValue="profile" className="space-y-4 sm:space-y-6">
+        <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-4 sm:space-y-6">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             {/* Mobile Tab Navigation */}
             <div className="w-full sm:hidden">
@@ -133,23 +155,19 @@ export const Dashboard: React.FC = () => {
           </TabsContent> */}
 
           <TabsContent value="profile">
-            <ProfileSection />
+            <ProfileSection ref={profileSectionRef} />
           </TabsContent>
-
           <TabsContent value="experience">
-            <ExperienceSection />
+            <ExperienceSection ref={experienceSectionRef} />
           </TabsContent>
-
           <TabsContent value="education">
-            <EducationSection />
+            <EducationSection ref={educationSectionRef} />
           </TabsContent>
-
           <TabsContent value="skills">
-            <SkillsAndLanguagesSection />
+            <SkillsAndLanguagesSection ref={skillsAndLanguagesSectionRef} />
           </TabsContent>
-
           <TabsContent value="languages">
-            <SkillsAndLanguagesSection />
+            <SkillsAndLanguagesSection ref={skillsAndLanguagesSectionRef} />
           </TabsContent>
         </Tabs>
       </div>

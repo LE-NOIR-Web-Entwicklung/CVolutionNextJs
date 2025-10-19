@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useImperativeHandle } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -24,17 +24,34 @@ interface Profile {
   place_of_origin: string | null;
 }
 
-export const ProfileSection: React.FC = () => {
+export const ProfileSection = React.forwardRef<{ saveProfile: () => void }, {}>((props, ref) => {
   const { user } = useAuth();
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [isEditing, setIsEditing] = useState(false);
+    const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+  const formRef = React.useRef<HTMLFormElement>(null);
+
+  useImperativeHandle(ref, () => ({
+    saveProfile: () => {
+      if (isEditing && formRef.current) {
+        formRef.current.requestSubmit();
+      }
+    }
+  }));
 
   useEffect(() => {
     fetchProfile();
   }, [user]);
+
+  useEffect(() => {
+    return () => {
+      if (isEditing && formRef.current) {
+        formRef.current.requestSubmit();
+      }
+    };
+  }, [isEditing]);
 
   const fetchProfile = async () => {
     if (!user) return;
@@ -285,7 +302,7 @@ export const ProfileSection: React.FC = () => {
         <CardDescription className="text-black">Aktualisieren Sie Ihre professionellen Informationen</CardDescription>
       </CardHeader>
       <CardContent className="pt-6">
-        <form onSubmit={handleSave} className="space-y-6">
+        <form ref={formRef} onSubmit={handleSave} className="space-y-6">
           <div className="flex items-center space-x-4 mb-6">
             <Avatar className="h-32 w-24 border-2 border-blue-200 rounded-lg overflow-hidden">
               <AvatarImage 
@@ -421,4 +438,5 @@ export const ProfileSection: React.FC = () => {
       </CardContent>
     </div>
   );
-};
+});
+  export default ProfileSection;

@@ -174,9 +174,9 @@ if (sortedExperiences.length > MAX_EXPERIENCES_FIRST_PAGE) {
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               {/* Bild links */}
               {profile?.profile_picture_url ? (
-                <Image src={profile.profile_picture_url} style={{ maxHeight: 120, borderRadius: 1 }} />
+                <Image src={profile.profile_picture_url} style={{ maxHeight: 170, borderRadius: 1 }} />
               ) : (
-                <View style={{ width: 100, height: 120, backgroundColor: 'lightgray', borderRadius: 1, justifyContent: 'center', alignItems: 'center' }}>
+                <View style={{ width: 80, height: 100, backgroundColor: 'lightgray', borderRadius: 1, justifyContent: 'center', alignItems: 'center' }}>
                   <Text style={{ color: '#888', fontSize: 18 }}>Foto</Text>
                 </View>
               )}
@@ -343,7 +343,7 @@ if (sortedExperiences.length > MAX_EXPERIENCES_FIRST_PAGE) {
                 <View style={{ flexGrow: 1 }}>
                   {Array.isArray(skills) && skills.length > 0 ? (
                     skills
-                      .filter((s) => s.skill_name && s.category.toLowerCase() === 'führerschein')
+                      .filter((s) => s.skill_name && s.category && s.category.toLowerCase() === 'führerschein')
                       .map((s) => (
                         <Text key={s.id ?? Math.random()}>{s.skill_name}</Text>
                       ))
@@ -356,7 +356,7 @@ if (sortedExperiences.length > MAX_EXPERIENCES_FIRST_PAGE) {
                 <View style={{ flexGrow: 1 }}>
                   {Array.isArray(skills) && skills.length > 0 ? (
                     skills
-                      .filter((s) => s.skill_name && s.category.toLowerCase() !== 'führerschein')
+                      .filter((s) => s.skill_name && (!s.category || s.category.toLowerCase() !== 'führerschein'))
                       .map((s) => (
                         <Text key={s.id ?? Math.random()}>{s.skill_name}</Text>
                       ))
