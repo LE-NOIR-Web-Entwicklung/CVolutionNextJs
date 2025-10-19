@@ -13,11 +13,13 @@ import EducationSection from '@/components/Dashboard/EducationSection';
 import SkillsAndLanguagesSection from '@/components/Dashboard/SkillsAndLanguagesSection';
 import { CVExportButton } from '@/components/CVExport/CVExportButton';
 import { CVExportModal } from '@/components/CVExport/CVExportModal';
+import { PaymentModal } from '@/components/ui/PaymentModal';
 
 export const Dashboard: React.FC = () => {
   const { user, signOut } = useAuth();
   const router = useRouter();
   const [cvModalOpen, setCVModalOpen] = useState(false);
+  const [paymentModalOpen, setPaymentModalOpen] = useState(false);
   const [profileData, setProfileData] = useState<any>(null);
   const [experiencesData, setExperiencesData] = useState<any[]>([]);
   const [educationData, setEducationData] = useState<any[]>([]);
@@ -34,19 +36,26 @@ export const Dashboard: React.FC = () => {
     const fetchAll = async () => {
       if (!user) return;
       // Profile
-      const { data: profile } = await supabase.from('profiles').select('*').eq('user_id', user.id).single();
+      const { data: profile, error: profileError } = await supabase.from('profiles').select('*').eq('user_id', user.id).single();
+      console.log('Supabase user:', user);
+      console.log('Supabase profile:', profile);
+      if (profileError) console.error('Supabase profile error:', profileError);
       setProfileData(profile);
       // Experiences
-      const { data: experiences } = await supabase.from('experiences').select('*').eq('user_id', user.id);
+      const { data: experiences, error: expError } = await supabase.from('experiences').select('*').eq('user_id', user.id);
+      if (expError) console.error('Supabase experiences error:', expError);
       setExperiencesData(experiences || []);
       // Education
-      const { data: education } = await supabase.from('education').select('*').eq('user_id', user.id);
+      const { data: education, error: eduError } = await supabase.from('education').select('*').eq('user_id', user.id);
+      if (eduError) console.error('Supabase education error:', eduError);
       setEducationData(education || []);
       // Skills
-      const { data: skills } = await supabase.from('skills').select('*').eq('user_id', user.id);
+      const { data: skills, error: skillsError } = await supabase.from('skills').select('*').eq('user_id', user.id);
+      if (skillsError) console.error('Supabase skills error:', skillsError);
       setSkillsData(skills || []);
       // Languages
-      const { data: languages } = await supabase.from('languages').select('*').eq('user_id', user.id);
+      const { data: languages, error: langError } = await supabase.from('languages').select('*').eq('user_id', user.id);
+      if (langError) console.error('Supabase languages error:', langError);
       setLanguagesData(languages || []);
     };
     fetchAll();
@@ -62,6 +71,22 @@ export const Dashboard: React.FC = () => {
   };
 
   const handleExportClick = () => {
+    // Prüfe, ob bezahlt wurde oder paydate älter als ein Jahr ist
+    if (profileData) {
+      const paid = profileData.paid;
+      const paydate = profileData.paydate;
+      let expired = false;
+      if (paydate) {
+        const payDateObj = new Date(paydate);
+        const now = new Date();
+        const diffYears = (now.getTime() - payDateObj.getTime()) / (1000 * 60 * 60 * 24 * 365);
+        expired = diffYears >= 1;
+      }
+      if ((paid === false || !paid) || !paydate || expired) {
+        setPaymentModalOpen(true);
+        return;
+      }
+    }
     setCVModalOpen(true);
   };
 
@@ -148,6 +173,13 @@ export const Dashboard: React.FC = () => {
             education={Array.isArray(educationData) ? educationData : []}
             skills={Array.isArray(skillsData) ? skillsData : []}
             languages={Array.isArray(languagesData) ? languagesData : []}
+          />
+          {/* Payment Modal */}
+          <PaymentModal
+            open={paymentModalOpen}
+            onClose={() => setPaymentModalOpen(false)}
+            user={user || {}}
+            profile={profileData || {}}
           />
 
           {/* <TabsContent value="linkedin">
