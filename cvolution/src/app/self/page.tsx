@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 
 export default function Self() {
-  const targetDate = new Date("2025-11-01T00:00:00").getTime();
+  const targetDate = new Date("2025-12-01T00:00:00").getTime();
   const [timeLeft, setTimeLeft] = useState(calculateTimeLeft());
 
   function calculateTimeLeft() {
@@ -39,7 +39,7 @@ export default function Self() {
     <div className="min-h-screen bg-[#204878] text-white flex flex-col items-center justify-center">
       <h1 className="text-4xl font-bold mb-6">Self-Service <span className="text-blue-300">Coming Soon!</span></h1>
       <p className="text-lg mb-8">
-        Das Self-Service Angebot ist ab <strong>01. November 2025</strong> verfügbar.
+        Das Self-Service Angebot ist ab <strong>01. Dezember 2025</strong> verfügbar.
       </p>
       <div className="flex space-x-4 text-center">
         <div className="bg-[#1a3a66] p-4 rounded-lg shadow-lg">
