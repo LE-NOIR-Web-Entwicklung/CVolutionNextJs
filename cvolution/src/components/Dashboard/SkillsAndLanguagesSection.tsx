@@ -14,7 +14,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 interface Skill {
   id: string;
   skill_name: string;
-  proficiency: 'Anfänger' | 'Gut' | 'Sehr gut';
+  proficiency: 'Anfänger' | 'Gut' | 'Sehr gut' | 'Experte' | 'Muttersprachlich';
   years_of_experience: number | null;
   category: string | null;
 }
@@ -67,6 +67,28 @@ const SkillsAndLanguagesSection = React.forwardRef<{ saveSkillsAndLanguages: () 
     fetchSkills();
   }, [user]);
 
+  // Mapping DB value to UI value for skills
+  const dbToUiSkillProficiency = (dbValue: string): string => {
+    switch (dbValue) {
+      case 'beginner': return 'Anfänger';
+      case 'intermediate': return 'Gut';
+      case 'advanced': return 'Sehr gut';
+      case 'expert': return 'Experte';
+      default: return dbValue;
+    }
+  };
+
+  // Mapping UI value to DB value for skills
+  const uiToDbSkillProficiency = (uiValue: string): string => {
+    switch (uiValue) {
+      case 'Anfänger': return 'beginner';
+      case 'Gut': return 'intermediate';
+      case 'Sehr gut': return 'advanced';
+      case 'Experte': return 'expert';
+      default: return uiValue;
+    }
+  };
+
   const fetchSkills = async () => {
     if (!user) return;
     try {
@@ -79,18 +101,7 @@ const SkillsAndLanguagesSection = React.forwardRef<{ saveSkillsAndLanguages: () 
       setSkills(
         (data || []).map((skill) => ({
           ...skill,
-          proficiency:
-            skill.proficiency === 'beginner'
-              ? 'Anfänger'
-              : skill.proficiency === 'intermediate'
-              ? 'Gut'
-              : skill.proficiency === 'advanced'
-              ? 'Sehr gut'
-              : (
-                  skill.proficiency === 'expert' || skill.proficiency === 'native'
-                    ? 'Sehr gut'
-                    : skill.proficiency
-                ),
+          proficiency: dbToUiSkillProficiency(skill.proficiency) as Skill['proficiency'],
         }))
       );
     } catch (error) {
@@ -172,15 +183,18 @@ const SkillsAndLanguagesSection = React.forwardRef<{ saveSkillsAndLanguages: () 
           </div>
           <div>
             <label className="text-sm font-medium text-black">Niveau *</label>
-            <Select name="proficiency" defaultValue={language?.proficiency || 'intermediate'}>
+            <Select name="proficiency" defaultValue={language?.proficiency || 'B2'}>
               <SelectTrigger className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
                 <SelectValue className="text-black" />
               </SelectTrigger>
               <SelectContent className="z-50 bg-white border border-gray-200 shadow-lg text-black">
-                <SelectItem value="native" className="text-black hover:bg-blue-50">Muttersprache</SelectItem>
-                <SelectItem value="beginner" className="text-black hover:bg-blue-50">C1</SelectItem>
-                <SelectItem value="intermediate" className="text-black hover:bg-blue-50">C2</SelectItem>
-                <SelectItem value="advanced" className="text-black hover:bg-blue-50">B2</SelectItem>
+                <SelectItem value="A1" className="text-black hover:bg-blue-50">A1</SelectItem>
+                <SelectItem value="A2" className="text-black hover:bg-blue-50">A2</SelectItem>
+                <SelectItem value="B1" className="text-black hover:bg-blue-50">B1</SelectItem>
+                <SelectItem value="B2" className="text-black hover:bg-blue-50">B2</SelectItem>
+                <SelectItem value="C1" className="text-black hover:bg-blue-50">C1</SelectItem>
+                <SelectItem value="C2" className="text-black hover:bg-blue-50">C2</SelectItem>
+                <SelectItem value="Muttersprache" className="text-black hover:bg-blue-50">Muttersprache</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -236,16 +250,16 @@ const SkillsAndLanguagesSection = React.forwardRef<{ saveSkillsAndLanguages: () 
           </div>
           <div>
             <label className="text-sm font-medium text-black">Kenntnisstand *</label>
-            <Select name="proficiency" defaultValue={skill?.proficiency || 'intermediate'}>
+            <Select name="proficiency" defaultValue={skill?.proficiency || 'Anfänger'}>
               <SelectTrigger className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
                 <SelectValue className="text-black" />
               </SelectTrigger>
               <SelectContent className="z-50 bg-white border border-gray-200 shadow-lg text-black">
-                <SelectItem value="beginner" className="text-black hover:bg-blue-50">C1</SelectItem>
-                <SelectItem value="intermediate" className="text-black hover:bg-blue-50">C2</SelectItem>
-                <SelectItem value="advanced" className="text-black hover:bg-blue-50">B2</SelectItem>
-                <SelectItem value="expert" className="text-black hover:bg-blue-50">Experte</SelectItem>
-                <SelectItem value="native" className="text-black hover:bg-blue-50">Muttersprachlich</SelectItem>
+                <SelectItem value="Anfänger" className="text-black hover:bg-blue-50">Anfänger</SelectItem>
+                <SelectItem value="Gut" className="text-black hover:bg-blue-50">Gut</SelectItem>
+                <SelectItem value="Sehr gut" className="text-black hover:bg-blue-50">Sehr gut</SelectItem>
+                <SelectItem value="Experte" className="text-black hover:bg-blue-50">Experte</SelectItem>
+                {/* <SelectItem value="Muttersprachlich" className="text-black hover:bg-blue-50">Muttersprachlich</SelectItem> */}
               </SelectContent>
             </Select>
           </div>
@@ -279,7 +293,7 @@ const SkillsAndLanguagesSection = React.forwardRef<{ saveSkillsAndLanguages: () 
     const skillData = {
       user_id: user.id,
       skill_name: formData.get('skill_name') as string,
-      proficiency: formData.get('proficiency') as 'beginner' | 'intermediate' | 'advanced' | 'expert' | 'native',
+      proficiency: uiToDbSkillProficiency(formData.get('proficiency') as string) as 'beginner' | 'intermediate' | 'advanced' | 'expert' | 'native',
       years_of_experience: formData.get('years_of_experience') ? Number(formData.get('years_of_experience')) : null,
       category: formData.get('category') as string || null,
     };
@@ -479,9 +493,7 @@ const SkillsAndLanguagesSection = React.forwardRef<{ saveSkillsAndLanguages: () 
                             <h4 className="font-semibold text-black">{skill.skill_name}</h4>
                             <div className="flex flex-wrap gap-1 mt-1">
                               <Badge className="text-xs text-black bg-gray-200">
-                                {skill.proficiency === 'Anfänger' && 'Anfänger'}
-                                {skill.proficiency === 'Gut' && 'Gut'}
-                                {skill.proficiency === 'Sehr gut' && 'Sehr gut'}
+                                {skill.proficiency}
                               </Badge>
                             </div>
                           </div>

@@ -27,7 +27,7 @@ interface Profile {
 export const ProfileSection = React.forwardRef<{ saveProfile: () => void }, {}>((props, ref) => {
   const { user } = useAuth();
   const [profile, setProfile] = useState<Profile | null>(null);
-    const [isEditing, setIsEditing] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
@@ -266,7 +266,7 @@ export const ProfileSection = React.forwardRef<{ saveProfile: () => void }, {}>(
               <p className="text-black">{user?.email || 'Nicht angegeben'}</p>
             </div>
             <div>
-              <label className="text-sm font-medium text-black">Wohnort</label>
+              <label className="text-sm font-medium text-black">Adresse</label>
               <p className="text-black">{profile?.location || 'Nicht angegeben'}</p>
             </div>
             <div>
@@ -366,7 +366,7 @@ export const ProfileSection = React.forwardRef<{ saveProfile: () => void }, {}>(
             </div>
             <div>
               <label htmlFor="location" className="text-sm font-medium text-black">
-                Wohnort
+                Adresse
               </label>
               <Input
                 id="location"
@@ -412,17 +412,27 @@ export const ProfileSection = React.forwardRef<{ saveProfile: () => void }, {}>(
                 className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
               />
             </div>
-            <div>
+            <div className="relative">
               <label htmlFor="civil_status" className="text-sm font-medium text-black">
                 Zivilstand
               </label>
-              <Input
+              <select
                 id="civil_status"
                 name="civil_status"
                 defaultValue={profile?.civil_status || ''}
-                placeholder="Ledig, verheiratet, ..."
-                className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-              />
+                className="w-full appearance-none bg-white border border-blue-200 rounded-lg px-4 py-2 pr-10 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100 shadow-sm transition duration-150"
+              >
+                <option value="" disabled>Bitte auswählen</option>
+                <option value="Ledig">Ledig</option>
+                <option value="Verheiratet">Verheiratet</option>
+                <option value="Geschieden">Geschieden</option>
+                <option value="Verwitwet">Verwitwet</option>
+              </select>
+              <span className="pointer-events-none absolute top-8 right-4 flex items-center">
+                <svg className="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                </svg>
+              </span>
             </div>
           </div>
           <div className="flex space-x-3">
