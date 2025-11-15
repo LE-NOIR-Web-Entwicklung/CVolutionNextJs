@@ -23,7 +23,7 @@ interface Skill {
 interface Language {
   id: string;
   language_name: string;
-  proficiency: 'C1' | 'C2' | 'B2' | 'Muttersprache';
+  proficiency: 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2' | 'Muttersprache';
 }
 
 const SkillsAndLanguagesSection = React.forwardRef<{ saveSkillsAndLanguages: () => void }, {}>((props, ref) => {
@@ -117,6 +117,53 @@ const SkillsAndLanguagesSection = React.forwardRef<{ saveSkillsAndLanguages: () 
     fetchLanguages();
   }, [user]);
 
+  // Mapping DB value to UI value for languages
+  const dbToUiLanguageProficiency = (dbValue: string): Language['proficiency'] => {
+    const mapping: Record<string, Language['proficiency']> = {
+      'a1': 'A1',
+      'a2': 'A2',
+      'b1': 'B1',
+      'b2': 'B2',
+      'c1': 'C1',
+      'c2': 'C2',
+      'native': 'Muttersprache',
+      // Legacy mappings
+      'beginner': 'A2',
+      'intermediate': 'B1',
+      'advanced': 'B2',
+      'expert': 'C1',
+    };
+    return mapping[dbValue.toLowerCase()] || 'B2';
+  };
+
+  // Get display label with description for language proficiency
+  const getLanguageProficiencyLabel = (proficiency: Language['proficiency']): string => {
+    const labels: Record<Language['proficiency'], string> = {
+      'A1': 'A1 – Anfänger',
+      'A2': 'A2 – Grundlegende Kenntnisse',
+      'B1': 'B1 – Fortgeschrittene Sprachverwendung',
+      'B2': 'B2 – Selbstständige Sprachverwendung',
+      'C1': 'C1 – Fachkundige Sprachkenntnisse',
+      'C2': 'C2 – Annähernd muttersprachliche Kenntnisse',
+      'Muttersprache': 'Muttersprache',
+    };
+    return labels[proficiency] || proficiency;
+  };
+
+  // Mapping UI value to DB value for languages
+  const uiToDbLanguageProficiency = (uiValue: string): string => {
+    const mapping: Record<string, string> = {
+      'A1': 'a1',
+      'A2': 'a2',
+      'B1': 'b1',
+      'B2': 'b2',
+      'C1': 'c1',
+      'C2': 'c2',
+      'Muttersprache': 'native',
+    };
+    return mapping[uiValue] || 'b2';
+  };
+
   const fetchLanguages = async () => {
     if (!user) return;
     try {
@@ -129,20 +176,7 @@ const SkillsAndLanguagesSection = React.forwardRef<{ saveSkillsAndLanguages: () 
       setLanguages(
         (data || []).map((language) => ({
           ...language,
-          proficiency:
-            language.proficiency === 'beginner'
-              ? 'C1'
-              : language.proficiency === 'intermediate'
-              ? 'C2'
-              : language.proficiency === 'advanced'
-              ? 'B2'
-              : language.proficiency === 'native'
-              ? 'Muttersprache'
-              : (
-                  language.proficiency === 'expert'
-                    ? 'C2' // fallback or handle as needed, here mapped to 'C2'
-                    : language.proficiency
-                ),
+          proficiency: dbToUiLanguageProficiency(language.proficiency),
         }))
       );
     } catch (error) {
@@ -188,12 +222,12 @@ const SkillsAndLanguagesSection = React.forwardRef<{ saveSkillsAndLanguages: () 
                 <SelectValue className="text-black" />
               </SelectTrigger>
               <SelectContent className="z-50 bg-white border border-gray-200 shadow-lg text-black">
-                <SelectItem value="A1" className="text-black hover:bg-blue-50">A1</SelectItem>
-                <SelectItem value="A2" className="text-black hover:bg-blue-50">A2</SelectItem>
-                <SelectItem value="B1" className="text-black hover:bg-blue-50">B1</SelectItem>
-                <SelectItem value="B2" className="text-black hover:bg-blue-50">B2</SelectItem>
-                <SelectItem value="C1" className="text-black hover:bg-blue-50">C1</SelectItem>
-                <SelectItem value="C2" className="text-black hover:bg-blue-50">C2</SelectItem>
+                <SelectItem value="A1" className="text-black hover:bg-blue-50">A1 – Anfänger</SelectItem>
+                <SelectItem value="A2" className="text-black hover:bg-blue-50">A2 – Grundlegende Kenntnisse</SelectItem>
+                <SelectItem value="B1" className="text-black hover:bg-blue-50">B1 – Fortgeschrittene Sprachverwendung</SelectItem>
+                <SelectItem value="B2" className="text-black hover:bg-blue-50">B2 – Selbstständige Sprachverwendung</SelectItem>
+                <SelectItem value="C1" className="text-black hover:bg-blue-50">C1 – Fachkundige Sprachkenntnisse</SelectItem>
+                <SelectItem value="C2" className="text-black hover:bg-blue-50">C2 – Annähernd muttersprachliche Kenntnisse</SelectItem>
                 <SelectItem value="Muttersprache" className="text-black hover:bg-blue-50">Muttersprache</SelectItem>
               </SelectContent>
             </Select>
@@ -320,17 +354,28 @@ const SkillsAndLanguagesSection = React.forwardRef<{ saveSkillsAndLanguages: () 
     e.preventDefault();
     if (!user) return;
     const formData = new FormData(e.currentTarget);
+    const uiProficiency = formData.get('proficiency') as string;
+    const dbProficiency = uiToDbLanguageProficiency(uiProficiency);
+
+    console.log('UI Proficiency:', uiProficiency);
+    console.log('DB Proficiency:', dbProficiency);
+
     const languageData = {
       user_id: user.id,
       language_name: formData.get('language_name') as string,
-      proficiency: formData.get('proficiency') as 'beginner' | 'intermediate' | 'advanced' | 'expert' | 'native',
+      proficiency: dbProficiency,
     };
+
+    console.log('Language Data:', languageData);
+
     try {
       if (id) {
-        const { error } = await supabase.from('languages').update(languageData).eq('id', id);
+        const { data, error } = await supabase.from('languages').update(languageData as any).eq('id', id);
+        console.log('Update result:', { data, error });
         if (error) throw error;
       } else {
-        const { error } = await supabase.from('languages').insert(languageData);
+        const { data, error } = await supabase.from('languages').insert(languageData as any);
+        console.log('Insert result:', { data, error });
         if (error) throw error;
       }
       await fetchLanguages();
@@ -416,10 +461,7 @@ const SkillsAndLanguagesSection = React.forwardRef<{ saveSkillsAndLanguages: () 
                   <div className="flex-1">
                     <h4 className="font-semibold text-black">{language.language_name}</h4>
                     <Badge className="text-xs text-black bg-gray-200">
-                      {language.proficiency === 'C1' && 'C1'}
-                      {language.proficiency === 'C2' && 'C2'}
-                      {language.proficiency === 'B2' && 'B2'}
-                      {language.proficiency === 'Muttersprache' && 'Muttersprache'}
+                      {getLanguageProficiencyLabel(language.proficiency)}
                     </Badge>
                   </div>
                   <div className="flex space-x-1">

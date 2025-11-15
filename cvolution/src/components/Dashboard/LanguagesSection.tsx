@@ -12,7 +12,7 @@ import { toast } from '@/hooks/use-toast';
 interface Language {
   id: string;
   language_name: string;
-  proficiency: 'beginner' | 'intermediate' | 'advanced' | 'expert' | 'native';
+  proficiency: 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2' | 'Muttersprache';
 }
 
 export const LanguagesSection: React.FC = () => {
@@ -26,6 +26,53 @@ export const LanguagesSection: React.FC = () => {
     fetchLanguages();
   }, [user]);
 
+  // Mapping DB value to UI value for languages
+  const dbToUiLanguageProficiency = (dbValue: string): Language['proficiency'] => {
+    const mapping: Record<string, Language['proficiency']> = {
+      'a1': 'A1',
+      'a2': 'A2',
+      'b1': 'B1',
+      'b2': 'B2',
+      'c1': 'C1',
+      'c2': 'C2',
+      'native': 'Muttersprache',
+      // Legacy mappings
+      'beginner': 'A2',
+      'intermediate': 'B1',
+      'advanced': 'B2',
+      'expert': 'C1',
+    };
+    return mapping[dbValue.toLowerCase()] || 'B2';
+  };
+
+  // Mapping UI value to DB value for languages
+  const uiToDbLanguageProficiency = (uiValue: string): string => {
+    const mapping: Record<string, string> = {
+      'A1': 'a1',
+      'A2': 'a2',
+      'B1': 'b1',
+      'B2': 'b2',
+      'C1': 'c1',
+      'C2': 'c2',
+      'Muttersprache': 'native',
+    };
+    return mapping[uiValue] || 'b2';
+  };
+
+  // Get display label with description for language proficiency
+  const getLanguageProficiencyLabel = (proficiency: Language['proficiency']): string => {
+    const labels: Record<Language['proficiency'], string> = {
+      'A1': 'A1 – Anfänger',
+      'A2': 'A2 – Grundlegende Kenntnisse',
+      'B1': 'B1 – Fortgeschrittene Sprachverwendung',
+      'B2': 'B2 – Selbstständige Sprachverwendung',
+      'C1': 'C1 – Fachkundige Sprachkenntnisse',
+      'C2': 'C2 – Annähernd muttersprachliche Kenntnisse',
+      'Muttersprache': 'Muttersprache',
+    };
+    return labels[proficiency] || proficiency;
+  };
+
   const fetchLanguages = async () => {
     if (!user) return;
 
@@ -38,7 +85,12 @@ export const LanguagesSection: React.FC = () => {
 
       if (error) throw error;
 
-      setLanguages(data || []);
+      setLanguages(
+        (data || []).map((language) => ({
+          ...language,
+          proficiency: dbToUiLanguageProficiency(language.proficiency),
+        }))
+      );
     } catch (error) {
       console.error('Error fetching languages:', error);
       toast({
@@ -56,23 +108,24 @@ export const LanguagesSection: React.FC = () => {
     if (!user) return;
 
     const formData = new FormData(e.currentTarget);
+    const uiProficiency = formData.get('proficiency') as string;
     const languageData = {
       user_id: user.id,
       language_name: formData.get('language_name') as string,
-      proficiency: formData.get('proficiency') as 'beginner' | 'intermediate' | 'advanced' | 'expert' | 'native',
+      proficiency: uiToDbLanguageProficiency(uiProficiency),
     };
 
     try {
       if (id) {
         const { error } = await supabase
           .from('languages')
-          .update(languageData)
+          .update(languageData as any)
           .eq('id', id);
         if (error) throw error;
       } else {
         const { error } = await supabase
           .from('languages')
-          .insert(languageData);
+          .insert(languageData as any);
         if (error) throw error;
       }
 
@@ -132,16 +185,18 @@ export const LanguagesSection: React.FC = () => {
         </div>
         <div>
           <label className="text-sm font-medium text-black">Niveau *</label>
-          <Select name="proficiency" defaultValue={language?.proficiency || 'intermediate'}>
+          <Select name="proficiency" defaultValue={language?.proficiency || 'B2'}>
             <SelectTrigger className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
               <SelectValue className="text-black" />
             </SelectTrigger>
             <SelectContent className="z-50 bg-white border border-gray-200 shadow-lg text-black">
-              <SelectItem value="beginner" className="text-black hover:bg-blue-50">C1</SelectItem>
-              <SelectItem value="intermediate" className="text-black hover:bg-blue-50">C2</SelectItem>
-              <SelectItem value="advanced" className="text-black hover:bg-blue-50">B2</SelectItem>
-              <SelectItem value="expert" className="text-black hover:bg-blue-50">Experte</SelectItem>
-              <SelectItem value="native" className="text-black hover:bg-blue-50">Muttersprache</SelectItem>
+              <SelectItem value="A1" className="text-black hover:bg-blue-50">A1 – Anfänger</SelectItem>
+              <SelectItem value="A2" className="text-black hover:bg-blue-50">A2 – Grundlegende Kenntnisse</SelectItem>
+              <SelectItem value="B1" className="text-black hover:bg-blue-50">B1 – Fortgeschrittene Sprachverwendung</SelectItem>
+              <SelectItem value="B2" className="text-black hover:bg-blue-50">B2 – Selbstständige Sprachverwendung</SelectItem>
+              <SelectItem value="C1" className="text-black hover:bg-blue-50">C1 – Fachkundige Sprachkenntnisse</SelectItem>
+              <SelectItem value="C2" className="text-black hover:bg-blue-50">C2 – Annähernd muttersprachliche Kenntnisse</SelectItem>
+              <SelectItem value="Muttersprache" className="text-black hover:bg-blue-50">Muttersprache</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -213,11 +268,7 @@ export const LanguagesSection: React.FC = () => {
                 <div className="flex-1">
                   <h4 className="font-semibold text-black">{language.language_name}</h4>
                   <Badge className="text-xs text-black bg-gray-200">
-                    {language.proficiency === 'beginner' && 'C1'}
-                    {language.proficiency === 'intermediate' && 'C2'}
-                    {language.proficiency === 'advanced' && 'B2'}
-                    {language.proficiency === 'expert' && 'Experte'}
-                    {language.proficiency === 'native' && 'Muttersprache'}
+                    {getLanguageProficiencyLabel(language.proficiency)}
                   </Badge>
                 </div>
                 <div className="flex space-x-1">

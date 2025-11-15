@@ -56,7 +56,30 @@ export const Dashboard: React.FC = () => {
       // Languages
       const { data: languages, error: langError } = await supabase.from('languages').select('*').eq('user_id', user.id);
       if (langError) console.error('Supabase languages error:', langError);
-      setLanguagesData(languages || []);
+
+      // Map language proficiency to display labels with descriptions
+      const mappedLanguages = (languages || []).map(lang => {
+        const proficiencyLabels: Record<string, string> = {
+          'a1': 'A1 – Anfänger',
+          'a2': 'A2 – Grundlegende Kenntnisse',
+          'b1': 'B1 – Fortgeschrittene Sprachverwendung',
+          'b2': 'B2 – Selbstständige Sprachverwendung',
+          'c1': 'C1 – Fachkundige Sprachkenntnisse',
+          'c2': 'C2 – Annähernd muttersprachliche Kenntnisse',
+          'native': 'Muttersprache',
+          // Legacy mappings
+          'beginner': 'A2 – Grundlegende Kenntnisse',
+          'intermediate': 'B1 – Fortgeschrittene Sprachverwendung',
+          'advanced': 'B2 – Selbstständige Sprachverwendung',
+          'expert': 'C1 – Fachkundige Sprachkenntnisse',
+        };
+        return {
+          ...lang,
+          proficiency: proficiencyLabels[lang.proficiency?.toLowerCase()] || lang.proficiency
+        };
+      });
+
+      setLanguagesData(mappedLanguages);
     };
     fetchAll();
   }, [user, cvModalOpen]);

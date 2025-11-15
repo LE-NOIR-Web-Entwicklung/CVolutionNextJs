@@ -26,22 +26,29 @@ const styles = StyleSheet.create({
   sidebar: {
     width: "12%",
     backgroundColor: "#f2f2f2",
+    marginRight: "5%"
+  },
+  sidebarRight: {
+    width: "12%",
+    backgroundColor: "#f2f2f2",
   },
   main: {
     flexGrow: 1,
     flexDirection: "column", // Inhalt wieder spaltenweise
     padding: 25,
+    paddingRight: 66,
+    maxWidth: "76%",
   },
   header: {
     marginBottom: 15,
   },
   name: {
-    fontSize: 22,
+    fontSize: 26,
     fontWeight: "bold",
     color: "#252525",
   },
   headline: {
-    fontSize: 12,
+    fontSize: 20,
     color: "gray",
     marginBottom: 10,
   },
@@ -90,24 +97,35 @@ export const CVPdfDesign2: React.FC<CVPdfDesign2Props> = ({
   languages,
 }) => {
   // Split experiences so that no experience is split between pages
-  const MAX_EXPERIENCES_FIRST_PAGE = 6; // adjust as needed for spacing
+  // Calculate available space and ensure complete experiences fit on each page
+  const FIRST_PAGE_AVAILABLE_HEIGHT = 320; // Conservative estimate for space after header and contact info
+  const CONTINUATION_PAGE_HEIGHT = 700; // Full page height for continuation pages
   let experiencesFirstPage: any[] = [];
   let experiencesExtraPages: any[] = [];
-  if (Array.isArray(experiences) && experiences.length > MAX_EXPERIENCES_FIRST_PAGE) {
-    let currentPageCount = 0;
-    for (const exp of experiences) {
-      const bulletPointCount = exp.description ? exp.description.split(/\r?\n/).length : 0;
-      const estimatedHeight = bulletPointCount * 10; // Adjust height estimation as needed
-      if (currentPageCount + estimatedHeight > MAX_EXPERIENCES_FIRST_PAGE) {
-        experiencesExtraPages.push(exp);
-      } else {
-        experiencesFirstPage.push(exp);
-        currentPageCount += estimatedHeight;
-      }
+
+  let currentPageHeight = 0;
+  for (const exp of experiences) {
+    // Estimate height for this experience - be conservative to avoid splitting
+    const titleHeight = 20; // Job title with margin
+    const companyLocationHeight = 20; // Company, location, dates with margin
+    const descriptionLines = exp.description ? exp.description.split(/\r?\n/).length : 0;
+    const descriptionHeight = descriptionLines * 15; // Each line approximately 15pt including line height
+    const spacing = 25; // Margin between experiences
+    const totalExpHeight = titleHeight + companyLocationHeight + descriptionHeight + spacing;
+
+    // Check if this experience fits on the current page
+    if (experiencesFirstPage.length === 0) {
+      // First experience always goes on first page
+      experiencesFirstPage.push(exp);
+      currentPageHeight += totalExpHeight;
+    } else if (currentPageHeight + totalExpHeight <= FIRST_PAGE_AVAILABLE_HEIGHT) {
+      // Fits on first page
+      experiencesFirstPage.push(exp);
+      currentPageHeight += totalExpHeight;
+    } else {
+      // Doesn't fit, move to extra pages
+      experiencesExtraPages.push(exp);
     }
-  } else {
-    experiencesFirstPage = experiences;
-    experiencesExtraPages = [];
   }
 
   return (
@@ -117,15 +135,27 @@ export const CVPdfDesign2: React.FC<CVPdfDesign2Props> = ({
         <View style={styles.sidebar}></View>
         <View style={styles.main}>
           <View style={styles.header}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+            <View style={{ flexDirection: 'row'}}>
               <View style={{ flexGrow: 1 }}>
-                <Text style={styles.name}>{profile?.full_name}</Text>
+                <Text style={styles.name}>
+                  {profile?.full_name?.toUpperCase().replace(/ /g, '\n')}
+                </Text>
                 <Text style={styles.headline}>{profile?.headline}</Text>
               </View>
               {profile?.profile_picture_url ? (
-                <Image src={profile.profile_picture_url} style={{ maxHeight: 170, borderRadius: 1, marginLeft: 16 }} />
+                <Image
+                  src={profile.profile_picture_url}
+                  style={{
+                    width: 120,
+                    height: 140,
+                    objectFit: 'cover',
+                    borderRadius: 1,
+                    marginLeft: 50,
+                    marginTop: 0,
+                  }}
+                />
               ) : (
-                <View style={{ width: 80, height: 100, backgroundColor: 'lightgray', borderRadius: 1, justifyContent: 'center', alignItems: 'center', marginLeft: 16 }}>
+                <View style={{ width: 120, height: 140, backgroundColor: 'lightgray', borderRadius: 1, justifyContent: 'center', alignItems: 'center', marginLeft: 40, marginTop: 0, border: '2 solid black' }}>
                   <Text style={{ color: '#888', fontSize: 18 }}>Foto</Text>
                 </View>
               )}
@@ -157,11 +187,11 @@ export const CVPdfDesign2: React.FC<CVPdfDesign2Props> = ({
             <View>
               {Array.isArray(experiencesFirstPage)
                 ? experiencesFirstPage.map((exp) => (
-                    <View key={exp.id ?? Math.random()}>
+                    <View key={exp.id ?? Math.random()} style={styles.itemText}>
                       <Text style={styles.itemTitle}>{exp.job_title || ""}</Text>
                       <Text>
                         <Text style={styles.itemTitle}>{exp.company || ""}</Text>
-                        <Text style={styles.itemTitle}> | {exp.location || ""} </Text>
+                        <Text style={styles.itemTitle}> , {exp.location || ""} </Text>
                         <Text style={styles.itemText}>
                           | {formatDate(exp.start_date)} - {exp.is_current ? "Heute" : formatDate(exp.end_date)} |
                         </Text>
@@ -179,7 +209,7 @@ export const CVPdfDesign2: React.FC<CVPdfDesign2Props> = ({
           </View>
         </View>
         {/* Rechte Sidebar */}
-        <View style={styles.sidebar}></View>
+        <View style={styles.sidebarRight}></View>
       </Page>
       {/* Additional pages for extra experiences */}
       {experiencesExtraPages.length > 0 && (
@@ -188,13 +218,13 @@ export const CVPdfDesign2: React.FC<CVPdfDesign2Props> = ({
             <View style={styles.sidebar}></View>
             <View style={styles.main}>
               <View>
-                <Text style={styles.sectionTitle}>{idx === 0 ? "Berufserfahrung (Fortsetzung)" : "Berufserfahrung"}</Text>
-                <View>
+                <Text style={styles.sectionTitle}>{idx === 0 ? "Berufserfahrung" : "Berufserfahrung"}</Text>
+                <View style={styles.itemText}>
                   <View key={exp.id ?? Math.random()}>
                     <Text style={styles.itemTitle}>{exp.job_title || ""}</Text>
                     <Text>
                       <Text style={styles.itemTitle}>{exp.company || ""}</Text>
-                      <Text style={styles.itemTitle}> | {exp.location || ""} </Text>
+                      <Text style={styles.itemTitle}> , {exp.location || ""} </Text>
                       <Text style={styles.itemText}>
                         | {formatDate(exp.start_date)} - {exp.is_current ? "Heute" : formatDate(exp.end_date)} |
                       </Text>
@@ -209,7 +239,7 @@ export const CVPdfDesign2: React.FC<CVPdfDesign2Props> = ({
                 </View>
               </View>
             </View>
-            <View style={styles.sidebar}></View>
+            <View style={styles.sidebarRight}></View>
           </Page>
         ))
       )}
@@ -225,7 +255,7 @@ export const CVPdfDesign2: React.FC<CVPdfDesign2Props> = ({
                     <View key={edu.id ?? Math.random()}>
                       <Text style={styles.itemTitle}>{edu.degree || ""}</Text>
                       <Text>
-                        <Text style={styles.itemTitle}>{edu.institution || ""} | </Text>
+                        <Text style={styles.itemTitle}>{edu.institution || ""} , </Text>
                         <Text style={styles.itemTitle}>{edu.place || ""} | </Text>
                         <Text style={styles.itemText}>
                           {formatDate(edu.start_date)} - {edu.is_current ? "heute" : formatDate(edu.end_date)}
@@ -305,7 +335,7 @@ export const CVPdfDesign2: React.FC<CVPdfDesign2Props> = ({
           </View>
         </View>
         {/* Rechte Sidebar */}
-        <View style={styles.sidebar}></View>
+        <View style={styles.sidebarRight}></View>
       </Page>
     </Document>
   );

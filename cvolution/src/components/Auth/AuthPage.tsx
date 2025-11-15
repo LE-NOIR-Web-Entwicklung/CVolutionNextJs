@@ -129,6 +129,9 @@ export const AuthPage: React.FC = () => {
               <TabsContent value="signup">
                 <form onSubmit={handleSignUp} className="space-y-5">
                   <div className="space-y-2 text-left">
+                    <p className="text-xs text-amber-600 flex items-center gap-1">
+                      <span className="font-semibold">⚠️</span> Ihr Name kann nach der Registrierung nicht mehr geändert werden.
+                    </p>
                     <label htmlFor="signup-name" className="text-sm font-medium text-black">
                       Vollständiger Name
                     </label>

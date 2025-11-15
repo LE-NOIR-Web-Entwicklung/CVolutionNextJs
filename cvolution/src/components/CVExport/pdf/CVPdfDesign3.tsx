@@ -84,6 +84,7 @@ const styles = StyleSheet.create({
   },
   expBody: {
     flexGrow: 1,
+    paddingRight: 20,
   },
   expTitle: {
     fontWeight: "bold",
@@ -187,9 +188,18 @@ export const CVPdfDesign3: React.FC<CVPdfDesign3Props> = ({
         </View>
 
         {profile?.profile_picture_url ? (
-          <Image src={profile.profile_picture_url} style={{ maxHeight: 170, borderRadius: 1, marginLeft: 16 }} />
+          <Image
+            src={profile.profile_picture_url}
+            style={{
+              width: 120,
+              height: 140,
+              objectFit: 'cover',
+              borderRadius: 1,
+              marginLeft: 16,
+            }}
+          />
         ) : (
-          <View style={{ width: 80, height: 100, backgroundColor: 'lightgray', borderRadius: 1, justifyContent: 'center', alignItems: 'center', marginLeft: 16 }}>
+          <View style={{ width: 120, height: 140, backgroundColor: 'lightgray', borderRadius: 1, justifyContent: 'center', alignItems: 'center', marginLeft: 16, border: '2 solid black' }}>
             <Text style={{ color: '#888', fontSize: 18 }}>Foto</Text>
           </View>
         )}

@@ -6,8 +6,9 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Edit, Trash2, Save, X } from 'lucide-react';
+import { Plus, Edit, Trash2, Save, X, Info } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface Experience {
   id: string;
@@ -95,7 +96,7 @@ function formatMonthYear(dateStr?: string | null) {
   return str; // falls schon korrekt
 }
 
-  const handleSave = async (e: React.FormEvent<HTMLFormElement>, id?: string) => {
+  const handleSave = async (e: React.FormEvent<HTMLFormElement>, id?: string, keepOpen?: boolean) => {
     e.preventDefault();
     if (!user) return;
 
@@ -127,8 +128,10 @@ function formatMonthYear(dateStr?: string | null) {
       }
 
       await fetchExperiences();
-      setEditingId(null);
-      setIsAdding(false);
+      if (!keepOpen) {
+        setEditingId(null);
+        setIsAdding(false);
+      }
       toast({
         title: 'Erfolgreich',
         description: 'Erfahrung erfolgreich gespeichert.',
@@ -193,7 +196,10 @@ function formatMonthYear(dateStr?: string | null) {
     return (
       <form
         ref={experience?.id ? formInstanceRef : addFormRef}
-        onSubmit={(e) => handleSave(e, experience?.id)}
+        onSubmit={(e) => {
+          const keepOpen = (e.nativeEvent as any)?.keepOpen || false;
+          handleSave(e, experience?.id, keepOpen);
+        }}
         className="space-y-4"
       >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -279,7 +285,23 @@ function formatMonthYear(dateStr?: string | null) {
         </div>
 
         <div>
-          <label className="text-sm font-medium text-black">Beschreibung</label>
+          <div className="flex items-center gap-2 mb-1">
+            <label className="text-sm font-medium text-black">Beschreibung</label>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Info className="h-4 w-4 text-gray-900 cursor-help" />
+                </TooltipTrigger>
+                <TooltipContent className="max-w-xs bg-white border-gray-300">
+                  <p className="text-sm text-black">
+                    <strong>Enter:</strong> Speichert die Daten, das Edit-Fenster bleibt offen und es muss in die Box geklickt werden um weiterzuschreiben.
+                    <br />
+                    <strong>Shift + Enter:</strong> Fügt eine neue Zeile mit Bullet Point hinzu (ohne Speichern)
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
           <Textarea
             name="description"
             defaultValue={experience?.description || ''}
@@ -287,14 +309,45 @@ function formatMonthYear(dateStr?: string | null) {
             rows={4}
             className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             onKeyDown={e => {
-              if (e.key === 'Enter') {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                // Add a new bullet point line
                 const textarea = e.target as HTMLTextAreaElement;
                 const value = textarea.value;
                 const selectionStart = textarea.selectionStart;
                 const before = value.substring(0, selectionStart);
                 const after = value.substring(selectionStart);
                 textarea.value = before + '\n• ' + after;
+                // Move cursor after the bullet
+                const newCursorPos = selectionStart + 3;
+                textarea.selectionStart = textarea.selectionEnd = newCursorPos;
+
+                // Trigger form submission with keepOpen flag
+                const form = e.currentTarget.closest('form');
+                if (form) {
+                  const submitEvent = new Event('submit', { bubbles: true, cancelable: true });
+                  Object.defineProperty(submitEvent, 'keepOpen', { value: true });
+                  form.dispatchEvent(submitEvent);
+
+                  // Refocus textarea after save
+                  setTimeout(() => {
+                    textarea.focus();
+                    textarea.selectionStart = textarea.selectionEnd = newCursorPos;
+                  }, 100);
+                }
+              }
+              else if(e.key === 'Enter' && e.shiftKey){
+                // Add bullet point line with Shift+Enter
                 e.preventDefault();
+                const textarea = e.target as HTMLTextAreaElement;
+                const value = textarea.value;
+                const selectionStart = textarea.selectionStart;
+                const before = value.substring(0, selectionStart);
+                const after = value.substring(selectionStart);
+                textarea.value = before + '\n• ' + after;
+                // Move cursor after the bullet
+                const newCursorPos = selectionStart + 3;
+                textarea.selectionStart = textarea.selectionEnd = newCursorPos;
               }
             }}
             onFocus={e => {

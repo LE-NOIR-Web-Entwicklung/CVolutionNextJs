@@ -49,7 +49,7 @@ export default function Footer() {
                   rel="noopener noreferrer"
                   className="hover:underline"
                 >
-                  Kasernenstrasse 28, 5000 Aarau
+                  Ausserfeldstrasse 9, 5036 Oberentfelden
                 </a>
               </li>
             </ul>
