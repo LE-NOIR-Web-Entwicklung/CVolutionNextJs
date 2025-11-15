@@ -20,8 +20,8 @@ export default function DataProtection() {
             </p>
             <p className="text-lg leading-relaxed">
                 CVolution GmbH <br />
-                Kasernenstrasse 28 <br />
-                5000 Aarau <br />
+                Ausserfeldstrasse 9<br />
+                5036 Oberentfelden <br />
                 Schweiz <br />
                 Email: info@cvolution.ch <br />
                 Telefon: +41 76 440 51 51
