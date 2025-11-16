@@ -78,13 +78,15 @@ const styles = StyleSheet.create({
   expDate: {
     width: 130,
     fontWeight: "bold",
+    flexShrink: 0,
   },
   expDateSub: {
     width: 130,
+    flexShrink: 0,
   },
   expBody: {
-    flexGrow: 1,
-    paddingRight: 20,
+    flex: 1,
+    maxWidth: 400,
   },
   expTitle: {
     fontWeight: "bold",
@@ -97,6 +99,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     marginTop: 6,
     marginBottom: 2,
+  },
+  eduBody: {
+    flex: 1,
+    maxWidth: 400,
   },
   skillsGrid: {
     marginTop: 10,
@@ -241,7 +247,7 @@ export const CVPdfDesign3: React.FC<CVPdfDesign3Props> = ({
           <Text style={styles.expDateSub}>
             {formatDate(edu.start_date)} - {edu.is_current ? "heute" : formatDate(edu.end_date)}
           </Text>
-          <View style={styles.expBody}>
+          <View style={styles.eduBody}>
             <Text>
               {`${edu.degree}, ${edu.institution}, ${edu.place}`}
             </Text>
