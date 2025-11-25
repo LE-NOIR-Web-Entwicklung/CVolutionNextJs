@@ -41,11 +41,18 @@ const SkillsAndLanguagesSection = React.forwardRef<{ saveSkillsAndLanguages: () 
   const [languagesEditingId, setLanguagesEditingId] = useState<string | null>(null);
   const [isAddingLanguage, setIsAddingLanguage] = useState(false);
 
+  // Driver's license state
+  const [driverLicenses, setDriverLicenses] = useState<Skill[]>([]);
+  const [isAddingDriverLicense, setIsAddingDriverLicense] = useState(false);
+  const [driverLicenseEditingId, setDriverLicenseEditingId] = useState<string | null>(null);
+
   // Refs for forms
   const addSkillFormRef = useRef<HTMLFormElement>(null);
   const editSkillFormRefs = useRef<{ [id: string]: HTMLFormElement | null }>({});
   const addLanguageFormRef = useRef<HTMLFormElement>(null);
   const editLanguageFormRefs = useRef<{ [id: string]: HTMLFormElement | null }>({});
+  const addDriverLicenseFormRef = useRef<HTMLFormElement>(null);
+  const editDriverLicenseFormRefs = useRef<{ [id: string]: HTMLFormElement | null }>({});
 
   useImperativeHandle(ref, () => ({
     saveSkillsAndLanguages: () => {
@@ -58,6 +65,11 @@ const SkillsAndLanguagesSection = React.forwardRef<{ saveSkillsAndLanguages: () 
         addLanguageFormRef.current.requestSubmit();
       } else if (languagesEditingId && editLanguageFormRefs.current[languagesEditingId]) {
         editLanguageFormRefs.current[languagesEditingId]?.requestSubmit();
+      }
+      if (isAddingDriverLicense && addDriverLicenseFormRef.current) {
+        addDriverLicenseFormRef.current.requestSubmit();
+      } else if (driverLicenseEditingId && editDriverLicenseFormRefs.current[driverLicenseEditingId]) {
+        editDriverLicenseFormRefs.current[driverLicenseEditingId]?.requestSubmit();
       }
     }
   }));
@@ -98,12 +110,18 @@ const SkillsAndLanguagesSection = React.forwardRef<{ saveSkillsAndLanguages: () 
         .eq('user_id', user.id)
         .order('category', { ascending: true });
       if (error) throw error;
-      setSkills(
-        (data || []).map((skill) => ({
-          ...skill,
-          proficiency: dbToUiSkillProficiency(skill.proficiency) as Skill['proficiency'],
-        }))
-      );
+
+      // Separate driver licenses from other skills
+      const allSkills = (data || []).map((skill) => ({
+        ...skill,
+        proficiency: dbToUiSkillProficiency(skill.proficiency) as Skill['proficiency'],
+      }));
+
+      const licenses = allSkills.filter(s => s.category?.toLowerCase() === 'führerschein');
+      const otherSkills = allSkills.filter(s => s.category?.toLowerCase() !== 'führerschein');
+
+      setDriverLicenses(licenses);
+      setSkills(otherSkills);
     } catch (error) {
       console.error('Error fetching skills:', error);
       toast({ title: 'Fehler', description: 'Fähigkeitsdaten konnten nicht geladen werden.', variant: 'destructive' });
@@ -414,6 +432,119 @@ const SkillsAndLanguagesSection = React.forwardRef<{ saveSkillsAndLanguages: () 
     }
   };
 
+  // Driver's license categories based on the screenshot
+  const driverLicenseCategories = [
+    'A', 'A-', 'A1',
+    'B', 'BE', 'B1',
+    'C', 'CE', 'C1', 'C1E',
+    'D', 'DE', 'D1', 'D1E',
+    'M', 'F', 'G',
+    'BPT', 'CZV'
+  ];
+
+  // Driver's license form
+  const DriverLicenseForm: React.FC<{ license?: Skill }> = ({ license }) => {
+    const formInstanceRef = useRef<HTMLFormElement>(null);
+    useEffect(() => {
+      if (license?.id) {
+        editDriverLicenseFormRefs.current[license.id] = formInstanceRef.current;
+        return () => {
+          editDriverLicenseFormRefs.current[license.id] = null;
+        };
+      }
+    }, [license?.id]);
+
+    // Extract category from skill_name like "Führerschein Kategorie B"
+    const existingCategory = license?.skill_name.replace('Führerschein Kategorie ', '') || 'B';
+
+    return (
+      <form
+        ref={license?.id ? formInstanceRef : addDriverLicenseFormRef}
+        onSubmit={(e) => handleSaveDriverLicense(e, license?.id)}
+        className="space-y-4"
+      >
+        <div>
+          <label className="text-sm font-medium text-black">Kategorie *</label>
+          <Select name="category" defaultValue={existingCategory}>
+            <SelectTrigger className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
+              <SelectValue className="text-black" />
+            </SelectTrigger>
+            <SelectContent className="z-50 bg-white border border-gray-200 shadow-lg text-black max-h-[300px] overflow-y-auto">
+              {driverLicenseCategories.map((cat) => (
+                <SelectItem key={cat} value={cat} className="text-black hover:bg-blue-50">
+                  Kategorie {cat}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="flex space-x-3">
+          <Button type="submit" className="w-full bg-[#204878] hover:bg-[#4c6c93] text-white font-bold rounded-lg py-3 transition duration-200">
+            <Save className="h-4 w-4 mr-2" />
+            Speichern
+          </Button>
+          <Button
+            type="button"
+            onClick={() => {
+              setDriverLicenseEditingId(null);
+              setIsAddingDriverLicense(false);
+            }}
+            className="w-full bg-gray-200 hover:bg-gray-300 text-black font-bold rounded-lg py-3 transition duration-200"
+          >
+            <X className="h-4 w-4 mr-2" />
+            Abbrechen
+          </Button>
+        </div>
+      </form>
+    );
+  };
+
+  // Save driver license
+  const handleSaveDriverLicense = async (e: React.FormEvent<HTMLFormElement>, id?: string) => {
+    e.preventDefault();
+    if (!user) return;
+    const formData = new FormData(e.currentTarget);
+    const category = formData.get('category') as string;
+
+    const licenseData = {
+      user_id: user.id,
+      skill_name: `Führerschein Kategorie ${category}`,
+      proficiency: 'expert' as const,
+      years_of_experience: null,
+      category: 'Führerschein',
+    };
+
+    try {
+      if (id) {
+        const { error } = await supabase.from('skills').update(licenseData).eq('id', id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from('skills').insert(licenseData);
+        if (error) throw error;
+      }
+      await fetchSkills();
+      setDriverLicenseEditingId(null);
+      setIsAddingDriverLicense(false);
+      toast({ title: 'Erfolgreich', description: 'Führerschein erfolgreich gespeichert.' });
+    } catch (error) {
+      console.error('Error saving driver license:', error);
+      toast({ title: 'Fehler', description: 'Führerschein konnte nicht gespeichert werden. Bitte versuchen Sie es erneut.', variant: 'destructive' });
+    }
+  };
+
+  // Delete driver license
+  const handleDeleteDriverLicense = async (id: string) => {
+    try {
+      const { error } = await supabase.from('skills').delete().eq('id', id);
+      if (error) throw error;
+      await fetchSkills();
+      toast({ title: 'Gelöscht', description: 'Führerschein erfolgreich gelöscht.' });
+    } catch (error) {
+      console.error('Error deleting driver license:', error);
+      toast({ title: 'Fehler', description: 'Führerschein konnte nicht gelöscht werden.', variant: 'destructive' });
+    }
+  };
+
   // Group skills by category
   const groupedSkills = skills.reduce((acc, skill) => {
     const category = skill.category || 'Fähigkeiten';
@@ -566,6 +697,75 @@ const SkillsAndLanguagesSection = React.forwardRef<{ saveSkillsAndLanguages: () 
           <Card>
             <CardContent className="text-center py-12">
               <p className="text-black mb-4">Noch keine Fähigkeiten hinzugefügt.</p>
+            </CardContent>
+          </Card>
+        )}
+      </section>
+
+
+      {/* Führerschein Section */}
+      <section>
+        <div className="bg-white p-6 rounded-lg shadow-lg mb-8">
+          <CardHeader>
+            <div className="flex justify-between items-center">
+              <div>
+                <CardTitle className="text-xl font-bold text-black mb-1">Führerschein</CardTitle>
+                <CardDescription className="text-black">Ihre Führerscheinkategorien</CardDescription>
+              </div>
+              <Button onClick={() => setIsAddingDriverLicense(true)} className="bg-[#204878] hover:bg-[#4c6c93] text-white font-bold rounded-lg px-4 py-2">
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
+          </CardHeader>
+        </div>
+        {isAddingDriverLicense && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-black">Neuen Führerschein hinzufügen</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <DriverLicenseForm />
+            </CardContent>
+          </Card>
+        )}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          {driverLicenses.map((license) => (
+            <Card key={license.id}>
+              <CardContent className="pt-6">
+                {driverLicenseEditingId === license.id ? (
+                  <DriverLicenseForm license={license} />
+                ) : (
+                  <div className="flex flex-col items-center space-y-3">
+                    <div className="text-center flex-1">
+                      <h4 className="font-bold text-2xl text-black">
+                        {license.skill_name.replace('Führerschein Kategorie ', '')}
+                      </h4>
+                      <p className="text-xs text-gray-600 mt-1">Kategorie</p>
+                    </div>
+                    <div className="flex space-x-1 w-full">
+                      <Button
+                        onClick={() => setDriverLicenseEditingId(license.id)}
+                        className="flex-1 bg-[#204878] hover:bg-[#4c6c93] text-white font-bold rounded-lg px-3 py-2"
+                      >
+                        <Edit className="h-3 w-3" />
+                      </Button>
+                      <Button
+                        onClick={() => handleDeleteDriverLicense(license.id)}
+                        className="flex-1 bg-[#204878] hover:bg-[#4c6c93] text-white font-bold rounded-lg px-3 py-2"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+        {driverLicenses.length === 0 && !isAddingDriverLicense && (
+          <Card>
+            <CardContent className="text-center py-12">
+              <p className="text-black mb-4">Noch keine Führerscheinkategorien hinzugefügt.</p>
             </CardContent>
           </Card>
         )}

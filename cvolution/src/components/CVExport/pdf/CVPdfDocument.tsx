@@ -152,17 +152,20 @@ export const CVPdfDocument: React.FC<CVPdfDocumentProps> = (props) => {
 const FIRST_PAGE_AVAILABLE_HEIGHT = 320; // Conservative estimate for space after header and contact info
 const CONTINUATION_PAGE_HEIGHT = 700; // Full page height for continuation pages
 let experiencesFirstPage: any[] = [];
-let experiencesExtraPages: any[] = [];
+let experiencesPages: any[][] = []; // Array of arrays, each containing experiences for one page
 
-let currentPageHeight = 0;
-for (const exp of sortedExperiences) {
-  // Estimate height for this experience - be conservative to avoid splitting
+const estimateExpHeight = (exp: any) => {
   const titleHeight = 20; // Job title with margin
   const companyLocationHeight = 20; // Company, location, dates with margin
   const descriptionLines = exp.description ? exp.description.split(/\r?\n/).length : 0;
   const descriptionHeight = descriptionLines * 15; // Each line approximately 15pt including line height
   const spacing = 25; // Margin between experiences
-  const totalExpHeight = titleHeight + companyLocationHeight + descriptionHeight + spacing;
+  return titleHeight + companyLocationHeight + descriptionHeight + spacing;
+};
+
+let currentPageHeight = 0;
+for (const exp of sortedExperiences) {
+  const totalExpHeight = estimateExpHeight(exp);
 
   // Check if this experience fits on the current page
   if (experiencesFirstPage.length === 0) {
@@ -174,9 +177,38 @@ for (const exp of sortedExperiences) {
     experiencesFirstPage.push(exp);
     currentPageHeight += totalExpHeight;
   } else {
-    // Doesn't fit, move to extra pages
-    experiencesExtraPages.push(exp);
+    // Doesn't fit on first page, need to distribute to continuation pages
+    break;
   }
+}
+
+// Now distribute remaining experiences across continuation pages
+const remainingExps = sortedExperiences.slice(experiencesFirstPage.length);
+let currentContinuationPage: any[] = [];
+let continuationPageHeight = 0;
+
+for (const exp of remainingExps) {
+  const totalExpHeight = estimateExpHeight(exp);
+
+  if (currentContinuationPage.length === 0) {
+    // First experience on a new continuation page
+    currentContinuationPage.push(exp);
+    continuationPageHeight = totalExpHeight;
+  } else if (continuationPageHeight + totalExpHeight <= CONTINUATION_PAGE_HEIGHT) {
+    // Fits on current continuation page
+    currentContinuationPage.push(exp);
+    continuationPageHeight += totalExpHeight;
+  } else {
+    // Doesn't fit, start a new page
+    experiencesPages.push(currentContinuationPage);
+    currentContinuationPage = [exp];
+    continuationPageHeight = totalExpHeight;
+  }
+}
+
+// Don't forget to add the last page if it has experiences
+if (currentContinuationPage.length > 0) {
+  experiencesPages.push(currentContinuationPage);
 }
 
   return (
@@ -195,12 +227,14 @@ for (const exp of sortedExperiences) {
                     width: 120,
                     height: 140,
                     objectFit: 'cover',
-                    borderRadius: 1,
                     marginTop: 0,
+                    borderWidth: 10,
+                    borderColor: '#000000',
+                    borderStyle: 'solid',
                   }}
                 />
               ) : (
-                <View style={{ width: 120, height: 120, backgroundColor: 'lightgray', borderRadius: 1, justifyContent: 'center', alignItems: 'center', marginTop: 0, border: '2 solid black' }}>
+                <View style={{ width: 120, height: 120, backgroundColor: 'lightgray', justifyContent: 'center', alignItems: 'center', marginTop: 0, borderWidth: 10, borderColor: '#000000', borderStyle: 'solid' }}>
                   <Text style={{ color: '#888', fontSize: 18 }}>Foto</Text>
                 </View>
               )}
@@ -263,15 +297,14 @@ for (const exp of sortedExperiences) {
         <View style={styles.sidebarRight}></View>
       </Page>
 
-      {/* Additional pages for extra experiences */}
-      {experiencesExtraPages.length > 0 && (
-        experiencesExtraPages.map((exp, idx) => (
-          <Page key={exp.id ?? idx} size="A4" style={styles.page}>
+      {/* Additional pages for extra experiences - multiple experiences per page */}
+      {experiencesPages.length > 0 && (
+        experiencesPages.map((pageExps: any[], pageIdx: number) => (
+          <Page key={`page-${pageIdx}`} size="A4" style={styles.page}>
             <View style={styles.sidebar}></View>
             <View style={styles.main}>
               <View>
-                <Text style={styles.sectionTitle}>{idx === 0 ? "Berufserfahrung" : ""}</Text>
-                <View>
+                {pageExps.map((exp: any) => (
                   <View key={exp.id ?? Math.random()}>
                     <Text style={styles.itemTitle}>
                       {exp.job_title || ""}
@@ -288,7 +321,7 @@ for (const exp of sortedExperiences) {
                       ? formatBulletPoints(exp.description)
                       : null}
                   </View>
-                </View>
+                ))}
               </View>
             </View>
             <View style={styles.sidebarRight}></View>
@@ -341,7 +374,7 @@ for (const exp of sortedExperiences) {
                   <View style={{ width: 100 }}>
                     {Array.isArray(languages) && languages.length > 0 ? (
                       languages.map((lang) => (
-                        <Text key={lang.id ?? Math.random()}>{lang.language_name}</Text>
+                        <Text key={lang.id ?? Math.random()}>{lang.language_name?.split(' ')[0]}</Text>
                       ))
                     ) : (
                       <Text>-</Text>
@@ -356,7 +389,9 @@ for (const exp of sortedExperiences) {
                         else if (prof === 'advanced') prof = 'B2';
                         else if (prof === 'expert') prof = 'Experte';
                         else if (prof === 'native') prof = 'Muttersprache';
-                        return <Text key={lang.id ?? Math.random()}>{prof}</Text>;
+                        // Take only first part before space
+                        const displayProf = prof?.split(' ')[0] || prof;
+                        return <Text key={lang.id ?? Math.random()}>{displayProf}</Text>;
                       })
                     ) : (
                       <Text>-</Text>
@@ -369,7 +404,7 @@ for (const exp of sortedExperiences) {
                 <View style={{ flexGrow: 1 }}>
                   {(() => {
                     const driverLicenses = Array.isArray(skills)
-                      ? skills.filter((s) => s.skill_name && s.skill_name.toLowerCase().includes('führerschein'))
+                      ? skills.filter((s) => s.skill_name && s.category && s.category.toLowerCase() === 'führerschein')
                       : [];
 
                     if (driverLicenses.length === 0) {
@@ -377,26 +412,27 @@ for (const exp of sortedExperiences) {
                     }
 
                     return driverLicenses.map((s) => {
-                      // Remove "Führerschein" from the name and trim
+                      // Remove "Führerschein Kategorie " from the name and trim
                       const displayName = s.skill_name
-                        .replace(/führerschein/gi, '')
+                        .replace(/Führerschein Kategorie /gi, '')
+                        .replace(/Führerschein/gi, '')
                         .trim();
 
                       return (
                         <Text key={s.id ?? Math.random()} style={{ marginBottom: 2 }}>
-                          • {displayName || s.skill_name}
+                          • Kategorie {displayName || s.skill_name}
                         </Text>
                       );
                     });
                   })()}
-                </View>        
+                </View>
               </View>
               <View style={{ flexDirection: 'row', marginBottom: 6 }}>
                 <Text style={{ width: 120, fontWeight: 'bold' }}>Fähigkeiten</Text>
                 <View style={{ flexGrow: 1 }}>
                   {(() => {
                     const otherSkills = Array.isArray(skills)
-                      ? skills.filter((s) => s.skill_name && !s.skill_name.toLowerCase().includes('führerschein'))
+                      ? skills.filter((s) => s.skill_name && (!s.category || s.category.toLowerCase() !== 'führerschein'))
                       : [];
 
                     if (otherSkills.length === 0) {
