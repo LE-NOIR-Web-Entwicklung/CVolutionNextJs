@@ -1,14 +1,18 @@
-"use client";
+
 
 import Image from "next/image";
 import { FaLinkedin, FaPhone, FaEnvelope } from "react-icons/fa";
 
+export const metadata = {
+  title: "Über uns",
+};
+
 export default function About() {
   return (
-    <div className="min-h-screen bg-[#204878] text-white">
-      {/* Content Section */}
-      <section className="py-16 px-4 lg:px-16">
-      <div className="text-center">
+      <div className="min-h-screen bg-[#204878] text-white">
+        {/* Content Section */}
+        <section className="py-16 px-4 lg:px-16">
+          <div className="text-center">
         <h2 className="text-3xl font-bold mb-8">Über <span className="text-blue-300">Uns</span></h2>
       </div>
         <div className="container mx-auto flex flex-col lg:flex-row items-center">

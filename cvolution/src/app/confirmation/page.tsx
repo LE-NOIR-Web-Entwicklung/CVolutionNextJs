@@ -15,47 +15,36 @@ export default function Confirmation() {
       const storedEmail = localStorage.getItem("confirmationEmail");
       const storedService = localStorage.getItem("confirmationService");
       const storedName = localStorage.getItem("confirmationName");
+      
       if (storedEmail) {
         setEmail(storedEmail);
+        // Call API to send confirmation mail
+        fetch("/api/send-confirmation", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: storedEmail, service: storedService }),
+        });
 
-        // If service is 'self', update paid and paydate in Supabase
-        if (storedService && storedService.toLowerCase() === "self") {
-            if (storedName) {
-              supabase
-                .from("profiles")
-                // Use 'as any' to bypass TypeScript property checks for 'paid' and 'paydate'
-                .update({ paid: true, paydate: new Date().toISOString() } as any)
-                .eq("user_id", storedName)
-                .then(() => {
-                  let seconds = 5;
-                  setCountdown(seconds);
-                  const interval = setInterval(() => {
-                    seconds--;
-                    setCountdown(seconds);
-                    if (seconds <= 0) {
-                      clearInterval(interval);
-                      window.location.href = '/self';
-                    }
-                  }, 1000);
-                });
-            }
-          }else {
-            // Call API to send confirmation mail
-            fetch("/api/send-confirmation", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ email: storedEmail, service: storedService }),
-            });
-            // Call API to send info mail
-            if (storedName && storedService) {
-              fetch("/api/send-info", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ name: storedName, email: storedEmail, service: storedService }),
-              });
-            }
-            localStorage.removeItem("confirmationEmail"); // Clear the email after sending
-          }
+        fetch("https://api.pushcut.io/5hvDj_2j6Z0VWd94p-ejG/notifications/CVolution", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+        });
+
+        
+        fetch("https://api.pushcut.io/k8in1RlseA_OthMYAhmQH/notifications/CVolution", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+        });
+
+        // Call API to send info mail
+        if (storedName && storedService) {
+          fetch("/api/send-info", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name: storedName, email: storedEmail, service: storedService }),
+          });
+        }
+        localStorage.removeItem("confirmationEmail"); // Clear the email after sending
       }
       if (storedService) {
         setService(storedService);

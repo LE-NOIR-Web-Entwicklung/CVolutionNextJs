@@ -22,7 +22,7 @@ export default function Service() {
       name: "Lohnanalyse",
       description: "Transparenter Vergleich mit branchenüblichen Gehältern. Individuelle Einschätzung basierend auf Ihrer Position und Erfahrung. Wertvolle Argumente für Ihre Gehaltsverhandlung",
       image: "/images/search.png",
-      price: "CHF 79",
+      price: "CHF 99",
       link: "/service-salary",
     },
     

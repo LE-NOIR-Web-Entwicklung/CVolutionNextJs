@@ -11,8 +11,8 @@ export default function Impressum() {
             <h2 className="text-2xl font-bold mb-4 mt-4">Angaben gemäß § 5 TMG</h2>
             <p className="text-lg leading-relaxed">
               CVolution GmbH <br />
-              Kasernenstrasse 28 <br />
-              5000 Aarau <br />
+              Ausserfeldstrasse 9<br />
+              5036 Oberentfelden <br />
               Schweiz
             </p>
           </section>
