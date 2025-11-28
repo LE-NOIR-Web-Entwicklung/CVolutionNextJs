@@ -154,7 +154,8 @@ export const CVPdfDesign3: React.FC<CVPdfDesign3Props> = ({
   languages,
 }) => {
   // Split experiences so that no experience is split between pages
-  const FIRST_PAGE_AVAILABLE_HEIGHT = 280; // Conservative estimate for space after header
+  // Calculate available space and ensure complete experiences fit on each page
+  const FIRST_PAGE_AVAILABLE_HEIGHT = 400; // Conservative estimate for space after header
   const CONTINUATION_PAGE_HEIGHT = 700; // Full page height for continuation pages
   let experiencesFirstPage: any[] = [];
   let experiencesPages: any[][] = []; // Array of arrays, each containing experiences for one page
