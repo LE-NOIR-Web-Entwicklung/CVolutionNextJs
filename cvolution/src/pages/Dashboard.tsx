@@ -138,7 +138,7 @@ export const Dashboard: React.FC = () => {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
               <Badge variant="secondary" className="text-gray-600 sm:ml-3 text-xs sm:text-sm hidden sm:inline-flex">
-                Self-Service Lebenslauf-Plattform
+                Self-Service CV-Plattform
               </Badge>
             </div>
             <div className="flex items-center space-x-2 sm:space-x-4">
@@ -148,7 +148,7 @@ export const Dashboard: React.FC = () => {
               <Button variant="outline" size="sm" onClick={handleSignOut} className="text-xs sm:text-sm bg-[#204878]">
                 <LogOut className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
                 <span className="hidden sm:inline ">Abmelden</span>
-                <span className="sm:hidden">Exit</span>
+                <span className="sm:hidden">Abmelden</span>
               </Button>
             </div>
           </div>
@@ -182,6 +182,9 @@ export const Dashboard: React.FC = () => {
             </TabsList>
             {/* CV Export Button below desktop navigation */}
             <div className="hidden sm:block ml-4">
+              <CVExportButton onExport={handleExportClick} />
+            </div>
+            <div className="sm:hidden ml-4">
               <CVExportButton onExport={handleExportClick} />
             </div>
           </div>

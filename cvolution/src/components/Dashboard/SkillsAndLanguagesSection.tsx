@@ -481,7 +481,6 @@ const SkillsAndLanguagesSection = React.forwardRef<{ saveSkillsAndLanguages: () 
         <div className="flex space-x-3">
           <Button type="submit" className="w-full bg-[#204878] hover:bg-[#4c6c93] text-white font-bold rounded-lg py-3 transition duration-200">
             <Save className="h-4 w-4 mr-2" />
-            Speichern
           </Button>
           <Button
             type="button"
@@ -492,7 +491,6 @@ const SkillsAndLanguagesSection = React.forwardRef<{ saveSkillsAndLanguages: () 
             className="w-full bg-gray-200 hover:bg-gray-300 text-black font-bold rounded-lg py-3 transition duration-200"
           >
             <X className="h-4 w-4 mr-2" />
-            Abbrechen
           </Button>
         </div>
       </form>
