@@ -9,7 +9,7 @@ import { AuthPage } from "@/components/Auth/AuthPage";
 import { Dashboard } from "@/pages/Dashboard";
 
 export default function Self() {
-  const targetDate = new Date("2025-12-01T00:00:00").getTime();
+  const targetDate = new Date("2025-12-07T00:00:00").getTime();
   const [timeLeft, setTimeLeft] = useState(calculateTimeLeft());
 
   function calculateTimeLeft() {
