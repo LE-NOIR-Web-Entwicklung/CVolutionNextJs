@@ -32,8 +32,8 @@ export default function ServiceCheck() {
         setName("");
         setEmail("");
         // Redirect after 3 seconds
-        window.location.href = 
-           "https://www.saferpay.com/SecurePayGate/MultiUsePayment/364685/17772867/ec04d072-37de-4a15-81ec-8c62a28234e1";
+        window.location.href =
+          "https://www.saferpay.com/SecurePayGate/MultiUsePayment/364685/17772867/ec04d072-37de-4a15-81ec-8c62a28234e1";
       }, 3000);
     } catch {
       setError("Fehler beim Senden der Anfrage. Bitte versuchen Sie es erneut.");

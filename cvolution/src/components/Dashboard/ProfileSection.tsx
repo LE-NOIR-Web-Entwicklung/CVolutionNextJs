@@ -1,0 +1,487 @@
+import React, { useState, useEffect, useImperativeHandle } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { Save, Edit, Camera } from 'lucide-react';
+import { toast } from '@/hooks/use-toast';
+
+interface Profile {
+  id: string;
+  full_name: string | null;
+  headline: string | null;
+  summary: string | null;
+  profile_picture_url: string | null;
+  location: string | null;
+  phone: string | null;
+  linkedin_url: string | null;
+  website: string | null;
+  birthdate: string | null; // <-- hinzugefügt
+  civil_status: string | null;   // <-- Zivilstand
+  place_of_origin: string | null;
+}
+
+export const ProfileSection = React.forwardRef<{ saveProfile: () => void }, {}>((props, ref) => {
+  const { user } = useAuth();
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+  const formRef = React.useRef<HTMLFormElement>(null);
+
+  useImperativeHandle(ref, () => ({
+    saveProfile: () => {
+      if (isEditing && formRef.current) {
+        formRef.current.requestSubmit();
+      }
+    }
+  }));
+
+  useEffect(() => {
+    fetchProfile();
+  }, [user]);
+
+  useEffect(() => {
+    return () => {
+      if (isEditing && formRef.current) {
+        formRef.current.requestSubmit();
+      }
+    };
+  }, [isEditing]);
+
+  const fetchProfile = async () => {
+    if (!user) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error fetching profile:', error);
+        toast({
+          title: 'Fehler',
+          description: 'Profildaten konnten nicht geladen werden.',
+          variant: 'destructive',
+        });
+      } else {
+        setProfile(data || {
+          id: '',
+          full_name: '',
+          headline: '',
+          summary: '',
+          profile_picture_url: '',
+          location: '',
+          phone: '',
+          linkedin_url: '',
+          website: '',
+          birthdate: '',
+          civil_status: '',
+          place_of_origin: '',
+        });
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !user) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: 'Ungültiger Dateityp',
+        description: 'Bitte laden Sie eine Bilddatei hoch.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    // Validate file size (max 10MB for high quality)
+    if (file.size > 10 * 1024 * 1024) {
+      toast({
+        title: 'Datei zu groß',
+        description: 'Bitte laden Sie ein Bild kleiner als 10MB hoch.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setIsUploadingPhoto(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}/profile.${fileExt}`;
+
+      // Delete existing profile photo if it exists
+      if (profile?.profile_picture_url) {
+        const oldFileName = profile.profile_picture_url.split('/').pop();
+        if (oldFileName) {
+          await supabase.storage
+            .from('profile-photos')
+            .remove([`${user.id}/${oldFileName}`]);
+        }
+      }
+
+      // Upload new photo with no compression
+      const { error: uploadError } = await supabase.storage
+        .from('profile-photos')
+        .upload(fileName, file, {
+          upsert: true,
+          contentType: file.type,
+        });
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('profile-photos')
+        .getPublicUrl(fileName);
+
+      // Update profile with new photo URL
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .upsert({
+          user_id: user.id,
+          profile_picture_url: publicUrl,
+        }, { onConflict: 'user_id' });
+
+      if (updateError) throw updateError;
+
+      await fetchProfile();
+      toast({
+        title: 'Foto aktualisiert',
+        description: 'Ihr Profilbild wurde erfolgreich aktualisiert.',
+      });
+    } catch (error) {
+      console.error('Error uploading photo:', error);
+      toast({
+        title: 'Upload-Fehler',
+        description: 'Foto konnte nicht hochgeladen werden. Bitte versuchen Sie es erneut.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsUploadingPhoto(false);
+    }
+  };
+
+  const handleSave = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!user || !profile) return;
+
+    setIsSaving(true);
+
+    const formData = new FormData(e.currentTarget);
+    const updatedProfile = {
+      user_id: user.id,
+      full_name: formData.get('full_name') as string,
+      headline: formData.get('headline') as string,
+      summary: formData.get('summary') as string,
+      location: formData.get('location') as string,
+      phone: formData.get('phone') as string,
+      linkedin_url: formData.get('linkedin_url') as string,
+      website: formData.get('website') as string,
+      birthdate: formData.get('birthdate') as string, // <-- hinzugefügt
+      civil_status: formData.get('civil_status') as string,
+      place_of_origin: formData.get('place_of_origin') as string,
+    };
+
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .upsert(updatedProfile, { onConflict: 'user_id' });
+
+      if (error) {
+        throw error;
+      }
+
+      await fetchProfile();
+      setIsEditing(false);
+      toast({
+        title: 'Profil aktualisiert',
+        description: 'Ihr Profil wurde erfolgreich gespeichert.',
+      });
+    } catch (error) {
+      console.error('Error saving profile:', error);
+      toast({
+        title: 'Fehler',
+        description: 'Profil konnte nicht gespeichert werden. Bitte versuchen Sie es erneut.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardContent className="flex items-center justify-center h-64">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (!isEditing) {
+    return (
+      <div className="bg-white p-8 rounded-2xl shadow-lg mb-8">
+        <CardHeader className="pb-4 border-b border-gray-100">
+          <div className="flex justify-between items-center">
+            <div>
+              <CardTitle className="text-xl font-bold text-black mb-1">Persönliches Profil</CardTitle>
+              <CardDescription className="text-black">Ihre professionellen Informationen</CardDescription>
+            </div>
+            <Button onClick={() => setIsEditing(true)} className="bg-[#204878] hover:bg-[#4c6c93] text-white font-bold rounded-lg px-4 py-2">
+              <Edit className="h-4 w-4 mr-2" />
+              Bearbeiten
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4 pt-6">
+          <div className="flex items-center space-x-4 mb-6">
+            <Avatar className="h-32 w-24 border-2 border-blue-200 rounded-lg overflow-hidden">
+              <AvatarImage 
+                src={profile?.profile_picture_url || ''} 
+                alt={profile?.full_name || 'Profil'} 
+                className="object-cover h-32 w-24 rounded-lg"
+              />
+              <AvatarFallback className="text-lg bg-blue-100 text-black h-32 w-24 flex items-center justify-center rounded-lg">
+                {profile?.full_name?.split(' ').map(n => n[0]).join('') || 'U'}
+              </AvatarFallback>
+            </Avatar>
+            <div>
+              <h3 className="text-lg font-bold text-black mb-1">{profile?.full_name || 'Nicht angegeben'}</h3>
+              <p className="text-sm text-gray-600">{profile?.headline || 'Keine Berufsbezeichnung angegeben'}</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="text-sm font-medium text-black">E-Mail</label>
+              <p className="text-black">{user?.email || 'Nicht angegeben'}</p>
+            </div>
+            <div>
+              <label className="text-sm font-medium text-black">Adresse</label>
+              <p className="text-black">{profile?.location || 'Nicht angegeben'}</p>
+            </div>
+            <div>
+              <label className="text-sm font-medium text-black">Heimatort</label>
+              <p className="text-black">{profile?.place_of_origin || 'Nicht angegeben'}</p>
+            </div>
+            <div>
+              <label className="text-sm font-medium text-black">Telefon</label>
+              <p className="text-black">{profile?.phone || 'Nicht angegeben'}</p>
+            </div>
+            <div>
+              <label className="text-sm font-medium text-black">Geburtsdatum</label>
+              <p className="text-black">
+                {profile?.birthdate
+                  ? new Date(profile.birthdate).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })
+                  : 'Nicht angegeben'}
+              </p>
+            </div>
+            <div>
+              <label className="text-sm font-medium text-black">Zivilstand</label>
+              <p className="text-black">{profile?.civil_status || 'Nicht angegeben'}</p>
+            </div>
+          </div>
+        </CardContent>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-white p-8 rounded-2xl shadow-lg mb-8">
+      <CardHeader className="pb-4 border-b border-gray-100">
+        <CardTitle className="text-xl font-bold text-black mb-1">Profil bearbeiten</CardTitle>
+        <CardDescription className="text-black">Aktualisieren Sie Ihre professionellen Informationen</CardDescription>
+      </CardHeader>
+      <CardContent className="pt-6">
+        <form ref={formRef} onSubmit={handleSave} className="space-y-6">
+          <div className="flex items-center space-x-4 mb-6">
+            <Avatar className="h-32 w-24 border-2 border-blue-200 rounded-lg overflow-hidden">
+              <AvatarImage 
+                src={profile?.profile_picture_url || ''} 
+                alt={profile?.full_name || 'Profil'} 
+                className="object-cover h-32 w-24 rounded-lg"
+              />
+              <AvatarFallback className="text-lg bg-blue-100 text-black h-32 w-24 flex items-center justify-center rounded-lg">
+                {profile?.full_name?.split(' ').map(n => n[0]).join('') || 'U'}
+              </AvatarFallback>
+            </Avatar>
+            <div>
+              <label htmlFor="profile-photo" className="cursor-pointer">
+                <Button type="button" asChild className="bg-[#204878] hover:bg-[#4c6c93] text-white font-bold rounded-lg px-4 py-2">
+                  <span>
+                    {isUploadingPhoto ? (
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600" />
+                    ) : (
+                      <Camera className="h-4 w-4 mr-2" />
+                    )}
+                    {isUploadingPhoto ? 'Hochladen...' : 'Foto ändern'}
+                  </span>
+                </Button>
+              </label>
+              <input
+                id="profile-photo"
+                type="file"
+                accept="image/*"
+                onChange={handlePhotoUpload}
+                disabled={isUploadingPhoto}
+                className="hidden"
+              />
+              <p className="text-xs text-gray-500 mt-1">Max 10MB, JPG/PNG</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              {!profile?.full_name && (
+                <p className="text-xs text-amber-600 flex items-center gap-1 mb-2">
+                  <span className="font-semibold">⚠️</span> Ihr Name kann nach der Eingabe nicht mehr geändert werden.
+                </p>
+              )}
+              <label htmlFor="full_name" className="text-sm font-medium text-black">
+                Vorname, Nachname *
+              </label>
+              <Input
+                id="full_name"
+                name="full_name"
+                placeholder='Max Mustermann'
+                defaultValue={profile?.full_name || ''}
+                readOnly={!!profile?.full_name}
+                required={!profile?.full_name}
+                className={profile?.full_name
+                  ? "w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black opacity-70 cursor-not-allowed"
+                  : "w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                }
+              />
+            </div>
+            <div>
+              <label htmlFor="headline" className="text-sm font-medium text-black">
+                Aktuelle Berufsbezeichnung *
+              </label>
+              <Input
+                id="headline"
+                name="headline"
+                defaultValue={profile?.headline || ''}
+                placeholder="z.B. Software Engineer | Kaufmännischer Angestellter"
+                required
+                className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+              />
+            </div>
+            <div>
+              <label htmlFor="email" className="text-sm font-medium text-black">
+                E-Mail *
+              </label>
+              <Input
+                id="email"
+                name="email"
+                type="email"
+                defaultValue={user?.email || ''}
+                placeholder="max.mustermann@mustermann.ch"
+                required
+                readOnly
+                className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black opacity-70 cursor-not-allowed"
+              />
+            </div>
+            <div>
+              <label htmlFor="location" className="text-sm font-medium text-black">
+                Adresse *
+              </label>
+              <Input
+                id="location"
+                name="location"
+                defaultValue={profile?.location || ''}
+                placeholder="Musterstrasse 1, 5000 Musterstadt"
+                required
+                className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+              />
+            </div>
+            <div>
+              <label htmlFor="place_of_origin" className="text-sm font-medium text-black">
+                Heimatort *
+              </label>
+              <Input
+                id="place_of_origin"
+                name="place_of_origin"
+                defaultValue={profile?.place_of_origin || ''}
+                placeholder="Zürich"
+                required
+                className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+              />
+            </div>
+            <div>
+              <label htmlFor="phone" className="text-sm font-medium text-black">
+                Telefon *
+              </label>
+              <Input
+                id="phone"
+                name="phone"
+                type="tel"
+                defaultValue={profile?.phone || ''}
+                placeholder="+41 76 000 00 00"
+                required
+                className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+              />
+            </div>
+            <div>
+              <label htmlFor="birthdate" className="text-sm font-medium text-black">
+                Geburtsdatum *
+              </label>
+              <Input
+                id="birthdate"
+                name="birthdate"
+                type="date"
+                defaultValue={profile?.birthdate || ''}
+                required
+                className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+              />
+            </div>
+            <div className="relative">
+              <label htmlFor="civil_status" className="text-sm font-medium text-black">
+                Zivilstand *
+              </label>
+              <select
+                id="civil_status"
+                name="civil_status"
+                defaultValue={profile?.civil_status || ''}
+                required
+                className="w-full appearance-none bg-white border border-blue-200 rounded-lg px-4 py-2 pr-10 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100 shadow-sm transition duration-150"
+              >
+                <option value="" disabled>Bitte auswählen</option>
+                <option value="Ledig">Ledig</option>
+                <option value="Verheiratet">Verheiratet</option>
+                <option value="Geschieden">Geschieden</option>
+                <option value="Verwitwet">Verwitwet</option>
+              </select>
+              <span className="pointer-events-none absolute top-8 right-4 flex items-center">
+                <svg className="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                </svg>
+              </span>
+            </div>
+          </div>
+          <div className="flex space-x-3">
+            <Button type="submit" disabled={isSaving} className="w-full bg-[#204878] hover:bg-[#4c6c93] text-white font-bold rounded-lg py-3 transition duration-200">
+              <Save className="h-4 w-4 mr-2" />
+              {isSaving ? 'Speichern...' : 'Änderungen speichern'}
+            </Button>
+            <Button type="button" onClick={() => setIsEditing(false)} className="w-full bg-gray-200 hover:bg-gray-300 text-black font-bold rounded-lg py-3 transition duration-200">
+              Abbrechen
+            </Button>
+          </div>
+        </form>
+      </CardContent>
+    </div>
+  );
+});
+  export default ProfileSection;
