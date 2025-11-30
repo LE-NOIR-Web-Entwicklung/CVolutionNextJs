@@ -107,11 +107,11 @@ export const ProfileSection = React.forwardRef<{ saveProfile: () => void }, {}>(
       return;
     }
 
-    // Validate file size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
+    // Validate file size (max 10MB for high quality)
+    if (file.size > 10 * 1024 * 1024) {
       toast({
         title: 'Datei zu groß',
-        description: 'Bitte laden Sie ein Bild kleiner als 5MB hoch.',
+        description: 'Bitte laden Sie ein Bild kleiner als 10MB hoch.',
         variant: 'destructive',
       });
       return;
@@ -132,10 +132,13 @@ export const ProfileSection = React.forwardRef<{ saveProfile: () => void }, {}>(
         }
       }
 
-      // Upload new photo
+      // Upload new photo with no compression
       const { error: uploadError } = await supabase.storage
         .from('profile-photos')
-        .upload(fileName, file, { upsert: true });
+        .upload(fileName, file, {
+          upsert: true,
+          contentType: file.type,
+        });
 
       if (uploadError) throw uploadError;
 
@@ -336,7 +339,7 @@ export const ProfileSection = React.forwardRef<{ saveProfile: () => void }, {}>(
                 disabled={isUploadingPhoto}
                 className="hidden"
               />
-              <p className="text-xs text-gray-500 mt-1">Max 5MB, JPG/PNG</p>
+              <p className="text-xs text-gray-500 mt-1">Max 10MB, JPG/PNG</p>
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -347,7 +350,7 @@ export const ProfileSection = React.forwardRef<{ saveProfile: () => void }, {}>(
                 </p>
               )}
               <label htmlFor="full_name" className="text-sm font-medium text-black">
-                Vorname, Nachname
+                Vorname, Nachname *
               </label>
               <Input
                 id="full_name"
@@ -355,6 +358,7 @@ export const ProfileSection = React.forwardRef<{ saveProfile: () => void }, {}>(
                 placeholder='Max Mustermann'
                 defaultValue={profile?.full_name || ''}
                 readOnly={!!profile?.full_name}
+                required={!profile?.full_name}
                 className={profile?.full_name
                   ? "w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black opacity-70 cursor-not-allowed"
                   : "w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
@@ -363,84 +367,94 @@ export const ProfileSection = React.forwardRef<{ saveProfile: () => void }, {}>(
             </div>
             <div>
               <label htmlFor="headline" className="text-sm font-medium text-black">
-                Aktuelle Berufsbezeichnung
+                Aktuelle Berufsbezeichnung *
               </label>
               <Input
                 id="headline"
                 name="headline"
                 defaultValue={profile?.headline || ''}
                 placeholder="z.B. Software Engineer | Kaufmännischer Angestellter"
+                required
                 className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
               />
             </div>
             <div>
               <label htmlFor="email" className="text-sm font-medium text-black">
-                E-Mail
+                E-Mail *
               </label>
               <Input
                 id="email"
                 name="email"
+                type="email"
                 defaultValue={user?.email || ''}
                 placeholder="max.mustermann@mustermann.ch"
-                className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                required
+                readOnly
+                className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black opacity-70 cursor-not-allowed"
               />
             </div>
             <div>
               <label htmlFor="location" className="text-sm font-medium text-black">
-                Adresse
+                Adresse *
               </label>
               <Input
                 id="location"
                 name="location"
                 defaultValue={profile?.location || ''}
                 placeholder="Musterstrasse 1, 5000 Musterstadt"
+                required
                 className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
               />
             </div>
             <div>
               <label htmlFor="place_of_origin" className="text-sm font-medium text-black">
-                Heimatort
+                Heimatort *
               </label>
               <Input
                 id="place_of_origin"
                 name="place_of_origin"
                 defaultValue={profile?.place_of_origin || ''}
-                placeholder="Musterstrasse 1, 5000 Musterstadt"
+                placeholder="Zürich"
+                required
                 className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
               />
             </div>
             <div>
               <label htmlFor="phone" className="text-sm font-medium text-black">
-                Telefon
+                Telefon *
               </label>
               <Input
                 id="phone"
                 name="phone"
+                type="tel"
                 defaultValue={profile?.phone || ''}
                 placeholder="+41 76 000 00 00"
+                required
                 className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
               />
             </div>
             <div>
               <label htmlFor="birthdate" className="text-sm font-medium text-black">
-                Geburtsdatum
+                Geburtsdatum *
               </label>
               <Input
                 id="birthdate"
                 name="birthdate"
                 type="date"
                 defaultValue={profile?.birthdate || ''}
+                required
                 className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
               />
             </div>
             <div className="relative">
               <label htmlFor="civil_status" className="text-sm font-medium text-black">
-                Zivilstand
+                Zivilstand *
               </label>
               <select
                 id="civil_status"
                 name="civil_status"
                 defaultValue={profile?.civil_status || ''}
+                required
                 className="w-full appearance-none bg-white border border-blue-200 rounded-lg px-4 py-2 pr-10 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100 shadow-sm transition duration-150"
               >
                 <option value="" disabled>Bitte auswählen</option>

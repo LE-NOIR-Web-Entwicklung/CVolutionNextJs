@@ -43,7 +43,7 @@ const styles = StyleSheet.create({
   },
   label: {
     width: 90,
-    fontWeight: "bold",
+    fontWeight: "normal",
   },
   value: {
     flexGrow: 1,
@@ -94,6 +94,8 @@ const styles = StyleSheet.create({
   bullet: {
     marginLeft: 14,
     marginBottom: 2,
+    textIndent: -7,
+    paddingLeft: 7,
   },
   eduRow: {
     flexDirection: "row",
@@ -155,7 +157,7 @@ export const CVPdfDesign3: React.FC<CVPdfDesign3Props> = ({
 }) => {
   // Split experiences so that no experience is split between pages
   // Calculate available space and ensure complete experiences fit on each page
-  const FIRST_PAGE_AVAILABLE_HEIGHT = 400; // Conservative estimate for space after header
+  const FIRST_PAGE_AVAILABLE_HEIGHT = 450; // Conservative estimate for space after header
   const CONTINUATION_PAGE_HEIGHT = 700; // Full page height for continuation pages
   let experiencesFirstPage: any[] = [];
   let experiencesPages: any[][] = []; // Array of arrays, each containing experiences for one page
@@ -265,13 +267,11 @@ export const CVPdfDesign3: React.FC<CVPdfDesign3Props> = ({
                 height: 140,
                 objectFit: 'cover',
                 marginLeft: 16,
-                borderWidth: 10,
-                borderColor: '#000000',
-                borderStyle: 'solid',
+                border: '10 solid #000000',
               }}
             />
           ) : (
-            <View style={{ width: 120, height: 140, backgroundColor: 'lightgray', justifyContent: 'center', alignItems: 'center', marginLeft: 16, borderWidth: 10, borderColor: '#000000', borderStyle: 'solid' }}>
+            <View style={{ width: 120, height: 140, backgroundColor: 'lightgray', justifyContent: 'center', alignItems: 'center', marginLeft: 16, border: '10 solid #000000' }}>
               <Text style={{ color: '#888', fontSize: 18 }}>Foto</Text>
             </View>
           )}
@@ -307,38 +307,145 @@ export const CVPdfDesign3: React.FC<CVPdfDesign3Props> = ({
       </Page>
 
       {/* Additional pages for extra experiences - multiple experiences per page */}
-      {experiencesPages.length > 0 && (
-        experiencesPages.map((pageExps: any[], pageIdx: number) => (
-          <Page key={`page-${pageIdx}`} size="A4" style={styles.page}>
-            {pageExps.map((exp: any) => (
-              <View key={exp.id ?? Math.random()} style={styles.expRow}>
-                <Text style={styles.expDate}>
-                  {formatRange(
-                    exp.start_date ? formatDate(exp.start_date) : "",
-                    exp.end_date ? formatDate(exp.end_date) : "",
-                    exp.is_current
-                  )}
-                </Text>
-                <View style={styles.expBody}>
-                  <Text>
-                    <Text style={styles.expTitle}>{exp.job_title || ""}</Text>
-                    <Text style={styles.expTitle}>, {exp.company || ""}</Text>
-                    <Text style={styles.expTitle}>, {exp.location || ""} </Text>
-                  </Text>
-                  {exp.description
-                    ? exp.description.split(/\r?\n/).map((line: string, idx: number) => (
-                        line.trim() ? <Text style={styles.bullet} key={idx}>{line}</Text> : null
-                      ))
-                    : null}
-                </View>
-              </View>
-            ))}
-          </Page>
-        ))
-      )}
+      {experiencesPages.length > 0 ? (
+        experiencesPages.map((pageExps: any[], pageIdx: number) => {
+          const isLastExperiencePage = pageIdx === experiencesPages.length - 1;
 
-      {/* Last page: education and skills */}
-      <Page size="A4" style={styles.page}>
+          return (
+            <Page key={`page-${pageIdx}`} style={styles.page}>
+              {pageExps.map((exp: any) => (
+                <View key={exp.id ?? Math.random()} style={styles.expRow}>
+                  <Text style={styles.expDate}>
+                    {formatRange(
+                      exp.start_date ? formatDate(exp.start_date) : "",
+                      exp.end_date ? formatDate(exp.end_date) : "",
+                      exp.is_current
+                    )}
+                  </Text>
+                  <View style={styles.expBody}>
+                    <Text>
+                      <Text style={styles.expTitle}>{exp.job_title || ""}</Text>
+                      <Text style={styles.expTitle}>, {exp.company || ""}</Text>
+                      <Text style={styles.expTitle}>, {exp.location || ""} </Text>
+                    </Text>
+                    {exp.description
+                      ? exp.description.split(/\r?\n/).map((line: string, idx: number) => (
+                          line.trim() ? <Text style={styles.bullet} key={idx}>{line}</Text> : null
+                        ))
+                      : null}
+                  </View>
+                </View>
+              ))}
+
+              {/* Add education and skills on the last experience page */}
+              {isLastExperiencePage && (
+                <>
+                  <View wrap={false}>
+                    <Text style={styles.sectionTitle}>Aus- & Weiterbildungen</Text>
+                    {education?.map((edu) => (
+                      <View key={String(edu.id)} style={styles.eduRow}>
+                        <Text style={styles.expDateSub}>
+                          {formatDate(edu.start_date)} - {edu.is_current ? "heute" : formatDate(edu.end_date)}
+                        </Text>
+                        <View style={styles.eduBody}>
+                          <Text>
+                            {`${edu.degree}, ${edu.institution}, ${edu.place}`}
+                          </Text>
+                        </View>
+                      </View>
+                    ))}
+                  </View>
+
+                  <View wrap={false}>
+                    <Text style={styles.sectionTitle}>Kenntnisse & Fähigkeiten</Text>
+                  <View style={{ marginTop: 10 }}>
+                    <View style={{ flexDirection: 'row', marginBottom: 6, alignItems: 'flex-start' }}>
+                      <Text style={{ width: 120, fontWeight: 'bold' }}>Fremdsprachen</Text>
+                      <View style={{ flexDirection: 'row', flexGrow: 1 }}>
+                        <View style={{ width: 100 }}>
+                          {Array.isArray(languages) && languages.length > 0 ? (
+                            languages.map((lang) => (
+                              <Text key={lang.id ?? Math.random()}>{lang.language_name?.split(' ')[0] || lang.language_name}</Text>
+                            ))
+                          ) : (
+                            <Text>-</Text>
+                          )}
+                        </View>
+                        <View style={{ width: 100 }}>
+                          {Array.isArray(languages) && languages.length > 0 ? (
+                            languages.map((lang) => {
+                              let prof = (lang.proficiency || '').replace(/\s+/g, ' ').trim();
+                              if (prof === 'beginner') prof = 'C1';
+                              else if (prof === 'intermediate') prof = 'C2';
+                              else if (prof === 'advanced') prof = 'B2';
+                              else if (prof === 'expert') prof = 'Experte';
+                              else if (prof === 'native') prof = 'Muttersprache';
+                              const displayProf = prof?.split(' ')[0] || prof;
+                              return <Text key={lang.id ?? Math.random()}>{displayProf}</Text>;
+                            })
+                          ) : (
+                            <Text>-</Text>
+                          )}
+                        </View>
+                      </View>
+                    </View>
+                    <View style={{ flexDirection: 'row', marginBottom: 6, alignItems: 'flex-start' }}>
+                      <Text style={{ width: 120, fontWeight: 'bold' }}>Fähigkeiten</Text>
+                      <View style={{ flexGrow: 1 }}>
+                        {(() => {
+                          const otherSkills = Array.isArray(skills)
+                            ? skills.filter((s) => s.skill_name && (!s.category || s.category.toLowerCase() !== 'führerschein'))
+                            : [];
+
+                          if (otherSkills.length === 0) {
+                            return <Text>-</Text>;
+                          }
+
+                          return otherSkills.map((s) => (
+                            <Text key={s.id ?? Math.random()} style={{ marginBottom: 2 }}>• {s.skill_name}</Text>
+                          ));
+                        })()}
+                      </View>
+                    </View>
+                    <View style={{ flexDirection: 'row', marginBottom: 6, alignItems: 'flex-start' }}>
+                      <Text style={{ width: 120, fontWeight: 'bold' }}>Führerschein</Text>
+                      <View style={{ flexGrow: 1 }}>
+                        {(() => {
+                          const driverLicenses = Array.isArray(skills)
+                            ? skills.filter((s) => s.skill_name && s.category && s.category.toLowerCase() === 'führerschein')
+                            : [];
+
+                          if (driverLicenses.length === 0) {
+                            return <Text>-</Text>;
+                          }
+
+                          return driverLicenses.map((s) => {
+                            const displayName = s.skill_name
+                              .replace(/Führerschein Kategorie /gi, '')
+                              .replace(/Führerschein/gi, '')
+                              .trim();
+
+                            return (
+                              <Text key={s.id ?? Math.random()} style={{ marginBottom: 2 }}>
+                                Kategorie {displayName || s.skill_name}
+                              </Text>
+                            );
+                          });
+                        })()}
+                      </View>
+                    </View>
+                  </View>
+                  </View>
+                </>
+              )}
+            </Page>
+          );
+        })
+      ) : null}
+
+      {/* If no additional experience pages, create a separate education and skills page */}
+      {experiencesPages.length === 0 && (
+        <Page size="A4" style={styles.page}>
         <Text style={styles.sectionTitle}>Aus- & Weiterbildungen</Text>
         {education?.map((edu) => (
           <View key={String(edu.id)} style={styles.eduRow}>
@@ -356,10 +463,10 @@ export const CVPdfDesign3: React.FC<CVPdfDesign3Props> = ({
         {/* Kenntnisse & Fähigkeiten */}
         <Text style={styles.sectionTitle}>Kenntnisse & Fähigkeiten</Text>
         <View style={{ marginTop: 10 }}>
-          <View style={{ flexDirection: 'row', marginBottom: 6 }}>
+          <View style={{ flexDirection: 'row', marginBottom: 6, alignItems: 'flex-start'}}>
             <Text style={{ width: 120, fontWeight: 'bold' }}>Fremdsprachen</Text>
             <View style={{ flexDirection: 'row', flexGrow: 1 }}>
-              <View style={{ width: 100 }}>
+              <View style={{ width: 100, marginLeft: 13 }}>
                 {Array.isArray(languages) && languages.length > 0 ? (
                   languages.map((lang) => (
                     <Text key={lang.id ?? Math.random()}>{lang.language_name?.split(' ')[0] || lang.language_name}</Text>
@@ -368,7 +475,7 @@ export const CVPdfDesign3: React.FC<CVPdfDesign3Props> = ({
                   <Text>-</Text>
                 )}
               </View>
-              <View style={{ width: 100 }}>
+              <View style={{ width: 100, marginLeft: 13 }}>
                 {Array.isArray(languages) && languages.length > 0 ? (
                   languages.map((lang) => {
                     let prof = (lang.proficiency || '').replace(/\s+/g, ' ').trim();
@@ -387,9 +494,27 @@ export const CVPdfDesign3: React.FC<CVPdfDesign3Props> = ({
               </View>
             </View>
           </View>
-          <View style={{ flexDirection: 'row', marginBottom: 6 }}>
+          <View style={{ flexDirection: 'row', marginBottom: 6, alignItems: 'flex-start' }}>
+            <Text style={{ width: 120, fontWeight: 'bold' }}>Fähigkeiten</Text>
+            <View style={{ flexGrow: 1, marginLeft: 13 }}>
+              {(() => {
+                const otherSkills = Array.isArray(skills)
+                  ? skills.filter((s) => s.skill_name && (!s.category || s.category.toLowerCase() !== 'führerschein'))
+                  : [];
+
+                if (otherSkills.length === 0) {
+                  return <Text>-</Text>;
+                }
+
+                return otherSkills.map((s) => (
+                  <Text key={s.id ?? Math.random()} style={{ marginBottom: 2 }}>• {s.skill_name}</Text>
+                ));
+              })()}
+            </View>
+          </View>
+          <View style={{ flexDirection: 'row', marginBottom: 6, alignItems: 'flex-start'}}>
             <Text style={{ width: 120, fontWeight: 'bold' }}>Führerschein</Text>
-            <View style={{ flexGrow: 1 }}>
+            <View style={{ flexGrow: 1, marginLeft: 13 }}>
               {(() => {
                 const driverLicenses = Array.isArray(skills)
                   ? skills.filter((s) => s.skill_name && s.category && s.category.toLowerCase() === 'führerschein')
@@ -408,33 +533,16 @@ export const CVPdfDesign3: React.FC<CVPdfDesign3Props> = ({
 
                   return (
                     <Text key={s.id ?? Math.random()} style={{ marginBottom: 2 }}>
-                      • Kategorie {displayName || s.skill_name}
+                      Kategorie {displayName || s.skill_name}
                     </Text>
                   );
                 });
               })()}
             </View>
           </View>
-          <View style={{ flexDirection: 'row', marginBottom: 6 }}>
-            <Text style={{ width: 120, fontWeight: 'bold' }}>Fähigkeiten</Text>
-            <View style={{ flexGrow: 1 }}>
-              {(() => {
-                const otherSkills = Array.isArray(skills)
-                  ? skills.filter((s) => s.skill_name && (!s.category || s.category.toLowerCase() !== 'führerschein'))
-                  : [];
-
-                if (otherSkills.length === 0) {
-                  return <Text>-</Text>;
-                }
-
-                return otherSkills.map((s) => (
-                  <Text key={s.id ?? Math.random()} style={{ marginBottom: 2 }}>• {s.skill_name}</Text>
-                ));
-              })()}
-            </View>
-          </View>
         </View>
       </Page>
+      )}
     </Document>
   );
 };

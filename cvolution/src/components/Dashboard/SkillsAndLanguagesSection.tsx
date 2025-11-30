@@ -90,17 +90,6 @@ const SkillsAndLanguagesSection = React.forwardRef<{ saveSkillsAndLanguages: () 
     }
   };
 
-  // Mapping UI value to DB value for skills
-  const uiToDbSkillProficiency = (uiValue: string): string => {
-    switch (uiValue) {
-      case 'Anfänger': return 'beginner';
-      case 'Gut': return 'intermediate';
-      case 'Sehr gut': return 'advanced';
-      case 'Experte': return 'expert';
-      default: return uiValue;
-    }
-  };
-
   const fetchSkills = async () => {
     if (!user) return;
     try {
@@ -289,32 +278,15 @@ const SkillsAndLanguagesSection = React.forwardRef<{ saveSkillsAndLanguages: () 
         onSubmit={(e) => handleSaveSkill(e, skill?.id)}
         className="space-y-4"
       >
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="text-sm font-medium text-black">Fähigkeit *</label>
-            <Input
-              name="skill_name"
-              defaultValue={skill?.skill_name || ''}
-              placeholder="SAP, MS Office, Instandhaltung, Bauführung..."
-              required
-              className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-            />
-          </div>
-          <div>
-            <label className="text-sm font-medium text-black">Kenntnisstand *</label>
-            <Select name="proficiency" defaultValue={skill?.proficiency || 'Anfänger'}>
-              <SelectTrigger className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
-                <SelectValue className="text-black" />
-              </SelectTrigger>
-              <SelectContent className="z-50 bg-white border border-gray-200 shadow-lg text-black">
-                <SelectItem value="Anfänger" className="text-black hover:bg-blue-50">Anfänger</SelectItem>
-                <SelectItem value="Gut" className="text-black hover:bg-blue-50">Gut</SelectItem>
-                <SelectItem value="Sehr gut" className="text-black hover:bg-blue-50">Sehr gut</SelectItem>
-                <SelectItem value="Experte" className="text-black hover:bg-blue-50">Experte</SelectItem>
-                {/* <SelectItem value="Muttersprachlich" className="text-black hover:bg-blue-50">Muttersprachlich</SelectItem> */}
-              </SelectContent>
-            </Select>
-          </div>
+        <div>
+          <label className="text-sm font-medium text-black">Fähigkeit *</label>
+          <Input
+            name="skill_name"
+            defaultValue={skill?.skill_name || ''}
+            placeholder="SAP, MS Office, Instandhaltung, Bauführung..."
+            required
+            className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+          />
         </div>
         <div className="flex space-x-3">
           <Button type="submit" className="w-full bg-[#204878] hover:bg-[#4c6c93] text-white font-bold rounded-lg py-3 transition duration-200">
@@ -345,7 +317,7 @@ const SkillsAndLanguagesSection = React.forwardRef<{ saveSkillsAndLanguages: () 
     const skillData = {
       user_id: user.id,
       skill_name: formData.get('skill_name') as string,
-      proficiency: uiToDbSkillProficiency(formData.get('proficiency') as string) as 'beginner' | 'intermediate' | 'advanced' | 'expert' | 'native',
+      proficiency: 'intermediate' as const, // Default value since proficiency is no longer user-selectable
       years_of_experience: formData.get('years_of_experience') ? Number(formData.get('years_of_experience')) : null,
       category: formData.get('category') as string || null,
     };
@@ -662,11 +634,6 @@ const SkillsAndLanguagesSection = React.forwardRef<{ saveSkillsAndLanguages: () 
                         <div className="flex justify-between items-start">
                           <div className="flex-1">
                             <h4 className="font-semibold text-black">{skill.skill_name}</h4>
-                            <div className="flex flex-wrap gap-1 mt-1">
-                              <Badge className="text-xs text-black bg-gray-200">
-                                {skill.proficiency}
-                              </Badge>
-                            </div>
                           </div>
                           <div className="flex space-x-1">
                             <Button

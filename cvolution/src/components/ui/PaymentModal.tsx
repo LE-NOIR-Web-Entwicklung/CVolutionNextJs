@@ -8,10 +8,11 @@ interface PaymentModalProps {
   onClose: () => void;
   user: any;
   profile: any;
+  isRenewal?: boolean;
 }
 
 
-export const PaymentModal: React.FC<PaymentModalProps> = ({ open, onClose, user, profile }) => {
+export const PaymentModal: React.FC<PaymentModalProps> = ({ open, onClose, user, profile, isRenewal = false }) => {
   const handlePay = () => {
     if (typeof window !== "undefined") {
       localStorage.setItem("confirmationEmail", user?.email || "");
@@ -24,9 +25,13 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ open, onClose, user,
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-lg bg-white rounded-3xl shadow-2xl border-2 border-blue-200 p-8">
         <DialogHeader>
-          <DialogTitle className="text-xl font-bold text-[#204878] mb-1">Zahlung erforderlich</DialogTitle>
+          <DialogTitle className="text-xl font-bold text-[#204878] mb-1">
+            {isRenewal ? 'Jahresabo abgelaufen' : 'Zahlung erforderlich'}
+          </DialogTitle>
           <DialogDescription className="text-black">
-            Um Ihren Lebenslauf zu exportieren, führen Sie bitte zuerst die Zahlung aus.
+            {isRenewal
+              ? 'Ihr Jahresabo ist abgelaufen. Um Ihren Lebenslauf weiterhin exportieren zu können, erneuern Sie bitte Ihr Abo.'
+              : 'Um Ihren Lebenslauf zu exportieren, führen Sie bitte zuerst die Zahlung aus.'}
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
@@ -34,7 +39,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ open, onClose, user,
             onClick={handlePay}
             className="bg-[#204878] hover:bg-[#4c6c93] text-white font-bold rounded-lg py-3 transition duration-200 px-6"
           >
-            Zahlung ausführen
+            {isRenewal ? 'Abo erneuern' : 'Zahlung ausführen'}
           </Button>
           <Button onClick={onClose} className="bg-gray-200 hover:bg-gray-300 text-black font-bold rounded-lg py-3 transition duration-200 px-6">
             Abbrechen

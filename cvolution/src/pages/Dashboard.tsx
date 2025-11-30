@@ -20,6 +20,7 @@ export const Dashboard: React.FC = () => {
   const router = useRouter();
   const [cvModalOpen, setCVModalOpen] = useState(false);
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
+  const [isRenewal, setIsRenewal] = useState(false);
   const [profileData, setProfileData] = useState<any>(null);
   const [experiencesData, setExperiencesData] = useState<any[]>([]);
   const [educationData, setEducationData] = useState<any[]>([]);
@@ -106,6 +107,7 @@ export const Dashboard: React.FC = () => {
         expired = diffYears >= 1;
       }
       if ((paid === false || !paid) || !paydate || expired) {
+        setIsRenewal(expired);
         setPaymentModalOpen(true);
         return;
       }
@@ -206,6 +208,7 @@ export const Dashboard: React.FC = () => {
             onClose={() => setPaymentModalOpen(false)}
             user={user || {}}
             profile={profileData || {}}
+            isRenewal={isRenewal}
           />
 
           {/* <TabsContent value="linkedin">

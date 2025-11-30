@@ -296,11 +296,74 @@ function formatMonthYear(dateStr?: string | null) {
             rows={4}
             className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             onKeyDown={async e => {
+              const textarea = e.target as HTMLTextAreaElement;
+              const value = textarea.value;
+              const selectionStart = textarea.selectionStart;
+              const selectionEnd = textarea.selectionEnd;
+
+              // Prevent deletion of bullet points only if they have text after them
+              if (e.key === 'Backspace' || e.key === 'Delete') {
+                // Get the current line
+                const beforeCursor = value.substring(0, selectionStart);
+                const afterCursor = value.substring(selectionStart);
+                const lines = beforeCursor.split('\n');
+                const currentLine = lines[lines.length - 1];
+
+                // Find the text after cursor until next newline
+                const nextNewlineIndex = afterCursor.indexOf('\n');
+                const restOfLine = nextNewlineIndex === -1 ? afterCursor : afterCursor.substring(0, nextNewlineIndex);
+                const fullCurrentLine = currentLine + restOfLine;
+
+                // Check if current line has text after the bullet point
+                const lineAfterBullet = fullCurrentLine.replace(/^•\s*/, '').trim();
+                const hasTextAfterBullet = lineAfterBullet.length > 0;
+
+                if (e.key === 'Backspace') {
+                  // Only prevent deletion if cursor is right after bullet point AND there's text after it
+                  if (currentLine === '• ' && selectionStart === selectionEnd && hasTextAfterBullet) {
+                    e.preventDefault();
+                    return;
+                  }
+                  // If deleting a selection that includes a bullet point at the start of a line
+                  if (selectionStart !== selectionEnd) {
+                    const selectedText = value.substring(selectionStart, selectionEnd);
+                    const selectedLines = selectedText.split('\n');
+
+                    // Check each line in selection if it has a bullet with text
+                    for (let i = 0; i < selectedLines.length; i++) {
+                      const line = selectedLines[i];
+                      if (line.trimStart().startsWith('• ')) {
+                        const textAfterBullet = line.replace(/^•\s*/, '').trim();
+                        if (textAfterBullet.length > 0) {
+                          // This line has a bullet with text, protect it
+                          const beforeSelection = value.substring(0, selectionStart);
+                          const afterSelection = value.substring(selectionEnd);
+                          const linesBeforeSelection = beforeSelection.split('\n');
+                          const lastLineBeforeSelection = linesBeforeSelection[linesBeforeSelection.length - 1];
+
+                          // Check if we're at the start of a line with a bullet
+                          if (lastLineBeforeSelection.trim() === '' || lastLineBeforeSelection.endsWith('\n')) {
+                            e.preventDefault();
+                            // Delete the selection but keep the bullet point
+                            textarea.value = beforeSelection + '• ' + afterSelection;
+                            textarea.selectionStart = textarea.selectionEnd = selectionStart + 2;
+                            return;
+                          }
+                        }
+                      }
+                    }
+                  }
+                } else if (e.key === 'Delete') {
+                  // Only prevent deleting bullet point when cursor is before it AND it has text after
+                  if (afterCursor.startsWith('• ') && selectionStart === selectionEnd && hasTextAfterBullet) {
+                    e.preventDefault();
+                    return;
+                  }
+                }
+              }
+
               if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
-                const textarea = e.target as HTMLTextAreaElement;
-                const value = textarea.value;
-                const selectionStart = textarea.selectionStart;
 
                 // Add a new bullet point
                 const before = value.substring(0, selectionStart);
@@ -337,9 +400,6 @@ function formatMonthYear(dateStr?: string | null) {
                 }, 100);
               } else if (e.key === 'Enter' && e.shiftKey) {
                 e.preventDefault();
-                const textarea = e.target as HTMLTextAreaElement;
-                const value = textarea.value;
-                const selectionStart = textarea.selectionStart;
                 const before = value.substring(0, selectionStart);
                 const after = value.substring(selectionStart);
                 textarea.value = before + '\n• ' + after;
