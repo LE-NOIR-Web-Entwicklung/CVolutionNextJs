@@ -176,13 +176,23 @@ function formatMonthYear(dateStr?: string | null) {
     const [isCurrent, setIsCurrent] = useState<boolean>(initialIsCurrent);
     const [startDate, setStartDate] = useState<Date | null>(experience?.start_date ? new Date(experience.start_date) : null);
     const [endDate, setEndDate] = useState<Date | null>(experience?.end_date ? new Date(experience.end_date) : null);
+    const [description, setDescription] = useState<string>(experience?.description || '');
     const formInstanceRef = useRef<HTMLFormElement>(null);
+    const prevExperienceIdRef = useRef<string | undefined>(experience?.id);
 
     useEffect(() => {
-      setStartDate(experience?.start_date ? new Date(experience.start_date) : null);
-      setEndDate(experience?.end_date ? new Date(experience.end_date) : null);
-      setIsCurrent(experience?.is_current ?? (!experience?.end_date));
-    }, [experience]);
+      // Only reset the form when we're editing a different experience or switching between add/edit mode
+      const experienceIdChanged = prevExperienceIdRef.current !== experience?.id;
+
+      if (experienceIdChanged) {
+        setStartDate(experience?.start_date ? new Date(experience.start_date) : null);
+        setEndDate(experience?.end_date ? new Date(experience.end_date) : null);
+        setIsCurrent(experience?.is_current ?? (!experience?.end_date));
+        setDescription(experience?.description || '');
+        prevExperienceIdRef.current = experience?.id;
+      }
+      // Don't update description if we're editing the same experience - only when switching between different experiences
+    }, [experience?.id]);
 
     useEffect(() => {
       if (experience?.id) {
@@ -291,7 +301,8 @@ function formatMonthYear(dateStr?: string | null) {
           </div>
           <Textarea
             name="description"
-            defaultValue={experience?.description || ''}
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
             placeholder={"• Durchführen von administrativen Aufgaben"}
             rows={4}
             className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
@@ -345,8 +356,11 @@ function formatMonthYear(dateStr?: string | null) {
                           if (lastLineBeforeSelection.trim() === '' || lastLineBeforeSelection.endsWith('\n')) {
                             e.preventDefault();
                             // Delete the selection but keep the bullet point
-                            textarea.value = beforeSelection + '• ' + afterSelection;
-                            textarea.selectionStart = textarea.selectionEnd = selectionStart + 2;
+                            const newValue = beforeSelection + '• ' + afterSelection;
+                            setDescription(newValue);
+                            setTimeout(() => {
+                              textarea.selectionStart = textarea.selectionEnd = selectionStart + 2;
+                            }, 10);
                             return;
                           }
                         }
@@ -368,28 +382,39 @@ function formatMonthYear(dateStr?: string | null) {
                 // Add a new bullet point
                 const before = value.substring(0, selectionStart);
                 const after = value.substring(selectionStart);
-                textarea.value = before + '\n• ' + after;
+                const newValue = before + '\n• ' + after;
+                setDescription(newValue);
                 const newCursorPos = selectionStart + 3;
 
-                // Save data in the background
+                // Save data in the background (don't await to avoid blocking UI)
                 const form = e.currentTarget.closest('form');
-                if (form) {
+                if (form && user) {
                   const formData = new FormData(form);
                   const experienceData = {
-                    description: formData.get('description') as string,
-                    // ...other fields if needed...
+                    user_id: user.id,
+                    job_title: formData.get('job_title') as string,
+                    company: formData.get('company') as string,
+                    employment_type: formData.get('employment_type') as 'full_time' | 'part_time' | 'contract' | 'internship' | 'freelance' | 'volunteer',
+                    location: formData.get('location') as string || null,
+                    start_date: parseMonthYearToDate(formData.get('start_date') as string) || '',
+                    end_date: formData.get('is_current') === 'on' ? null : (parseMonthYearToDate(formData.get('end_date') as string) || null),
+                    is_current: formData.get('is_current') === 'on',
+                    description: newValue,
                   };
                   const experienceId = formData.get('id') as string;
-                  console.log('Saving experience with ID:', experienceId);
                   if (experienceId) {
-                    try {
-                      await supabase
-                        .from('experiences')
-                        .update(experienceData)
-                        .eq('id', experienceId);
-                    } catch (error) {
-                      console.error('Fehler beim Speichern:', error);
-                    }
+                    // Fire and forget - don't await to avoid re-rendering
+                    (async () => {
+                      try {
+                        await supabase
+                          .from('experiences')
+                          .update(experienceData)
+                          .eq('id', experienceId);
+                        // Successfully saved in background
+                      } catch (error) {
+                        console.error('Fehler beim Speichern:', error);
+                      }
+                    })();
                   }
                 }
 
@@ -397,24 +422,27 @@ function formatMonthYear(dateStr?: string | null) {
                 setTimeout(() => {
                   textarea.focus();
                   textarea.selectionStart = textarea.selectionEnd = newCursorPos;
-                }, 100);
+                }, 10);
               } else if (e.key === 'Enter' && e.shiftKey) {
                 e.preventDefault();
                 const before = value.substring(0, selectionStart);
                 const after = value.substring(selectionStart);
-                textarea.value = before + '\n• ' + after;
+                const newValue = before + '\n• ' + after;
+                setDescription(newValue);
                 const newCursorPos = selectionStart + 3;
-                textarea.selectionStart = textarea.selectionEnd = newCursorPos;
+                setTimeout(() => {
+                  textarea.selectionStart = textarea.selectionEnd = newCursorPos;
+                }, 10);
               }
             }}
             onFocus={e => {
               const textarea = e.target as HTMLTextAreaElement;
-              if (textarea.value === '') {
-                textarea.value = '• ';
+              if (description === '') {
+                setDescription('• ');
                 // Set cursor after bullet
                 setTimeout(() => {
                   textarea.selectionStart = textarea.selectionEnd = 2;
-                }, 0);
+                }, 10);
               }
             }}
           />
