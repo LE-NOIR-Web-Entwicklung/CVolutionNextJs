@@ -92,10 +92,8 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   bullet: {
-    marginLeft: 14,
+    paddingLeft: 14,
     marginBottom: 2,
-    textIndent: -7,
-    paddingLeft: 7,
   },
   eduRow: {
     flexDirection: "row",

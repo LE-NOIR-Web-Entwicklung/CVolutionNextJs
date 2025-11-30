@@ -64,7 +64,7 @@ const styles = StyleSheet.create({
   itemTitle: { fontSize: 11, fontWeight: "bold", marginTop: 8 },
   itemSubtitle: { fontSize: 10, color: "gray" },
   itemText: { fontSize: 10, marginBottom: 10 },
-  expDescriptionText: { fontSize: 10, marginBottom: 2, marginLeft: 14, textIndent: -7, paddingLeft: 7 },
+  expDescriptionText: { fontSize: 10, marginBottom: 2, paddingLeft: 14},
   skill: { fontSize: 10, marginBottom: 3 },
   language: { fontSize: 10, marginBottom: 3 },
 });
