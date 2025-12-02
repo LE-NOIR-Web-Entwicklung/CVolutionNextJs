@@ -94,7 +94,25 @@ const styles = StyleSheet.create({
   bullet: {
     fontSize: 10,
     marginBottom: 2,
-    paddingLeft: 14
+  },
+  descriptionList: {
+    marginLeft: 14,
+    display: 'flex',
+    flexDirection: 'column',
+  },
+  descriptionListItem: {
+    display: 'flex',
+    flexDirection: 'row',
+    width: '100%',
+    marginBottom: 0,
+  },
+  descriptionBullet: {
+    width: 12,
+    fontSize: 10,
+  },
+  descriptionText: {
+    fontSize: 10,
+    flex: 1,
   },
   eduRow: {
     flexDirection: "row",
@@ -294,11 +312,24 @@ export const CVPdfDesign3: React.FC<CVPdfDesign3Props> = ({
                     <Text style={styles.expTitle}>, {exp.company || ""}</Text>
                     <Text style={styles.expTitle}>, {exp.location || ""} </Text>
                   </Text>
-                  {exp.description
-                    ? exp.description.split(/\r?\n/).map((line: string, idx: number) => (
-                        line.trim() ? <Text style={styles.bullet} key={idx}>{line}</Text> : null
-                      ))
-                    : null}
+                  {exp.description ? (
+                    <View style={styles.descriptionList}>
+                      {exp.description.split(/\r?\n/).filter((line: string) => line.trim()).map((line: string, idx: number) => {
+                        const bulletMatch = line.match(/^[\s]*(•|\-|\*)/);
+                        const hasBullet = !!bulletMatch;
+                        const cleanLine = hasBullet ? line.replace(/^[\s]*(•|\-|\*)[\s]*/, '') : line;
+
+                        return (
+                          <View key={idx} style={styles.descriptionListItem}>
+                            <Text style={styles.descriptionBullet}>
+                              {hasBullet ? bulletMatch[1] : ''}
+                            </Text>
+                            <Text style={styles.descriptionText}>{cleanLine}</Text>
+                          </View>
+                        );
+                      })}
+                    </View>
+                  ) : null}
                 </View>
               </View>
             ))
@@ -327,11 +358,24 @@ export const CVPdfDesign3: React.FC<CVPdfDesign3Props> = ({
                       <Text style={styles.expTitle}>, {exp.company || ""}</Text>
                       <Text style={styles.expTitle}>, {exp.location || ""} </Text>
                     </Text>
-                    {exp.description
-                      ? exp.description.split(/\r?\n/).map((line: string, idx: number) => (
-                          line.trim() ? <Text style={styles.bullet} key={idx}>{line}</Text> : null
-                        ))
-                      : null}
+                    {exp.description ? (
+                      <View style={styles.descriptionList}>
+                        {exp.description.split(/\r?\n/).filter((line: string) => line.trim()).map((line: string, idx: number) => {
+                          const bulletMatch = line.match(/^[\s]*(•|\-|\*)/);
+                          const hasBullet = !!bulletMatch;
+                          const cleanLine = hasBullet ? line.replace(/^[\s]*(•|\-|\*)[\s]*/, '') : line;
+
+                          return (
+                            <View key={idx} style={styles.descriptionListItem}>
+                              <Text style={styles.descriptionBullet}>
+                                {hasBullet ? bulletMatch[1] : ''}
+                              </Text>
+                              <Text style={styles.descriptionText}>{cleanLine}</Text>
+                            </View>
+                          );
+                        })}
+                      </View>
+                    ) : null}
                   </View>
                 </View>
               ))}

@@ -79,7 +79,25 @@ const styles = StyleSheet.create({
   expDescriptionText: {
     fontSize: 10,
     marginBottom: 2,
-    paddingLeft: 14
+  },
+  descriptionList: {
+    marginLeft: 14,
+    display: 'flex',
+    flexDirection: 'column',
+  },
+  descriptionListItem: {
+    display: 'flex',
+    flexDirection: 'row',
+    width: '100%',
+    marginBottom: 2,
+  },
+  descriptionBullet: {
+    width: 12,
+    fontSize: 10,
+  },
+  descriptionText: {
+    fontSize: 10,
+    flex: 1,
   },
   skill: { fontSize: 10, marginBottom: 3 },
   language: { fontSize: 10, marginBottom: 3 },
@@ -88,13 +106,27 @@ const styles = StyleSheet.create({
 // Helper function to format bullet points correctly
 const formatBulletPoints = (text: string) => {
   if (!text) return null;
-  return text.split(/\r?\n/).map((line, idx) => {
-    return line.trim() ? (
-      <Text key={idx} style={styles.expDescriptionText}>
-        {line}
-      </Text>
-    ) : null;
-  });
+  const lines = text.split(/\r?\n/).filter(line => line.trim());
+
+  return (
+    <View style={styles.descriptionList}>
+      {lines.map((line, idx) => {
+        // Check if line starts with a bullet point (•, *, -, or similar)
+        const bulletMatch = line.match(/^[\s]*(•|\-|\*)/);
+        const hasBullet = !!bulletMatch;
+        const cleanLine = hasBullet ? line.replace(/^[\s]*(•|\-|\*)[\s]*/, '') : line;
+
+        return (
+          <View key={idx} style={styles.descriptionListItem}>
+            <Text style={styles.descriptionBullet}>
+              {hasBullet ? bulletMatch[1] : ''}
+            </Text>
+            <Text style={styles.descriptionText}>{cleanLine}</Text>
+          </View>
+        );
+      })}
+    </View>
+  );
 };
 
 export const CVPdfDocument: React.FC<CVPdfDocumentProps> = (props) => {
