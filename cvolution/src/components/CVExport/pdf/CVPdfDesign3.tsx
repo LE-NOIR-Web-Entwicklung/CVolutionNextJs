@@ -65,7 +65,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 12,
     fontWeight: "bold",
-    marginTop: 10,
+    marginTop: 5,
     marginBottom: 6,
     borderBottom: "2 solid #000",
     paddingBottom: 3,
@@ -92,8 +92,9 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   bullet: {
-    paddingLeft: 14,
+    fontSize: 10,
     marginBottom: 2,
+    paddingLeft: 14
   },
   eduRow: {
     flexDirection: "row",
@@ -155,7 +156,7 @@ export const CVPdfDesign3: React.FC<CVPdfDesign3Props> = ({
 }) => {
   // Split experiences so that no experience is split between pages
   // Calculate available space and ensure complete experiences fit on each page
-  const FIRST_PAGE_AVAILABLE_HEIGHT = 450; // Conservative estimate for space after header
+  const FIRST_PAGE_AVAILABLE_HEIGHT = 480; // Conservative estimate for space after header
   const CONTINUATION_PAGE_HEIGHT = 700; // Full page height for continuation pages
   let experiencesFirstPage: any[] = [];
   let experiencesPages: any[][] = []; // Array of arrays, each containing experiences for one page

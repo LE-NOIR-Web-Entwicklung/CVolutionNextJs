@@ -55,6 +55,15 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 13,
     fontWeight: "bold",
+    marginTop: 9,
+    marginBottom: 6,
+    color: "#252525",
+    borderBottom: "1 solid #f2f2f2",
+    paddingBottom: 3,
+  },
+  sectionTitleFirst: {
+    fontSize: 13,
+    fontWeight: "bold",
     marginTop: 18,
     marginBottom: 6,
     color: "#252525",
@@ -64,7 +73,11 @@ const styles = StyleSheet.create({
   itemTitle: { fontSize: 11, fontWeight: "bold", marginTop: 8 },
   itemSubtitle: { fontSize: 10, color: "gray" },
   itemText: { fontSize: 10, marginBottom: 10 },
-  expDescriptionText: { fontSize: 10, marginBottom: 2, paddingLeft: 14},
+  expDescriptionText: {
+    fontSize: 10,
+    marginBottom: 2,
+    paddingLeft: 14
+  },
   skill: { fontSize: 10, marginBottom: 3 },
   language: { fontSize: 10, marginBottom: 3 },
 });
@@ -99,7 +112,7 @@ export const CVPdfDesign2: React.FC<CVPdfDesign2Props> = ({
 }) => {
   // Split experiences so that no experience is split between pages
   // Calculate available space and ensure complete experiences fit on each page
-  const FIRST_PAGE_AVAILABLE_HEIGHT = 320; // Conservative estimate for space after header and contact info
+  const FIRST_PAGE_AVAILABLE_HEIGHT = 350; // Conservative estimate for space after header and contact info
   const CONTINUATION_PAGE_HEIGHT = 700; // Full page height for continuation pages
   let experiencesFirstPage: any[] = [];
   let experiencesPages: any[][] = []; // Array of arrays, each containing experiences for one page
@@ -195,7 +208,7 @@ export const CVPdfDesign2: React.FC<CVPdfDesign2Props> = ({
             </View>
           </View>
           <View>
-            <Text style={styles.sectionTitle}>Kontaktdaten</Text>
+            <Text style={styles.sectionTitleFirst}>Kontaktdaten</Text>
             <View style={{ flexDirection: 'row', marginTop: 6 }}>
               <View style={{ flexDirection: 'column', width: 60 }}>
                 <Text style={styles.itemText}>Standort:</Text>
