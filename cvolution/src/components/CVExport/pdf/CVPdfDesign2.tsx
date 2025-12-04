@@ -64,7 +64,7 @@ const styles = StyleSheet.create({
   sectionTitleFirst: {
     fontSize: 13,
     fontWeight: "bold",
-    marginTop: 18,
+    // marginTop: 18,
     marginBottom: 6,
     color: "#252525",
     borderBottom: "1 solid #f2f2f2",
@@ -130,10 +130,12 @@ export const CVPdfDesign2: React.FC<CVPdfDesign2Props> = ({
 }) => {
   // Split experiences so that no experience is split between pages
   // Calculate available space and ensure complete experiences fit on each page
-  const FIRST_PAGE_AVAILABLE_HEIGHT = 350; // Conservative estimate for space after header and contact info
+  const FIRST_PAGE_AVAILABLE_HEIGHT = 700; // Conservative - leave room for education/skills
   const CONTINUATION_PAGE_HEIGHT = 700; // Full page height for continuation pages
   let experiencesFirstPage: any[] = [];
   let experiencesPages: any[][] = []; // Array of arrays, each containing experiences for one page
+  let showEducationOnFirstPage = false;
+  let showSkillsOnFirstPage = false;
 
   const estimateExpHeight = (exp: any) => {
     const titleHeight = 20; // Job title with margin
@@ -142,6 +144,21 @@ export const CVPdfDesign2: React.FC<CVPdfDesign2Props> = ({
     const descriptionHeight = descriptionLines * 15; // Each line approximately 15pt including line height
     const spacing = 25; // Margin between experiences
     return titleHeight + companyLocationHeight + descriptionHeight + spacing;
+  };
+
+  const estimateEducationHeight = () => {
+    const sectionTitleHeight = 30;
+    const itemHeight = education.length * 60; // Approximate height per education item
+    return sectionTitleHeight + itemHeight;
+  };
+
+  const estimateSkillsHeight = () => {
+    const sectionTitleHeight = 30;
+    const languagesHeight = Math.max(1, (languages?.length || 0)) * 15 + 20;
+    const skillsCount = skills?.filter((s: any) => !s.category || s.category.toLowerCase() !== 'führerschein').length || 0;
+    const skillsHeight = Math.max(1, skillsCount) * 15 + 20;
+    const driverLicenseHeight = skills?.filter((s: any) => s.category?.toLowerCase() === 'führerschein').length ? 40 : 20;
+    return sectionTitleHeight + languagesHeight + skillsHeight + driverLicenseHeight;
   };
 
   let currentPageHeight = 0;
@@ -161,6 +178,21 @@ export const CVPdfDesign2: React.FC<CVPdfDesign2Props> = ({
       // Doesn't fit on first page, need to distribute to continuation pages
       break;
     }
+  }
+
+  // Check if education and skills fit on first page
+  const educationHeight = estimateEducationHeight();
+  const skillsHeight = estimateSkillsHeight();
+  const totalAvailableHeight = 700; // Total page height
+
+  if (currentPageHeight + educationHeight + skillsHeight <= totalAvailableHeight) {
+    // Both fit on first page
+    showEducationOnFirstPage = true;
+    showSkillsOnFirstPage = true;
+  } else if (currentPageHeight + educationHeight <= totalAvailableHeight) {
+    // Only education fits
+    showEducationOnFirstPage = true;
+    showSkillsOnFirstPage = false;
   }
 
   // Now distribute remaining experiences across continuation pages
@@ -255,7 +287,7 @@ export const CVPdfDesign2: React.FC<CVPdfDesign2Props> = ({
                       <Text style={styles.itemTitle}>{exp.job_title || ""}</Text>
                       <Text>
                         <Text style={styles.itemTitle}>{exp.company || ""}</Text>
-                        <Text style={styles.itemTitle}> , {exp.location || ""} </Text>
+                        <Text style={styles.itemTitle}>, {exp.location || ""} </Text>
                         <Text style={styles.itemText}>
                           | {formatDate(exp.start_date)} - {exp.is_current ? "Heute" : formatDate(exp.end_date)} |
                         </Text>
