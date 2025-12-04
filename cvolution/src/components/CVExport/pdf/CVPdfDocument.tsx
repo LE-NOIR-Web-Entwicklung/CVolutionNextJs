@@ -58,7 +58,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 13,
     fontWeight: "bold",
-    marginTop: 9,
+    // marginTop: 3,
     marginBottom: 6,
     color: "#005B82",
     borderBottom: "1 solid #005B82",
@@ -67,18 +67,18 @@ const styles = StyleSheet.create({
   sectionTitleFirst: {
     fontSize: 13,
     fontWeight: "bold",
-    marginTop: 18,
+    // marginTop: 18,
     marginBottom: 6,
     color: "#005B82",
     borderBottom: "1 solid #005B82",
     paddingBottom: 3,
   },
-  itemTitle: { fontSize: 11, fontWeight: "bold", marginTop: 8 },
+  itemTitle: { fontSize: 11, fontWeight: "bold", marginTop: 3 },
   itemSubtitle: { fontSize: 10, color: "gray" },
   itemText: { fontSize: 10, marginBottom: 10 },
   expDescriptionText: {
     fontSize: 10,
-    marginBottom: 2,
+    // marginBottom: 2,
   },
   descriptionList: {
     marginLeft: 14,
@@ -188,7 +188,7 @@ export const CVPdfDocument: React.FC<CVPdfDocumentProps> = (props) => {
   // Default: Design 1
   // Split experiences so that no experience is split between pages
   // Calculate available space and ensure complete experiences fit on each page
-const FIRST_PAGE_AVAILABLE_HEIGHT = 350; // Conservative estimate for space after header and contact info
+const FIRST_PAGE_AVAILABLE_HEIGHT = 700; // Conservative estimate for space after header and contact info
 const CONTINUATION_PAGE_HEIGHT = 700; // Full page height for continuation pages
 let experiencesFirstPage: any[] = [];
 let experiencesPages: any[][] = []; // Array of arrays, each containing experiences for one page
@@ -315,7 +315,7 @@ if (currentContinuationPage.length > 0) {
                       </Text>
                       <Text>
                         <Text style={styles.itemTitle}>{exp.company || ""}</Text>
-                        <Text style={styles.itemTitle}> , {exp.location || ""} </Text>
+                        <Text style={styles.itemTitle}>, {exp.location || ""} </Text>
                         <Text style={styles.itemText}>
                           | {formatDate(exp.start_date)} - {exp.is_current ? "Heute" : formatDate(exp.end_date)} |
                         </Text>
