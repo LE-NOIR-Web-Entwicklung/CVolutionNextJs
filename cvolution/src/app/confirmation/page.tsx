@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { supabase } from '@/integrations/supabase/client';
+import { Console } from "console";
 
 
 export default function Confirmation() {
@@ -18,8 +19,11 @@ export default function Confirmation() {
       
       if (storedEmail) {
         setEmail(storedEmail);
+        console.log("Stored Service:", storedService);
+        console.log("Stored email:", storedEmail);
         // If service is 'self', update paid and paydate in Supabase
         if (storedService && storedService.toLowerCase() === "self") {
+
           if (storedName) {
             supabase
               .from("profiles")
@@ -40,6 +44,7 @@ export default function Confirmation() {
               });
           }
         }else {
+          console.log("Sending confirmation and info emails");
           // Call API to send confirmation mail
           fetch("/api/send-confirmation", {
             method: "POST",
@@ -68,14 +73,14 @@ export default function Confirmation() {
           headers: { "Content-Type": "application/json" },
         });
 
-        // Call API to send info mail
-        if (storedName && storedService) {
-          fetch("/api/send-info", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ name: storedName, email: storedEmail, service: storedService }),
-          });
-        }
+        // // Call API to send info mail
+        // if (storedName && storedService) {
+        //   fetch("/api/send-info", {
+        //     method: "POST",
+        //     headers: { "Content-Type": "application/json" },
+        //     body: JSON.stringify({ name: storedName, email: storedEmail, service: storedService }),
+        //   });
+        // }
         localStorage.removeItem("confirmationEmail"); // Clear the email after sending
       }
       if (storedService) {
