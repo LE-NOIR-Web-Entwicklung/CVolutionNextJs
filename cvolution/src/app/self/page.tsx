@@ -40,13 +40,13 @@ function DesignShowcase() {
           <div className="bg-white rounded-lg shadow overflow-hidden hover:shadow-lg transition-shadow duration-300">
             <div className="aspect-[1/1.4] relative">
               <img
-                src="/lovable-uploads/52816b4d-4592-4ac6-a2ca-7eba6c6d86d2.png"
+                src="/lovable-uploads/cdc6fbed-c846-4243-b7ea-4eb12246f389.png"
                 alt="Design 1 - Klassisch"
                 className="w-full h-full object-cover"
               />
             </div>
             <div className="p-3 bg-blue-50">
-              <h3 className="text-lg font-semibold text-center text-gray-900">Modern</h3>
+              <h3 className="text-lg font-semibold text-center text-gray-900">Klassisch</h3>
             </div>
           </div>
 
@@ -59,20 +59,20 @@ function DesignShowcase() {
               />
             </div>
             <div className="p-3 bg-blue-50">
-              <h3 className="text-lg font-semibold text-center text-gray-900">Minimal</h3>
+              <h3 className="text-lg font-semibold text-center text-gray-900">Zeitlos</h3>
             </div>
           </div>
 
           <div className="bg-white rounded-lg shadow overflow-hidden hover:shadow-lg transition-shadow duration-300">
             <div className="aspect-[1/1.4] relative">
               <img
-                src="/lovable-uploads/cdc6fbed-c846-4243-b7ea-4eb12246f389.png"
+                src="/lovable-uploads/52816b4d-4592-4ac6-a2ca-7eba6c6d86d2.png"
                 alt="Design 3 - Professionell"
                 className="w-full h-full object-cover"
               />
             </div>
             <div className="p-3 bg-blue-50">
-              <h3 className="text-lg font-semibold text-center text-gray-900">Klassisch</h3>
+              <h3 className="text-lg font-semibold text-center text-gray-900">Modern</h3>
             </div>
           </div>
         </div>
@@ -161,7 +161,7 @@ export default function Self() {
                       Wählen Sie aus 3 professionellen Lebenslauf-Designs
                     </p>
                     <p className="text-center text-sm text-gray-600">
-                      Modern, minimal und klassisch
+                      Klassisch, Modern, und Zeitlos
                     </p>
                   </div>
 
@@ -190,6 +190,12 @@ export default function Self() {
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                         </svg>
                         <span className="text-sm text-gray-700">Unbegrenzte Downloads</span>
+                      </li>
+                      <li className="flex items-start">
+                        <svg className="w-5 h-5 text-purple-600 mr-2 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                        <span className="text-sm text-gray-700">Unbegrenzt veränderbar</span>
                       </li>
                       <li className="flex items-start">
                         <svg className="w-5 h-5 text-purple-600 mr-2 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
