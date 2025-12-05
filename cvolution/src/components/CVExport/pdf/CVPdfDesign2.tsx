@@ -139,7 +139,7 @@ export const CVPdfDesign2: React.FC<CVPdfDesign2Props> = ({
 }) => {
   // Split experiences so that no experience is split between pages
   // Calculate available space and ensure complete experiences fit on each page
-  const FIRST_PAGE_AVAILABLE_HEIGHT = 680; // Conservative estimate for space after header and contact info
+  const FIRST_PAGE_AVAILABLE_HEIGHT = 500; // Conservative estimate for space after header and contact info
   const CONTINUATION_PAGE_HEIGHT = 700; // Full page height for continuation pages
   const EDUCATION_SKILLS_ESTIMATE = 250; // Estimated space needed for education and skills sections
 
@@ -711,7 +711,7 @@ export const CVPdfDesign2: React.FC<CVPdfDesign2Props> = ({
       )}
 
       {/* If no additional experience pages and not shown on first page, create a separate education and skills page */}
-      {experiencesPages.length === 0 && !showEducationSkillsOnFirstPage && (
+      {experiencesPages.length === 0 && !showEducationSkillsOnFirstPage && experiences.length > 0 && (
         <Page size="A4" style={styles.page}>
           <View style={styles.sidebar}></View>
           <View style={styles.main}>
