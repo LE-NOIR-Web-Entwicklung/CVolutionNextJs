@@ -191,6 +191,12 @@ export default function Self() {
                         <svg className="w-5 h-5 text-purple-600 mr-2 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                         </svg>
+                        <span className="text-sm text-gray-700">Unbegrenzt veränderbar</span>
+                      </li>
+                      <li className="flex items-start">
+                        <svg className="w-5 h-5 text-purple-600 mr-2 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
                         <span className="text-sm text-gray-700">Unbegrenzte Downloads</span>
                       </li>
                       <li className="flex items-start">
