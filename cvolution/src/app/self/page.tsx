@@ -163,7 +163,7 @@ export default function Self() {
                       Wählen Sie aus 3 professionellen Lebenslauf-Designs
                     </p>
                     <p className="text-center text-sm text-gray-600">
-                      Modern, Zeitlos und klassisch
+                      Modern, zeitlos und klassisch
                     </p>
                   </div>
 
