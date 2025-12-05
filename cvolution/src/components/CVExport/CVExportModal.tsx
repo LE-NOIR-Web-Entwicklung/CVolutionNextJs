@@ -54,26 +54,26 @@ export const CVExportModal: React.FC<CVExportModalProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl bg-white rounded-3xl shadow-2xl border-2 border-blue-200 p-8">
+      <DialogContent className="max-w-4xl w-[95vw] sm:w-full bg-white rounded-2xl sm:rounded-3xl shadow-2xl border-2 border-blue-200 p-4 sm:p-6 lg:p-8 max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-xl font-bold text-[#204878] mb-1">CV Exportieren</DialogTitle>
-          <DialogDescription className="text-black">
+          <DialogTitle className="text-lg sm:text-xl font-bold text-[#204878] mb-1">CV Exportieren</DialogTitle>
+          <DialogDescription className="text-sm sm:text-base text-black">
             Wählen Sie ein Design und exportieren Sie Ihren Lebenslauf als PDF.
           </DialogDescription>
         </DialogHeader>
-        <div className="bg-blue-50 rounded-2xl p-8 my-6 flex justify-center">
+        <div className="bg-blue-50 rounded-xl sm:rounded-2xl p-3 sm:p-6 lg:p-8 my-4 sm:my-6 flex justify-center overflow-x-auto">
           <CVDesignSelector selected={selectedDesign} onSelect={setSelectedDesign} />
         </div>
-       <DialogFooter>
+       <DialogFooter className="flex-col sm:flex-row gap-2 sm:gap-0">
           <Button
             onClick={handleExport}
             disabled={loading}
-            className="bg-[#204878] hover:bg-[#4c6c93] text-white font-bold rounded-lg py-3 transition duration-200 px-6"
+            className="w-full sm:w-auto bg-[#204878] hover:bg-[#4c6c93] text-white font-bold rounded-lg py-2.5 sm:py-3 transition duration-200 px-4 sm:px-6 text-sm sm:text-base"
           >
             <Download className="h-4 w-4 mr-2" />
             {loading ? 'Exportiere...' : 'Als PDF exportieren'}
           </Button>
-          <Button onClick={onClose} className="bg-gray-200 hover:bg-gray-300 text-black font-bold rounded-lg py-3 transition duration-200 px-6">
+          <Button onClick={onClose} className="w-full sm:w-auto bg-gray-200 hover:bg-gray-300 text-black font-bold rounded-lg py-2.5 sm:py-3 transition duration-200 px-4 sm:px-6 text-sm sm:text-base">
             Abbrechen
           </Button>
         </DialogFooter>

@@ -18,7 +18,7 @@ export const CVDesignSelector: React.FC<CVDesignSelectorProps> = ({ selected, on
   };
 
   return (
-    <div className="flex gap-6 justify-center my-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6 justify-items-center my-2 sm:my-4 w-full">
       <CVDesignPreview
         label="Modern"
         imgSrc="/lovable-uploads/52816b4d-4592-4ac6-a2ca-7eba6c6d86d2.png"
@@ -44,11 +44,10 @@ export const CVDesignSelector: React.FC<CVDesignSelectorProps> = ({ selected, on
 
 const CVDesignPreview: React.FC<{ label: string; imgSrc: string; selected: boolean; onClick: () => void }> = ({ label, imgSrc, selected, onClick }) => (
   <div
-    className={`cursor-pointer border-4 rounded-2xl p-4 flex flex-col items-center transition-all duration-200 ${selected ? 'border-[#204878] bg-blue-100 shadow-2xl' : 'border-gray-200 bg-white'}`}
+    className={`cursor-pointer border-2 sm:border-4 rounded-lg sm:rounded-2xl p-2 sm:p-3 lg:p-4 flex flex-col items-center transition-all duration-200 w-full max-w-[160px] sm:max-w-[180px] lg:max-w-[200px] ${selected ? 'border-[#204878] bg-blue-100 shadow-2xl' : 'border-gray-200 bg-white'}`}
     onClick={onClick}
-    style={{ width: 200 }}
   >
-    <img src={imgSrc} alt={label} className="w-40 h-56 object-cover rounded-xl mb-4" />
-    <span className={`text-base font-semibold ${selected ? 'text-[#204878]' : 'text-gray-600'}`}>{label}</span>
+    <img src={imgSrc} alt={label} className="w-full aspect-[4/5.6] object-cover rounded-lg sm:rounded-xl mb-2 sm:mb-3 lg:mb-4" />
+    <span className={`text-sm sm:text-base font-semibold ${selected ? 'text-[#204878]' : 'text-gray-600'}`}>{label}</span>
   </div>
 );

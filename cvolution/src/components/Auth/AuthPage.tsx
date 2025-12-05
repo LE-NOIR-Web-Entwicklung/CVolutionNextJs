@@ -74,14 +74,14 @@ export const AuthPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center py-12 px-4">
+    <div className="bg-gray-100 flex items-center justify-center py-6 px-4 mt-12">
       <div className="w-full max-w-md">
-        <div className="text-center mb-8">
+        <div className="text-center mb-4">
           <h1 className="text-3xl font-bold text-black mb-2 tracking-tight">CVolution GmbH</h1>
           <p className="text-black text-base">Professionelle Lebenslauf-Management-Plattform</p>
         </div>
-        <div className="bg-white p-8 rounded-2xl shadow-lg">
-          <CardHeader className="space-y-1 p-0 mb-6">
+        <div className="bg-white p-6 rounded-2xl shadow-lg">
+          <CardHeader className="space-y-1 p-0 mb-4">
             <CardTitle className="text-2xl text-center text-black font-bold">Willkommen</CardTitle>
             <CardDescription className="text-center text-black text-base">
               Melden Sie sich in Ihrem Konto an oder erstellen Sie ein neues
@@ -89,12 +89,12 @@ export const AuthPage: React.FC = () => {
           </CardHeader>
           <CardContent className="p-0">
             <Tabs defaultValue="signin" className="w-full">
-              <TabsList className="grid w-full grid-cols-2 bg-gray-100 rounded-lg mb-6">
+              <TabsList className="grid w-full grid-cols-2 bg-gray-100 rounded-lg mb-4">
                 <TabsTrigger value="signin" className="rounded-lg data-[state=active]:bg-[#204878] data-[state=active]:text-white text-black font-semibold">Anmelden</TabsTrigger>
                 <TabsTrigger value="signup" className="rounded-lg data-[state=active]:bg-[#204878] data-[state=active]:text-white text-black font-semibold">Registrieren</TabsTrigger>
               </TabsList>
               <TabsContent value="signin">
-                <form onSubmit={handleSignIn} className="space-y-5">
+                <form onSubmit={handleSignIn} className="space-y-4">
                   <div className="space-y-2 text-left">
                     <label htmlFor="signin-email" className="text-sm font-medium text-black">
                       E-Mail
@@ -127,7 +127,7 @@ export const AuthPage: React.FC = () => {
                 </form>
               </TabsContent>
               <TabsContent value="signup">
-                <form onSubmit={handleSignUp} className="space-y-5">
+                <form onSubmit={handleSignUp} className="space-y-4">
                   <div className="space-y-2 text-left">
                     <p className="text-xs text-amber-600 flex items-center gap-1">
                       <span className="font-semibold">⚠️</span> Ihr Name kann nach der Registrierung nicht mehr geändert werden.
