@@ -20,24 +20,24 @@ export const CVDesignSelector: React.FC<CVDesignSelectorProps> = ({ selected, on
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6 justify-items-center my-2 sm:my-4 w-full">
       <CVDesignPreview
-        label="Modern"
-        imgSrc="/lovable-uploads/52816b4d-4592-4ac6-a2ca-7eba6c6d86d2.png"
-        selected={selected === 'design1'}
-        onClick={() => handleSelect('design1')}
-      />
-      <CVDesignPreview
-        label="Minimal"
-        imgSrc="/lovable-uploads/f40ab6d8-a47e-4e91-b431-58002f60e221.png"
-        selected={selected === 'design2'}
-        onClick={() => handleSelect('design2')}
-      />
-      <CVDesignPreview
         label="Klassisch"
         imgSrc="/lovable-uploads/cdc6fbed-c846-4243-b7ea-4eb12246f389.png"
         selected={selected === 'design3'}
         onClick={() => handleSelect('design3')}
       />
-    </div>
+      <CVDesignPreview
+        label="Modern"
+        imgSrc="/lovable-uploads/52816b4d-4592-4ac6-a2ca-7eba6c6d86d2.png"
+        selected={selected === 'design1'}
+        onClick={() => handleSelect('design1')}
+        />
+      <CVDesignPreview
+        label="Zeitlos"
+        imgSrc="/lovable-uploads/f40ab6d8-a47e-4e91-b431-58002f60e221.png"
+        selected={selected === 'design2'}
+        onClick={() => handleSelect('design2')}
+        />
+      </div>
   );
 };
 // ...existing code...
