@@ -140,7 +140,7 @@ export const Dashboard: React.FC = () => {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
               <Badge variant="secondary" className="text-gray-600 sm:ml-3 text-xs sm:text-sm hidden sm:inline-flex">
-                Self-Service CV-Plattform
+                Professionelle Lebenslauf-Management-Plattform
               </Badge>
             </div>
             <div className="flex items-center space-x-2 sm:space-x-4">
