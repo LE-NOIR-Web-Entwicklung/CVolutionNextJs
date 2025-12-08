@@ -145,7 +145,7 @@ export default function Self() {
                     </div>
                     <h3 className="text-2xl font-semibold text-center text-black mb-3">Preis</h3>
                     <p className="text-center text-gray-700 mb-4">
-                      Nur <span className="text-3xl font-bold text-blue-600">CHF 49.–</span> pro Jahr
+                      Nur <span className="text-3xl font-bold text-blue-600">CHF 13.90.–</span> pro Monat
                     </p>
                     <p className="text-center text-sm text-gray-600">
                       Unbegrenzter Zugriff auf alle Funktionen

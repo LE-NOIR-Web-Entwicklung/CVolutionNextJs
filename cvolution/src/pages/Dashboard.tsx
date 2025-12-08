@@ -95,7 +95,7 @@ export const Dashboard: React.FC = () => {
   };
 
   const handleExportClick = () => {
-    // Prüfe, ob bezahlt wurde oder paydate älter als ein Jahr ist
+    // Prüfe, ob bezahlt wurde oder paydate älter als ein Monat ist
     if (profileData) {
       const paid = profileData.paid;
       const paydate = profileData.paydate;
@@ -103,8 +103,8 @@ export const Dashboard: React.FC = () => {
       if (paydate) {
         const payDateObj = new Date(paydate);
         const now = new Date();
-        const diffYears = (now.getTime() - payDateObj.getTime()) / (1000 * 60 * 60 * 24 * 365);
-        expired = diffYears >= 1;
+        const diffMonths = (now.getTime() - payDateObj.getTime()) / (1000 * 60 * 60 * 24 * 30);
+        expired = diffMonths >= 1;
       }
       if ((paid === false || !paid) || !paydate || expired) {
         setIsRenewal(expired);

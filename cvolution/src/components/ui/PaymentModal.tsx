@@ -26,11 +26,11 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ open, onClose, user,
       <DialogContent className="max-w-lg bg-white rounded-3xl shadow-2xl border-2 border-blue-200 p-8">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold text-[#204878] mb-1">
-            {isRenewal ? 'Jahresabo abgelaufen' : 'Zahlung erforderlich'}
+            {isRenewal ? 'Monatsabo abgelaufen' : 'Zahlung erforderlich'}
           </DialogTitle>
           <DialogDescription className="text-black">
             {isRenewal
-              ? 'Ihr Jahresabo ist abgelaufen. Um Ihren Lebenslauf weiterhin exportieren zu können, erneuern Sie bitte Ihr Abo.'
+              ? 'Ihr Monatsabo ist abgelaufen. Um Ihren Lebenslauf weiterhin exportieren zu können, erneuern Sie bitte Ihr Abo.'
               : 'Um Ihren Lebenslauf zu exportieren, führen Sie bitte zuerst die Zahlung aus.'}
           </DialogDescription>
         </DialogHeader>
