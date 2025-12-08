@@ -6,8 +6,15 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { LogOut, Users, ChevronDown, ChevronUp, ChevronLeft, ChevronRight } from 'lucide-react';
+import { LogOut, Users, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Filter } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 interface UserProfile {
   paid: any;
@@ -82,6 +89,7 @@ const AdminContent: React.FC = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [adminEmail, setAdminEmail] = useState<string>('');
   const [currentPage, setCurrentPage] = useState(1);
+  const [activeFilter, setActiveFilter] = useState<'all' | 'active' | 'inactive'>('all');
   const ITEMS_PER_PAGE = 10;
 
   useEffect(() => {
@@ -218,11 +226,32 @@ const AdminContent: React.FC = () => {
     return null;
   }
 
+  // Helper function to check if user is active
+  const isUserActive = (user: UserData) => {
+    const { paid, paydate } = user.profile;
+    if (!paid || !paydate) return false;
+
+    const payDateObj = new Date(paydate);
+    const now = new Date();
+    const diffMonths = (now.getTime() - payDateObj.getTime()) / (1000 * 60 * 60 * 24 * 30);
+    const expired = diffMonths >= 1;
+
+    return !expired;
+  };
+
+  // Filter users based on active status
+  const filteredUsers = users.filter(user => {
+    if (activeFilter === 'all') return true;
+    if (activeFilter === 'active') return isUserActive(user);
+    if (activeFilter === 'inactive') return !isUserActive(user);
+    return true;
+  });
+
   // Pagination calculations
-  const totalPages = Math.ceil(users.length / ITEMS_PER_PAGE);
+  const totalPages = Math.ceil(filteredUsers.length / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const endIndex = startIndex + ITEMS_PER_PAGE;
-  const paginatedUsers = users.slice(startIndex, endIndex);
+  const paginatedUsers = filteredUsers.slice(startIndex, endIndex);
 
   const handlePreviousPage = () => {
     setCurrentPage(prev => Math.max(1, prev - 1));
@@ -231,6 +260,15 @@ const AdminContent: React.FC = () => {
   const handleNextPage = () => {
     setCurrentPage(prev => Math.min(totalPages, prev + 1));
   };
+
+  const handleFilterChange = (value: string) => {
+    setActiveFilter(value as 'all' | 'active' | 'inactive');
+    setCurrentPage(1); // Reset to first page when filter changes
+  };
+
+  // Count active and inactive users
+  const activeCount = users.filter(isUserActive).length;
+  const inactiveCount = users.length - activeCount;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -259,6 +297,35 @@ const AdminContent: React.FC = () => {
       </header>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Filter Section */}
+        {!loading && users.length > 0 && (
+          <div className="mb-6 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Filter className="h-5 w-5 text-black" />
+              <span className="text-sm font-medium text-black">Filter nach Status:</span>
+              <Select value={activeFilter} onValueChange={handleFilterChange}>
+                <SelectTrigger className="w-[200px] bg-white text-black">
+                  <SelectValue placeholder="Alle anzeigen" />
+                </SelectTrigger>
+                <SelectContent className="bg-white">
+                  <SelectItem value="all" className="text-black">Alle ({users.length})</SelectItem>
+                  <SelectItem value="active" className="text-black">Aktiv ({activeCount})</SelectItem>
+                  <SelectItem value="inactive" className="text-black">Inaktiv ({inactiveCount})</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex gap-2">
+              <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                {activeCount} Aktiv
+              </Badge>
+              <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">
+                {inactiveCount} Inaktiv
+              </Badge>
+            </div>
+          </div>
+        )}
+
         {loading ? (
           <div className="text-center py-12">
             <p className="text-gray-500">Lade Benutzerdaten...</p>
@@ -267,6 +334,10 @@ const AdminContent: React.FC = () => {
           <div className="text-center py-12">
             <p className="text-gray-500">Keine Benutzer gefunden.</p>
           </div>
+        ) : filteredUsers.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-gray-500">Keine Benutzer für diesen Filter gefunden.</p>
+          </div>
         ) : (
           <>
             <div className="space-y-4">
@@ -274,19 +345,19 @@ const AdminContent: React.FC = () => {
                 const isExpanded = expandedUsers.has(userData.profile.user_id);
 
               return (
-                <Card key={userData.profile.user_id} className="overflow-hidden">
+                <Card key={userData.profile.user_id} className="overflow-hidden bg-white">
                   <CardHeader
-                    className="cursor-pointer hover:bg-gray-50 transition-colors"
+                    className="cursor-pointer hover:bg-gray-100 transition-colors bg-white"
                     onClick={() => toggleUserExpanded(userData.profile.user_id)}
                   >
                     <div className="flex justify-between items-start">
                       <div className="flex-1">
                         <div className="flex items-center gap-3">
-                          <CardTitle className="text-lg text-gray-900">
+                          <CardTitle className="text-lg text-black">
                             {userData.profile.full_name || 'Kein Name'}
                           </CardTitle>
                         </div>
-                        <div className="mt-2 space-y-1 text-sm text-gray-600">
+                        <div className="mt-2 space-y-1 text-sm text-black">
                           {userData.profile.email && <p className="font-medium">Email: {userData.profile.email}</p>}
                           {userData.profile.headline && <p className="font-medium">{userData.profile.headline}</p>}
                           {userData.profile.phone && <p>Telefon: {userData.profile.phone}</p>}
@@ -303,16 +374,16 @@ const AdminContent: React.FC = () => {
                         </div>
                       </div>
                       <div className="flex items-center gap-4">
-                        <div className="text-right text-sm text-gray-500">
+                        <div className="text-right text-sm text-black">
                           <div>{userData.experiences.length} Erfahrungen</div>
                           <div>{userData.education.length} Ausbildungen</div>
                           <div>{userData.skills.length} Fähigkeiten</div>
                           <div>{userData.languages.length} Sprachen</div>
                         </div>
                         {isExpanded ? (
-                          <ChevronUp className="h-5 w-5 text-gray-400" />
+                          <ChevronUp className="h-5 w-5 text-black" />
                         ) : (
-                          <ChevronDown className="h-5 w-5 text-gray-400" />
+                          <ChevronDown className="h-5 w-5 text-black" />
                         )}
                       </div>
                     </div>
@@ -381,7 +452,7 @@ const AdminContent: React.FC = () => {
                             <div className="flex flex-wrap text-gray-900 gap-2">
                               {userData.skills.map((skill) => (
                                 <Badge key={skill.id} variant="outline" className="text-sm text-gray-900">
-                                  {skill.skill_name} {skill.proficiency && `(${skill.proficiency})`}
+                                  {skill.skill_name}
                                 </Badge>
                               ))}
                             </div>
@@ -427,6 +498,9 @@ const AdminContent: React.FC = () => {
                   <span className="text-sm text-gray-600">
                     Seite {currentPage} von {totalPages}
                   </span>
+                  <Badge variant="secondary" className="text-xs">
+                    {startIndex + 1}-{Math.min(endIndex, filteredUsers.length)} von {filteredUsers.length}
+                  </Badge>
                 </div>
 
                 <Button
