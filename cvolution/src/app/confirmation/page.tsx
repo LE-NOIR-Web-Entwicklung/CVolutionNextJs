@@ -52,12 +52,71 @@ export default function Confirmation() {
             body: JSON.stringify({ email: storedEmail, service: storedService }),
           });
           // Call API to send info mail
-          if (storedName && storedService) {
+          if (storedService) {
+            // Check for PDF service form data
+            const firstName = localStorage.getItem("firstName");
+            const lastName = localStorage.getItem("lastName");
+            const birthDate = localStorage.getItem("birthDate");
+            const workLocation = localStorage.getItem("workLocation");
+            const grossAnnualSalary = localStorage.getItem("grossAnnualSalary");
+            const fringeBenefits = localStorage.getItem("fringeBenefits");
+            const linkedinUrl = localStorage.getItem("linkedinUrl");
+            const remarks = localStorage.getItem("remarks");
+            const cvFileBase64 = localStorage.getItem("cvFileBase64");
+            const cvFileName = localStorage.getItem("cvFileName");
+            const salaryFileBase64 = localStorage.getItem("salaryFileBase64");
+            const salaryFileName = localStorage.getItem("salaryFileName");
+
+            const attachments = [];
+            if (cvFileBase64 && cvFileName) {
+              // Remove the data URL prefix to get just the base64 content
+              const base64Content = cvFileBase64.split(',')[1];
+              attachments.push({
+                filename: cvFileName,
+                content: base64Content
+              });
+            }
+            if (salaryFileBase64 && salaryFileName) {
+              // Remove the data URL prefix to get just the base64 content
+              const base64Content = salaryFileBase64.split(',')[1];
+              attachments.push({
+                filename: salaryFileName,
+                content: base64Content
+              });
+            }
+
             fetch("/api/send-info", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ name: storedName, email: storedEmail, service: storedService }),
+              body: JSON.stringify({
+                name: storedName || `${firstName} ${lastName}`,
+                email: storedEmail,
+                service: storedService,
+                firstName,
+                lastName,
+                birthDate,
+                workLocation,
+                grossAnnualSalary,
+                fringeBenefits,
+                linkedinUrl,
+                remarks,
+                attachments: attachments.length > 0 ? attachments : undefined
+              }),
             });
+
+            // Clean up all localStorage data after sending
+            if (firstName) localStorage.removeItem("firstName");
+            if (lastName) localStorage.removeItem("lastName");
+            if (birthDate) localStorage.removeItem("birthDate");
+            if (workLocation) localStorage.removeItem("workLocation");
+            if (grossAnnualSalary) localStorage.removeItem("grossAnnualSalary");
+            if (fringeBenefits) localStorage.removeItem("fringeBenefits");
+            if (linkedinUrl) localStorage.removeItem("linkedinUrl");
+            if (remarks) localStorage.removeItem("remarks");
+            if (cvFileBase64) localStorage.removeItem("cvFileBase64");
+            if (cvFileName) localStorage.removeItem("cvFileName");
+            if (salaryFileBase64) localStorage.removeItem("salaryFileBase64");
+            if (salaryFileName) localStorage.removeItem("salaryFileName");
           }
           localStorage.removeItem("confirmationEmail"); // Clear the email after sending
         }
@@ -152,7 +211,7 @@ export default function Confirmation() {
             Termin für Laufbahnberatung buchen
           </a>
         )}
-        {service.toLowerCase() === "lohnanalyse" && (
+        {service.toLowerCase() === "lohnanalyse telefon" && (
           <a
             href="https://calendly.com/armend-cvolution/lohnanalyse"
             target="_blank"

@@ -3,13 +3,42 @@ import { sendEmail } from '../../../../lib/resend';
 
 export async function POST(request: NextRequest) {
   try {
-    const { name, email, service } = await request.json();
+    const {
+      name,
+      email,
+      service,
+      firstName,
+      lastName,
+      birthDate,
+      workLocation,
+      grossAnnualSalary,
+      fringeBenefits,
+      linkedinUrl,
+      remarks,
+      attachments
+    } = await request.json();
 
-    if (!name || !email || !service) {
-      return NextResponse.json({ message: 'Name, email, and service are required' }, { status: 400 });
+    if (!email || !service) {
+      return NextResponse.json({ message: 'Email and service are required' }, { status: 400 });
     }
 
-    await sendEmail(name, email, service);
+    await sendEmail(
+      name,
+      email,
+      service,
+      undefined,
+      undefined,
+      undefined,
+      attachments,
+      firstName,
+      lastName,
+      birthDate,
+      workLocation,
+      grossAnnualSalary,
+      fringeBenefits,
+      linkedinUrl,
+      remarks
+    );
     return NextResponse.json({ message: 'Info email sent' }, { status: 200 });
   } catch (error) {
     console.error('Error sending info email:', error);

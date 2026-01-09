@@ -10,9 +10,42 @@ export const sendEmail = async (
     service: string,
     address?: string,
     postalCode?: string,
-    message?: string
+    message?: string,
+    attachments?: Array<{ filename: string; content: string }>,
+    firstName?: string,
+    lastName?: string,
+    birthDate?: string,
+    workLocation?: string,
+    grossAnnualSalary?: string,
+    fringeBenefits?: string,
+    linkedinUrl?: string,
+    remarks?: string
 ) => {
-    await resend.emails.send({
+    // Build additional fields HTML for PDF service
+    let additionalFieldsHtml = '';
+    if (firstName || lastName || birthDate || workLocation || grossAnnualSalary) {
+        additionalFieldsHtml = `
+            <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid #e5e7eb;">
+                <h3 style="color: #204878; font-size: 1.2rem; margin-bottom: 12px;">Lohnanalyse Details:</h3>
+                ${firstName ? `<p style='color: #333; font-size: 1.1rem;'><strong>Vorname:</strong> ${firstName}</p>` : ""}
+                ${lastName ? `<p style='color: #333; font-size: 1.1rem;'><strong>Nachname:</strong> ${lastName}</p>` : ""}
+                ${birthDate ? `<p style='color: #333; font-size: 1.1rem;'><strong>Geburtsdatum:</strong> ${birthDate}</p>` : ""}
+                ${workLocation ? `<p style='color: #333; font-size: 1.1rem;'><strong>Arbeitsort:</strong> ${workLocation}</p>` : ""}
+                ${grossAnnualSalary ? `<p style='color: #333; font-size: 1.1rem;'><strong>Bruttojahreslohn:</strong> ${grossAnnualSalary}</p>` : ""}
+                ${fringeBenefits ? `<p style='color: #333; font-size: 1.1rem;'><strong>Fringe & Benefits:</strong> ${fringeBenefits}</p>` : ""}
+                ${linkedinUrl ? `<p style='color: #333; font-size: 1.1rem;'><strong>LinkedIn:</strong> <a href="${linkedinUrl}" style="color: #204878;">${linkedinUrl}</a></p>` : ""}
+                ${remarks ? `<p style='color: #333; font-size: 1.1rem;'><strong>Bemerkungen:</strong> ${remarks}</p>` : ""}
+            </div>
+        `;
+    }
+
+    const emailData: {
+        from: string;
+        to: string;
+        subject: string;
+        html: string;
+        attachments?: Array<{ filename: string; content: string }>;
+    } = {
         from: "CVolution <info@cvolution.ch>",
         to: "info@cvolution.ch",
         subject: `Neue Anfrage ${service}`,
@@ -22,12 +55,14 @@ export const sendEmail = async (
                     <img src="https://cvolution.ch/images/logo.png" alt="CVolution Logo" style="width: 80px; margin-bottom: 24px; display: block; margin-left: auto; margin-right: auto;" />
                     <h1 style="color: #204878; font-size: 1.5rem; margin-bottom: 16px; text-align: center;">Neue Anfrage: ${service}</h1>
                     <div style="margin-bottom: 24px;">
-                        <p style="color: #333; font-size: 1.1rem;"><strong>Name:</strong> ${name}</p>
+                        ${name ? `<p style="color: #333; font-size: 1.1rem;"><strong>Name:</strong> ${name}</p>` : ""}
                         <p style="color: #333; font-size: 1.1rem;"><strong>E-Mail:</strong> ${email}</p>
                         <p style="color: #333; font-size: 1.1rem;"><strong>Service:</strong> ${service}</p>
                         ${address ? `<p style='color: #333; font-size: 1.1rem;'><strong>Strasse + Nr:</strong> ${address}</p>` : ""}
                         ${postalCode ? `<p style='color: #333; font-size: 1.1rem;'><strong>PLZ + Ort:</strong> ${postalCode}</p>` : ""}
                         ${message ? `<p style='color: #333; font-size: 1.1rem;'><strong>Nachricht:</strong> ${message}</p>` : ""}
+                        ${attachments && attachments.length > 0 ? `<p style='color: #333; font-size: 1.1rem;'><strong>Anhänge:</strong> ${attachments.length} Datei(en)</p>` : ""}
+                        ${additionalFieldsHtml}
                     </div>
                     <div style="margin: 32px 0; text-align: center;">
                         <svg width="48" height="48" fill="none" viewBox="0 0 24 24" stroke="#204878" style="display: block; margin: 0 auto;">
@@ -41,7 +76,13 @@ export const sendEmail = async (
                 </div>
             </div>
         `
-    });
+    };
+
+    if (attachments && attachments.length > 0) {
+        emailData.attachments = attachments;
+    }
+
+    await resend.emails.send(emailData);
 };
 
 
@@ -60,7 +101,7 @@ export const sendConfirmationEmail = async (email: string, service: string) => {
             <p style=\"color: #333; font-size: 1.1rem; margin-bottom: 16px;\">Falls du keine Unterlagen zur Verfügung hast, ist das kein Problem – melde dich einfach telefonisch bei uns unter <a href=\"tel:+41764405151\" style=\"color: #204878; text-decoration: underline;\">076 440 51 51</a>.</p>
             <p style=\"color: #333; font-size: 1.1rem;\">Wir freuen uns auf die Zusammenarbeit mit dir!</p>
         `;
-    } else if (service && service.toLowerCase() === "lohnanalyse") {
+    } else if (service && service.toLowerCase() === "lohnanalyse telefon") {
         customMessage = `
             <p style=\"color: #333; font-size: 1.1rem; margin-bottom: 24px;\">Vielen Dank für deine Bestellung!<br />
             Es freut uns, dich bei der Einschätzung deines Lohnes unterstützen zu dürfen.</p>
@@ -68,6 +109,16 @@ export const sendConfirmationEmail = async (email: string, service: string) => {
             <p style=\"color: #333; font-size: 1.1rem; margin-bottom: 16px;\">Über den folgenden Link kannst du direkt einen Termin für das Gespräch buchen.<br />
             <a href=\"https://calendly.com/armend-cvolution/lohnanalyse\" style=\"color: #204878; text-decoration: underline; font-weight: bold;\" target=\"_blank\">Termin buchen</a></p>
             <p style=\"color: #333; font-size: 1.1rem; margin-bottom: 16px;\">Bitte sende uns zudem eine aktuelle Lohnabrechnung sowie eine Übersicht der dir gebotenen Benefits zu.</p>
+            <p style=\"color: #333; font-size: 1.1rem;\">Wir freuen uns auf die Zusammenarbeit mit dir!</p>
+        `;
+    } else if (service && service.toLowerCase() === "lohnanalyse pdf") {
+        customMessage = `
+            <p style=\"color: #333; font-size: 1.1rem; margin-bottom: 24px;\">Vielen Dank für deine Bestellung!<br />
+            Es freut uns, dich bei der Einschätzung deines Lohnes unterstützen zu dürfen.</p>
+            <h2 style=\"color: #204878; font-size: 1.1rem; margin-bottom: 12px;\">Wie geht es weiter?</h2>
+            <p style=\"color: #333; font-size: 1.1rem; margin-bottom: 16px;\">Wir haben deine Angaben und Unterlagen erhalten und werden diese analysieren.</p>
+            <p style=\"color: #333; font-size: 1.1rem; margin-bottom: 16px;\">Du erhältst deine Lohnanalyse als PDF-Dokument innerhalb von 24 Stunden per E-Mail.</p>
+            <p style=\"color: #333; font-size: 1.1rem; margin-bottom: 16px;\">Bei Fragen oder Unklarheiten kannst du dich jederzeit an uns wenden unter <a href=\"mailto:info@cvolution.ch\" style=\"color: #204878; text-decoration: underline;\">info@cvolution.ch</a> oder telefonisch unter <a href=\"tel:+41764405151\" style=\"color: #204878; text-decoration: underline;\">076 440 51 51</a>.</p>
             <p style=\"color: #333; font-size: 1.1rem;\">Wir freuen uns auf die Zusammenarbeit mit dir!</p>
         `;
     } else if (service && service.toLowerCase() === "laufbahnberatung") {
