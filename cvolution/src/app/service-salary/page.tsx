@@ -70,16 +70,22 @@ export default function ServiceSalary() {
               Unsere Leistungen:
             </h3>
             <ul className="list-disc list-inside text-lg leading-relaxed mb-6">
+              <li>Erstellung einer individuellen Lohnanalyse</li>
+              <li>Telefonische Besprechung der Resultate in einem 15-minütigen Telefonat</li>
+              <li>Argumentationsgrundlage für Ihre weitere Planung</li>
+              <li>Beantwortung Ihrer individuellen Fragen zur Einordnung der Analyse</li>
+              <li>Vollständiges PDF-Dokument der Lohnanalyse im Anschluss</li>
               <li>Transparenter Vergleich mit branchenüblichen Gehältern</li>
-              <li>Individuelle Einschätzung basierend auf Ihrer Position und Erfahrung</li>
-              <li>Wertvolle Argumente für Ihre Gehaltsverhandlung</li>
+              <li>Einschätzung basierend auf Position, Erfahrung und Markt</li>
             </ul>
             <p className="text-lg leading-relaxed mb-6">
-              Mit unserer Lohnanalyse erhalten Sie Klarheit und können Ihre
-              berufliche Zukunft besser planen.
+              Für alle, die mehr als nur Zahlen wollen.
+            </p>
+            <p className="text-lg leading-relaxed mb-6">
+              Mit dieser Lohnanalyse erhalten Sie Klarheit und eine fundierte Entscheidungsgrundlage für Ihre nächsten Schritte.
             </p>
             <p className="text-xl font-bold mb-4 text-[#204878]">
-              Preis: CHF 99
+              Preis: CHF 119
             </p>
                          {!showForm && !submitted && (
               <button
