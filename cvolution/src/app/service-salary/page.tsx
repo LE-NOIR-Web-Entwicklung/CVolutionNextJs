@@ -12,6 +12,10 @@ export default function ServiceSalary() {
     const [salaryFile, setSalaryFile] = useState<File | null>(null);
     const [selectedService, setSelectedService] = useState<"phone" | "pdf" | null>(null);
 
+    // Check if coupon code field should be shown
+    const couponExpiryDate = new Date("2026-01-18T23:00:00");
+    const isCouponFieldVisible = new Date() <= couponExpiryDate;
+
     // Form fields for both services
     const [firstName, setFirstName] = useState("");
     const [lastName, setLastName] = useState("");
@@ -21,7 +25,8 @@ export default function ServiceSalary() {
     const [fringeBenefits, setFringeBenefits] = useState("");
     const [linkedinUrl, setLinkedinUrl] = useState("");
     const [remarks, setRemarks] = useState("");
-  
+    const [couponCode, setCouponCode] = useState("");
+
     const convertFileToBase64 = (file: File): Promise<string> => {
       return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -112,10 +117,34 @@ export default function ServiceSalary() {
           setRemarks("");
           setCvFile(null);
           setSalaryFile(null);
+          setCouponCode("");
           // Redirect after 3 seconds with appropriate payment link
-          const paymentUrl = selectedService === "pdf"
-            ? "https://www.saferpay.com/SecurePayGate/MultiUsePayment/364685/17772867/8cf44459-8bf1-4dca-a741-3ad3ce89e104"
-            : "https://www.saferpay.com/SecurePayGate/MultiUsePayment/364685/17772867/e91db818-e534-4eca-848d-70caf1fa6be7";
+          // Check for linkedin30 coupon code (case-insensitive) for PDF service
+          let paymentUrl: string;
+          const isLinkedIn30Coupon = couponCode.toLowerCase() === "linkedin30";
+          const couponExpiryDate = new Date("2026-01-18T23:00:00");
+          const now = new Date();
+          const isCouponValid = isLinkedIn30Coupon && now <= couponExpiryDate;
+
+          // Save coupon information to localStorage
+          if (typeof window !== "undefined") {
+            localStorage.setItem("couponCode", couponCode);
+            localStorage.setItem("couponValid", isCouponValid.toString());
+            localStorage.setItem("couponCurrentDate", now.toISOString());
+            localStorage.setItem("couponExpiryDate", couponExpiryDate.toISOString());
+            localStorage.setItem("isLinkedIn30Coupon", isLinkedIn30Coupon.toString());
+          }
+
+          if (selectedService === "pdf" && isCouponValid) {
+            paymentUrl = "https://www.saferpay.com/SecurePayGate/MultiUsePayment/364685/17772867/ce545182-affa-4b52-bb5d-768c6a9e2860";
+          } else if (selectedService === "pdf") {
+            paymentUrl = "https://www.saferpay.com/SecurePayGate/MultiUsePayment/364685/17772867/8cf44459-8bf1-4dca-a741-3ad3ce89e104";
+          } else if (isCouponValid) {
+            paymentUrl = "https://www.saferpay.com/SecurePayGate/MultiUsePayment/364685/17772867/169e66af-8529-428c-b545-707a497c009c";
+          } else {
+            paymentUrl = "https://www.saferpay.com/SecurePayGate/MultiUsePayment/364685/17772867/e91db818-e534-4eca-848d-70caf1fa6be7";
+          }
+
           window.location.href = paymentUrl;
         }, 3000);
       } catch (error) {
@@ -396,6 +425,23 @@ export default function ServiceSalary() {
                       rows={4}
                     />
                   </div>
+
+                  {/* Coupon Code Field - For both PDF and Phone services, only visible until expiry date */}
+                  {(selectedService === "pdf" || selectedService === "phone") && isCouponFieldVisible && (
+                    <div>
+                      <label className="block mb-1 font-semibold">Gutscheincode</label>
+                      <input
+                        type="text"
+                        className="w-full border rounded px-3 py-2"
+                        placeholder="Gutscheincode eingeben"
+                        value={couponCode}
+                        onChange={e => setCouponCode(e.target.value)}
+                      />
+                      <p className="text-sm text-gray-600 mt-1">
+                        Falls Sie einen Gutscheincode haben, geben Sie ihn hier ein
+                      </p>
+                    </div>
+                  )}
                 </>
               )}
 
