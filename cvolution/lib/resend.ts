@@ -108,7 +108,6 @@ export const sendConfirmationEmail = async (email: string, service: string) => {
             <h2 style=\"color: #204878; font-size: 1.1rem; margin-bottom: 12px;\">Wie geht es weiter?</h2>
             <p style=\"color: #333; font-size: 1.1rem; margin-bottom: 16px;\">Über den folgenden Link kannst du direkt einen Termin für das Gespräch buchen.<br />
             <a href=\"https://calendly.com/armend-cvolution/lohnanalyse\" style=\"color: #204878; text-decoration: underline; font-weight: bold;\" target=\"_blank\">Termin buchen</a></p>
-            <p style=\"color: #333; font-size: 1.1rem; margin-bottom: 16px;\">Bitte sende uns zudem eine aktuelle Lohnabrechnung sowie eine Übersicht der dir gebotenen Benefits zu.</p>
             <p style=\"color: #333; font-size: 1.1rem;\">Wir freuen uns auf die Zusammenarbeit mit dir!</p>
         `;
     } else if (service && service.toLowerCase() === "lohnanalyse pdf") {
