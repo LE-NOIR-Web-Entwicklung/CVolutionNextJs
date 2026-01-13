@@ -10,7 +10,7 @@ export default function Footer() {
     { name: "Angebot", href: "/service" },
     { name: "Über", href: "/about" },
     { name: "Team", href: "/team" },
-    { name: "Self-Service", href: "/self" },
+    // { name: "Self-Service", href: "/self" },
     { name: "Kontakt", href: "/contact" },
   ];
 

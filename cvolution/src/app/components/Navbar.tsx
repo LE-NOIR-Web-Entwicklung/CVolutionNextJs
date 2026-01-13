@@ -67,7 +67,7 @@ export default function Navbar() {
         { name: "Team", href: "/team" }, // Single dropdown item under "Über"
       ],
     },
-    { name: "Self-Service", href: "/self" },
+    // { name: "Self-Service", href: "/self" },
     { name: "Kontakt", href: "/contact" },
   ];
 
