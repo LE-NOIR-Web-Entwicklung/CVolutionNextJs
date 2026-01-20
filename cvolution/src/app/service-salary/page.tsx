@@ -122,7 +122,7 @@ export default function ServiceSalary() {
           // Check for linkedin30 coupon code (case-insensitive) for PDF service
           let paymentUrl: string;
           const isLinkedIn30Coupon = couponCode.toLowerCase() === "linkedin30";
-          const couponExpiryDate = new Date("2026-01-18T23:00:00");
+          const couponExpiryDate = new Date("2026-01-20T23:59:59");
           const now = new Date();
           const isCouponValid = isLinkedIn30Coupon && now <= couponExpiryDate;
 
