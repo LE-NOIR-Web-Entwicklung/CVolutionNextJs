@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { put } from '@vercel/blob';
 
 /**
  * Saferpay After-Payment Callback
  * URL: https://cvolution.ch/api/afterpayment/{{{PAYMENTPAGETOKEN}}}
  *
  * Saferpay redirects here after successful payment.
- * This route redirects to /confirmation which reads localStorage
- * and calls /api/send-info + /api/send-confirmation.
+ * Saves transaction to Vercel Blob, sends push notification,
+ * then sets paymentSuccessful in localStorage and navigates to /confirmation.
  */
 export async function GET(
   request: NextRequest,
@@ -18,6 +19,21 @@ export async function GET(
     paymentToken,
     timestamp: new Date().toISOString()
   });
+
+  // Save transaction to Vercel Blob
+  try {
+    await put(`transactions/successful.json`, JSON.stringify({
+      paymentToken,
+      paymentSuccessful: true,
+      timestamp: new Date().toISOString(),
+    }), {
+      contentType: 'application/json',
+      access: 'public',
+    });
+    console.log('Transaction saved to Vercel Blob:', paymentToken);
+  } catch (blobError) {
+    console.error('Vercel Blob save failed:', blobError);
+  }
 
   // Send push notification via Pushcut
   try {

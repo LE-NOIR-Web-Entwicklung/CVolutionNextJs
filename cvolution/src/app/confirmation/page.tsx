@@ -12,144 +12,132 @@ export default function Confirmation() {
   const [countdown, setCountdown] = useState<number | null>(null);
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
+    if (typeof window === "undefined") return;
+
+    const processPayment = async () => {
       const storedEmail = localStorage.getItem("confirmationEmail");
       const storedService = localStorage.getItem("confirmationService");
       const storedName = localStorage.getItem("confirmationName");
-      
-      if (storedEmail) {
-        setEmail(storedEmail);
-        console.log("Stored Service:", storedService);
-        console.log("Stored email:", storedEmail);
-        // If service is 'self', update paid and paydate in Supabase
-        if (storedService && storedService.toLowerCase() === "self") {
 
-          if (storedName) {
-            supabase
-              .from("profiles")
-              // Use 'as any' to bypass TypeScript property checks for 'paid' and 'paydate'
-              .update({ paid: true, paydate: new Date().toISOString() } as any)
-              .eq("user_id", storedName)
-              .then(() => {
-                let seconds = 5;
-                setCountdown(seconds);
-                const interval = setInterval(() => {
-                  seconds--;
-                  setCountdown(seconds);
-                  if (seconds <= 0) {
-                    clearInterval(interval);
-                    window.location.href = '/self';
-                  }
-                }, 1000);
-              });
+      if (!storedEmail) return;
+
+      setEmail(storedEmail);
+      console.log("Stored Service:", storedService);
+      console.log("Stored email:", storedEmail);
+
+      // Check if payment was successful via Vercel Blob
+      let paymentVerified = false;
+      try {
+        const res = await fetch("/api/check-payment");
+        const data = await res.json();
+        paymentVerified = data.paymentSuccessful === true;
+        console.log("Payment verified via Blob:", paymentVerified);
+      } catch (err) {
+        console.error("Error checking payment:", err);
+      }
+
+      if (!paymentVerified) {
+        console.log("Payment not verified, skipping emails");
+        return;
+      }
+
+      // If service is 'self', update paid and paydate in Supabase
+      if (storedService && storedService.toLowerCase() === "self") {
+        if (storedName) {
+          await supabase
+            .from("profiles")
+            .update({ paid: true, paydate: new Date().toISOString() } as any)
+            .eq("user_id", storedName);
+
+          let seconds = 5;
+          setCountdown(seconds);
+          const interval = setInterval(() => {
+            seconds--;
+            setCountdown(seconds);
+            if (seconds <= 0) {
+              clearInterval(interval);
+              window.location.href = '/self';
+            }
+          }, 1000);
+        }
+      } else {
+        console.log("Sending confirmation and info emails");
+        // Call API to send confirmation mail
+        fetch("/api/send-confirmation", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: storedEmail, service: storedService }),
+        });
+        // Call API to send info mail
+        if (storedService) {
+          const firstName = localStorage.getItem("firstName");
+          const lastName = localStorage.getItem("lastName");
+          const birthDate = localStorage.getItem("birthDate");
+          const workLocation = localStorage.getItem("workLocation");
+          const grossAnnualSalary = localStorage.getItem("grossAnnualSalary");
+          const fringeBenefits = localStorage.getItem("fringeBenefits");
+          const linkedinUrl = localStorage.getItem("linkedinUrl");
+          const remarks = localStorage.getItem("remarks");
+          const cvFileBase64 = localStorage.getItem("cvFileBase64");
+          const cvFileName = localStorage.getItem("cvFileName");
+          const salaryFileBase64 = localStorage.getItem("salaryFileBase64");
+          const salaryFileName = localStorage.getItem("salaryFileName");
+
+          const attachments = [];
+          if (cvFileBase64 && cvFileName) {
+            const base64Content = cvFileBase64.split(',')[1];
+            attachments.push({ filename: cvFileName, content: base64Content });
           }
-        }else {
-          console.log("Sending confirmation and info emails");
-          // Call API to send confirmation mail
-          fetch("/api/send-confirmation", {
+          if (salaryFileBase64 && salaryFileName) {
+            const base64Content = salaryFileBase64.split(',')[1];
+            attachments.push({ filename: salaryFileName, content: base64Content });
+          }
+
+          fetch("/api/send-info", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email: storedEmail, service: storedService }),
+            body: JSON.stringify({
+              name: storedName || `${firstName} ${lastName}`,
+              email: storedEmail,
+              service: storedService,
+              firstName, lastName, birthDate,
+              workLocation, grossAnnualSalary, fringeBenefits,
+              linkedinUrl, remarks,
+              attachments: attachments.length > 0 ? attachments : undefined
+            }),
           });
-          // Call API to send info mail
-          if (storedService) {
-            // Check for PDF service form data
-            const firstName = localStorage.getItem("firstName");
-            const lastName = localStorage.getItem("lastName");
-            const birthDate = localStorage.getItem("birthDate");
-            const workLocation = localStorage.getItem("workLocation");
-            const grossAnnualSalary = localStorage.getItem("grossAnnualSalary");
-            const fringeBenefits = localStorage.getItem("fringeBenefits");
-            const linkedinUrl = localStorage.getItem("linkedinUrl");
-            const remarks = localStorage.getItem("remarks");
-            const cvFileBase64 = localStorage.getItem("cvFileBase64");
-            const cvFileName = localStorage.getItem("cvFileName");
-            const salaryFileBase64 = localStorage.getItem("salaryFileBase64");
-            const salaryFileName = localStorage.getItem("salaryFileName");
 
-            const attachments = [];
-            if (cvFileBase64 && cvFileName) {
-              // Remove the data URL prefix to get just the base64 content
-              const base64Content = cvFileBase64.split(',')[1];
-              attachments.push({
-                filename: cvFileName,
-                content: base64Content
-              });
-            }
-            if (salaryFileBase64 && salaryFileName) {
-              // Remove the data URL prefix to get just the base64 content
-              const base64Content = salaryFileBase64.split(',')[1];
-              attachments.push({
-                filename: salaryFileName,
-                content: base64Content
-              });
-            }
-
-            fetch("/api/send-info", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                name: storedName || `${firstName} ${lastName}`,
-                email: storedEmail,
-                service: storedService,
-                firstName,
-                lastName,
-                birthDate,
-                workLocation,
-                grossAnnualSalary,
-                fringeBenefits,
-                linkedinUrl,
-                remarks,
-                attachments: attachments.length > 0 ? attachments : undefined
-              }),
-            });
-
-            // Clean up all localStorage data after sending
-            if (firstName) localStorage.removeItem("firstName");
-            if (lastName) localStorage.removeItem("lastName");
-            if (birthDate) localStorage.removeItem("birthDate");
-            if (workLocation) localStorage.removeItem("workLocation");
-            if (grossAnnualSalary) localStorage.removeItem("grossAnnualSalary");
-            if (fringeBenefits) localStorage.removeItem("fringeBenefits");
-            if (linkedinUrl) localStorage.removeItem("linkedinUrl");
-            if (remarks) localStorage.removeItem("remarks");
-            if (cvFileBase64) localStorage.removeItem("cvFileBase64");
-            if (cvFileName) localStorage.removeItem("cvFileName");
-            if (salaryFileBase64) localStorage.removeItem("salaryFileBase64");
-            if (salaryFileName) localStorage.removeItem("salaryFileName");
-          }
-          localStorage.removeItem("confirmationEmail"); // Clear the email after sending
+          // Clean up localStorage
+          ["firstName", "lastName", "birthDate", "workLocation",
+           "grossAnnualSalary", "fringeBenefits", "linkedinUrl", "remarks",
+           "cvFileBase64", "cvFileName", "salaryFileBase64", "salaryFileName"
+          ].forEach(key => localStorage.removeItem(key));
         }
-
-        fetch("https://api.pushcut.io/5hvDj_2j6Z0VWd94p-ejG/notifications/CVolution", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-        });
-
-        
-        fetch("https://api.pushcut.io/k8in1RlseA_OthMYAhmQH/notifications/CVolution", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-        });
-
-        // // Call API to send info mail
-        // if (storedName && storedService) {
-        //   fetch("/api/send-info", {
-        //     method: "POST",
-        //     headers: { "Content-Type": "application/json" },
-        //     body: JSON.stringify({ name: storedName, email: storedEmail, service: storedService }),
-        //   });
-        // }
-        localStorage.removeItem("confirmationEmail"); // Clear the email after sending
+        localStorage.removeItem("confirmationEmail");
       }
+
+      // Pushcut notifications
+      fetch("https://api.pushcut.io/5hvDj_2j6Z0VWd94p-ejG/notifications/CVolution", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+      fetch("https://api.pushcut.io/k8in1RlseA_OthMYAhmQH/notifications/CVolution", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      localStorage.removeItem("confirmationEmail");
+
       if (storedService) {
         setService(storedService);
-        localStorage.removeItem("confirmationService"); // Clear the service after sending
+        localStorage.removeItem("confirmationService");
       }
       if (storedName) {
-        localStorage.removeItem("confirmationName"); // Clear the name after sending
+        localStorage.removeItem("confirmationName");
       }
-    }
+    };
+
+    processPayment();
   }, []);
 
   return (
