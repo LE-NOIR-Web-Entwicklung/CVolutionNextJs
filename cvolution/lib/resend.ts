@@ -1,5 +1,3 @@
-"use server";
-
 import { Resend } from "resend"; 
 
 const resend = new Resend(process.env.RESEND_API_KEY);
@@ -89,6 +87,9 @@ export const sendEmail = async (
 
 export const sendConfirmationEmail = async (email: string, service: string) => {
     let customMessage = `<p style=\"color: #333; font-size: 1.1rem; margin-bottom: 24px;\">Wir haben Ihre Anfrage erhalten und werden uns in Kürze bei Ihnen melden.</p>`;
+    console.log('Sending confirmation email to:', email);
+    console.log('With service:', service);
+    console.log(service && service.toLowerCase() === "lebenslauf");
     if (service && service.toLowerCase() === "lebenslauf") {
         customMessage = `
             <p style=\"color: #333; font-size: 1.1rem; margin-bottom: 24px;\">Vielen Dank für deine Bestellung!<br />

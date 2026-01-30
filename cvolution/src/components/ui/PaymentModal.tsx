@@ -13,12 +13,30 @@ interface PaymentModalProps {
 
 
 export const PaymentModal: React.FC<PaymentModalProps> = ({ open, onClose, user, profile, isRenewal = false }) => {
-  const handlePay = () => {
-    if (typeof window !== "undefined") {
-      localStorage.setItem("confirmationEmail", user?.email || "");
-      localStorage.setItem("confirmationService", "self");
-      localStorage.setItem("confirmationName",  profile?.user_id|| "");
-      window.location.href = "https://www.saferpay.com/SecurePayGate/MultiUsePayment/364685/17772867/95543d79-3a8d-4502-a8a1-aee08db29925";
+  const paymentUrl = "https://www.saferpay.com/SecurePayGate/MultiUsePayment/364685/17772867/95543d79-3a8d-4502-a8a1-aee08db29925";
+
+  const handlePay = async () => {
+    if (typeof window === "undefined") return;
+    try {
+      const res = await fetch("/api/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: profile?.user_id || "",
+          email: user?.email || "",
+          serviceType: "self",
+          serviceLabel: "self",
+        }),
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to create order");
+      }
+
+      window.location.href = paymentUrl;
+    } catch (err) {
+      console.error("Error creating order:", err);
+      window.location.href = paymentUrl;
     }
   };
   return (

@@ -72,79 +72,66 @@ export default function ServiceSalary() {
       }
 
       try {
-        // Save data to localStorage
-        if (typeof window !== "undefined") {
-          localStorage.setItem("confirmationEmail", email);
-          localStorage.setItem("confirmationService", service);
+        // Convert files to base64
+        let salaryBase64 = "";
+        let salaryName = "";
+        let cvBase64 = "";
+        let cvName = "";
 
-          // Save all form data for both phone and PDF service
-          if (selectedService === "phone" || selectedService === "pdf") {
-            localStorage.setItem("firstName", firstName);
-            localStorage.setItem("lastName", lastName);
-            localStorage.setItem("birthDate", birthDate);
-            localStorage.setItem("workLocation", workLocation);
-            localStorage.setItem("grossAnnualSalary", grossAnnualSalary);
-            localStorage.setItem("fringeBenefits", fringeBenefits);
-            localStorage.setItem("linkedinUrl", linkedinUrl);
-            localStorage.setItem("remarks", remarks);
-
-            // Convert and save files
-            if (salaryFile) {
-              const salaryBase64 = await convertFileToBase64(salaryFile);
-              localStorage.setItem("salaryFileBase64", salaryBase64);
-              localStorage.setItem("salaryFileName", salaryFile.name);
-            }
-
-            if (cvFile) {
-              const cvBase64 = await convertFileToBase64(cvFile);
-              localStorage.setItem("cvFileBase64", cvBase64);
-              localStorage.setItem("cvFileName", cvFile.name);
-            }
-          }
+        if (salaryFile) {
+          salaryBase64 = await convertFileToBase64(salaryFile);
+          salaryName = salaryFile.name;
         }
+        if (cvFile) {
+          cvBase64 = await convertFileToBase64(cvFile);
+          cvName = cvFile.name;
+        }
+
+        // Determine coupon validity and payment URL
+        const isLinkedIn30Coupon = couponCode.toLowerCase() === "linkedin30";
+        const now = new Date();
+        const isCouponValid = isLinkedIn30Coupon && now <= couponExpiryDate;
+
+        let paymentUrl: string;
+        if (selectedService === "pdf" && isCouponValid) {
+          paymentUrl = "https://www.saferpay.com/SecurePayGate/MultiUsePayment/364685/17772867/ce545182-affa-4b52-bb5d-768c6a9e2860";
+        } else if (selectedService === "pdf") {
+          paymentUrl = "https://www.saferpay.com/SecurePayGate/MultiUsePayment/364685/17772867/8cf44459-8bf1-4dca-a741-3ad3ce89e104";
+        } else if (isCouponValid) {
+          paymentUrl = "https://www.saferpay.com/SecurePayGate/MultiUsePayment/364685/17772867/169e66af-8529-428c-b545-707a497c009c";
+        } else {
+          paymentUrl = "https://www.saferpay.com/SecurePayGate/MultiUsePayment/364685/17772867/e91db818-e534-4eca-848d-70caf1fa6be7";
+        }
+
+        // Save order to Supabase via API (sets orderId cookie)
+        const res = await fetch("/api/orders", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            firstName, lastName, email, birthDate,
+            workLocation, grossAnnualSalary, fringeBenefits,
+            linkedinUrl, remarks,
+            serviceType: selectedService === "phone" ? "salary_phone" : "salary_pdf",
+            serviceLabel: service,
+            cvFileBase64: cvBase64 || null,
+            cvFileName: cvName || null,
+            salaryFileBase64: salaryBase64,
+            salaryFileName: salaryName,
+            couponCode: couponCode || null,
+            couponValid: isCouponValid,
+            paymentUrl
+          }),
+        });
+
+        if (!res.ok) {
+          throw new Error("Failed to create order");
+        }
+
         setSubmitted(true);
         setShowForm(false);
+
+        // Redirect to Saferpay after 3 seconds
         setTimeout(() => {
-          setSubmitted(false);
-          setEmail("");
-          setFirstName("");
-          setLastName("");
-          setBirthDate("");
-          setWorkLocation("");
-          setGrossAnnualSalary("");
-          setFringeBenefits("");
-          setLinkedinUrl("");
-          setRemarks("");
-          setCvFile(null);
-          setSalaryFile(null);
-          setCouponCode("");
-          // Redirect after 3 seconds with appropriate payment link
-          // Check for linkedin30 coupon code (case-insensitive) for PDF service
-          let paymentUrl: string;
-          const isLinkedIn30Coupon = couponCode.toLowerCase() === "linkedin30";
-          const couponExpiryDate = new Date("2026-01-20T23:59:59");
-          const now = new Date();
-          const isCouponValid = isLinkedIn30Coupon && now <= couponExpiryDate;
-
-          // Save coupon information to localStorage
-          if (typeof window !== "undefined") {
-            localStorage.setItem("couponCode", couponCode);
-            localStorage.setItem("couponValid", isCouponValid.toString());
-            localStorage.setItem("couponCurrentDate", now.toISOString());
-            localStorage.setItem("couponExpiryDate", couponExpiryDate.toISOString());
-            localStorage.setItem("isLinkedIn30Coupon", isLinkedIn30Coupon.toString());
-          }
-
-          if (selectedService === "pdf" && isCouponValid) {
-            paymentUrl = "https://www.saferpay.com/SecurePayGate/MultiUsePayment/364685/17772867/ce545182-affa-4b52-bb5d-768c6a9e2860";
-          } else if (selectedService === "pdf") {
-            paymentUrl = "https://www.saferpay.com/SecurePayGate/MultiUsePayment/364685/17772867/8cf44459-8bf1-4dca-a741-3ad3ce89e104";
-          } else if (isCouponValid) {
-            paymentUrl = "https://www.saferpay.com/SecurePayGate/MultiUsePayment/364685/17772867/169e66af-8529-428c-b545-707a497c009c";
-          } else {
-            paymentUrl = "https://www.saferpay.com/SecurePayGate/MultiUsePayment/364685/17772867/e91db818-e534-4eca-848d-70caf1fa6be7";
-          }
-
           window.location.href = paymentUrl;
         }, 3000);
       } catch (error) {

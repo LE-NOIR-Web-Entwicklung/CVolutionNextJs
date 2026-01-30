@@ -11,6 +11,8 @@ export default function ServiceMotivation() {
       const [error, setError] = useState("");
       const [service] = useState("Motivationsschreiben");
     
+      const paymentUrl = "https://www.saferpay.com/SecurePayGate/MultiUsePayment/364685/17772867/6eb3a802-4145-43f1-9782-91013a6a43cc";
+
       const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError("");
@@ -19,21 +21,25 @@ export default function ServiceMotivation() {
           return;
         }
         try {
-          // Save email to sessionStorage for confirmation page
-          if (typeof window !== "undefined") {
-            localStorage.setItem("confirmationEmail", email);
-            localStorage.setItem("confirmationService", service);
-            localStorage.setItem("confirmationName", name);
+          const res = await fetch("/api/orders", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              name,
+              email,
+              serviceType: "motivation",
+              serviceLabel: service,
+            }),
+          });
+
+          if (!res.ok) {
+            throw new Error("Failed to create order");
           }
+
           setSubmitted(true);
           setShowForm(false);
           setTimeout(() => {
-            setSubmitted(false);
-            setName("");
-            setEmail("");
-            // Redirect after 3 seconds
-            window.location.href =
-              "https://www.saferpay.com/SecurePayGate/MultiUsePayment/364685/17772867/6eb3a802-4145-43f1-9782-91013a6a43cc";
+            window.location.href = paymentUrl;
           }, 3000);
         } catch {
           setError("Fehler beim Senden der Anfrage. Bitte versuchen Sie es erneut.");

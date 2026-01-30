@@ -10,6 +10,8 @@ export default function ServiceCheck() {
   const [error, setError] = useState("");
   const [service] = useState("Bewerbungsunterlagen-Check");
 
+  const paymentUrl = "https://www.saferpay.com/SecurePayGate/MultiUsePayment/364685/17772867/ec04d072-37de-4a15-81ec-8c62a28234e1";
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -18,22 +20,25 @@ export default function ServiceCheck() {
       return;
     }
     try {
-      // Save email to sessionStorage for confirmation page
-      if (typeof window !== "undefined") {
-        localStorage.setItem("confirmationEmail", email);
-        localStorage.setItem("confirmationService", service);
-        localStorage.setItem("confirmationName", name);
+      const res = await fetch("/api/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name,
+          email,
+          serviceType: "check",
+          serviceLabel: service,
+        }),
+      });
 
+      if (!res.ok) {
+        throw new Error("Failed to create order");
       }
+
       setSubmitted(true);
       setShowForm(false);
       setTimeout(() => {
-        setSubmitted(false);
-        setName("");
-        setEmail("");
-        // Redirect after 3 seconds
-        window.location.href =
-          "https://www.saferpay.com/SecurePayGate/MultiUsePayment/364685/17772867/ec04d072-37de-4a15-81ec-8c62a28234e1";
+        window.location.href = paymentUrl;
       }, 3000);
     } catch {
       setError("Fehler beim Senden der Anfrage. Bitte versuchen Sie es erneut.");
