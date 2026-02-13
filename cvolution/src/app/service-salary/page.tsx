@@ -229,7 +229,7 @@ export default function ServiceSalary() {
                 </h4>
                 <ul className="list-disc list-inside text-base leading-relaxed mb-6 space-y-1">
                   <li>Erstellung einer individuellen Lohnanalyse auf Basis Ihrer Angaben</li>
-                  <li>Zustellung eines vollständigen PDF-Dokuments innerhalb von 1 Arbeitstag</li>
+                  <li>Zustellung eines vollständigen PDF-Dokuments innerhalb von 2 Arbeitstagen</li>
                   <li>Argumentationsgrundlage für Ihre weitere Planung</li>
                   <li>Transparenter Vergleich mit branchenüblichen Gehältern</li>
                   <li>Einschätzung basierend auf Position, Erfahrung und Markt</li>

@@ -117,7 +117,7 @@ export const sendConfirmationEmail = async (email: string, service: string) => {
             Es freut uns, dich bei der Einschätzung deines Lohnes unterstützen zu dürfen.</p>
             <h2 style=\"color: #204878; font-size: 1.1rem; margin-bottom: 12px;\">Wie geht es weiter?</h2>
             <p style=\"color: #333; font-size: 1.1rem; margin-bottom: 16px;\">Wir haben deine Angaben und Unterlagen erhalten und werden diese analysieren.</p>
-            <p style=\"color: #333; font-size: 1.1rem; margin-bottom: 16px;\">Du erhältst deine Lohnanalyse als PDF-Dokument innerhalb von 1 Arbeitstag per E-Mail.</p>
+            <p style=\"color: #333; font-size: 1.1rem; margin-bottom: 16px;\">Du erhältst deine Lohnanalyse als PDF-Dokument innerhalb von 2 Arbeitstagen per E-Mail.</p>
             <p style=\"color: #333; font-size: 1.1rem; margin-bottom: 16px;\">Bei Fragen oder Unklarheiten kannst du dich jederzeit an uns wenden unter <a href=\"mailto:info@cvolution.ch\" style=\"color: #204878; text-decoration: underline;\">info@cvolution.ch</a> oder telefonisch unter <a href=\"tel:+41764405151\" style=\"color: #204878; text-decoration: underline;\">076 440 51 51</a>.</p>
             <p style=\"color: #333; font-size: 1.1rem;\">Wir freuen uns auf die Zusammenarbeit mit dir!</p>
         `;
