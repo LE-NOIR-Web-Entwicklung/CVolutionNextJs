@@ -113,6 +113,17 @@ export default function Footer() {
             &copy; {new Date().getFullYear()} - CVolution GmbH. Alle Rechte
             vorbehalten.
           </p>
+          <p className="mt-1">
+            Entwickelt und betreut von{" "}
+            <a
+              href="https://ha-meira.ch"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:underline"
+            >
+              HA MEIRA | Webentwicklung
+            </a>
+          </p>
           <div className="flex justify-center space-x-4 mt-2">
             <Link href="/agb" className="hover:underline">
               AGB
