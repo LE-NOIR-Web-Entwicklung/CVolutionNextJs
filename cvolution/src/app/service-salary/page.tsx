@@ -13,8 +13,10 @@ export default function ServiceSalary() {
     const [selectedService, setSelectedService] = useState<"phone" | "pdf" | null>(null);
 
     // Check if coupon code field should be shown
-    const couponExpiryDate = new Date("2026-01-20T23:59:59");
-    const isCouponFieldVisible = new Date() <= couponExpiryDate;
+    const couponStartDate = new Date("2026-03-05T06:00:00");
+    const couponExpiryDate = new Date("2026-03-08T23:59:59");
+    const now = new Date();
+    const isCouponFieldVisible = now >= couponStartDate && now <= couponExpiryDate;
 
     // Form fields for both services
     const [firstName, setFirstName] = useState("");
@@ -88,9 +90,8 @@ export default function ServiceSalary() {
         }
 
         // Determine coupon validity and payment URL
-        const isLinkedIn30Coupon = couponCode.toLowerCase() === "linkedin30";
-        const now = new Date();
-        const isCouponValid = isLinkedIn30Coupon && now <= couponExpiryDate;
+        const isLinkedIn30Coupon = couponCode.toLowerCase() === "frauen2026";
+        const isCouponValid = isLinkedIn30Coupon && now >= couponStartDate && now <= couponExpiryDate;
 
         let paymentUrl: string;
         if (selectedService === "pdf" && isCouponValid) {
