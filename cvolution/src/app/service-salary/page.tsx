@@ -13,7 +13,7 @@ export default function ServiceSalary() {
     const [selectedService, setSelectedService] = useState<"phone" | "pdf" | null>(null);
 
     // Check if coupon code field should be shown
-    const couponStartDate = new Date("2026-03-05T06:00:00");
+    const couponStartDate = new Date("2026-03-08T06:00:00");
     const couponExpiryDate = new Date("2026-03-08T23:59:59");
     const now = new Date();
     const isCouponFieldVisible = now >= couponStartDate && now <= couponExpiryDate;
