@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { FaLinkedin, FaPhone, FaEnvelope } from "react-icons/fa";
+ import { FaLinkedin, FaPhone, FaEnvelope } from "react-icons/fa";
 
 export default function Team() {
   const teamMembers = [
@@ -24,50 +24,57 @@ export default function Team() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#204878] text-white">
-      {/* Team Section */}
-      <section className="py-16 px-4 lg:px-16">
-        <div className="container mx-auto">
-          <h2 className="text-3xl font-bold mb-12 text-center">
-            Das Team hinter <span className="text-blue-300">CVolution</span>
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-8">
+    <div className="min-h-screen bg-[#0F172A] bg-[#193961]">
+      <section className="py-24">
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="text-center mb-16">
+            <h1 className="text-4xl sm:text-5xl font-semibold text-white mb-4">
+              Das Team hinter CVolution
+            </h1>
+            <p className="text-lg text-gray-400 max-w-xl mx-auto">
+              Erfahrene Experten mit über 10 Jahren Branchenerfahrung.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-3xl mx-auto">
             {teamMembers.map((member, index) => (
               <div
                 key={index}
-                className="bg-white text-black p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300"
+                className="bg-white/5 border border-white/10 rounded-2xl p-8 text-center hover:bg-white/10 transition-colors duration-200"
               >
                 <Image
                   src={member.image}
                   alt={member.name}
-                  width={150}
-                  height={150}
-                  className="rounded-full mx-auto mb-4"
+                  width={112}
+                  height={112}
+                  className="rounded-full mx-auto mb-5 object-cover"
                 />
-                <h3 className="text-xl font-bold text-center mb-2">
+                <h3 className="text-lg font-semibold text-white mb-1">
                   {member.name}
                 </h3>
-                <p className="text-gray-600 text-center">{member.position}</p>
-                <div className="flex justify-center mt-4 space-x-4">
+                <p className="text-sm text-gray-400 mb-6">{member.position}</p>
+                <div className="flex justify-center gap-5">
                   <a
                     href={`tel:${member.phone}`}
-                    className="text-gray-600 hover:text-gray-800"
+                    className="text-gray-500 hover:text-white transition-colors"
+                    aria-label="Telefon"
                   >
-                    <FaPhone size={20} />
+                    <FaPhone size={18} />
                   </a>
                   <a
                     href={`mailto:${member.email}`}
-                    className="text-gray-600 hover:text-gray-800"
+                    className="text-gray-500 hover:text-white transition-colors"
+                    aria-label="E-Mail"
                   >
-                    <FaEnvelope size={20} />
+                    <FaEnvelope size={18} />
                   </a>
                   <a
                     href={member.linkedin}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-gray-600 hover:text-gray-800"
+                    className="text-gray-500 hover:text-white transition-colors"
+                    aria-label="LinkedIn"
                   >
-                    <FaLinkedin size={20} />
+                    <FaLinkedin size={18} />
                   </a>
                 </div>
               </div>

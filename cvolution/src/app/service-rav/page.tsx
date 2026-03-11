@@ -9,7 +9,7 @@ export default function ServiceRAV() {
       const [submitted, setSubmitted] = useState(false);
       const [error, setError] = useState("");
       const [service] = useState("RAV Unterstützung");
-    
+
       const paymentUrl = "https://www.saferpay.com/SecurePayGate/MultiUsePayment/364685/17772867/be8ed3d0-b265-45ad-b2ff-3e2a47707ed6";
 
       const handleSubmit = async (e: React.FormEvent) => {
@@ -46,101 +46,127 @@ export default function ServiceRAV() {
     };
 
   return (
-    <div className="min-h-screen bg-white text-gray-800">
-      <div className="container mx-auto px-4 py-16">
-        <h1 className="text-4xl font-bold text-center mb-12 text-[#204878]">
-          RAV Unterstützung
-        </h1>
-        <div className="grid grid-cols-1 lg:grid-cols-1 gap-16 items-center">
-          {/* Left Section: Image */}
-          <div className="flex justify-center">
-            <Image
-              src="/images/customer-service.png" // Replace with the actual image path
-              alt="Unterstützung beim RAV"
-              width={150}
-              height={150}
-              className="rounded-lg"
-              style={{ maxWidth: "100%", height: "auto" }} // Responsive image
-            />
+    <div className="min-h-screen bg-[#F8FAFC]">
+      <section className="py-24">
+        <div className="max-w-6xl mx-auto px-6">
+          {/* Header */}
+          <div className="text-center mb-16">
+            <div className="flex justify-center mb-6">
+              <Image
+                src="/images/customer-service.png"
+                alt="Unterstützung beim RAV"
+                width={72}
+                height={72}
+              />
+            </div>
+            <h1 className="text-4xl sm:text-5xl font-semibold text-[#111827] mb-4">
+              RAV Unterstützung
+            </h1>
+            <p className="text-lg text-[#64748B] max-w-xl mx-auto">
+              Kompetente Begleitung bei RAV-Anforderungen und Bewerbungsunterlagen.
+            </p>
           </div>
 
-          {/* Right Section: Content */}
-          <div>
-            <h2 className="text-3xl font-bold mb-6 text-[#204878]">
+          {/* Content Card */}
+          <div className="max-w-3xl mx-auto bg-white rounded-2xl border border-gray-100 shadow-sm p-8 md:p-12">
+            <h2 className="text-2xl font-semibold text-[#111827] mb-6">
               Ihre Unterstützung bei RAV-Angelegenheiten
             </h2>
-            <p className="text-lg leading-relaxed mb-6">
-            Die Zusammenarbeit mit dem RAV kann eine Herausforderung darstellen, besonders wenn Sie sich unsicher sind, wie Sie die Anforderungen korrekt umsetzen. Unser Service bietet Ihnen eine umfassende Unterstützung, um den Prozess reibungslos zu gestalten. Wir helfen Ihnen, ein vollständiges und überzeugendes Bewerbungsdossier zu erstellen, unterstützen Sie bei der Nachweisführung für Bewerbungsaktivitäten und bereiten Sie auf Gespräche und Termine mit dem RAV vor. Unser Ziel ist es, Ihnen den Rücken freizuhalten, sodass Sie sich auf die wichtigen Schritte Ihrer beruflichen Zukunft konzentrieren können. Mit unserer Expertise stellen Sie sicher, dass alle Vorgaben erfüllt werden und Ihre Bewerbungen höchsten Standards entsprechen.
+            <p className="text-base text-[#64748B] leading-relaxed mb-8">
+              Die Zusammenarbeit mit dem RAV kann eine Herausforderung darstellen, besonders wenn Sie sich unsicher sind, wie Sie die Anforderungen korrekt umsetzen. Unser Service bietet Ihnen eine umfassende Unterstützung, um den Prozess reibungslos zu gestalten. Wir helfen Ihnen, ein vollständiges und überzeugendes Bewerbungsdossier zu erstellen, unterstützen Sie bei der Nachweisführung für Bewerbungsaktivitäten und bereiten Sie auf Gespräche und Termine mit dem RAV vor. Unser Ziel ist es, Ihnen den Rücken freizuhalten, sodass Sie sich auf die wichtigen Schritte Ihrer beruflichen Zukunft konzentrieren können. Mit unserer Expertise stellen Sie sicher, dass alle Vorgaben erfüllt werden und Ihre Bewerbungen höchsten Standards entsprechen.
             </p>
-            <h3 className="text-2xl font-bold mb-4 text-[#204878]">
-              Unsere Leistungen:
+
+            <h3 className="text-base font-semibold text-[#111827] mb-4 uppercase tracking-wide">
+              Unsere Leistungen
             </h3>
-            <ul className="list-disc list-inside text-lg leading-relaxed mb-6">
-              <li>Unterstützung bei der Erfüllung von RAV-Vorgaben</li>
-              <li>Erstellung von Lebenslauf und Motivationsschreiben</li>
-              <li>Vorbereitung auf Bewerbungsgespräche</li>
+            <ul className="space-y-3 mb-8">
+              {[
+                "Unterstützung bei der Erfüllung von RAV-Vorgaben",
+                "Erstellung von Lebenslauf und Motivationsschreiben",
+                "Vorbereitung auf Bewerbungsgespräche",
+              ].map((item, i) => (
+                <li key={i} className="flex items-start gap-3 text-[#64748B]">
+                  <svg className="w-5 h-5 text-[#204878] mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span className="text-base leading-relaxed">{item}</span>
+                </li>
+              ))}
             </ul>
-            <p className="text-lg leading-relaxed mb-6">
+
+            <p className="text-base text-[#64748B] leading-relaxed mb-8">
               Mit unserer Hilfe meistern Sie die Herausforderungen des RAV und
               können sich auf Ihre berufliche Zukunft konzentrieren.
             </p>
-            <p className="text-xl font-bold mb-4 text-[#204878]">
-              Preis: ab CHF 99
-            </p>
-                        {!showForm && !submitted && (
-              <button
-                onClick={() => setShowForm(true)}
-                className="inline-block px-4 py-3 mt-4 text-white font-bold bg-[#204878] rounded-lg shadow-lg hover:bg-[#1a3a66] transform hover:scale-105 transition duration-300"
-              >
-                Jetzt buchen
-              </button>
-            )}
-            {showForm && !submitted && (
-              <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+
+            <div className="border-t border-gray-100 pt-8">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
                 <div>
-                  <label className="block mb-1 font-semibold">Name + Vorname</label>
-                  <input
-                    type="text"
-                    className="w-full border rounded px-3 py-2"
-                    value={name}
-                    onChange={e => setName(e.target.value)}
-                    required
-                  />
+                  <p className="text-sm text-[#64748B] mb-1">Preis</p>
+                  <p className="text-3xl font-semibold text-[#111827]">ab CHF 99</p>
                 </div>
-                <div>
-                  <label className="block mb-1 font-semibold">E-Mail</label>
-                  <input
-                    type="email"
-                    className="w-full border rounded px-3 py-2"
-                    value={email}
-                    onChange={e => setEmail(e.target.value)}
-                    required
-                  />
+
+                {!showForm && !submitted && (
+                  <button
+                    onClick={() => setShowForm(true)}
+                    className="px-8 py-3 bg-[#204878] text-white font-semibold rounded-xl hover:bg-[#1a3a66] transition-colors duration-200 text-sm"
+                  >
+                    Jetzt buchen
+                  </button>
+                )}
+              </div>
+
+              {showForm && !submitted && (
+                <form onSubmit={handleSubmit} className="mt-8 space-y-5">
+                  <div>
+                    <label className="block text-sm font-semibold text-[#111827] mb-2">Name + Vorname</label>
+                    <input
+                      type="text"
+                      className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#204878] focus:border-transparent transition"
+                      value={name}
+                      onChange={e => setName(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-[#111827] mb-2">E-Mail</label>
+                    <input
+                      type="email"
+                      className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#204878] focus:border-transparent transition"
+                      value={email}
+                      onChange={e => setEmail(e.target.value)}
+                      required
+                    />
+                  </div>
+                  {error && <p className="text-sm text-red-600 bg-red-50 rounded-lg px-4 py-3">{error}</p>}
+                  <div className="flex gap-3 pt-2">
+                    <button
+                      type="submit"
+                      className="flex-1 px-6 py-3 bg-[#204878] text-white font-semibold rounded-xl hover:bg-[#1a3a66] transition-colors text-sm"
+                    >
+                      Bestellung abschliessen
+                    </button>
+                    <button
+                      type="button"
+                      className="px-6 py-3 bg-gray-100 text-[#64748B] font-semibold rounded-xl hover:bg-gray-200 transition-colors text-sm"
+                      onClick={() => setShowForm(false)}
+                    >
+                      Abbrechen
+                    </button>
+                  </div>
+                </form>
+              )}
+              {submitted && (
+                <div className="mt-8 bg-green-50 border border-green-100 rounded-xl px-6 py-4">
+                  <p className="text-sm text-green-700 font-medium">
+                    Vielen Dank für Ihre Anfrage! Wir leiten Sie in Kürze zur Bezahlung weiter. Bitte warten Sie einen Moment.
+                  </p>
                 </div>
-                {error && <p className="text-red-600">{error}</p>}
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-[#204878] text-white rounded font-bold hover:bg-[#1a3a66] transition"
-                >
-                  Bestellung abschliessen
-                </button>
-                <button
-                  type="button"
-                  className="ml-2 px-4 py-2 bg-gray-200 rounded font-bold hover:bg-gray-300 transition"
-                  onClick={() => setShowForm(false)}
-                >
-                  Abbrechen
-                </button>
-              </form>
-            )}
-            {submitted && (
-              <p className="mt-6 text-green-700 font-bold">
-                Vielen Dank für Ihre Anfrage! Wir leiten Sie in Kürze zur Bezahlung weiter. Bitte warten Sie einen Moment.
-              </p>
-            )}
+              )}
+            </div>
           </div>
         </div>
-      </div>
+      </section>
     </div>
   );
 }

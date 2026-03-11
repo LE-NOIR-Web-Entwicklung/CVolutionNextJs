@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import { FaLinkedin, FaPhone, FaEnvelope } from "react-icons/fa";
+import Link from "next/link";
 
 export default function Home() {
   const slides = [
@@ -79,104 +80,228 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-[#F8FAFC]">
       {/* Hero Section */}
-      <section className="relative h-[85vh] flex flex-col items-center justify-center bg-[#204878] text-white">
-        {/* Slide Content */}
-        <div className="text-center w-11/12 sm:w-3/4 lg:w-1/2">
-          <div className="flex justify-center">
-            <Image
-              src={`/images/slider-${currentSlide + 1}.png`}
-              alt={`Extra Image ${currentSlide + 1}`}
-              width={200}
-              height={50}
-              className="rounded-lg animate-float"
-            />
+      {/* <section className="relative min-h-[88vh] flex flex-col items-center justify-center bg-[#0F172A] overflow-hidden">
+        {/* Base gradient 
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_#1e3a5f_0%,_#0F172A_70%)]" />
+        {/* Ambient glow behind content 
+        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] rounded-full bg-[#204878]/30 blur-3xl pointer-events-none" />
+        {/* Subtle top edge highlight 
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+
+        <div className="relative z-10 text-center max-w-4xl mx-auto px-6 py-32">
+          {/* Icon 
+          <div className="flex justify-center mb-10">
+            <div className="relative">
+              <div className="absolute inset-0 rounded-2xl bg-white/10 blur-xl scale-110" />
+              <Image
+                src={`/images/slider-${currentSlide + 1}.png`}
+                alt={`Extra Image ${currentSlide + 1}`}
+                width={96}
+                height={96}
+                className="relative rounded-2xl drop-shadow-[0_10px_30px_rgba(0,0,0,0.4)] animate-float"
+              />
+            </div>
           </div>
-          <h2 className="text-2xl sm:text-4xl lg:text-6xl font-bold">
+
+          {/* Headline
+          <h1 className="text-5xl sm:text-6xl md:text-7xl font-semibold text-white leading-tight tracking-tight mb-6">
             {slides[currentSlide].title}
-          </h2>
-          <p className="text-sm sm:text-lg lg:text-xl">{slides[currentSlide].description}</p>
-          {/* <a
-            href={slides[currentSlide].link}
-            className="inline-block px-6 py-3 mt-4 text-white font-bold bg-[#4c6c93] rounded-lg shadow-lg hover:bg-[#1a3a66] transform hover:scale-105 transition duration-300"
-          >
-            Angebot
-          </a> */}
+          </h1>
+
+          {/* Description
+          <p className="text-lg text-blue-100/80 leading-relaxed max-w-xl mx-auto mb-10">
+            {slides[currentSlide].description}
+          </p>
+
+          {/* CTA Buttons
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <a
+              href={slides[currentSlide].link}
+              className="px-7 py-3.5 bg-white text-[#204878] font-semibold rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 text-sm"
+            >
+              Jetzt buchen
+            </a>
+            <a
+              href="/service"
+              className="px-7 py-3.5 border border-white/20 bg-white/10 text-white font-medium rounded-xl hover:bg-white/20 hover:-translate-y-0.5 transition-all duration-300 text-sm backdrop-blur-sm"
+            >
+              Alle Leistungen →
+            </a>
+          </div>
         </div>
 
-        {/* Slider Controls */}
-        <div>
-          <button
-            onClick={prevSlide}
-            className="absolute top-1/2 left-4 transform -translate-y-1/2 bg-white text-blue-950 p-2 rounded-full shadow hover:bg-gray-200"
-          >
-            &#8249;
-          </button>
-          <button
-            onClick={nextSlide}
-            className="absolute top-1/2 right-4 transform -translate-y-1/2 bg-white text-blue-950 p-2 rounded-full shadow hover:bg-gray-200"
-          >
-            &#8250;
-          </button>
-        </div>
+        {/* Slider Controls
+        <button
+          onClick={prevSlide}
+          className="absolute top-1/2 left-6 -translate-y-1/2 w-10 h-10 flex items-center justify-center bg-white/10 hover:bg-white/20 text-white rounded-full transition-colors duration-200 backdrop-blur-sm border border-white/10"
+          aria-label="Vorheriger Slide"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+        <button
+          onClick={nextSlide}
+          className="absolute top-1/2 right-6 -translate-y-1/2 w-10 h-10 flex items-center justify-center bg-white/10 hover:bg-white/20 text-white rounded-full transition-colors duration-200 backdrop-blur-sm border border-white/10"
+          aria-label="Nächster Slide"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
 
-        {/* Dots Indicator */}
-        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
+        {/* Dots Indicator 
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-2">
           {slides.map((_, index) => (
-            <div
+            <button
               key={index}
-              className={`w-3 h-3 rounded-full ${
-                index === currentSlide ? "bg-white" : "bg-gray-400"
+              onClick={() => setCurrentSlide(index)}
+              className={`transition-all duration-300 rounded-full ${
+                index === currentSlide
+                  ? "w-6 h-2 bg-white"
+                  : "w-2 h-2 bg-white/30 hover:bg-white/50"
               }`}
-            ></div>
+              aria-label={`Slide ${index + 1}`}
+            />
           ))}
         </div>
+      </section> */}
+      <section className="relative min-h-[75vh] flex items-center bg-[#0F172A] text-white overflow-hidden">
+        {/* Radial gradient background */}
+        <div className="absolute inset-0 bg-[#193961]" />
+
+        {/* Ambient glow */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[500px] rounded-full bg-[#2563EB]/10 blur-3xl pointer-events-none" />
+        <div className="absolute top-1/2 left-1/4 w-[400px] h-[400px] rounded-full bg-[#204878]/20 blur-3xl pointer-events-none" />
+
+        {/* Top edge highlight */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+
+        <div className="relative z-10 w-full max-w-5xl mx-auto px-6 py-24 sm:py-32">
+          <div className="text-center flex flex-col items-center">
+
+            {/* Badge */}
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-white/8 rounded-full text-xs font-medium text-blue-200 mb-10 border border-white/10 backdrop-blur-sm">
+              <span className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-pulse" />
+              10&apos;000+ analysierte Bewerbungen
+            </div>
+
+            {/* Headline */}
+            <h1 className="text-5xl md:text-6xl font-semibold tracking-tight leading-tight mb-6 max-w-3xl">
+              Unsere Bewerbung,{" "}
+              <br className="hidden sm:block" />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-300 to-blue-500">
+                deine Entwicklung
+              </span>
+            </h1>
+
+            {/* Subheadline */}
+            <p className="text-lg text-blue-100/70 leading-relaxed max-w-xl mb-10">
+              Unsere Experten unterstützen Sie bei Lebenslauf, Lohnanalyse und Laufbahnberatung – basierend auf über 10&apos;000 analysierten Bewerbungen.
+            </p>
+
+            {/* CTA Buttons */}
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-14">
+              <Link
+                href="/service-sala"
+                className="inline-flex items-center justify-center px-6 py-3 bg-white text-[#0F172A] font-semibold rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200 text-sm"
+              >
+                Lohnanalyse buchen
+                <svg className="w-4 h-4 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                </svg>
+              </Link>
+              <Link
+                href="/service"
+                className="inline-flex items-center justify-center px-6 py-3 bg-white/10 text-white font-medium rounded-xl hover:bg-white/20 hover:-translate-y-0.5 transition-all duration-200 border border-white/15 text-sm backdrop-blur-sm"
+              >
+                Alle Angebote ansehen
+              </Link>
+            </div>
+
+            {/* Service Highlights */}
+            <div className="flex flex-wrap justify-center gap-2 text-sm">
+              {[
+                { label: "Lohnanalyse", href: "/service-salary" },
+                { label: "Laufbahnberatung", href: "/service-career" },
+                { label: "Lebenslauf", href: "/service-cv" },
+                { label: "Motivationsschreiben", href: "/service-motivation" },
+                { label: "CV Check", href: "/service-check" },
+              ].map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/8 border border-white/10 text-blue-200/70 hover:text-white hover:bg-white/15 hover:border-white/20 transition-all duration-150"
+                >
+                  <svg className="w-3 h-3 text-blue-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                  {item.label}
+                </Link>
+              ))}
+            </div>
+
+          </div>
+        </div>
+
+        {/* Bottom fade */}
+        <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-[#0F172A]/60 to-transparent pointer-events-none" />
       </section>
 
-      <div className="min-h-screen bg-gray-100">
-        {/* Products Section */}
-        <section className="py-16">
-          <div className="container mx-auto px-4">
-            <h2 className="text-3xl font-bold text-center mb-12 text-gray-800">
-              Unser <span className="text-[#204878]">Angebot</span>
+      {/* Products Section */}
+      <section className="py-24 bg-[#F8FAFC]">
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl sm:text-4xl font-semibold text-[#111827] mb-4">
+              Unser Angebot
             </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-              {products.map((product, index) => (
-                <div
-                  key={index}
-                  className="bg-white p-6 rounded-lg shadow-lg text-center hover:shadow-xl transition-shadow duration-300"
-                >
+            <p className="text-lg text-[#64748B] max-w-xl mx-auto">
+              Professionelle Unterstützung für jeden Schritt Ihrer Karriere.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {products.map((product, index) => (
+              <a
+                key={index}
+                href={product.link}
+                className="group bg-white rounded-2xl border border-gray-100 p-8 shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-0.5 flex flex-col"
+              >
+                <div className="mb-5">
                   <Image
                     src={product.image}
                     alt={product.name}
-                    width={75}
-                    height={75}
-                    className="mx-auto mb-4 rounded-lg"
+                    width={48}
+                    height={48}
                   />
-                  <h3 className="text-xl font-bold mb-2 text-gray-800">{product.name}</h3>
-                  <p className="text-gray-600">{product.description}</p>
-                  <p className="text-gray-600 mt-2">Preis: {product.price}</p>
-                  <a
-                    href={products[index].link}
-                    className="inline-block px-6 py-3 mt-4 text-white font-bold bg-[#4c6c93] rounded-lg shadow-lg hover:bg-[#1a3a66] transform hover:scale-105 transition duration-300"
-                  >
-                    Angebot
-                  </a>
                 </div>
-              ))}
-            </div>
+                <h3 className="text-lg font-semibold text-[#111827] mb-2">{product.name}</h3>
+                <p className="text-sm text-[#64748B] leading-relaxed flex-1">{product.description}</p>
+                <div className="mt-6 flex items-center justify-between">
+                  <span className="text-sm font-semibold text-[#204878]">{product.price}</span>
+                  <span className="text-sm font-medium text-[#204878]">
+                    Details →
+                  </span>
+                </div>
+              </a>
+            ))}
           </div>
-        </section>
-      </div>
+        </div>
+      </section>
 
       {/* Team Section */}
-      <section className="py-16 bg-[#0a396b] bg-opacity-90">
-        <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-12 text-white">
-            Unser <span className="text-blue-300">Team</span>
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-8">
+      <section className="py-24 bg-[#0F172A] bg-[#193961]">
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl sm:text-4xl font-semibold text-white mb-4">
+              Unser Team
+            </h2>
+            <p className="text-lg text-gray-400 max-w-xl mx-auto">
+              Erfahrene Experten, die Ihre Karriere voranbringen.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-3xl mx-auto">
             {[
               {
                 name: "Armend Mustafa",
@@ -197,39 +322,42 @@ export default function Home() {
             ].map((member, index) => (
               <div
                 key={index}
-                className="bg-gray-100 p-6 rounded-lg shadow-lg text-center"
+                className="bg-white/5 border border-white/10 rounded-2xl p-8 text-center hover:bg-white/10 transition-colors duration-200"
               >
                 <Image
-                  src={member.image} 
+                  src={member.image}
                   alt={member.name}
-                  width={150}
-                  height={150}
-                  className="rounded-full mx-auto mb-4"
+                  width={96}
+                  height={96}
+                  className="rounded-full mx-auto mb-5 object-cover"
                 />
-                <h3 className="text-xl font-bold mb-2 text-gray-800">
+                <h3 className="text-lg font-semibold text-white mb-1">
                   {member.name}
                 </h3>
-                <p className="text-gray-600">{member.position}</p>
-                <div className="flex justify-center mt-4 space-x-4">
+                <p className="text-sm text-gray-400 mb-5">{member.position}</p>
+                <div className="flex justify-center gap-4">
                   <a
                     href={`tel:${member.phone}`}
-                    className="text-gray-600 hover:text-gray-800"
+                    className="text-gray-500 hover:text-white transition-colors"
+                    aria-label="Telefon"
                   >
-                    <FaPhone size={20} />
+                    <FaPhone size={16} />
                   </a>
                   <a
                     href={`mailto:${member.email}`}
-                    className="text-gray-600 hover:text-gray-800"
+                    className="text-gray-500 hover:text-white transition-colors"
+                    aria-label="E-Mail"
                   >
-                    <FaEnvelope size={20} />
+                    <FaEnvelope size={16} />
                   </a>
                   <a
                     href={member.linkedin}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-gray-600 hover:text-gray-800"
+                    className="text-gray-500 hover:text-white transition-colors"
+                    aria-label="LinkedIn"
                   >
-                    <FaLinkedin size={20} />
+                    <FaLinkedin size={16} />
                   </a>
                 </div>
               </div>
@@ -240,3 +368,4 @@ export default function Home() {
     </div>
   );
 }
+

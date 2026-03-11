@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-
+ 
 export default function Service() {
   const products = [
     {
@@ -25,8 +25,6 @@ export default function Service() {
       price: "CHF 69",
       link: "/service-salary",
     },
-    
-    
     {
       name: "Motivationsschreiben",
       description: "Gemeinsames Erarbeiten Ihrer individuellen Argumente. Formulierung eines überzeugenden Motivationsschreibens. Angepasst an spezifische Stellenanforderungen",
@@ -51,36 +49,41 @@ export default function Service() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      {/* Products Section */}
-      <section className="py-16">
-        <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-12 text-gray-800">
-            Unser <span className="text-blue-[#204878]">Angebot</span>
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+    <div className="min-h-screen bg-[#F8FAFC]">
+      <section className="py-24">
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="text-center mb-16">
+            <h1 className="text-4xl sm:text-5xl font-semibold text-[#111827] mb-4">
+              Unser Angebot
+            </h1>
+            <p className="text-lg text-[#64748B] max-w-xl mx-auto">
+              Professionelle Unterstützung für jeden Schritt Ihrer Karriere.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {products.map((product, index) => (
-              <div
+              <a
                 key={index}
-                className="bg-white p-6 rounded-lg shadow-lg text-center hover:shadow-xl transition-shadow duration-300"
+                href={products[index].link}
+                className="group bg-white rounded-2xl border border-gray-100 p-8 shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-0.5 flex flex-col"
               >
-                <Image
-                  src={product.image}
-                  alt={product.name}
-                  width={75}
-                  height={75}
-                  className="mx-auto mb-4 rounded-lg"
-                />
-                <h3 className="text-xl font-bold mb-2 text-gray-800">{product.name}</h3>
-                <p className="text-gray-600">{product.description}</p>
-                <p className="text-gray-600 mt-2">Preis: {product.price}</p>
-                <a
-                    href={products[index].link}
-                    className="inline-block px-6 py-3 mt-4 text-white font-bold bg-[#4c6c93] rounded-lg shadow-lg hover:bg-[#1a3a66] transform hover:scale-105 transition duration-300"
-                  >
-                    Angebot
-                  </a>
-              </div>
+                <div className="mb-5">
+                  <Image
+                    src={product.image}
+                    alt={product.name}
+                    width={48}
+                    height={48}
+                  />
+                </div>
+                <h3 className="text-lg font-semibold text-[#111827] mb-2">{product.name}</h3>
+                <p className="text-sm text-[#64748B] leading-relaxed flex-1">{product.description}</p>
+                <div className="mt-6 flex items-center justify-between">
+                  <span className="text-sm font-semibold text-[#204878]">{product.price}</span>
+                  <span className="text-sm font-medium text-[#204878]">
+                    Angebot →
+                  </span>
+                </div>
+              </a>
             ))}
           </div>
         </div>

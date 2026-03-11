@@ -46,108 +46,127 @@ export default function ServiceCheck() {
 };
 
   return (
-    <div className="min-h-screen bg-white text-gray-800">
-      <div className="container mx-auto px-4 py-16">
-        <h1 className="text-4xl font-bold text-center mb-12 text-[#204878]">
-          Check
-        </h1>
-        <div className="grid grid-cols-1 lg:grid-cols-1 gap-16 items-center">
-          {/* Left Section: Image */}
-          <div className="flex justify-center">
-            <Image
-              src="/images/checked.png" // Replace with the actual image path
-              alt="Check"
-              width={150}
-              height={150}
-              className="rounded-lg"
-              style={{ maxWidth: "100%", height: "auto" }} // Responsive image
-            />
+    <div className="min-h-screen bg-[#F8FAFC]">
+      <section className="py-24">
+        <div className="max-w-6xl mx-auto px-6">
+          {/* Header */}
+          <div className="text-center mb-16">
+            <div className="flex justify-center mb-6">
+              <Image
+                src="/images/checked.png"
+                alt="Check"
+                width={72}
+                height={72}
+              />
+            </div>
+            <h1 className="text-4xl sm:text-5xl font-semibold text-[#111827] mb-4">
+              Check
+            </h1>
+            <p className="text-lg text-[#64748B] max-w-xl mx-auto">
+              Professionelles Feedback für Ihr Bewerbungsdossier.
+            </p>
           </div>
 
-          {/* Right Section: Content */}
-          <div>
-            <h2 className="text-3xl font-bold mb-6 text-[#204878]">
-            Bewerbungsunterlagen-Check
+          {/* Content Card */}
+          <div className="max-w-3xl mx-auto bg-white rounded-2xl border border-gray-100 shadow-sm p-8 md:p-12">
+            <h2 className="text-2xl font-semibold text-[#111827] mb-6">
+              Bewerbungsunterlagen-Check
             </h2>
-            <p className="text-lg leading-relaxed mb-6">
-            Ein überzeugendes Bewerbungsdossier ist oft der Schlüssel zum Vorstellungsgespräch. Personalverantwortliche entscheiden innert Sekunden, ob eine Bewerbung weiter geprüft wird – oder eben nicht. Deshalb ist es entscheidend, dass deine Unterlagen inhaltlich wie formal überzeugen. Wir prüfen Aufbau, Inhalt, Formulierungen, Gestaltung sowie die Gesamtaussage deines Dossiers. Du erhältst von uns ein verständliches Feedback mit konkreten Empfehlungen.
-            Wir analysieren deine Bewerbungsdokumente sorgfältig und zeigen dir auf, wo du optimieren kannst.         </p>
-            <h3 className="text-2xl font-bold mb-4 text-[#204878]">
-            Dabei berücksichtigen wir insbesondere:    
+            <p className="text-base text-[#64748B] leading-relaxed mb-8">
+              Ein überzeugendes Bewerbungsdossier ist oft der Schlüssel zum Vorstellungsgespräch. Personalverantwortliche entscheiden innert Sekunden, ob eine Bewerbung weiter geprüft wird – oder eben nicht. Deshalb ist es entscheidend, dass deine Unterlagen inhaltlich wie formal überzeugen. Wir prüfen Aufbau, Inhalt, Formulierungen, Gestaltung sowie die Gesamtaussage deines Dossiers. Du erhältst von uns ein verständliches Feedback mit konkreten Empfehlungen.
+              Wir analysieren deine Bewerbungsdokumente sorgfältig und zeigen dir auf, wo du optimieren kannst.
+            </p>
+
+            <h3 className="text-base font-semibold text-[#111827] mb-4 uppercase tracking-wide">
+              Dabei berücksichtigen wir insbesondere
             </h3>
-            <ul className="list-disc list-inside text-lg leading-relaxed mb-6">
-              <li>Lebenlauf / CV</li>
-              <li>Arbeitszeugnisse</li>
-            <li>Weitere Unterlagen wie Motivationsschreiben oder Deckblatt</li>
+            <ul className="space-y-3 mb-8">
+              {[
+                "Lebenlauf / CV",
+                "Arbeitszeugnisse",
+                "Weitere Unterlagen wie Motivationsschreiben oder Deckblatt",
+              ].map((item, i) => (
+                <li key={i} className="flex items-start gap-3 text-[#64748B]">
+                  <svg className="w-5 h-5 text-[#204878] mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span className="text-base leading-relaxed">{item}</span>
+                </li>
+              ))}
             </ul>
-            <p className="text-lg leading-relaxed mb-6">
-            Mit optimierten Bewerbungsunterlagen erhöhen Sie Ihre Chancen auf ein Vorstellungsgespräch und den nächsten Karriereschritt.
 
+            <p className="text-base text-[#64748B] leading-relaxed mb-8">
+              Mit optimierten Bewerbungsunterlagen erhöhen Sie Ihre Chancen auf ein Vorstellungsgespräch und den nächsten Karriereschritt.
             </p>
-            <p className="text-xl font-bold mb-4 text-[#204878]">
-              Preis: CHF 49
-            </p>
-            {/* <a
-              href="/contact?subject=Check"
-              className="inline-block px-4 py-3 mt-4 text-white font-bold bg-[#204878] rounded-lg shadow-lg hover:bg-[#1a3a66] transform hover:scale-105 transition duration-300"
-            >
-              Jetzt buchen
-            </a> */}
 
-                        {!showForm && !submitted && (
-              <button
-                onClick={() => setShowForm(true)}
-                className="inline-block px-4 py-3 mt-4 text-white font-bold bg-[#204878] rounded-lg shadow-lg hover:bg-[#1a3a66] transform hover:scale-105 transition duration-300"
-              >
-                Jetzt buchen
-              </button>
-            )}
-            {showForm && !submitted && (
-              <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+            <div className="border-t border-gray-100 pt-8">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
                 <div>
-                  <label className="block mb-1 font-semibold">Name + Vorname</label>
-                  <input
-                    type="text"
-                    className="w-full border rounded px-3 py-2"
-                    value={name}
-                    onChange={e => setName(e.target.value)}
-                    required
-                  />
+                  <p className="text-sm text-[#64748B] mb-1">Preis</p>
+                  <p className="text-3xl font-semibold text-[#111827]">CHF 49</p>
                 </div>
-                <div>
-                  <label className="block mb-1 font-semibold">E-Mail</label>
-                  <input
-                    type="email"
-                    className="w-full border rounded px-3 py-2"
-                    value={email}
-                    onChange={e => setEmail(e.target.value)}
-                    required
-                  />
+
+                {!showForm && !submitted && (
+                  <button
+                    onClick={() => setShowForm(true)}
+                    className="px-8 py-3 bg-[#204878] text-white font-semibold rounded-xl hover:bg-[#1a3a66] transition-colors duration-200 text-sm"
+                  >
+                    Jetzt buchen
+                  </button>
+                )}
+              </div>
+
+              {showForm && !submitted && (
+                <form onSubmit={handleSubmit} className="mt-8 space-y-5">
+                  <div>
+                    <label className="block text-sm font-semibold text-[#111827] mb-2">Name + Vorname</label>
+                    <input
+                      type="text"
+                      className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#204878] focus:border-transparent transition"
+                      value={name}
+                      onChange={e => setName(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-[#111827] mb-2">E-Mail</label>
+                    <input
+                      type="email"
+                      className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#204878] focus:border-transparent transition"
+                      value={email}
+                      onChange={e => setEmail(e.target.value)}
+                      required
+                    />
+                  </div>
+                  {error && <p className="text-sm text-red-600 bg-red-50 rounded-lg px-4 py-3">{error}</p>}
+                  <div className="flex gap-3 pt-2">
+                    <button
+                      type="submit"
+                      className="flex-1 px-6 py-3 bg-[#204878] text-white font-semibold rounded-xl hover:bg-[#1a3a66] transition-colors text-sm"
+                    >
+                      Bestellung abschliessen
+                    </button>
+                    <button
+                      type="button"
+                      className="px-6 py-3 bg-gray-100 text-[#64748B] font-semibold rounded-xl hover:bg-gray-200 transition-colors text-sm"
+                      onClick={() => setShowForm(false)}
+                    >
+                      Abbrechen
+                    </button>
+                  </div>
+                </form>
+              )}
+              {submitted && (
+                <div className="mt-8 bg-green-50 border border-green-100 rounded-xl px-6 py-4">
+                  <p className="text-sm text-green-700 font-medium">
+                    Vielen Dank für Ihre Anfrage! Wir leiten Sie in Kürze zur Bezahlung weiter. Bitte warten Sie einen Moment.
+                  </p>
                 </div>
-                {error && <p className="text-red-600">{error}</p>}
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-[#204878] text-white rounded font-bold hover:bg-[#1a3a66] transition"
-                >
-                  Bestellung abschliessen
-                </button>
-                <button
-                  type="button"
-                  className="ml-2 px-4 py-2 bg-gray-200 rounded font-bold hover:bg-gray-300 transition"
-                  onClick={() => setShowForm(false)}
-                >
-                  Abbrechen
-                </button>
-              </form>
-            )}
-            {submitted && (
-              <p className="mt-6 text-green-700 font-bold">
-                Vielen Dank für Ihre Anfrage! Wir leiten Sie in Kürze zur Bezahlung weiter. Bitte warten Sie einen Moment.
-              </p>
-            )}
+              )}
+            </div>
           </div>
         </div>
-      </div>
+      </section>
     </div>
   );
 }
