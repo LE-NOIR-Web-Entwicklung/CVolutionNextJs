@@ -179,17 +179,17 @@ export default function Home() {
         {/* Top edge highlight */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
 
-        <div className="relative z-10 w-full max-w-5xl mx-auto px-6 py-24 sm:py-32">
+        <div className="relative z-10 w-full max-w-5xl mx-auto px-6 py-12 sm:py-32">
           <div className="text-center flex flex-col items-center">
 
             {/* Badge */}
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-white/8 rounded-full text-xs font-medium text-blue-200 mb-10 border border-white/10 backdrop-blur-sm">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-white/8 rounded-full text-xs font-medium text-blue-200 mb-5 border border-white/10 backdrop-blur-sm">
               <span className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-pulse" />
               10&apos;000+ analysierte Bewerbungen
             </div>
 
             {/* Headline */}
-            <h1 className="text-5xl md:text-6xl font-semibold tracking-tight leading-tight mb-6 max-w-3xl">
+            <h1 className="text-5xl md:text-6xl font-semibold tracking-tight leading-tight mb-4 max-w-3xl">
               Unsere Bewerbung,{" "}
               <br className="hidden sm:block" />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-300 to-blue-500">
@@ -198,7 +198,7 @@ export default function Home() {
             </h1>
 
             {/* Subheadline */}
-            <p className="text-lg text-blue-100/70 leading-relaxed max-w-xl mb-10">
+            <p className="text-lg text-blue-100/70 leading-relaxed max-w-xl mb-5">
               Unsere Experten unterstützen Sie bei Lebenslauf, Lohnanalyse und Laufbahnberatung – basierend auf über 10&apos;000 analysierten Bewerbungen.
             </p>
 
