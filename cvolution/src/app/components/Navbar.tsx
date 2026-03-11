@@ -136,10 +136,10 @@ export default function Navbar() {
               </div>
             ))}
             <Link
-              href="/service-salary"
+              href="/service"
               className="ml-4 px-4 py-2 text-sm font-semibold text-white bg-[#204878] rounded-lg hover:bg-[#1a3a66] transition-colors duration-150"
             >
-              Lohnanalyse buchen
+              Jetzt buchen
             </Link>
           </div>
 
@@ -224,11 +224,11 @@ export default function Navbar() {
               ))}
               <li className="mt-3 pt-3 border-t border-gray-100">
                 <Link
-                  href="/service-salary"
+                  href="/service"
                   onClick={closeMobileMenu}
                   className="block w-full text-center px-4 py-3 text-sm font-semibold text-white bg-[#204878] rounded-lg hover:bg-[#1a3a66] transition-colors"
                 >
-                  Lohnanalyse buchen
+                  Jetzt buchen
                 </Link>
               </li>
             </ul>

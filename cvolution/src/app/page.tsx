@@ -185,7 +185,7 @@ export default function Home() {
             {/* Badge */}
             <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-white/8 rounded-full text-xs font-medium text-blue-200 mb-5 border border-white/10 backdrop-blur-sm">
               <span className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-pulse" />
-              10&apos;000+ analysierte Bewerbungen
+              10+ Jahre Erfahrung im Recruiting
             </div>
 
             {/* Headline */}
@@ -199,13 +199,15 @@ export default function Home() {
 
             {/* Subheadline */}
             <p className="text-lg text-blue-100/70 leading-relaxed max-w-xl mb-5">
-              Unsere Experten unterstützen Sie bei Lebenslauf, Lohnanalyse und Laufbahnberatung – basierend auf über 10&apos;000 analysierten Bewerbungen.
+              Mit über 10 Jahren Erfahrung im Recruiting
+              unterstützen wir bei Lebenslauf, Lohnanalyse
+              und strategischer Laufbahnberatung.
             </p>
 
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-14">
               <Link
-                href="/service-sala"
+                href="/service-salary"
                 className="inline-flex items-center justify-center px-6 py-3 bg-white text-[#0F172A] font-semibold rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200 text-sm"
               >
                 Lohnanalyse buchen
