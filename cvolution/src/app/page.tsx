@@ -168,16 +168,13 @@ export default function Home() {
           ))}
         </div>
       </section> */}
-      <section className="relative min-h-[75vh] flex items-center bg-[#0F172A] text-white overflow-hidden">
-        {/* Radial gradient background */}
-        <div className="absolute inset-0 bg-[#193961]" />
-
-        {/* Ambient glow */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[500px] rounded-full bg-[#2563EB]/10 blur-3xl pointer-events-none" />
-        <div className="absolute top-1/2 left-1/4 w-[400px] h-[400px] rounded-full bg-[#204878]/20 blur-3xl pointer-events-none" />
+      <section className="relative min-h-[75vh] flex items-center bg-[#204878] text-white overflow-hidden">
+        {/* Glow — soft radial light source */}
+        <div className="absolute top-[40%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[500px] rounded-full bg-white/[0.07] blur-[80px] pointer-events-none" />
+        <div className="absolute top-[38%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[300px] rounded-full bg-white/[0.08] blur-[60px] pointer-events-none" />
 
         {/* Top edge highlight */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
 
         <div className="relative z-10 w-full max-w-5xl mx-auto px-6 py-12 sm:py-32">
           <div className="text-center flex flex-col items-center">
@@ -185,7 +182,7 @@ export default function Home() {
             {/* Badge */}
             <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-white/8 rounded-full text-xs font-medium text-blue-200 mb-5 border border-white/10 backdrop-blur-sm">
               <span className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-pulse" />
-              10+ Jahre Erfahrung im Recruiting
+              1000+ Kunden bereits erfolgreich unterstützt
             </div>
 
             {/* Headline */}
@@ -249,7 +246,7 @@ export default function Home() {
         </div>
 
         {/* Bottom fade */}
-        <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-[#0F172A]/60 to-transparent pointer-events-none" />
+        <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-[#204878]/60 to-transparent pointer-events-none" />
       </section>
 
       {/* Products Section */}
