@@ -189,7 +189,7 @@ export default function Home() {
             <h1 className="text-5xl md:text-6xl font-semibold tracking-tight leading-tight mb-4 max-w-3xl">
               Unsere Bewerbung,{" "}
               <br className="hidden sm:block" />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-300 to-blue-500">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-100 to-[#627EA0]">
                 deine Entwicklung!
               </span>
             </h1>
