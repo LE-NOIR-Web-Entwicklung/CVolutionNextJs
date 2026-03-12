@@ -17,7 +17,7 @@ export default function Footer() {
     <footer className="bg-[#0F172A] text-white">
       <div className="max-w-6xl mx-auto px-6 py-16">
         {/* Footer Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
           {/* Brand + Contact */}
           <div>
             <img src="/images/logo-nobg.png" className="h-8 mb-6" alt="CVolution Logo" />
@@ -94,6 +94,43 @@ export default function Footer() {
                 </li>
               ))}
             </ul>
+          </div>
+
+          {/* Ratgeber */}
+          <div>
+            <h3 className="text-sm font-semibold text-white mb-4 uppercase tracking-wider">Ratgeber</h3>
+            <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+              {[
+                { name: "Lebenslauf Vorlage", href: "/lebenslauf-vorlage-schweiz" },
+                { name: "Lebenslauf Aufbau", href: "/lebenslauf-aufbau" },
+                { name: "Lebenslauf Fehler", href: "/lebenslauf-fehler" },
+                { name: "Lebenslauf Beispiel", href: "/lebenslauf-beispiel" },
+                { name: "Lebenslauf Format", href: "/lebenslauf-format-schweiz" },
+                { name: "Lebenslauf Student", href: "/lebenslauf-student" },
+                { name: "Lebenslauf Quereinsteiger", href: "/lebenslauf-quereinsteiger" },
+                { name: "Motivationsschreiben Beispiel", href: "/motivationsschreiben-beispiel" },
+                { name: "Motivationsschreiben Tipps", href: "/motivationsschreiben-tipps" },
+                { name: "Motivationsschreiben Praktikum", href: "/motivationsschreiben-praktikum" },
+                { name: "Motivationsschreiben ohne Erfahrung", href: "/motivationsschreiben-ohne-erfahrung" },
+                { name: "Bewerbung schreiben", href: "/bewerbung-schreiben" },
+                { name: "Bewerbung Schweiz", href: "/bewerbung-schweiz" },
+                { name: "Bewerbung Vorlage", href: "/bewerbung-vorlage-schweiz" },
+                { name: "Bewerbung nach Kündigung", href: "/bewerbung-nach-kuendigung" },
+                { name: "Bewerbungsgespräch Tipps", href: "/bewerbungsgespraech-tipps" },
+                { name: "Bewerbungsunterlagen Check", href: "/bewerbungsunterlagen-check" },
+                { name: "Lohn verhandeln", href: "/lohn-verhandeln-schweiz" },
+                { name: "Lohnanalyse Schweiz", href: "/lohnanalyse-schweiz" },
+                { name: "RAV Bewerbung Tipps", href: "/rav-bewerbung-tipps" },
+              ].map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className="text-xs text-gray-400 hover:text-white transition-colors leading-relaxed"
+                >
+                  {item.name}
+                </Link>
+              ))}
+            </div>
           </div>
         </div>
 
