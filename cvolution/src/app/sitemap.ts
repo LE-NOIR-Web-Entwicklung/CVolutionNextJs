@@ -17,6 +17,23 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { path: "/contact", priority: 0.7, changeFrequency: "monthly" as const },
     { path: "/agb", priority: 0.3, changeFrequency: "yearly" as const },
     { path: "/impressum", priority: 0.3, changeFrequency: "yearly" as const },
+    // Ratgeber
+    { path: "/lebenslauf-vorlage-schweiz", priority: 0.8, changeFrequency: "monthly" as const },
+    { path: "/lebenslauf-aufbau", priority: 0.8, changeFrequency: "monthly" as const },
+    { path: "/lebenslauf-fehler", priority: 0.8, changeFrequency: "monthly" as const },
+    { path: "/lebenslauf-beispiel", priority: 0.8, changeFrequency: "monthly" as const },
+    { path: "/lebenslauf-format-schweiz", priority: 0.8, changeFrequency: "monthly" as const },
+    { path: "/lebenslauf-student", priority: 0.8, changeFrequency: "monthly" as const },
+    { path: "/lebenslauf-quereinsteiger", priority: 0.8, changeFrequency: "monthly" as const },
+    { path: "/motivationsschreiben-tipps", priority: 0.8, changeFrequency: "monthly" as const },
+    { path: "/bewerbung-schreiben", priority: 0.8, changeFrequency: "monthly" as const },
+    { path: "/bewerbung-schweiz", priority: 0.8, changeFrequency: "monthly" as const },
+    { path: "/bewerbung-vorlage-schweiz", priority: 0.8, changeFrequency: "monthly" as const },
+    { path: "/bewerbung-nach-kuendigung", priority: 0.8, changeFrequency: "monthly" as const },
+    { path: "/bewerbungsgespraech-tipps", priority: 0.8, changeFrequency: "monthly" as const },
+    { path: "/lohn-verhandeln-schweiz", priority: 0.8, changeFrequency: "monthly" as const },
+    { path: "/lohnanalyse-schweiz", priority: 0.8, changeFrequency: "monthly" as const },
+    { path: "/rav-bewerbung-tipps", priority: 0.8, changeFrequency: "monthly" as const },
   ];
 
   return routes.map(({ path, priority, changeFrequency }) => ({
