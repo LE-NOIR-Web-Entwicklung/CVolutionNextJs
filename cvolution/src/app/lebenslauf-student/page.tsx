@@ -234,10 +234,10 @@ export default function LebenslaufStudent() {
           {/* Internal links - card grid */}
           <section className="mb-10">
             <h2 className="text-2xl font-semibold text-[#111827] mb-4">Weiterführende Ratgeber</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {[
                 { href: "/lebenslauf-vorlage-schweiz", label: "Lebenslauf Vorlage Schweiz – Kostenlose Muster" },
-                { href: "/motivationsschreiben-praktikum", label: "Motivationsschreiben Praktikum – Mit Vorlage und Beispiel" },
+                { href: "/", label: "Motivationsschreiben Praktikum – Mit Vorlage und Beispiel" },
                 { href: "/lebenslauf-aufbau", label: "Lebenslauf Aufbau – Schritt für Schritt erklärt" },
               ].map((link) => (
                 <Link key={link.href} href={link.href}

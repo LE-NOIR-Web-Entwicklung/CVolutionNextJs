@@ -144,26 +144,21 @@ export default function LebenslaufFehlerPage() {
                 },
                 {
                   nr: "11",
-                  titel: "Auflistung von Aufgaben statt Leistungen",
-                  text: "Was haben Sie bewirkt? Zeigen Sie messbare Resultate: Umsatz gesteigert, Kosten gesenkt, Prozesse optimiert – immer mit konkreten Zahlen wenn möglich.",
-                },
-                {
-                  nr: "12",
                   titel: "Falsches Dateiformat",
                   text: "Reichen Sie den Lebenslauf immer als PDF ein, ausser der Arbeitgeber verlangt explizit ein Word-Dokument. PDFs sehen auf jedem Gerät gleich aus.",
                 },
                 {
-                  nr: "13",
+                  nr: "12",
                   titel: "Veraltete oder irrelevante Informationen",
                   text: "Sommerferien-Jobs aus der Schulzeit haben im Lebenslauf einer erfahrenen Fachkraft nichts verloren. Fokussieren Sie sich auf Relevantes.",
                 },
                 {
-                  nr: "14",
-                  titel: "Fehlende Nationalität oder Arbeitserlaubnis",
-                  text: "Besonders für ausländische Bewerbende ist die Angabe der Aufenthaltsbewilligung wichtig. Arbeitgeber müssen wissen, ob und wie sie Sie anstellen können.",
+                  nr: "13",
+                  titel: "Fehlende Arbeitserlaubnis",
+                  text: "Besonders für ausländische Bewerbende ist die Angabe der Arbeitserlaubnis wichtig. Arbeitgeber müssen wissen, ob und wie sie Sie anstellen können.",
                 },
                 {
-                  nr: "15",
+                  nr: "14",
                   titel: "Nicht gespeicherte Dateinamen",
                   text: "Senden Sie nicht eine Datei namens 'CV_final_v3_wirklichfinal.pdf'. Wählen Sie einen professionellen Dateinamen: 'Lebenslauf_Vorname_Nachname.pdf'.",
                 },
@@ -181,11 +176,10 @@ export default function LebenslaufFehlerPage() {
 
           <section className="mb-10">
             <h2 className="text-2xl font-semibold text-[#111827] mb-4">Weiterführende Ratgeber</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {[
                 { href: "/lebenslauf-aufbau", label: "Lebenslauf Aufbau" },
                 { href: "/lebenslauf-vorlage-schweiz", label: "Lebenslauf Vorlage" },
-                { href: "/bewerbungsunterlagen-check", label: "Bewerbungsunterlagen-Check" },
               ].map((link) => (
                 <Link key={link.href} href={link.href} className="block p-4 bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 text-[#204878] font-medium">
                   {link.label} →

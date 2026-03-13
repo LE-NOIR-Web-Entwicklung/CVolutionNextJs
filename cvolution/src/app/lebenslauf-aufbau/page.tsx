@@ -98,7 +98,7 @@ export default function LebenslaufAufbauPage() {
               ein – in der Schweiz ist dies nach wie vor Standard und wird von den meisten Arbeitgebern erwartet.
             </p>
             <ul className="space-y-1 mb-6 text-[#374151]">
-              {["Vollständiger Name", "Adresse mit PLZ und Ort", "Telefonnummer (Mobiltelefon)", "E-Mail-Adresse (professionell)", "Geburtsdatum", "Nationalität / Arbeitserlaubnis", "LinkedIn-Profil (optional, aber empfohlen)"].map((item, i) => (
+              {["Vollständiger Name", "Adresse mit PLZ und Ort", "Telefonnummer (Mobiltelefon)", "E-Mail-Adresse (professionell)", "Geburtsdatum", "Nationalität / Arbeitserlaubnis"].map((item, i) => (
                 <li key={i} className="flex items-start gap-2">
                   <span className="text-[#204878] font-bold mt-0.5">•</span> {item}
                 </li>
@@ -122,8 +122,7 @@ export default function LebenslaufAufbauPage() {
                 "Berufsbezeichnung / Position",
                 "Arbeitgeber und Ort",
                 "Beschäftigungsdauer (Monat und Jahr)",
-                "3–5 Hauptaufgaben und Verantwortlichkeiten",
-                "Messbare Erfolge, wenn möglich mit Zahlen",
+                "3–5 Hauptaufgaben und Verantwortlichkeiten"
               ].map((item, i) => (
                 <li key={i} className="flex items-start gap-2">
                   <span className="text-[#204878] font-bold mt-0.5">•</span> {item}

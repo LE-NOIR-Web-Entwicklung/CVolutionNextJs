@@ -164,9 +164,8 @@ export default function MotivationsschreibenTippsPage() {
 
           <section className="mb-10">
             <h2 className="text-2xl font-semibold text-[#111827] mb-4">Weiterführende Ratgeber</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {[
-                { href: "/motivationsschreiben-beispiel", label: "Motivationsschreiben Beispiel" },
                 { href: "/bewerbung-schreiben", label: "Bewerbung schreiben" },
                 { href: "/bewerbungsgespraech-tipps", label: "Bewerbungsgespräch Tipps" },
               ].map((link) => (

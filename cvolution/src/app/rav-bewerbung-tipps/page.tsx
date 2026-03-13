@@ -221,11 +221,10 @@ export default function RavBewerbungTipps() {
           {/* Internal links - card grid */}
           <section className="mb-10">
             <h2 className="text-2xl font-semibold text-[#111827] mb-4">Weiterführende Ratgeber</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {[
                 { href: "/bewerbung-schreiben", label: "Bewerbung schreiben – Anleitung und Tipps für die Schweiz" },
                 { href: "/lebenslauf-vorlage-schweiz", label: "Lebenslauf Vorlage Schweiz – Kostenlose Muster" },
-                { href: "/motivationsschreiben-beispiel", label: "Motivationsschreiben Beispiel – Vorlage für die Schweiz" },
               ].map((link) => (
                 <Link key={link.href} href={link.href}
                   className="block p-4 bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 text-[#204878] font-medium">

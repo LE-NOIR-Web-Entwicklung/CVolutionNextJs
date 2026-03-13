@@ -66,7 +66,7 @@ export default function BewerbungSchreibenPage() {
           <div className="mb-10">
             <p className="text-sm font-medium text-[#204878] uppercase tracking-wide mb-2">Bewerbungsratgeber</p>
             <h1 className="text-4xl font-bold text-[#111827] leading-tight mb-4">
-              Bewerbung schreiben in der Schweiz: Die vollständige Anleitung 2025
+              Bewerbung schreiben in der Schweiz: Die vollständige Anleitung 2026
             </h1>
             <p className="text-lg text-[#64748B] leading-relaxed">
               Eine erfolgreiche Bewerbung in der Schweiz erfordert mehr als einen guten Lebenslauf. Erfahren Sie,
@@ -155,11 +155,10 @@ export default function BewerbungSchreibenPage() {
 
           <section className="mb-10">
             <h2 className="text-2xl font-semibold text-[#111827] mb-4">Weiterführende Ratgeber</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {[
                 { href: "/bewerbung-schweiz", label: "Bewerbung in der Schweiz" },
                 { href: "/motivationsschreiben-tipps", label: "Motivationsschreiben Tipps" },
-                { href: "/bewerbungsunterlagen-check", label: "Bewerbungsunterlagen-Check" },
               ].map((link) => (
                 <Link key={link.href} href={link.href} className="block p-4 bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 text-[#204878] font-medium">
                   {link.label} →

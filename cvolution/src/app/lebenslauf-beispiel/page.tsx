@@ -76,82 +76,117 @@ export default function LebenslaufBeispiel() {
 
           <section className="mb-10 bg-white rounded-2xl border border-gray-100 p-8 shadow-sm">
             <h2 className="text-2xl font-semibold text-[#111827] mb-4">Lebenslauf Beispiel: Erfahrene Fachkraft</h2>
-            <p className="text-[#64748B] text-sm mb-4">
-              Dieses Beispiel zeigt einen typischen Lebenslauf für eine Fachkraft mit 8–10 Jahren Berufserfahrung.
+            <p className="text-[#64748B] text-sm mb-6">
+              Dieses Beispiel zeigt einen typischen Lebenslauf für eine Fachkraft mit 8–10 Jahren Berufserfahrung im Schweizer Format.
             </p>
-            <div className="bg-[#F8FAFC] rounded-xl p-6 border border-gray-100 font-mono text-sm text-[#374151] leading-relaxed">
+
+            {/* CV Preview — styled like the Swiss Lebenslauf format */}
+            <div className="bg-white border border-gray-200 rounded-xl p-8 text-sm text-[#111827] font-sans shadow-inner">
+
+              {/* Header: title + underline */}
+              <div className="border-b-2 border-[#111827] pb-1 mb-4">
+                <p className="font-bold text-base">Lebenslauf / Profil</p>
+              </div>
+
+              {/* Personal info table + photo */}
               <div className="flex justify-between items-start mb-6">
-                <div>
-                  <p className="text-xl font-bold text-[#111827]">Sandra Meier</p>
-                  <p>Rosenweg 14 | 8004 Zürich</p>
-                  <p>sandra.meier@email.ch | 079 456 78 90</p>
-                  <p>linkedin.com/in/sandrameier</p>
-                </div>
-                <div className="w-20 h-24 bg-gray-200 flex items-center justify-center text-[#64748B] text-xs rounded">
-                  Foto
-                </div>
-              </div>
-
-              <div className="mb-5">
-                <p className="font-bold text-[#111827] border-b border-gray-300 pb-1 mb-3 uppercase tracking-wide text-xs">Berufserfahrung</p>
-                <div className="mb-4">
-                  <div className="flex justify-between">
-                    <p className="font-semibold">Senior Marketing Manager</p>
-                    <p className="text-[#64748B]">März 2020 – heute</p>
-                  </div>
-                  <p className="text-[#64748B]">Musterfirma AG, Zürich</p>
-                  <ul className="list-disc list-inside mt-1 space-y-1">
-                    <li>Verantwortung für digitale Marketingstrategie (Budget: CHF 2 Mio.)</li>
-                    <li>Teamleitung von 5 Personen im Bereich Content und Performance</li>
-                    <li>Steigerung der organischen Reichweite um 45 % in 2 Jahren</li>
-                  </ul>
-                </div>
-                <div className="mb-4">
-                  <div className="flex justify-between">
-                    <p className="font-semibold">Marketing Manager</p>
-                    <p className="text-[#64748B]">Jan. 2017 – Feb. 2020</p>
-                  </div>
-                  <p className="text-[#64748B]">Zweite Firma GmbH, Basel</p>
-                  <ul className="list-disc list-inside mt-1 space-y-1">
-                    <li>Aufbau des Content-Marketing-Bereichs von Grund auf</li>
-                    <li>Einführung eines Marketing-Automation-Tools (HubSpot)</li>
-                  </ul>
+                <table className="text-sm w-full max-w-xs">
+                  <tbody className="align-top">
+                    {[
+                      ["Name", "Max Mustermann"],
+                      ["Adresse", "Musterstrasse 12\n5000 Musterstadt"],
+                      ["Tel.", "076 000 00 00"],
+                      ["E-Mail", "max.mustermann@muster.ch"],
+                      ["Geburtsdatum", "10. Januar 1990"],
+                      ["Zivilstand", "verheiratet, 2 Kinder / ledig"],
+                      ["Heimatort", "Musterstadt, Schweiz"],
+                    ].map(([label, value]) => (
+                      <tr key={label} className="leading-relaxed">
+                        <td className="pr-6 text-[#374151] whitespace-nowrap align-top">{label}</td>
+                        <td className="whitespace-pre-line">{value}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                <div className="w-24 h-28 bg-gray-200 border border-gray-300 flex-shrink-0 rounded-sm ml-4 overflow-hidden">
+                  {/* Photo placeholder */}
+                  <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">Foto</div>
                 </div>
               </div>
 
-              <div className="mb-5">
-                <p className="font-bold text-[#111827] border-b border-gray-300 pb-1 mb-3 uppercase tracking-wide text-xs">Ausbildung</p>
-                <div className="mb-3">
-                  <div className="flex justify-between">
-                    <p className="font-semibold">MSc Marketing, Universität St. Gallen (HSG)</p>
-                    <p className="text-[#64748B]">2014 – 2016</p>
+              {/* Berufliche Erfahrung */}
+              <div className="border-b border-[#111827] pb-1 mb-3">
+                <p className="font-bold text-sm">Berufliche Erfahrung</p>
+              </div>
+              <div className="mb-5 space-y-4">
+                {[
+                  {
+                    dates: "02.2022 – heute",
+                    title: "Senior Marketing Managerin, Musterfirma AG, Zürich",
+                    tasks: ["Leitung des digitalen Marketings (Budget CHF 2 Mio.)", "Führung eines 5-köpfigen Teams", "Steigerung der organischen Reichweite um 45 %", "Einführung Marketing-Automation (HubSpot)", "Koordination mit externen Agenturen"],
+                  },
+                  {
+                    dates: "05.2020 – 02.2022",
+                    title: "Marketing Managerin, Zweite Firma GmbH, Basel",
+                    tasks: ["Aufbau des Content-Marketing-Bereichs", "Planung und Umsetzung von Kampagnen", "Erstellung von Reportings und KPI-Analysen", "Zusammenarbeit mit Produktmanagement"],
+                  },
+                  {
+                    dates: "03.2019 – 05.2020",
+                    title: "Marketing Assistant, Dritte AG, Bern",
+                    tasks: ["Unterstützung bei Events und Messen", "Pflege von Social-Media-Kanälen", "Grafische Aufbereitung von Präsentationen"],
+                  },
+                ].map((job) => (
+                  <div key={job.dates} className="flex gap-6">
+                    <div className="w-36 flex-shrink-0 text-[#374151] font-medium text-xs pt-0.5">{job.dates}</div>
+                    <div>
+                      <p className="font-bold text-xs mb-1">{job.title}</p>
+                      <ul className="list-disc list-inside space-y-0.5 text-xs text-[#374151]">
+                        {job.tasks.map((t) => <li key={t}>{t}</li>)}
+                      </ul>
+                    </div>
                   </div>
-                </div>
-                <div>
-                  <div className="flex justify-between">
-                    <p className="font-semibold">BSc Betriebswirtschaft, ZHAW</p>
-                    <p className="text-[#64748B]">2011 – 2014</p>
-                  </div>
-                </div>
+                ))}
               </div>
 
-              <div className="mb-5">
-                <p className="font-bold text-[#111827] border-b border-gray-300 pb-1 mb-3 uppercase tracking-wide text-xs">Kenntnisse</p>
-                <div className="grid grid-cols-2 gap-2">
+              {/* Ausbildungen */}
+              <div className="border-b border-[#111827] pb-1 mb-3">
+                <p className="font-bold text-sm">Ausbildungen / Weiterbildungen</p>
+              </div>
+              <div className="mb-5 space-y-2">
+                {[
+                  ["02.2020 – 06.2020", "Weiterbildung zur Personalassistentin, Musterschule AG"],
+                  ["08.2015 – 07.2018", "Ausbildung zur Kauffrau AG, Musterschule AG"],
+                ].map(([dates, desc]) => (
+                  <div key={dates} className="flex gap-6 text-xs text-[#374151]">
+                    <div className="w-36 flex-shrink-0">{dates}</div>
+                    <div>{desc}</div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Kenntnisse */}
+              <div className="border-b border-[#111827] pb-1 mb-3">
+                <p className="font-bold text-sm">Kenntnisse &amp; Fähigkeiten</p>
+              </div>
+              <div className="space-y-2 text-xs text-[#374151]">
+                <div className="flex gap-6">
+                  <div className="w-36 flex-shrink-0">Fremdsprachen</div>
                   <div>
-                    <p className="font-semibold text-xs">Sprachen</p>
-                    <p>Deutsch – Muttersprache</p>
-                    <p>Englisch – C1</p>
-                    <p>Französisch – B2</p>
-                  </div>
-                  <div>
-                    <p className="font-semibold text-xs">IT & Tools</p>
-                    <p>Google Analytics, HubSpot</p>
-                    <p>Adobe Creative Suite</p>
-                    <p>Salesforce, MS Office</p>
+                    <div className="flex gap-6"><span className="w-24">Deutsch</span><span>Muttersprache</span></div>
+                    <div className="flex gap-6"><span className="w-24">Englisch</span><span>Gute Kenntnisse</span></div>
+                    <div className="flex gap-6"><span className="w-24">Französisch</span><span>Gute Kenntnisse</span></div>
                   </div>
                 </div>
+                <div className="flex gap-6">
+                  <div className="w-36 flex-shrink-0">Führerschein</div>
+                  <div>Kategorie B</div>
+                </div>
+                <div className="flex gap-6">
+                  <div className="w-36 flex-shrink-0">Programme</div>
+                  <div>SAP, MS Office, HubSpot, Adobe Creative Suite</div>
+                </div>
               </div>
+
             </div>
           </section>
 

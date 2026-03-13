@@ -131,24 +131,6 @@ export default function LebenslaufVorlagePage() {
               Karriereentwicklung linear und ist für Personalverantwortliche am einfachsten zu lesen. Diese Vorlage
               eignet sich, wenn Sie eine klare, aufsteigende Karriere vorweisen können.
             </p>
-
-            <h3 className="text-xl font-semibold text-[#111827] mb-3">Funktionale Vorlage – für Quereinsteiger</h3>
-            <p className="text-[#374151] leading-relaxed mb-4">
-              Wenn Sie die Branche oder das Berufsfeld wechseln möchten, kann eine funktionale Vorlage sinnvoll sein.
-              Dabei stehen Ihre Kompetenzen und Fähigkeiten im Vordergrund, nicht die chronologische Abfolge Ihrer
-              Stellen. Lesen Sie dazu unseren Artikel zum{" "}
-              <Link href="/lebenslauf-quereinsteiger" className="text-[#204878] underline hover:no-underline">
-                Lebenslauf für Quereinsteiger
-              </Link>
-              .
-            </p>
-
-            <h3 className="text-xl font-semibold text-[#111827] mb-3">Kombinierte Vorlage – für erfahrene Fachkräfte</h3>
-            <p className="text-[#374151] leading-relaxed mb-4">
-              Erfahrene Fachkräfte profitieren von einer Kombination: Eine kurze Zusammenfassung Ihrer Kernkompetenzen
-              am Anfang, gefolgt von einer chronologischen Berufserfahrung. Diese Vorlage eignet sich besonders für
-              Kader- und Führungspositionen.
-            </p>
           </section>
 
           {/* Section 3 */}
@@ -168,13 +150,6 @@ export default function LebenslaufVorlagePage() {
               Verwenden Sie aktive, prägnante Formulierungen. Statt «war verantwortlich für» schreiben Sie besser
               «verantwortete» oder «leitete». Verwenden Sie konkrete Zahlen und Erfolge, wo immer möglich: «Umsatz um
               18 % gesteigert» überzeugt mehr als «Umsatz gesteigert».
-            </p>
-
-            <h3 className="text-xl font-semibold text-[#111827] mb-3">ATS-Optimierung</h3>
-            <p className="text-[#374151] leading-relaxed mb-4">
-              Viele grosse Schweizer Unternehmen nutzen Applicant Tracking Systems (ATS), die Lebensläufe automatisch
-              scannen. Verwenden Sie Keywords aus der Stellenausschreibung, vermeiden Sie Tabellen oder
-              Textfelder und speichern Sie das Dokument als PDF mit eingebetteten Schriftarten.
             </p>
           </section>
 
