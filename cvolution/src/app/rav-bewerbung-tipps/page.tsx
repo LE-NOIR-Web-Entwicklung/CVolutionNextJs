@@ -3,7 +3,7 @@ import Link from "next/link";
 import Script from "next/script";
 
 export const metadata: Metadata = {
-  title: "RAV Bewerbung Tipps Schweiz 2025 | Anforderungen & Vorgehen",
+  title: "RAV Bewerbung Tipps Schweiz 2026 | Anforderungen & Vorgehen",
   description:
     "RAV Bewerbung Tipps für die Schweiz: Was das RAV von Ihren Bewerbungsunterlagen erwartet, wie Sie die Nachweispflicht erfüllen und trotzdem gezielt suchen.",
   alternates: { canonical: "https://cvolution.ch/rav-bewerbung-tipps" },

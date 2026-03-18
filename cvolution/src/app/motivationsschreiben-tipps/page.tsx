@@ -3,7 +3,7 @@ import Link from "next/link";
 import Script from "next/script";
 
 export const metadata: Metadata = {
-  title: "Motivationsschreiben Tipps Schweiz 2025 | So überzeugen Sie Arbeitgeber",
+  title: "Motivationsschreiben Tipps Schweiz 2026 | So überzeugen Sie Arbeitgeber",
   description:
     "Die wichtigsten Tipps für ein überzeugendes Motivationsschreiben auf dem Schweizer Arbeitsmarkt. Konkrete Ratschläge von erfahrenen Recruiting-Experten.",
   alternates: { canonical: "https://cvolution.ch/motivationsschreiben-tipps" },

@@ -3,7 +3,7 @@ import Link from "next/link";
 import Script from "next/script";
 
 export const metadata: Metadata = {
-  title: "Lebenslauf Quereinsteiger Schweiz 2025 | Tipps & Vorlage",
+  title: "Lebenslauf Quereinsteiger Schweiz 2026 | Tipps & Vorlage",
   description:
     "Lebenslauf als Quereinsteiger in der Schweiz: Wie Sie Ihren beruflichen Wechsel positiv darstellen, übertragbare Kompetenzen hervorheben und Arbeitgeber überzeugen.",
   alternates: { canonical: "https://cvolution.ch/lebenslauf-quereinsteiger" },

@@ -3,7 +3,7 @@ import Link from "next/link";
 import Script from "next/script";
 
 export const metadata: Metadata = {
-  title: "Bewerbungsgespräch Tipps Schweiz 2025 | Vorbereitung & häufige Fragen",
+  title: "Bewerbungsgespräch Tipps Schweiz 2026 | Vorbereitung & häufige Fragen",
   description:
     "So bereiten Sie sich optimal auf das Bewerbungsgespräch in der Schweiz vor. Häufige Interviewfragen mit Antwortbeispielen, Do's und Don'ts und konkrete Gesprächstipps.",
   alternates: { canonical: "https://cvolution.ch/bewerbungsgespraech-tipps" },

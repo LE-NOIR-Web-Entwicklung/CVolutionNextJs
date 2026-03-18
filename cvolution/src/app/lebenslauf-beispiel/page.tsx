@@ -3,7 +3,7 @@ import Link from "next/link";
 import Script from "next/script";
 
 export const metadata: Metadata = {
-  title: "Lebenslauf Beispiel Schweiz 2025 | Vollständige Muster für alle Berufe",
+  title: "Lebenslauf Beispiel Schweiz 2026 | Vollständige Muster für alle Berufe",
   description:
     "Lebenslauf Beispiele für die Schweiz: Muster für Fachkräfte, Führungspersonen, Berufseinsteiger und Quereinsteiger – mit Erklärungen und Tipps für jeden Abschnitt.",
   alternates: { canonical: "https://cvolution.ch/lebenslauf-beispiel" },

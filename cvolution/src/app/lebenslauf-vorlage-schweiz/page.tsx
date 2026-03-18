@@ -3,7 +3,7 @@ import Link from "next/link";
 import Script from "next/script";
 
 export const metadata: Metadata = {
-  title: "Lebenslauf Vorlage Schweiz 2025 | Kostenlose Muster & Tipps",
+  title: "Lebenslauf Vorlage Schweiz 2026 | Kostenlose Muster & Tipps",
   description:
     "Professionelle Lebenslauf-Vorlagen für den Schweizer Arbeitsmarkt. Erfahren Sie, worauf Schweizer Arbeitgeber achten, und laden Sie kostenlose Muster herunter.",
   alternates: { canonical: "https://cvolution.ch/lebenslauf-vorlage-schweiz" },

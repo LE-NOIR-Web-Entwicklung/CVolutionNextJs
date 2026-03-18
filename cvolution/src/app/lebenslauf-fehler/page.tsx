@@ -3,7 +3,7 @@ import Link from "next/link";
 import Script from "next/script";
 
 export const metadata: Metadata = {
-  title: "Lebenslauf Fehler vermeiden 2025 | Die 15 häufigsten Schwachstellen",
+  title: "Lebenslauf Fehler vermeiden 2026 | Die 15 häufigsten Schwachstellen",
   description:
     "Diese Lebenslauf-Fehler kosten Sie die Einladung zum Vorstellungsgespräch. Erfahren Sie, welche Fehler Schweizer HR-Fachleute am häufigsten bemängeln und wie Sie sie vermeiden.",
   alternates: { canonical: "https://cvolution.ch/lebenslauf-fehler" },

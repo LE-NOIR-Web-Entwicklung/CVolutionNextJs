@@ -3,7 +3,7 @@ import Link from "next/link";
 import Script from "next/script";
 
 export const metadata: Metadata = {
-  title: "Lohn verhandeln Schweiz 2025 | Tipps für mehr Gehalt",
+  title: "Lohn verhandeln Schweiz 2026 | Tipps für mehr Gehalt",
   description:
     "Lohn verhandeln in der Schweiz: Wie Sie Ihr Gehalt erfolgreich verhandeln, den richtigen Zeitpunkt wählen und typische Fehler vermeiden. Mit konkreten Beispielen und Formulierungen.",
   alternates: { canonical: "https://cvolution.ch/lohn-verhandeln-schweiz" },

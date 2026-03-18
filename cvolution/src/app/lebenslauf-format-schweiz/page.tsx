@@ -3,7 +3,7 @@ import Link from "next/link";
 import Script from "next/script";
 
 export const metadata: Metadata = {
-  title: "Lebenslauf Format Schweiz 2025 | Layout, Länge und Gestaltung",
+  title: "Lebenslauf Format Schweiz 2026 | Layout, Länge und Gestaltung",
   description:
     "Das richtige Lebenslauf-Format für die Schweiz: Welche Länge, welches Layout und welche Gestaltung Schweizer Arbeitgeber erwarten – mit konkreten Empfehlungen.",
   alternates: { canonical: "https://cvolution.ch/lebenslauf-format-schweiz" },

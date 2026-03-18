@@ -3,7 +3,7 @@ import Link from "next/link";
 import Script from "next/script";
 
 export const metadata: Metadata = {
-  title: "Bewerbung Schweiz 2025 | Alles über den Schweizer Bewerbungsprozess",
+  title: "Bewerbung Schweiz 2026 | Alles über den Schweizer Bewerbungsprozess",
   description:
     "Der Schweizer Arbeitsmarkt hat eigene Regeln. Erfahren Sie alles über Bewerbungsunterlagen, Arbeitszeugnisse, Bewerbungsgespräche und die wichtigsten Unterschiede zur deutschen Bewerbung.",
   alternates: { canonical: "https://cvolution.ch/bewerbung-schweiz" },

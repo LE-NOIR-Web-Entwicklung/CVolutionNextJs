@@ -3,7 +3,7 @@ import Link from "next/link";
 import Script from "next/script";
 
 export const metadata: Metadata = {
-  title: "Lebenslauf Student Schweiz 2025 | Vorlage & Tipps ohne viel Erfahrung",
+  title: "Lebenslauf Student Schweiz 2026 | Vorlage & Tipps ohne viel Erfahrung",
   description:
     "Lebenslauf als Student oder Absolventin in der Schweiz schreiben: Was Sie trotz wenig Berufserfahrung überzeugend darstellen können – mit Vorlage und Beispielen.",
   alternates: { canonical: "https://cvolution.ch/lebenslauf-student" },

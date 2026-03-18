@@ -3,7 +3,7 @@ import Link from "next/link";
 import Script from "next/script";
 
 export const metadata: Metadata = {
-  title: "Lebenslauf Aufbau Schweiz 2025 | Struktur & Gliederung erklärt",
+  title: "Lebenslauf Aufbau Schweiz 2026 | Struktur & Gliederung erklärt",
   description:
     "So bauen Sie Ihren Schweizer Lebenslauf richtig auf: Schritt-für-Schritt-Anleitung mit allen Pflichtabschnitten, Tipps zur Gliederung und Beispielen.",
   alternates: { canonical: "https://cvolution.ch/lebenslauf-aufbau" },

@@ -3,7 +3,7 @@ import Link from "next/link";
 import Script from "next/script";
 
 export const metadata: Metadata = {
-  title: "Bewerbung Vorlage Schweiz 2025 | Kostenlose Muster & Tipps",
+  title: "Bewerbung Vorlage Schweiz 2026 | Kostenlose Muster & Tipps",
   description:
     "Kostenlose Bewerbungsvorlagen für die Schweiz: vollständige Bewerbungsdossiers mit Lebenslauf, Motivationsschreiben und Deckblatt – mit konkreten Beispielen und Anleitungen.",
   alternates: { canonical: "https://cvolution.ch/bewerbung-vorlage-schweiz" },

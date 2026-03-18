@@ -3,7 +3,7 @@ import Link from "next/link";
 import Script from "next/script";
 
 export const metadata: Metadata = {
-  title: "Bewerbung nach Kündigung Schweiz 2025 | Tipps & Strategien",
+  title: "Bewerbung nach Kündigung Schweiz 2026 | Tipps & Strategien",
   description:
     "Bewerbung nach einer Kündigung in der Schweiz: Wie Sie Lücken im Lebenslauf erklären, den richtigen Zeitpunkt für die Jobsuche wählen und trotz Entlassung überzeugend auftreten.",
   alternates: { canonical: "https://cvolution.ch/bewerbung-nach-kuendigung" },

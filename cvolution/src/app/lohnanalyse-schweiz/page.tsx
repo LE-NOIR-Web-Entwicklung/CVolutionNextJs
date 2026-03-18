@@ -3,7 +3,7 @@ import Link from "next/link";
 import Script from "next/script";
 
 export const metadata: Metadata = {
-  title: "Lohnanalyse Schweiz 2025 | Ihren Marktwert kennen und nutzen",
+  title: "Lohnanalyse Schweiz 2026 | Ihren Marktwert kennen und nutzen",
   description:
     "Lohnanalyse Schweiz: Erfahren Sie, wie Sie Ihren fairen Lohn ermitteln, welche Faktoren den Lohn beeinflussen und wie Sie Lohnungleichheiten erkennen und ansprechen.",
   alternates: { canonical: "https://cvolution.ch/lohnanalyse-schweiz" },

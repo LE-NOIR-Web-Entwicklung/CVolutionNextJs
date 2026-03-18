@@ -3,7 +3,7 @@ import Link from "next/link";
 import Script from "next/script";
 
 export const metadata: Metadata = {
-  title: "Bewerbung schreiben Schweiz 2025 | Vollständige Anleitung",
+  title: "Bewerbung schreiben Schweiz 2026 | Vollständige Anleitung",
   description:
     "Schritt-für-Schritt-Anleitung für eine erfolgreiche Bewerbung in der Schweiz. Von der Stellenrecherche bis zum vollständigen Bewerbungsdossier – alles was Sie wissen müssen.",
   alternates: { canonical: "https://cvolution.ch/bewerbung-schreiben" },
