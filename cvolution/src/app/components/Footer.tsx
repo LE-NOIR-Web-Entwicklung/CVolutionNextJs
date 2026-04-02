@@ -45,20 +45,20 @@ export default function Footer() {
             </ul>
             <div className="flex gap-4 mt-6">
               <a
-                href="https://facebook.com/cvolutionswitzerland"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-gray-500 hover:text-white transition-colors"
-              >
-                <FaFacebook size={18} />
-              </a>
-              <a
                 href="https://linkedin.com/company/cvolution-gmbh"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-gray-500 hover:text-white transition-colors"
               >
                 <FaLinkedin size={18} />
+              </a>
+              <a
+                href="https://facebook.com/cvolutionswitzerland"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-gray-500 hover:text-white transition-colors"
+              >
+                <FaFacebook size={18} />
               </a>
               <a
                 href="https://instagram.com/cvolution.ch"
