@@ -17,7 +17,7 @@ export default function Footer() {
     <footer className="bg-[#0F172A] text-white">
       <div className="max-w-6xl mx-auto px-6 py-16">
         {/* Footer Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
           {/* Brand + Contact */}
           <div>
             <img src="/images/logo-nobg.png" className="h-8 mb-6" alt="CVolution Logo" />
@@ -97,7 +97,7 @@ export default function Footer() {
           </div>
 
           {/* Ratgeber */}
-          <div>
+          {/* <div>
             <h3 className="text-sm font-semibold text-white mb-4 uppercase tracking-wider">Ratgeber</h3>
             <div className="grid grid-cols-2 gap-x-4 gap-y-2">
               {[
@@ -128,7 +128,7 @@ export default function Footer() {
               ))}
             </div>
           </div>
-        </div>
+        </div> */}
 
         {/* Footer Bottom */}
         <div className="mt-12 pt-6 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-4">
