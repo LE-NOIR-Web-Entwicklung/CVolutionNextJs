@@ -41,6 +41,13 @@ export default function AdminLoginPage() {
       const userEmail = data.user?.email?.toLowerCase() || '';
 
       if (data.user && adminEmails.includes(userEmail)) {
+        if (data.session) {
+          await adminSupabase.auth.setSession({
+            access_token: data.session.access_token,
+            refresh_token: data.session.refresh_token,
+          });
+        }
+
         // Setze Admin-Session im localStorage
         localStorage.setItem('admin_logged_in', 'true');
         localStorage.setItem('admin_email', userEmail);
@@ -50,7 +57,8 @@ export default function AdminLoginPage() {
           description: 'Willkommen im Admin-Dashboard',
         });
 
-        router.push('/admin');
+        router.replace('/admin');
+        router.refresh();
       } else {
         // User ist kein Admin - ausloggen
         await adminSupabase.auth.signOut();

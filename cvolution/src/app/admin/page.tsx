@@ -210,14 +210,13 @@ const AdminContent: React.FC = () => {
   }, [isAdmin]);
 
   const checkAdminAccess = async () => {
-    const adminLoggedIn = localStorage.getItem('admin_logged_in');
-    const storedEmail = localStorage.getItem('admin_email');
     const { data } = await supabase.auth.getSession();
     const sessionEmail = data.session?.user.email?.toLowerCase();
 
-    if (adminLoggedIn === 'true' && storedEmail && sessionEmail && adminEmails.includes(sessionEmail)) {
+    if (data.session && sessionEmail && adminEmails.includes(sessionEmail)) {
       setIsAdmin(true);
       setAdminEmail(sessionEmail);
+      localStorage.setItem('admin_logged_in', 'true');
       localStorage.setItem('admin_email', sessionEmail);
       return;
     }

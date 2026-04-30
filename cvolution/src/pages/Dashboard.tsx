@@ -238,6 +238,7 @@ export const Dashboard: React.FC = () => {
               <TabsList className="grid w-full grid-cols-3 h-auto mt-2">
                 <TabsTrigger value="education" className="text-xs p-2 text-gray-600 data-[state=active]:bg-[#204878] data-[state=active]:text-white">Bildung</TabsTrigger>
                 <TabsTrigger value="skills" className="text-xs p-2 text-gray-600 data-[state=active]:bg-[#204878] data-[state=active]:text-white min-w-[180px]">Sprachen und Fähigkeiten</TabsTrigger>
+                <TabsTrigger value="settings" className="text-xs p-2 text-gray-600 data-[state=active]:bg-[#204878] data-[state=active]:text-white">Einstellungen</TabsTrigger>
               </TabsList>
             </div>
 
@@ -248,6 +249,7 @@ export const Dashboard: React.FC = () => {
               <TabsTrigger value="experience" className="text-gray-600 data-[state=active]:bg-[#204878] data-[state=active]:text-white">Erfahrung</TabsTrigger>
               <TabsTrigger value="education" className="text-gray-600 data-[state=active]:bg-[#204878] data-[state=active]:text-white">Bildung</TabsTrigger>
               <TabsTrigger value="skills" className="text-gray-600 data-[state=active]:bg-[#204878] data-[state=active]:text-white col-span-2 min-w-[180px]">Sprachen & Fähigkeiten</TabsTrigger>
+              <TabsTrigger value="settings" className="text-gray-600 data-[state=active]:bg-[#204878] data-[state=active]:text-white">Einstellungen</TabsTrigger>
             </TabsList>
             {/* CV Export Button below desktop navigation */}
             <div className="hidden sm:block ml-4">
@@ -269,22 +271,6 @@ export const Dashboard: React.FC = () => {
                   {hasCanceledSubscription ? '. Es erfolgen keine weiteren Abbuchungen.' : '. Verlängert sich automatisch monatlich.'}
                 </p>
               </div>
-              {hasActiveSubscription && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={handleCancelSubscription}
-                  disabled={cancelingSubscription}
-                  className="border-red-200 bg-white text-red-700 hover:bg-red-50 hover:text-red-800"
-                >
-                  <span className="relative inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full border border-current">
-                    <span className="absolute h-2.5 w-px rotate-45 bg-current" />
-                    <span className="absolute h-2.5 w-px -rotate-45 bg-current" />
-                  </span>
-                  {cancelingSubscription ? 'Kündige...' : 'Abo kündigen'}
-                </Button>
-              )}
             </div>
           )}
 
@@ -326,6 +312,41 @@ export const Dashboard: React.FC = () => {
           </TabsContent>
           <TabsContent value="languages">
             <SkillsAndLanguagesSection ref={skillsAndLanguagesSectionRef} />
+          </TabsContent>
+          <TabsContent value="settings">
+            <div className="bg-white rounded-lg shadow p-6 sm:p-8">
+              <div className="border-b pb-4 mb-6">
+                <h2 className="text-2xl font-bold text-gray-900">Einstellungen</h2>
+                <p className="text-sm text-gray-600 mt-1">Konto und Abo verwalten</p>
+              </div>
+
+              <div className="rounded-lg border border-slate-200 p-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div>
+                    <p className="text-sm font-medium text-slate-900">
+                      {hasCanceledSubscription ? 'Abo gekündigt' : 'Monatsabo'}
+                    </p>
+                    <p className="text-xs text-slate-600 mt-1">
+                      {profileData?.subscription_current_period_end
+                        ? `Zugriff bis ${formatSubscriptionDate(profileData.subscription_current_period_end)}`
+                        : 'Kein aktives Abo gefunden'}
+                    </p>
+                  </div>
+                  {hasActiveSubscription && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={handleCancelSubscription}
+                      disabled={cancelingSubscription}
+                      className="border-red-200 bg-white text-red-700 hover:bg-red-50 hover:text-red-800"
+                    >
+                      {cancelingSubscription ? 'Kündige...' : 'Abo kündigen'}
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </div>
           </TabsContent>
         </Tabs>
       </div>
