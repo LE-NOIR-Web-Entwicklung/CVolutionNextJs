@@ -17,7 +17,8 @@ export const sendEmail = async (
     grossAnnualSalary?: string,
     fringeBenefits?: string,
     linkedinUrl?: string,
-    remarks?: string
+    remarks?: string,
+    couponCode?: string | null
 ) => {
     // Build additional fields HTML for PDF service
     let additionalFieldsHtml = '';
@@ -59,6 +60,7 @@ export const sendEmail = async (
                         ${address ? `<p style='color: #333; font-size: 1.1rem;'><strong>Strasse + Nr:</strong> ${address}</p>` : ""}
                         ${postalCode ? `<p style='color: #333; font-size: 1.1rem;'><strong>PLZ + Ort:</strong> ${postalCode}</p>` : ""}
                         ${message ? `<p style='color: #333; font-size: 1.1rem;'><strong>Nachricht:</strong> ${message}</p>` : ""}
+                        ${couponCode ? `<p style='color: #333; font-size: 1.1rem;'><strong>Coupon Code:</strong> ${couponCode}</p>` : ""}
                         ${attachments && attachments.length > 0 ? `<p style='color: #333; font-size: 1.1rem;'><strong>Anhänge:</strong> ${attachments.length} Datei(en)</p>` : ""}
                         ${additionalFieldsHtml}
                     </div>

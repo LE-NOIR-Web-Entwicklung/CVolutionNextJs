@@ -6,16 +6,17 @@
       "dom.iterable",
       "esnext"
     ],
-    "allowJs": true,
+    "allowJs": false,
     "skipLibCheck": true,
     "strict": true,
     "esModuleInterop": true,
     "module": "esnext",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "preserve",
     "incremental": true,
+    "baseUrl": ".",
     "plugins": [
       {
         "name": "next"
@@ -26,15 +27,31 @@
         "./src/*"
       ]
     },
-    "noEmit": false
+    "noEmit": true
+  },
+  "watchOptions": {
+    "excludeDirectories": [
+      "**/node_modules",
+      "**/.next/cache",
+      "**/supabase",
+      "**/public"
+    ]
   },
   "include": [
     "next-env.d.ts",
-    "**/*.ts",
-    "**/*.tsx",
+    "global.d.ts",
+    "next.config.ts",
+    "lib/**/*.ts",
+    "pages/**/*.ts",
+    "pages/**/*.tsx",
+    "src/**/*.ts",
+    "src/**/*.tsx",
     ".next/types/**/*.ts"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    ".next/cache",
+    "supabase",
+    "public"
   ]
 }

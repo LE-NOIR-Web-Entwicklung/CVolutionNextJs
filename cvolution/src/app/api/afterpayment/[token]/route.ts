@@ -59,15 +59,29 @@ export async function GET(
     return NextResponse.redirect(new URL('/confirmation?error=order_not_found', request.url));
   }
 
-  // Mark as paid
-  await supabaseAdmin
+  // Mark as paid only once. If this callback is retried or refreshed, do not send emails again.
+  const { data: paidOrder, error: paidUpdateError } = await supabaseAdmin
     .from('orders')
     .update({
       status: 'paid',
+      payment_status: 'paid',
       payment_token: paymentToken,
       paid_at: new Date().toISOString(),
     })
-    .eq('id', order.id);
+    .eq('id', order.id)
+    .eq('status', 'pending')
+    .select('*')
+    .single();
+
+  if (paidUpdateError || !paidOrder) {
+    console.warn('Afterpayment callback already handled or could not mark order as paid', {
+      orderId: order.id,
+      reason: paidUpdateError?.message,
+    });
+    return NextResponse.redirect(new URL('/confirmation?success=true', request.url));
+  }
+
+  order = paidOrder;
 
   // Handle "self" service: update profiles table
   if (order.service_type === 'self') {
@@ -117,7 +131,8 @@ export async function GET(
         order.gross_annual_salary || undefined,
         order.fringe_benefits || undefined,
         order.linkedin_url || undefined,
-        order.remarks || undefined
+        order.remarks || undefined,
+        order.coupon_code || null
       ),
       sendConfirmationEmail(order.email, order.service_label),
     ]);

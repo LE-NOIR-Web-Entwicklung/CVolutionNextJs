@@ -79,5 +79,8 @@
     "eslint-config-next": "15.2.4",
     "tailwindcss": "^4",
     "typescript": "^5"
+  },
+  "overrides": {
+    "@swc/helpers": "0.5.17"
   }
 }

@@ -38,11 +38,12 @@ export default function AdminLoginPage() {
 
       // Prüfe ob User Admin ist
       const adminEmails = ['jan@cvolution.ch', 'armend@cvolution.ch'];
+      const userEmail = data.user?.email?.toLowerCase() || '';
 
-      if (data.user && adminEmails.includes(data.user.email || '')) {
+      if (data.user && adminEmails.includes(userEmail)) {
         // Setze Admin-Session im localStorage
         localStorage.setItem('admin_logged_in', 'true');
-        localStorage.setItem('admin_email', data.user.email || '');
+        localStorage.setItem('admin_email', userEmail);
 
         toast({
           title: 'Erfolgreich angemeldet',

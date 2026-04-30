@@ -2,17 +2,17 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import { CouponCodeField } from "@/components/CouponCodeField";
 
 export default function ServiceCareer() {
     const [showForm, setShowForm] = useState(false);
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [submitted, setSubmitted] = useState(false);
+    const [requiresPayment, setRequiresPayment] = useState(true);
     const [error, setError] = useState("");
+    const [couponCode, setCouponCode] = useState("");
     const [service] = useState("Laufbahnberatung");
-
-    const paymentUrl = "https://www.saferpay.com/SecurePayGate/MultiUsePayment/364685/17772867/1d20d6ab-f1bd-4981-b0af-eada47e6ec9e";
-
     const handleSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
       setError("");
@@ -29,6 +29,7 @@ export default function ServiceCareer() {
             email,
             serviceType: "career",
             serviceLabel: service,
+            couponCode: couponCode || null,
           }),
         });
 
@@ -36,11 +37,15 @@ export default function ServiceCareer() {
           throw new Error("Failed to create order");
         }
 
-        setSubmitted(true);
-        setShowForm(false);
+      const orderResult = await res.json();
+      setRequiresPayment(orderResult.requiresPayment);
+      setSubmitted(true);
+      setShowForm(false);
+      if (orderResult.requiresPayment && orderResult.paymentUrl) {
         setTimeout(() => {
-          window.location.href = paymentUrl;
+          window.location.href = orderResult.paymentUrl;
         }, 3000);
+      }
       } catch {
         setError("Fehler beim Senden der Anfrage. Bitte versuchen Sie es erneut.");
       }
@@ -147,6 +152,7 @@ export default function ServiceCareer() {
                       required
                     />
                   </div>
+                  <CouponCodeField value={couponCode} onChange={setCouponCode} serviceType="service-career" />
                   {error && <p className="text-sm text-red-600 bg-red-50 rounded-lg px-4 py-3">{error}</p>}
                   <div className="flex gap-3 pt-2">
                     <button
@@ -168,7 +174,9 @@ export default function ServiceCareer() {
               {submitted && (
                 <div className="mt-8 bg-green-50 border border-green-100 rounded-xl px-6 py-4">
                   <p className="text-sm text-green-700 font-medium">
-                    Vielen Dank für Ihre Anfrage! Wir leiten Sie in Kürze zur Bezahlung weiter. Bitte warten Sie einen Moment.
+                    {requiresPayment
+                      ? "Vielen Dank für Ihre Anfrage! Wir leiten Sie in Kürze zur Bezahlung weiter. Bitte warten Sie einen Moment."
+                      : "Vielen Dank für Ihre Anfrage! Ihr Gutschein wurde angewendet, eine Zahlung ist nicht erforderlich."}
                   </p>
                 </div>
               )}

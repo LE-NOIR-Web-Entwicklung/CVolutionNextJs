@@ -13,8 +13,6 @@ interface PaymentModalProps {
 
 
 export const PaymentModal: React.FC<PaymentModalProps> = ({ open, onClose, user, profile, isRenewal = false }) => {
-  const paymentUrl = "https://www.saferpay.com/SecurePayGate/MultiUsePayment/364685/17772867/95543d79-3a8d-4502-a8a1-aee08db29925";
-
   const handlePay = async () => {
     if (typeof window === "undefined") return;
     try {
@@ -33,10 +31,12 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ open, onClose, user,
         throw new Error("Failed to create order");
       }
 
-      window.location.href = paymentUrl;
+      const orderResult: { requiresPayment: boolean; paymentUrl: string | null } = await res.json();
+      if (orderResult.requiresPayment && orderResult.paymentUrl) {
+        window.location.href = orderResult.paymentUrl;
+      }
     } catch (err) {
       console.error("Error creating order:", err);
-      window.location.href = paymentUrl;
     }
   };
   return (

@@ -15,6 +15,7 @@ export async function POST(request: NextRequest) {
       fringeBenefits,
       linkedinUrl,
       remarks,
+      couponCode,
       attachments
     } = await request.json();
 
@@ -37,7 +38,8 @@ export async function POST(request: NextRequest) {
       grossAnnualSalary,
       fringeBenefits,
       linkedinUrl,
-      remarks
+      remarks,
+      couponCode || null
     );
     return NextResponse.json({ message: 'Info email sent' }, { status: 200 });
   } catch (error) {

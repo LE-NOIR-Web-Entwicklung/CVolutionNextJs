@@ -6,8 +6,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { LogOut, Users, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Filter } from 'lucide-react';
+import { LogOut, Users, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Filter, Plus, Edit, Trash2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { COUPON_SERVICE_KEYS, type ServiceKey } from '@/lib/services';
 import {
   Select,
   SelectContent,
@@ -81,6 +82,77 @@ interface UserData {
   languages: Language[];
 }
 
+interface Coupon {
+  id: string;
+  code: string;
+  description: string | null;
+  discount_type: 'percent' | 'free';
+  discount_value: number | null;
+  applicable_services: ServiceKey[];
+  starts_at: string;
+  ends_at: string;
+  is_active: boolean;
+  redemption_count: number;
+  created_at: string;
+  updated_at: string;
+}
+
+interface CouponFormState {
+  code: string;
+  description: string;
+  discountType: 'percent' | 'free';
+  discountValue: string;
+  applicableServices: ServiceKey[];
+  startsAt: string;
+  endsAt: string;
+  isActive: boolean;
+}
+
+const serviceLabels: Record<ServiceKey, string> = {
+  'service-career': 'Career Service',
+  'service-check': 'Check Service',
+  'service-cv': 'CV Service',
+  'service-motivation': 'Motivation Service',
+  'service-rav': 'RAV Service',
+  'service-salary': 'Salary Service',
+};
+
+const adminEmails = ['jan@cvolution.ch', 'armend@cvolution.ch'];
+const FIXED_PERCENT_DISCOUNT = 30;
+
+const emptyCouponForm = (): CouponFormState => {
+  const start = new Date();
+  start.setMinutes(0, 0, 0);
+  const end = new Date(start);
+  end.setMonth(end.getMonth() + 1);
+
+  return {
+    code: '',
+    description: '',
+    discountType: 'percent',
+    discountValue: String(FIXED_PERCENT_DISCOUNT),
+    applicableServices: [],
+    startsAt: toDatetimeLocal(start.toISOString()),
+    endsAt: toDatetimeLocal(end.toISOString()),
+    isActive: true,
+  };
+};
+
+function toDatetimeLocal(value: string) {
+  const date = new Date(value);
+  const offset = date.getTimezoneOffset();
+  const local = new Date(date.getTime() - offset * 60 * 1000);
+  return local.toISOString().slice(0, 16);
+}
+
+function getCouponStatus(coupon: Coupon) {
+  const now = new Date();
+  if (!coupon.is_active) return { label: 'Inaktiv', className: 'bg-gray-100 text-gray-700 border-gray-200' };
+  if (now < new Date(coupon.starts_at)) return { label: 'Geplant', className: 'bg-blue-50 text-blue-700 border-blue-200' };
+  if (now > new Date(coupon.ends_at)) return { label: 'Abgelaufen', className: 'bg-red-50 text-red-700 border-red-200' };
+  return { label: 'Aktiv', className: 'bg-green-50 text-green-700 border-green-200' };
+}
+
 const AdminContent: React.FC = () => {
   const router = useRouter();
   const [users, setUsers] = useState<UserData[]>([]);
@@ -90,6 +162,12 @@ const AdminContent: React.FC = () => {
   const [adminEmail, setAdminEmail] = useState<string>('');
   const [currentPage, setCurrentPage] = useState(1);
   const [activeFilter, setActiveFilter] = useState<'all' | 'active' | 'inactive'>('all');
+  const [coupons, setCoupons] = useState<Coupon[]>([]);
+  const [couponLoading, setCouponLoading] = useState(false);
+  const [showCouponForm, setShowCouponForm] = useState(false);
+  const [editingCouponId, setEditingCouponId] = useState<string | null>(null);
+  const [couponForm, setCouponForm] = useState<CouponFormState>(() => emptyCouponForm());
+  const [couponFormError, setCouponFormError] = useState('');
   const ITEMS_PER_PAGE = 10;
 
   useEffect(() => {
@@ -99,28 +177,32 @@ const AdminContent: React.FC = () => {
   useEffect(() => {
     if (isAdmin) {
       fetchAllUsers();
+      fetchCoupons();
     }
   }, [isAdmin]);
 
   const checkAdminAccess = async () => {
-    // Prüfe localStorage für Admin-Session
     const adminLoggedIn = localStorage.getItem('admin_logged_in');
     const storedEmail = localStorage.getItem('admin_email');
+    const { data } = await supabase.auth.getSession();
+    const sessionEmail = data.session?.user.email?.toLowerCase();
 
-    if (adminLoggedIn === 'true' && storedEmail) {
+    if (adminLoggedIn === 'true' && storedEmail && sessionEmail && adminEmails.includes(sessionEmail)) {
       setIsAdmin(true);
-      setAdminEmail(storedEmail);
-    } else {
-      router.push('/admin/login');
+      setAdminEmail(sessionEmail);
+      localStorage.setItem('admin_email', sessionEmail);
+      return;
     }
+
+    localStorage.removeItem('admin_logged_in');
+    localStorage.removeItem('admin_email');
+    await supabase.auth.signOut();
+    router.push('/admin/login');
   };
 
   const fetchAllUsers = async () => {
     setLoading(true);
     try {
-      // Admin-Email-Liste
-      const adminEmails = ['jan@cvolution.ch', 'armend@cvolution.ch'];
-
       // Hole alle Profile mit Email-Feld (muss in der Datenbank existieren)
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
@@ -194,10 +276,149 @@ const AdminContent: React.FC = () => {
     }
   };
 
+  const getAdminHeaders = async () => {
+    const { data } = await supabase.auth.getSession();
+    const token = data.session?.access_token;
+    const email = data.session?.user.email?.toLowerCase();
+    if (!token || !email || !adminEmails.includes(email)) {
+      localStorage.removeItem('admin_logged_in');
+      localStorage.removeItem('admin_email');
+      router.push('/admin/login');
+      throw new Error('Bitte melden Sie sich erneut als Admin an.');
+    }
+    return {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    };
+  };
+
+  const fetchCoupons = async () => {
+    setCouponLoading(true);
+    try {
+      const headers = await getAdminHeaders();
+      const res = await fetch('/api/admin/coupons', { headers });
+      if (!res.ok) throw new Error('Coupons konnten nicht geladen werden.');
+      const data = await res.json();
+      setCoupons(data.coupons || []);
+    } catch (error) {
+      console.error('Error fetching coupons:', error);
+      toast({ title: 'Fehler', description: 'Coupons konnten nicht geladen werden.', variant: 'destructive' });
+    } finally {
+      setCouponLoading(false);
+    }
+  };
+
+  const startCreateCoupon = () => {
+    setEditingCouponId(null);
+    setCouponForm(emptyCouponForm());
+    setCouponFormError('');
+    setShowCouponForm(true);
+  };
+
+  const startEditCoupon = (coupon: Coupon) => {
+    setEditingCouponId(coupon.id);
+    setCouponForm({
+      code: coupon.code,
+      description: coupon.description || '',
+      discountType: coupon.discount_type,
+      discountValue: String(coupon.discount_type === 'percent' ? FIXED_PERCENT_DISCOUNT : 100),
+      applicableServices: coupon.applicable_services,
+      startsAt: toDatetimeLocal(coupon.starts_at),
+      endsAt: toDatetimeLocal(coupon.ends_at),
+      isActive: coupon.is_active,
+    });
+    setCouponFormError('');
+    setShowCouponForm(true);
+  };
+
+  const validateCouponForm = () => {
+    if (!couponForm.code.trim()) return 'Coupon Code ist erforderlich.';
+    if (couponForm.applicableServices.length === 0) return 'Bitte mindestens einen Service auswählen.';
+    if (!couponForm.startsAt || !couponForm.endsAt || new Date(couponForm.endsAt) <= new Date(couponForm.startsAt)) {
+      return 'Enddatum/-zeit muss nach dem Start liegen.';
+    }
+    return '';
+  };
+
+  const submitCoupon = async (event: React.FormEvent) => {
+    event.preventDefault();
+    const validationError = validateCouponForm();
+    if (validationError) {
+      setCouponFormError(validationError);
+      return;
+    }
+
+    try {
+      const headers = await getAdminHeaders();
+      const payload = {
+        code: couponForm.code,
+        description: couponForm.description,
+        discountType: couponForm.discountType,
+        discountValue: couponForm.discountType === 'free' ? 100 : FIXED_PERCENT_DISCOUNT,
+        applicableServices: couponForm.applicableServices,
+        startsAt: new Date(couponForm.startsAt).toISOString(),
+        endsAt: new Date(couponForm.endsAt).toISOString(),
+        isActive: couponForm.isActive,
+      };
+      const res = await fetch(editingCouponId ? `/api/admin/coupons/${editingCouponId}` : '/api/admin/coupons', {
+        method: editingCouponId ? 'PATCH' : 'POST',
+        headers,
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Coupon konnte nicht gespeichert werden.');
+      toast({ title: 'Gespeichert', description: 'Coupon wurde gespeichert.' });
+      setShowCouponForm(false);
+      await fetchCoupons();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Coupon konnte nicht gespeichert werden.';
+      setCouponFormError(message);
+    }
+  };
+
+  const toggleCouponService = (serviceKey: ServiceKey) => {
+    setCouponForm((current) => ({
+      ...current,
+      applicableServices: current.applicableServices.includes(serviceKey)
+        ? current.applicableServices.filter((key) => key !== serviceKey)
+        : [...current.applicableServices, serviceKey],
+    }));
+  };
+
+  const toggleCouponActive = async (coupon: Coupon) => {
+    try {
+      const headers = await getAdminHeaders();
+      const res = await fetch(`/api/admin/coupons/${coupon.id}`, {
+        method: 'PATCH',
+        headers,
+        body: JSON.stringify({ isActive: !coupon.is_active }),
+      });
+      if (!res.ok) throw new Error('Status konnte nicht geändert werden.');
+      await fetchCoupons();
+    } catch {
+      toast({ title: 'Fehler', description: 'Coupon-Status konnte nicht geändert werden.', variant: 'destructive' });
+    }
+  };
+
+  const deleteCoupon = async (coupon: Coupon) => {
+    if (!window.confirm(`Coupon ${coupon.code} wirklich löschen?`)) return;
+    try {
+      const headers = await getAdminHeaders();
+      const res = await fetch(`/api/admin/coupons/${coupon.id}`, { method: 'DELETE', headers });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Coupon konnte nicht gelöscht werden.');
+      await fetchCoupons();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Coupon konnte nicht gelöscht werden.';
+      toast({ title: 'Fehler', description: message, variant: 'destructive' });
+    }
+  };
+
   const handleSignOut = async () => {
     // Lösche Admin-Session aus localStorage
     localStorage.removeItem('admin_logged_in');
     localStorage.removeItem('admin_email');
+    await supabase.auth.signOut();
 
     toast({
       title: 'Abgemeldet',
@@ -297,6 +518,184 @@ const AdminContent: React.FC = () => {
       </header>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <section className="mb-10">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+            <div>
+              <h2 className="text-xl font-semibold text-gray-900">Coupon Codes</h2>
+              <p className="text-sm text-gray-600">Rabatte erstellen, zeitlich steuern und pro Service freigeben.</p>
+            </div>
+            <Button onClick={startCreateCoupon} className="bg-[#204878] text-white">
+              <Plus className="h-4 w-4 mr-2" />
+              Coupon erstellen
+            </Button>
+          </div>
+
+          {showCouponForm && (
+            <Card className="mb-6 bg-white">
+              <CardHeader>
+                <CardTitle className="text-gray-900">{editingCouponId ? 'Coupon bearbeiten' : 'Coupon erstellen'}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={submitCoupon} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-900 mb-1">Coupon Code</label>
+                    <input
+                      className="w-full border rounded-md px-3 py-2 text-sm text-gray-900"
+                      value={couponForm.code}
+                      onChange={(event) => setCouponForm({ ...couponForm, code: event.target.value.toUpperCase().trim() })}
+                      placeholder="FRAUEN2026"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-900 mb-1">Beschreibung</label>
+                    <input
+                      className="w-full border rounded-md px-3 py-2 text-sm text-gray-900"
+                      value={couponForm.description}
+                      onChange={(event) => setCouponForm({ ...couponForm, description: event.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-900 mb-1">Rabatt-Art</label>
+                    <select
+                      className="w-full border rounded-md px-3 py-2 text-sm text-gray-900 bg-white"
+                      value={couponForm.discountType}
+                      onChange={(event) => {
+                        const discountType = event.target.value as 'percent' | 'free';
+                        setCouponForm({
+                          ...couponForm,
+                          discountType,
+                          discountValue: String(discountType === 'percent' ? FIXED_PERCENT_DISCOUNT : 100),
+                        });
+                      }}
+                    >
+                      <option value="percent">Prozentualer Rabatt</option>
+                      <option value="free">Gratis / 100%</option>
+                    </select>
+                  </div>
+                  {couponForm.discountType === 'percent' && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-900 mb-1">Rabattwert</label>
+                      <div className="w-full border rounded-md px-3 py-2 text-sm text-gray-700 bg-gray-50">
+                        {FIXED_PERCENT_DISCOUNT}% Rabatt
+                      </div>
+                    </div>
+                  )}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-900 mb-1">Startdatum und Startzeit</label>
+                    <input
+                      type="datetime-local"
+                      className="w-full border rounded-md px-3 py-2 text-sm text-gray-900"
+                      value={couponForm.startsAt}
+                      onChange={(event) => setCouponForm({ ...couponForm, startsAt: event.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-900 mb-1">Enddatum und Endzeit</label>
+                    <input
+                      type="datetime-local"
+                      className="w-full border rounded-md px-3 py-2 text-sm text-gray-900"
+                      value={couponForm.endsAt}
+                      onChange={(event) => setCouponForm({ ...couponForm, endsAt: event.target.value })}
+                    />
+                  </div>
+                  <label className="flex items-center gap-2 text-sm font-medium text-gray-900 pt-6">
+                    <input
+                      type="checkbox"
+                      checked={couponForm.isActive}
+                      onChange={(event) => setCouponForm({ ...couponForm, isActive: event.target.checked })}
+                    />
+                    Aktiv
+                  </label>
+                  <div className="md:col-span-2">
+                    <p className="text-sm font-medium text-gray-900 mb-2">Services</p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                      {COUPON_SERVICE_KEYS.map((serviceKey) => (
+                        <label key={serviceKey} className="flex items-center gap-2 border rounded-md px-3 py-2 text-sm text-gray-900">
+                          <input
+                            type="checkbox"
+                            checked={couponForm.applicableServices.includes(serviceKey)}
+                            onChange={() => toggleCouponService(serviceKey)}
+                          />
+                          {serviceLabels[serviceKey]}
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                  {couponFormError && (
+                    <p className="md:col-span-2 text-sm text-red-700 bg-red-50 border border-red-100 rounded-md px-3 py-2">
+                      {couponFormError}
+                    </p>
+                  )}
+                  <div className="md:col-span-2 flex gap-2">
+                    <Button type="submit" className="bg-[#204878] text-white">Speichern</Button>
+                    <Button type="button" variant="outline" onClick={() => setShowCouponForm(false)}>Abbrechen</Button>
+                  </div>
+                </form>
+              </CardContent>
+            </Card>
+          )}
+
+          <Card className="bg-white">
+            <CardContent className="p-0 overflow-x-auto">
+              {couponLoading ? (
+                <p className="p-6 text-sm text-gray-500">Lade Coupons...</p>
+              ) : coupons.length === 0 ? (
+                <p className="p-6 text-sm text-gray-500">Noch keine Coupons erstellt.</p>
+              ) : (
+                <table className="w-full text-sm">
+                  <thead className="bg-gray-50 text-left text-gray-700">
+                    <tr>
+                      <th className="p-3">Code</th>
+                      <th className="p-3">Rabatt</th>
+                      <th className="p-3">Services</th>
+                      <th className="p-3">Zeitraum</th>
+                      <th className="p-3">Einlösungen</th>
+                      <th className="p-3">Status</th>
+                      <th className="p-3 text-right">Aktionen</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {coupons.map((coupon) => {
+                      const status = getCouponStatus(coupon);
+                      return (
+                        <tr key={coupon.id} className="border-t">
+                          <td className="p-3 font-semibold text-gray-900">{coupon.code}</td>
+                          <td className="p-3 text-gray-700">
+                            {coupon.discount_type === 'free' ? 'Gratis' : `${coupon.discount_value}%`}
+                          </td>
+                          <td className="p-3 text-gray-700">
+                            {coupon.applicable_services.map((key) => serviceLabels[key]).join(', ')}
+                          </td>
+                          <td className="p-3 text-gray-700">
+                            {new Date(coupon.starts_at).toLocaleString('de-CH')} - {new Date(coupon.ends_at).toLocaleString('de-CH')}
+                          </td>
+                          <td className="p-3 text-gray-700">{coupon.redemption_count}</td>
+                          <td className="p-3">
+                            <Badge variant="outline" className={status.className}>{status.label}</Badge>
+                          </td>
+                          <td className="p-3">
+                            <div className="flex justify-end gap-2">
+                              <Button size="sm" variant="outline" onClick={() => startEditCoupon(coupon)}>
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button size="sm" variant="outline" onClick={() => toggleCouponActive(coupon)}>
+                                {coupon.is_active ? 'Deaktivieren' : 'Aktivieren'}
+                              </Button>
+                              <Button size="sm" variant="outline" onClick={() => deleteCoupon(coupon)}>
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              )}
+            </CardContent>
+          </Card>
+        </section>
+
         {/* Filter Section */}
         {!loading && users.length > 0 && (
           <div className="mb-6 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">

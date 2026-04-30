@@ -1,6 +1,20 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
+
+type CouponPreview =
+  | { state: "idle" }
+  | { state: "checking" }
+  | { state: "valid"; code: string; discountType: "percent" | "free"; discountValue: number }
+  | { state: "invalid"; reason: string };
+
+const couponErrorMessages: Record<string, string> = {
+  expired: "Dieser Gutscheincode ist abgelaufen.",
+  not_started: "Dieser Gutscheincode ist noch nicht gültig.",
+  inactive: "Dieser Gutscheincode ist nicht aktiv.",
+  service_not_allowed: "Dieser Gutscheincode gilt nicht für diesen Service.",
+  not_found: "Dieser Gutscheincode ist ungültig.",
+};
 
 export default function ServiceSalary() {
     const [showForm, setShowForm] = useState(false);
@@ -11,12 +25,7 @@ export default function ServiceSalary() {
     const [cvFile, setCvFile] = useState<File | null>(null);
     const [salaryFile, setSalaryFile] = useState<File | null>(null);
     const [selectedService, setSelectedService] = useState<"phone" | "pdf" | null>(null);
-
-    // Check if coupon code field should be shown
-    const couponStartDate = new Date("2026-03-08T06:00:00");
-    const couponExpiryDate = new Date("2026-03-08T23:59:59");
-    const now = new Date();
-    const isCouponFieldVisible = now >= couponStartDate && now <= couponExpiryDate;
+    const [requiresPayment, setRequiresPayment] = useState(true);
 
     // Form fields for both services
     const [firstName, setFirstName] = useState("");
@@ -28,6 +37,51 @@ export default function ServiceSalary() {
     const [linkedinUrl, setLinkedinUrl] = useState("");
     const [remarks, setRemarks] = useState("");
     const [couponCode, setCouponCode] = useState("");
+    const [couponPreview, setCouponPreview] = useState<CouponPreview>({ state: "idle" });
+
+    useEffect(() => {
+      const trimmedCode = couponCode.trim();
+      if (!trimmedCode || !selectedService) {
+        setCouponPreview({ state: "idle" });
+        return;
+      }
+
+      const controller = new AbortController();
+      const timeout = window.setTimeout(async () => {
+        setCouponPreview({ state: "checking" });
+        try {
+          const res = await fetch("/api/coupons/validate", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              code: trimmedCode,
+              serviceType: "service-salary",
+            }),
+            signal: controller.signal,
+          });
+          const data = await res.json();
+          if (data.valid) {
+            setCouponPreview({
+              state: "valid",
+              code: data.code,
+              discountType: data.discountType,
+              discountValue: data.discountValue,
+            });
+          } else {
+            setCouponPreview({ state: "invalid", reason: data.reason || "not_found" });
+          }
+        } catch (error) {
+          if (!controller.signal.aborted) {
+            setCouponPreview({ state: "invalid", reason: "not_found" });
+          }
+        }
+      }, 400);
+
+      return () => {
+        window.clearTimeout(timeout);
+        controller.abort();
+      };
+    }, [couponCode, selectedService]);
 
     const convertFileToBase64 = (file: File): Promise<string> => {
       return new Promise((resolve, reject) => {
@@ -89,21 +143,6 @@ export default function ServiceSalary() {
           cvName = cvFile.name;
         }
 
-        // Determine coupon validity and payment URL
-        const isLinkedIn30Coupon = couponCode.toLowerCase() === "frauen2026";
-        const isCouponValid = isLinkedIn30Coupon && now >= couponStartDate && now <= couponExpiryDate;
-
-        let paymentUrl: string;
-        if (selectedService === "pdf" && isCouponValid) {
-          paymentUrl = "https://www.saferpay.com/SecurePayGate/MultiUsePayment/364685/17772867/ce545182-affa-4b52-bb5d-768c6a9e2860";
-        } else if (selectedService === "pdf") {
-          paymentUrl = "https://www.saferpay.com/SecurePayGate/MultiUsePayment/364685/17772867/8cf44459-8bf1-4dca-a741-3ad3ce89e104";
-        } else if (isCouponValid) {
-          paymentUrl = "https://www.saferpay.com/SecurePayGate/MultiUsePayment/364685/17772867/169e66af-8529-428c-b545-707a497c009c";
-        } else {
-          paymentUrl = "https://www.saferpay.com/SecurePayGate/MultiUsePayment/364685/17772867/e91db818-e534-4eca-848d-70caf1fa6be7";
-        }
-
         // Save order to Supabase via API (sets orderId cookie)
         const res = await fetch("/api/orders", {
           method: "POST",
@@ -113,14 +152,11 @@ export default function ServiceSalary() {
             workLocation, grossAnnualSalary, fringeBenefits,
             linkedinUrl, remarks,
             serviceType: selectedService === "phone" ? "salary_phone" : "salary_pdf",
-            serviceLabel: service,
             cvFileBase64: cvBase64 || null,
             cvFileName: cvName || null,
             salaryFileBase64: salaryBase64,
             salaryFileName: salaryName,
             couponCode: couponCode || null,
-            couponValid: isCouponValid,
-            paymentUrl
           }),
         });
 
@@ -128,13 +164,16 @@ export default function ServiceSalary() {
           throw new Error("Failed to create order");
         }
 
+        const orderResult: { requiresPayment: boolean; paymentUrl: string | null } = await res.json();
+        setRequiresPayment(orderResult.requiresPayment);
         setSubmitted(true);
         setShowForm(false);
 
-        // Redirect to Saferpay after 3 seconds
-        setTimeout(() => {
-          window.location.href = paymentUrl;
-        }, 3000);
+        if (orderResult.requiresPayment && orderResult.paymentUrl) {
+          setTimeout(() => {
+            window.location.href = orderResult.paymentUrl as string;
+          }, 3000);
+        }
       } catch (error) {
         console.error("Error:", error);
         setError("Fehler beim Senden der Anfrage. Bitte versuchen Sie es erneut.");
@@ -436,7 +475,7 @@ export default function ServiceSalary() {
                     </div>
 
                     {/* Coupon Code Field */}
-                    {(selectedService === "pdf" || selectedService === "phone") && isCouponFieldVisible && (
+                    {(selectedService === "pdf" || selectedService === "phone") && (
                       <div>
                         <label className="block text-sm font-semibold text-[#111827] mb-2">Gutscheincode</label>
                         <input
@@ -444,11 +483,24 @@ export default function ServiceSalary() {
                           className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#204878] focus:border-transparent transition"
                           placeholder="Gutscheincode eingeben"
                           value={couponCode}
-                          onChange={e => setCouponCode(e.target.value)}
+                          onChange={e => setCouponCode(e.target.value.toUpperCase())}
                         />
                         <p className="text-xs text-[#64748B] mt-1">
                           Falls Sie einen Gutscheincode haben, geben Sie ihn hier ein
                         </p>
+                        {couponPreview.state === "checking" && (
+                          <p className="text-xs text-[#64748B] mt-2">Gutscheincode wird geprüft...</p>
+                        )}
+                        {couponPreview.state === "valid" && (
+                          <p className="text-sm text-green-700 bg-green-50 rounded-lg px-4 py-3 mt-3">
+                            Coupon angewendet: {couponPreview.discountType === "free" ? "kostenlos" : `${couponPreview.discountValue}% Rabatt`}
+                          </p>
+                        )}
+                        {couponPreview.state === "invalid" && (
+                          <p className="text-sm text-red-600 bg-red-50 rounded-lg px-4 py-3 mt-3">
+                            {couponErrorMessages[couponPreview.reason] || "Dieser Gutscheincode ist ungültig."}
+                          </p>
+                        )}
                       </div>
                     )}
                   </>
@@ -477,7 +529,9 @@ export default function ServiceSalary() {
           {submitted && (
             <div className="max-w-md mx-auto bg-green-50 border border-green-100 rounded-2xl p-8 text-center">
               <p className="text-sm text-green-700 font-medium">
-                Vielen Dank für Ihre Anfrage! Wir leiten Sie in Kürze zur Bezahlung weiter. Bitte warten Sie einen Moment.
+                {requiresPayment
+                  ? "Vielen Dank für Ihre Anfrage! Wir leiten Sie in Kürze zur Bezahlung weiter. Bitte warten Sie einen Moment."
+                  : "Vielen Dank für Ihre Anfrage! Ihr Gutschein wurde angewendet, eine Zahlung ist nicht erforderlich."}
               </p>
             </div>
           )}
