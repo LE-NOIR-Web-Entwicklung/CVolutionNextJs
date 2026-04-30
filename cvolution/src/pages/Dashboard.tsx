@@ -207,7 +207,7 @@ export const Dashboard: React.FC = () => {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
               <Badge variant="secondary" className="text-gray-600 sm:ml-3 text-xs sm:text-sm hidden sm:inline-flex">
-                Professionelle Lebenslauf-Management-Plattform
+                CVolution GmbH | Professioneller CV Self-Service
               </Badge>
             </div>
             <div className="flex items-center space-x-2 sm:space-x-4">
@@ -241,13 +241,13 @@ export const Dashboard: React.FC = () => {
             </div>
 
             {/* Desktop Tab Navigation */}
-            <TabsList className="hidden sm:grid w-full max-w-2xl grid-cols-6">
+            <TabsList className="hidden h-auto w-full max-w-3xl grid-cols-6 gap-2 bg-transparent p-0 sm:grid">
               {/* <TabsTrigger value="linkedin">LinkedIn</TabsTrigger> */}
-              <TabsTrigger value="profile" className="text-gray-600 data-[state=active]:bg-[#204878] data-[state=active]:text-white">Profil</TabsTrigger>
-              <TabsTrigger value="experience" className="text-gray-600 data-[state=active]:bg-[#204878] data-[state=active]:text-white">Erfahrung</TabsTrigger>
-              <TabsTrigger value="education" className="text-gray-600 data-[state=active]:bg-[#204878] data-[state=active]:text-white">Bildung</TabsTrigger>
-              <TabsTrigger value="skills" className="text-gray-600 data-[state=active]:bg-[#204878] data-[state=active]:text-white col-span-2 min-w-[180px]">Sprachen & Fähigkeiten</TabsTrigger>
-              <TabsTrigger value="settings" className="text-gray-600 data-[state=active]:bg-[#204878] data-[state=active]:text-white">Einstellungen</TabsTrigger>
+              <TabsTrigger value="profile" className="h-11 rounded-lg bg-white text-sm text-gray-600 shadow-sm data-[state=active]:bg-[#204878] data-[state=active]:text-white">Profil</TabsTrigger>
+              <TabsTrigger value="experience" className="h-11 rounded-lg bg-white text-sm text-gray-600 shadow-sm data-[state=active]:bg-[#204878] data-[state=active]:text-white">Erfahrung</TabsTrigger>
+              <TabsTrigger value="education" className="h-11 rounded-lg bg-white text-sm text-gray-600 shadow-sm data-[state=active]:bg-[#204878] data-[state=active]:text-white">Bildung</TabsTrigger>
+              <TabsTrigger value="skills" className="col-span-2 h-11 rounded-lg bg-white text-sm text-gray-600 shadow-sm data-[state=active]:bg-[#204878] data-[state=active]:text-white">Sprachen & Fähigkeiten</TabsTrigger>
+              <TabsTrigger value="settings" className="h-11 rounded-lg bg-white text-sm text-gray-600 shadow-sm data-[state=active]:bg-[#204878] data-[state=active]:text-white">Einstellungen</TabsTrigger>
             </TabsList>
             {/* CV Export Button below desktop navigation */}
             <div className="hidden sm:block ml-4">
