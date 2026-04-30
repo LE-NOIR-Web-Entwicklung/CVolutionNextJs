@@ -66,8 +66,9 @@ export const AuthPage: React.FC = () => {
     } else {
       toast({
         title: "Konto erstellt!",
-        description: "Bitte überprüfen Sie Ihre E-Mail, um Ihr Konto zu verifizieren.",
+        description: "Sie werden direkt zum Dashboard weitergeleitet.",
       });
+      router.push("/dashboard");
     }
 
     setIsLoading(false);

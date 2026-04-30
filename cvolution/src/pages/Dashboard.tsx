@@ -5,7 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { LogOut} from 'lucide-react';
+import { LogOut } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import ProfileSection from '@/components/Dashboard/ProfileSection';
 import ExperienceSection from '@/components/Dashboard/ExperienceSection';
@@ -27,6 +27,7 @@ export const Dashboard: React.FC = () => {
   const [skillsData, setSkillsData] = useState<any[]>([]);
   const [languagesData, setLanguagesData] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState('profile');
+  const [cancelingSubscription, setCancelingSubscription] = useState(false);
   const profileSectionRef = React.useRef<{ saveProfile: () => void }>(null);
   const experienceSectionRef = React.useRef<{ saveExperiences: () => void }>(null);
   const educationSectionRef = React.useRef<{ saveEducation: () => void }>(null);
@@ -95,24 +96,90 @@ export const Dashboard: React.FC = () => {
   };
 
   const handleExportClick = () => {
-    // Prüfe, ob bezahlt wurde oder paydate älter als ein Monat ist
+    // Prüfe, ob ein aktiver Zahlungszeitraum vorhanden ist.
     if (profileData) {
       const paid = profileData.paid;
-      const paydate = profileData.paydate;
+      const periodEnd = profileData.subscription_current_period_end || profileData.paydate;
       let expired = false;
-      if (paydate) {
-        const payDateObj = new Date(paydate);
+      if (periodEnd) {
+        const periodEndDate = new Date(periodEnd);
         const now = new Date();
-        const diffMonths = (now.getTime() - payDateObj.getTime()) / (1000 * 60 * 60 * 24 * 30);
-        expired = diffMonths >= 1;
+        expired = periodEndDate.getTime() <= now.getTime();
       }
-      if ((paid === false || !paid) || !paydate || expired) {
+      if ((paid === false || !paid) || !periodEnd || expired) {
         setIsRenewal(expired);
         setPaymentModalOpen(true);
         return;
       }
     }
     setCVModalOpen(true);
+  };
+
+  const hasActiveSubscription = Boolean(
+    profileData?.subscription_provider === 'saferpay' &&
+    profileData?.subscription_status === 'active' &&
+    profileData?.subscription_current_period_end &&
+    new Date(profileData.subscription_current_period_end).getTime() > Date.now()
+  );
+
+  const hasCanceledSubscription = Boolean(
+    profileData?.subscription_provider === 'saferpay' &&
+    profileData?.subscription_status === 'canceled'
+  );
+
+  const formatSubscriptionDate = (value: string | null | undefined) => {
+    if (!value) return '';
+    return new Intl.DateTimeFormat('de-CH', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    }).format(new Date(value));
+  };
+
+  const handleCancelSubscription = async () => {
+    if (!hasActiveSubscription || cancelingSubscription) return;
+
+    const confirmed = window.confirm(
+      'Abo wirklich kündigen? Ihr Zugang bleibt bis zum Ende der bezahlten Laufzeit aktiv. Es werden danach keine weiteren monatlichen Abbuchungen ausgelöst.'
+    );
+
+    if (!confirmed) return;
+
+    setCancelingSubscription(true);
+    try {
+      const { data } = await supabase.auth.getSession();
+      const token = data.session?.access_token;
+
+      if (!token) {
+        throw new Error('Bitte melden Sie sich erneut an.');
+      }
+
+      const res = await fetch('/api/saferpay/self-subscription/cancel', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        throw new Error(data?.error || 'Abo konnte nicht gekündigt werden.');
+      }
+
+      setProfileData((current: any) => current ? { ...current, subscription_status: 'canceled' } : current);
+      toast({
+        title: 'Abo gekündigt',
+        description: 'Es werden keine weiteren monatlichen Abbuchungen ausgelöst.',
+      });
+    } catch (error) {
+      toast({
+        title: 'Kündigung fehlgeschlagen',
+        description: error instanceof Error ? error.message : 'Bitte versuchen Sie es erneut.',
+        variant: 'destructive',
+      });
+    } finally {
+      setCancelingSubscription(false);
+    }
   };
 
   // Detect tab change and trigger save when leaving profile tab
@@ -190,6 +257,36 @@ export const Dashboard: React.FC = () => {
               <CVExportButton onExport={handleExportClick} />
             </div>
           </div>
+
+          {(hasActiveSubscription || hasCanceledSubscription) && (
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white px-4 py-3">
+              <div>
+                <p className="text-sm font-medium text-slate-900">
+                  {hasCanceledSubscription ? 'Abo gekündigt' : 'Aktives Monatsabo'}
+                </p>
+                <p className="text-xs text-slate-600">
+                  Zugriff bis {formatSubscriptionDate(profileData?.subscription_current_period_end)}
+                  {hasCanceledSubscription ? '. Es erfolgen keine weiteren Abbuchungen.' : '. Verlängert sich automatisch monatlich.'}
+                </p>
+              </div>
+              {hasActiveSubscription && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleCancelSubscription}
+                  disabled={cancelingSubscription}
+                  className="border-red-200 bg-white text-red-700 hover:bg-red-50 hover:text-red-800"
+                >
+                  <span className="relative inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full border border-current">
+                    <span className="absolute h-2.5 w-px rotate-45 bg-current" />
+                    <span className="absolute h-2.5 w-px -rotate-45 bg-current" />
+                  </span>
+                  {cancelingSubscription ? 'Kündige...' : 'Abo kündigen'}
+                </Button>
+              )}
+            </div>
+          )}
 
           {/* CV Export Modal */}
           <CVExportModal

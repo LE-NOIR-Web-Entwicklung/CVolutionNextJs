@@ -104,7 +104,7 @@ export const SERVICE_CONFIGS: Record<string, ServiceConfig> = {
     orderType: "self",
     couponServiceKey: "service-cv",
     label: "self",
-    basePrice: 9,
+    basePrice: 13.9,
     paymentUrls: { normal: `${SAFERPAY_BASE}/95543d79-3a8d-4502-a8a1-aee08db29925` },
   },
 };
