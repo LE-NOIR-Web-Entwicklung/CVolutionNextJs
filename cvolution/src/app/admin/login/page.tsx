@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { supabase } from '@/integrations/supabase/client';
+import { adminSupabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -21,7 +21,7 @@ export default function AdminLoginPage() {
 
     try {
       // Versuche Login mit Supabase Auth
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await adminSupabase.auth.signInWithPassword({
         email: email.trim(),
         password: password,
       });
@@ -53,7 +53,7 @@ export default function AdminLoginPage() {
         router.push('/admin');
       } else {
         // User ist kein Admin - ausloggen
-        await supabase.auth.signOut();
+        await adminSupabase.auth.signOut();
         toast({
           title: 'Zugriff verweigert',
           description: 'Sie haben keine Admin-Berechtigung.',
