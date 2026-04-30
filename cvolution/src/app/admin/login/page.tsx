@@ -10,14 +10,26 @@ import { toast } from '@/hooks/use-toast';
 
 const ADMIN_SESSION_STORAGE_KEY = 'cvolution-admin-session';
 
+const waitForAdminSession = async () => {
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    const { data } = await adminSupabase.auth.getSession();
+    if (data.session) return data.session;
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
+
+  return null;
+};
+
 export default function AdminLoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setErrorMessage('');
 
     try {
       // Versuche Login mit Supabase Auth
@@ -27,6 +39,7 @@ export default function AdminLoginPage() {
       });
 
       if (error) {
+        setErrorMessage(error.message);
         toast({
           title: 'Login fehlgeschlagen',
           description: error.message,
@@ -41,6 +54,10 @@ export default function AdminLoginPage() {
       const userEmail = data.user?.email?.toLowerCase() || '';
 
       if (data.user && adminEmails.includes(userEmail)) {
+        if (!data.session) {
+          throw new Error('Admin-Session konnte nicht erstellt werden.');
+        }
+
         if (data.session) {
           await adminSupabase.auth.setSession({
             access_token: data.session.access_token,
@@ -53,6 +70,11 @@ export default function AdminLoginPage() {
             expires_at: data.session.expires_at,
             email: userEmail,
           }));
+        }
+
+        const verifiedSession = await waitForAdminSession();
+        if (!verifiedSession) {
+          throw new Error('Admin-Session konnte nicht gespeichert werden. Bitte Browser-Speicher fuer diese Seite erlauben.');
         }
 
         // Setze Admin-Session im localStorage
@@ -68,6 +90,7 @@ export default function AdminLoginPage() {
       } else {
         // User ist kein Admin - ausloggen
         await adminSupabase.auth.signOut();
+        setErrorMessage('Sie haben keine Admin-Berechtigung.');
         toast({
           title: 'Zugriff verweigert',
           description: 'Sie haben keine Admin-Berechtigung.',
@@ -76,6 +99,7 @@ export default function AdminLoginPage() {
       }
     } catch (error) {
       console.error('Login error:', error);
+      setErrorMessage(error instanceof Error ? error.message : 'Ein unerwarteter Fehler ist aufgetreten.');
       toast({
         title: 'Fehler',
         description: 'Ein unerwarteter Fehler ist aufgetreten.',
@@ -130,6 +154,11 @@ export default function AdminLoginPage() {
                 disabled={loading}
               />
             </div>
+            {errorMessage && (
+              <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">
+                {errorMessage}
+              </p>
+            )}
             <Button
               type="submit"
               className="w-full bg-[#204878] hover:bg-[#1a3a5f]"
