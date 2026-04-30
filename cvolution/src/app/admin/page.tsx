@@ -586,15 +586,15 @@ const AdminContent: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Tabs defaultValue="users" className="space-y-6">
           <TabsList className="bg-white border border-gray-200 h-auto p-1">
-            <TabsTrigger value="users" className="gap-2 data-[state=active]:bg-[#204878] data-[state=active]:text-white">
+            <TabsTrigger value="users" className="gap-2 data-[state=active]:bg-[#204878] text-black data-[state=active]:text-white">
               <Users className="h-4 w-4" />
               Benutzer
             </TabsTrigger>
-            <TabsTrigger value="coupons" className="gap-2 data-[state=active]:bg-[#204878] data-[state=active]:text-white">
+            <TabsTrigger value="coupons" className="gap-2 data-[state=active]:bg-[#204878] text-black data-[state=active]:text-white">
               <TicketPercent className="h-4 w-4" />
               Coupons
             </TabsTrigger>
-            <TabsTrigger value="orders" className="gap-2 data-[state=active]:bg-[#204878] data-[state=active]:text-white">
+            <TabsTrigger value="orders" className="gap-2 data-[state=active]:bg-[#204878] text-black data-[state=active]:text-white">
               <ShoppingCart className="h-4 w-4" />
               Orders
             </TabsTrigger>
