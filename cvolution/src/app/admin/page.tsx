@@ -6,9 +6,10 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { LogOut, Users, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Filter, Plus, Edit, Trash2 } from 'lucide-react';
+import { LogOut, Users, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Filter, Plus, Edit, Trash2, ShoppingCart, TicketPercent } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { COUPON_SERVICE_KEYS, type ServiceKey } from '@/lib/services';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Select,
   SelectContent,
@@ -108,6 +109,30 @@ interface CouponFormState {
   isActive: boolean;
 }
 
+interface Order {
+  id: string;
+  name: string | null;
+  first_name: string | null;
+  last_name: string | null;
+  email: string;
+  service_type: string;
+  service_label: string;
+  original_price: number | null;
+  final_price: number | null;
+  payment_status: 'pending' | 'paid' | 'free_coupon' | 'failed' | string;
+  status: 'pending' | 'paid' | 'processed' | 'failed' | string;
+  coupon_code: string | null;
+  coupon_discount_type: 'percent' | 'free' | null;
+  coupon_discount_value: number | null;
+  cv_file_name: string | null;
+  salary_file_name: string | null;
+  linkedin_url: string | null;
+  remarks: string | null;
+  created_at: string;
+  paid_at: string | null;
+  processed_at: string | null;
+}
+
 const serviceLabels: Record<ServiceKey, string> = {
   'service-career': 'Career Service',
   'service-check': 'Check Service',
@@ -164,6 +189,8 @@ const AdminContent: React.FC = () => {
   const [activeFilter, setActiveFilter] = useState<'all' | 'active' | 'inactive'>('all');
   const [coupons, setCoupons] = useState<Coupon[]>([]);
   const [couponLoading, setCouponLoading] = useState(false);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [ordersLoading, setOrdersLoading] = useState(false);
   const [showCouponForm, setShowCouponForm] = useState(false);
   const [editingCouponId, setEditingCouponId] = useState<string | null>(null);
   const [couponForm, setCouponForm] = useState<CouponFormState>(() => emptyCouponForm());
@@ -178,6 +205,7 @@ const AdminContent: React.FC = () => {
     if (isAdmin) {
       fetchAllUsers();
       fetchCoupons();
+      fetchOrders();
     }
   }, [isAdmin]);
 
@@ -305,6 +333,22 @@ const AdminContent: React.FC = () => {
       toast({ title: 'Fehler', description: 'Coupons konnten nicht geladen werden.', variant: 'destructive' });
     } finally {
       setCouponLoading(false);
+    }
+  };
+
+  const fetchOrders = async () => {
+    setOrdersLoading(true);
+    try {
+      const headers = await getAdminHeaders();
+      const res = await fetch('/api/admin/orders', { headers });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Bestellungen konnten nicht geladen werden.');
+      setOrders(data.orders || []);
+    } catch (error) {
+      console.error('Error fetching orders:', error);
+      toast({ title: 'Fehler', description: 'Bestellungen konnten nicht geladen werden.', variant: 'destructive' });
+    } finally {
+      setOrdersLoading(false);
     }
   };
 
@@ -443,6 +487,28 @@ const AdminContent: React.FC = () => {
     return new Date(date).toLocaleDateString('de-DE');
   };
 
+  const formatDateTime = (date: string | null) => {
+    if (!date) return '-';
+    return new Date(date).toLocaleString('de-CH');
+  };
+
+  const formatPrice = (price: number | null) => {
+    if (price === null || price === undefined) return '-';
+    return `CHF ${Number(price).toFixed(2)}`;
+  };
+
+  const getOrderCustomerName = (order: Order) => {
+    const fullName = [order.first_name, order.last_name].filter(Boolean).join(' ').trim();
+    return fullName || order.name || 'Kein Name';
+  };
+
+  const getOrderPaymentStatus = (status: Order['payment_status']) => {
+    if (status === 'paid') return { label: 'Bezahlt', className: 'bg-green-50 text-green-700 border-green-200' };
+    if (status === 'free_coupon') return { label: 'Gratis-Coupon', className: 'bg-blue-50 text-blue-700 border-blue-200' };
+    if (status === 'failed') return { label: 'Fehlgeschlagen', className: 'bg-red-50 text-red-700 border-red-200' };
+    return { label: 'Ausstehend', className: 'bg-yellow-50 text-yellow-700 border-yellow-200' };
+  };
+
   if (!isAdmin) {
     return null;
   }
@@ -518,7 +584,24 @@ const AdminContent: React.FC = () => {
       </header>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <section className="mb-10">
+        <Tabs defaultValue="users" className="space-y-6">
+          <TabsList className="bg-white border border-gray-200 h-auto p-1">
+            <TabsTrigger value="users" className="gap-2 data-[state=active]:bg-[#204878] data-[state=active]:text-white">
+              <Users className="h-4 w-4" />
+              Benutzer
+            </TabsTrigger>
+            <TabsTrigger value="coupons" className="gap-2 data-[state=active]:bg-[#204878] data-[state=active]:text-white">
+              <TicketPercent className="h-4 w-4" />
+              Coupons
+            </TabsTrigger>
+            <TabsTrigger value="orders" className="gap-2 data-[state=active]:bg-[#204878] data-[state=active]:text-white">
+              <ShoppingCart className="h-4 w-4" />
+              Orders
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="coupons" className="mt-0">
+        <section>
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
             <div>
               <h2 className="text-xl font-semibold text-gray-900">Coupon Codes</h2>
@@ -695,7 +778,127 @@ const AdminContent: React.FC = () => {
             </CardContent>
           </Card>
         </section>
+          </TabsContent>
 
+          <TabsContent value="orders" className="mt-0">
+            <section>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+                <div>
+                  <h2 className="text-xl font-semibold text-gray-900">Orders</h2>
+                  <p className="text-sm text-gray-600">Alle Bestellungen mit Service, Kontakt, Preis, Coupon und Zahlungsstatus.</p>
+                </div>
+                <Button onClick={fetchOrders} variant="outline" className="bg-white text-gray-900">
+                  Aktualisieren
+                </Button>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+                <Card className="bg-white">
+                  <CardContent className="p-4">
+                    <p className="text-sm text-gray-500">Orders gesamt</p>
+                    <p className="text-2xl font-semibold text-gray-900">{orders.length}</p>
+                  </CardContent>
+                </Card>
+                <Card className="bg-white">
+                  <CardContent className="p-4">
+                    <p className="text-sm text-gray-500">Bezahlt</p>
+                    <p className="text-2xl font-semibold text-gray-900">
+                      {orders.filter((order) => order.payment_status === 'paid' || order.payment_status === 'free_coupon').length}
+                    </p>
+                  </CardContent>
+                </Card>
+                <Card className="bg-white">
+                  <CardContent className="p-4">
+                    <p className="text-sm text-gray-500">Ausstehend</p>
+                    <p className="text-2xl font-semibold text-gray-900">
+                      {orders.filter((order) => order.payment_status === 'pending').length}
+                    </p>
+                  </CardContent>
+                </Card>
+              </div>
+
+              <Card className="bg-white">
+                <CardContent className="p-0 overflow-x-auto">
+                  {ordersLoading ? (
+                    <p className="p-6 text-sm text-gray-500">Lade Orders...</p>
+                  ) : orders.length === 0 ? (
+                    <p className="p-6 text-sm text-gray-500">Noch keine Orders gefunden.</p>
+                  ) : (
+                    <table className="w-full text-sm">
+                      <thead className="bg-gray-50 text-left text-gray-700">
+                        <tr>
+                          <th className="p-3">Datum</th>
+                          <th className="p-3">Kunde</th>
+                          <th className="p-3">Service</th>
+                          <th className="p-3">Preis</th>
+                          <th className="p-3">Coupon</th>
+                          <th className="p-3">Zahlung</th>
+                          <th className="p-3">Dateien</th>
+                          <th className="p-3">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {orders.map((order) => {
+                          const paymentStatus = getOrderPaymentStatus(order.payment_status);
+                          const files = [order.cv_file_name, order.salary_file_name].filter(Boolean).join(', ');
+                          return (
+                            <tr key={order.id} className="border-t align-top">
+                              <td className="p-3 text-gray-700 whitespace-nowrap">{formatDateTime(order.created_at)}</td>
+                              <td className="p-3 text-gray-700">
+                                <p className="font-semibold text-gray-900">{getOrderCustomerName(order)}</p>
+                                <p>{order.email}</p>
+                                {order.linkedin_url && (
+                                  <a href={order.linkedin_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                                    LinkedIn
+                                  </a>
+                                )}
+                              </td>
+                              <td className="p-3 text-gray-700">
+                                <p className="font-semibold text-gray-900">{order.service_label}</p>
+                                <p className="text-xs text-gray-500">{order.service_type}</p>
+                              </td>
+                              <td className="p-3 text-gray-700 whitespace-nowrap">
+                                <p>{formatPrice(order.final_price)}</p>
+                                {order.original_price !== null && order.original_price !== order.final_price && (
+                                  <p className="text-xs text-gray-500">Original: {formatPrice(order.original_price)}</p>
+                                )}
+                              </td>
+                              <td className="p-3 text-gray-700">
+                                {order.coupon_code ? (
+                                  <>
+                                    <p className="font-semibold text-gray-900">{order.coupon_code}</p>
+                                    <p className="text-xs text-gray-500">
+                                      {order.coupon_discount_type === 'free' ? 'Gratis' : `${order.coupon_discount_value}% Rabatt`}
+                                    </p>
+                                  </>
+                                ) : (
+                                  '-'
+                                )}
+                              </td>
+                              <td className="p-3">
+                                <Badge variant="outline" className={paymentStatus.className}>{paymentStatus.label}</Badge>
+                              </td>
+                              <td className="p-3 text-gray-700 max-w-[220px]">
+                                {files || '-'}
+                                {order.remarks && <p className="text-xs text-gray-500 mt-1 line-clamp-2">{order.remarks}</p>}
+                              </td>
+                              <td className="p-3 text-gray-700">
+                                <p>{order.status}</p>
+                                {order.paid_at && <p className="text-xs text-gray-500">Bezahlt: {formatDateTime(order.paid_at)}</p>}
+                                {order.processed_at && <p className="text-xs text-gray-500">Verarbeitet: {formatDateTime(order.processed_at)}</p>}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  )}
+                </CardContent>
+              </Card>
+            </section>
+          </TabsContent>
+
+          <TabsContent value="users" className="mt-0">
         {/* Filter Section */}
         {!loading && users.length > 0 && (
           <div className="mb-6 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
@@ -916,6 +1119,8 @@ const AdminContent: React.FC = () => {
             )}
           </>
         )}
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
