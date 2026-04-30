@@ -122,10 +122,10 @@ export default function Self() {
                   ))}
                 </div>
 
-                <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_420px] lg:items-start">
+                <div className="mt-8 grid gap-8 lg:grid-cols-2 lg:items-start">
                   <div className="space-y-8">
                     <div className="rounded-2xl border border-gray-100 bg-white p-8 shadow-sm">
-                      <h2 className="text-2xl font-semibold text-[#111827]">Alles fuer Ihren Lebenslauf</h2>
+                      <h2 className="text-2xl font-semibold text-[#111827]">Alles für Ihren Lebenslauf</h2>
                       <p className="mt-4 text-base leading-relaxed text-[#64748B]">
                         Der Self-Service ist ideal, wenn Sie Ihren Lebenslauf selbst pflegen möchten, aber trotzdem eine professionelle Struktur und Gestaltung wünschen.
                       </p>
@@ -141,12 +141,12 @@ export default function Self() {
                       </ul>
                     </div>
 
-                    <DesignShowcase />
+                    <div id="login">
+                      <AuthPage />
+                    </div>
                   </div>
 
-                  <div id="login" className="lg:sticky lg:top-24">
-                    <AuthPage />
-                  </div>
+                  <DesignShowcase />
                 </div>
               </div>
             </section>
