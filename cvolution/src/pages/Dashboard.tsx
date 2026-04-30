@@ -230,15 +230,13 @@ export const Dashboard: React.FC = () => {
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             {/* Mobile Tab Navigation */}
             <div className="w-full sm:hidden">
-              <TabsList className="grid w-full grid-cols-3 h-auto">
+              <TabsList className="grid h-auto w-full grid-cols-2 gap-2 bg-transparent p-0">
                 {/* <TabsTrigger value="linkedin" className="text-xs p-2">LinkedIn</TabsTrigger> */}
-                <TabsTrigger value="profile" className="text-xs p-2 text-gray-600 data-[state=active]:bg-[#204878] data-[state=active]:text-white">Profil</TabsTrigger>
-                <TabsTrigger value="experience" className="text-xs p-2 text-gray-600 data-[state=active]:bg-[#204878] data-[state=active]:text-white">Erfahrung</TabsTrigger>
-              </TabsList>
-              <TabsList className="grid w-full grid-cols-3 h-auto mt-2">
-                <TabsTrigger value="education" className="text-xs p-2 text-gray-600 data-[state=active]:bg-[#204878] data-[state=active]:text-white">Bildung</TabsTrigger>
-                <TabsTrigger value="skills" className="text-xs p-2 text-gray-600 data-[state=active]:bg-[#204878] data-[state=active]:text-white min-w-[180px]">Sprachen und Fähigkeiten</TabsTrigger>
-                <TabsTrigger value="settings" className="text-xs p-2 text-gray-600 data-[state=active]:bg-[#204878] data-[state=active]:text-white">Einstellungen</TabsTrigger>
+                <TabsTrigger value="profile" className="h-11 rounded-lg bg-white text-sm text-gray-600 shadow-sm data-[state=active]:bg-[#204878] data-[state=active]:text-white">Profil</TabsTrigger>
+                <TabsTrigger value="experience" className="h-11 rounded-lg bg-white text-sm text-gray-600 shadow-sm data-[state=active]:bg-[#204878] data-[state=active]:text-white">Erfahrung</TabsTrigger>
+                <TabsTrigger value="education" className="h-11 rounded-lg bg-white text-sm text-gray-600 shadow-sm data-[state=active]:bg-[#204878] data-[state=active]:text-white">Bildung</TabsTrigger>
+                <TabsTrigger value="skills" className="h-11 rounded-lg bg-white px-2 text-sm text-gray-600 shadow-sm data-[state=active]:bg-[#204878] data-[state=active]:text-white">Sprachen</TabsTrigger>
+                <TabsTrigger value="settings" className="col-span-2 h-11 rounded-lg bg-white text-sm text-gray-600 shadow-sm data-[state=active]:bg-[#204878] data-[state=active]:text-white">Einstellungen</TabsTrigger>
               </TabsList>
             </div>
 
@@ -255,7 +253,7 @@ export const Dashboard: React.FC = () => {
             <div className="hidden sm:block ml-4">
               <CVExportButton onExport={handleExportClick} />
             </div>
-            <div className="sm:hidden ml-4">
+            <div className="w-full sm:hidden">
               <CVExportButton onExport={handleExportClick} />
             </div>
           </div>
@@ -314,13 +312,13 @@ export const Dashboard: React.FC = () => {
             <SkillsAndLanguagesSection ref={skillsAndLanguagesSectionRef} />
           </TabsContent>
           <TabsContent value="settings">
-            <div className="bg-white rounded-lg shadow p-6 sm:p-8">
+            <div className="bg-white rounded-lg shadow p-4 sm:p-8">
               <div className="border-b pb-4 mb-6">
-                <h2 className="text-2xl font-bold text-gray-900">Einstellungen</h2>
+                <h2 className="text-3xl sm:text-2xl font-bold text-gray-900">Einstellungen</h2>
                 <p className="text-sm text-gray-600 mt-1">Konto und Abo verwalten</p>
               </div>
 
-              <div className="rounded-lg border border-slate-200 p-4">
+              <div className="rounded-lg border border-slate-200 p-4 sm:p-4">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div>
                     <p className="text-sm font-medium text-slate-900">
