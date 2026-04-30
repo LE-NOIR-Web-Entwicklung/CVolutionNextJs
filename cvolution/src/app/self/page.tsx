@@ -122,31 +122,29 @@ export default function Self() {
                   ))}
                 </div>
 
-                <div className="mt-8 grid gap-8 lg:grid-cols-2 lg:items-start">
-                  <div className="space-y-8">
-                    <div className="rounded-2xl border border-gray-100 bg-white p-8 shadow-sm">
-                      <h2 className="text-2xl font-semibold text-[#111827]">Alles für Ihren Lebenslauf</h2>
-                      <p className="mt-4 text-base leading-relaxed text-[#64748B]">
-                        Der Self-Service ist ideal, wenn Sie Ihren Lebenslauf selbst pflegen möchten, aber trotzdem eine professionelle Struktur und Gestaltung wünschen.
-                      </p>
-                      <ul className="mt-6 grid gap-3 sm:grid-cols-2">
-                        {benefits.map((benefit) => (
-                          <li key={benefit} className="flex items-start gap-3 text-sm text-[#64748B]">
-                            <svg className="mt-0.5 h-5 w-5 shrink-0 text-[#204878]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                            </svg>
-                            <span>{benefit}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-
-                    <div id="login">
-                      <AuthPage />
-                    </div>
+                <div className="mt-8 space-y-8">
+                  <div className="rounded-2xl border border-gray-100 bg-white p-8 shadow-sm">
+                    <h2 className="text-2xl font-semibold text-[#111827]">Alles für Ihren Lebenslauf</h2>
+                    <p className="mt-4 text-base leading-relaxed text-[#64748B]">
+                      Der Self-Service ist ideal, wenn Sie Ihren Lebenslauf selbst pflegen möchten, aber trotzdem eine professionelle Struktur und Gestaltung wünschen.
+                    </p>
+                    <ul className="mt-6 grid gap-3 sm:grid-cols-2">
+                      {benefits.map((benefit) => (
+                        <li key={benefit} className="flex items-start gap-3 text-sm text-[#64748B]">
+                          <svg className="mt-0.5 h-5 w-5 shrink-0 text-[#204878]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                          </svg>
+                          <span>{benefit}</span>
+                        </li>
+                      ))}
+                    </ul>
                   </div>
 
                   <DesignShowcase />
+                </div>
+
+                <div id="login" className="mx-auto mt-8 max-w-md">
+                  <AuthPage />
                 </div>
               </div>
             </section>
