@@ -80,7 +80,7 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#F8FAFC]">
+    <div className="min-h-screen flex flex-col">
       {/* Hero Section */}
       {/* <section className="relative min-h-[88vh] flex flex-col items-center justify-center bg-[#0F172A] overflow-hidden">
         {/* Base gradient 
@@ -168,7 +168,20 @@ export default function Home() {
           ))}
         </div>
       </section> */}
-      <section className="relative min-h-[75vh] flex items-center bg-[#204878] text-white overflow-hidden">
+      <section className="relative min-h-[75vh] flex items-center text-white overflow-hidden">
+        {/* Hero background image */}
+        <Image
+          src="/images/hero2.png"
+          alt="Hero background"
+          fill
+          sizes="100vw"
+          quality={100}
+          className="object-cover object-center"
+          priority
+        />
+        {/* Dark overlay to keep text readable */}
+        <div className="absolute inset-0 bg-[#204878]/40 md:bg-[#204878]/70" />
+
         {/* Glow — soft radial light source */}
         <div className="absolute top-[40%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[500px] rounded-full bg-white/[0.07] blur-[80px] pointer-events-none" />
         <div className="absolute top-[38%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[300px] rounded-full bg-white/[0.08] blur-[60px] pointer-events-none" />
@@ -290,8 +303,17 @@ export default function Home() {
       </section>
 
       {/* Team Section */}
-      <section className="py-24 bg-[#0F172A] bg-[#193961]">
-        <div className="max-w-6xl mx-auto px-6">
+      <section className="relative py-24 overflow-hidden">
+        <Image
+          src="/images/teamsectionbg.png"
+          alt="Team section background"
+          fill
+          sizes="100vw"
+          quality={100}
+          className="object-cover object-[70%] md:object-center"
+        />
+        <div className="absolute inset-0 bg-transparent md:bg-[#193961]/60" />
+        <div className="relative z-10 max-w-6xl mx-auto px-6">
           <div className="text-center mb-16">
             <h2 className="text-3xl sm:text-4xl font-semibold text-white mb-4">
               Unser Team
@@ -323,13 +345,15 @@ export default function Home() {
                 key={index}
                 className="bg-white/5 border border-white/10 rounded-2xl p-8 text-center hover:bg-white/10 transition-colors duration-200"
               >
-                <Image
-                  src={member.image}
-                  alt={member.name}
-                  width={96}
-                  height={96}
-                  className="rounded-full mx-auto mb-5 object-cover"
-                />
+                <div className="relative mx-auto mb-6 w-36 h-36 md:w-24 md:h-24">
+                  <div className="absolute inset-0 rounded-full ring-2 ring-white/20 ring-offset-4 ring-offset-transparent" />
+                  <Image
+                    src={member.image}
+                    alt={member.name}
+                    fill
+                    className="rounded-full object-cover object-top"
+                  />
+                </div>
                 <h3 className="text-lg font-semibold text-white mb-1">
                   {member.name}
                 </h3>
