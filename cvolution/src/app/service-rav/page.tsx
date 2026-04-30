@@ -7,6 +7,7 @@ export default function ServiceRAV() {
     const [showForm, setShowForm] = useState(false);
       const [name, setName] = useState("");
       const [email, setEmail] = useState("");
+      const [emailConfirmation, setEmailConfirmation] = useState("");
       const [submitted, setSubmitted] = useState(false);
       const [requiresPayment, setRequiresPayment] = useState(true);
       const [error, setError] = useState("");
@@ -17,6 +18,10 @@ export default function ServiceRAV() {
         setError("");
         if (!name || !email) {
           setError("Bitte Name und E-Mail angeben.");
+          return;
+        }
+        if (email.trim().toLowerCase() !== emailConfirmation.trim().toLowerCase()) {
+          setError("Die E-Mail-Adressen stimmen nicht überein.");
           return;
         }
         try {
@@ -140,6 +145,16 @@ export default function ServiceRAV() {
                       className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#204878] focus:border-transparent transition"
                       value={email}
                       onChange={e => setEmail(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-[#111827] mb-2">E-Mail bestätigen</label>
+                    <input
+                      type="email"
+                      className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#204878] focus:border-transparent transition"
+                      value={emailConfirmation}
+                      onChange={e => setEmailConfirmation(e.target.value)}
                       required
                     />
                   </div>

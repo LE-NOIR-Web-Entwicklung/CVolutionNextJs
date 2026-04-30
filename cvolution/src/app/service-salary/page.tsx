@@ -19,6 +19,7 @@ const couponErrorMessages: Record<string, string> = {
 export default function ServiceSalary() {
     const [showForm, setShowForm] = useState(false);
     const [email, setEmail] = useState("");
+    const [emailConfirmation, setEmailConfirmation] = useState("");
     const [submitted, setSubmitted] = useState(false);
     const [error, setError] = useState("");
     const [service, setService] = useState("");
@@ -101,6 +102,10 @@ export default function ServiceSalary() {
           setError("Bitte füllen Sie alle Pflichtfelder aus.");
           return;
         }
+        if (email.trim().toLowerCase() !== emailConfirmation.trim().toLowerCase()) {
+          setError("Die E-Mail-Adressen stimmen nicht überein.");
+          return;
+        }
         if (!salaryFile) {
           setError("Bitte laden Sie die aktuelle Lohnabrechnung hoch.");
           return;
@@ -115,6 +120,10 @@ export default function ServiceSalary() {
       if (selectedService === "pdf") {
         if (!firstName || !lastName || !email || !birthDate || !workLocation || !grossAnnualSalary) {
           setError("Bitte füllen Sie alle Pflichtfelder aus.");
+          return;
+        }
+        if (email.trim().toLowerCase() !== emailConfirmation.trim().toLowerCase()) {
+          setError("Die E-Mail-Adressen stimmen nicht überein.");
           return;
         }
         if (!salaryFile) {
@@ -391,6 +400,19 @@ export default function ServiceSalary() {
                           required
                         />
                       </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-[#111827] mb-2">E-Mail Adresse bestätigen *</label>
+                        <input
+                          type="email"
+                          className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#204878] focus:border-transparent transition"
+                          value={emailConfirmation}
+                          onChange={e => setEmailConfirmation(e.target.value)}
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-sm font-semibold text-[#111827] mb-2">Bruttojahreslohn *</label>
                         <input
