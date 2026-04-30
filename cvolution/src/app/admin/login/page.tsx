@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { adminSupabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,8 +8,9 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Lock } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
+const ADMIN_SESSION_STORAGE_KEY = 'cvolution-admin-session';
+
 export default function AdminLoginPage() {
-  const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -46,6 +46,13 @@ export default function AdminLoginPage() {
             access_token: data.session.access_token,
             refresh_token: data.session.refresh_token,
           });
+
+          localStorage.setItem(ADMIN_SESSION_STORAGE_KEY, JSON.stringify({
+            access_token: data.session.access_token,
+            refresh_token: data.session.refresh_token,
+            expires_at: data.session.expires_at,
+            email: userEmail,
+          }));
         }
 
         // Setze Admin-Session im localStorage
@@ -57,8 +64,7 @@ export default function AdminLoginPage() {
           description: 'Willkommen im Admin-Dashboard',
         });
 
-        router.replace('/admin');
-        router.refresh();
+        window.location.assign('/admin');
       } else {
         // User ist kein Admin - ausloggen
         await adminSupabase.auth.signOut();
