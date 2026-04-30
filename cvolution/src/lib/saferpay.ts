@@ -2,11 +2,23 @@ const DEFAULT_SAFERPAY_BASE_URL = "https://www.saferpay.com/Api";
 const DEFAULT_SAFERPAY_SPEC_VERSION = "1.51";
 const DEFAULT_SUBSCRIPTION_AMOUNT = 1390;
 const DEFAULT_RECURRING_BATCH_SIZE = 25;
+const DEFAULT_SELF_SUBSCRIPTION_PAYMENT_METHODS = ["VISA", "MASTERCARD"];
+
+function getSelfSubscriptionPaymentMethods() {
+  const configuredMethods = process.env.SAFERPAY_SELF_SUBSCRIPTION_PAYMENT_METHODS;
+  if (!configuredMethods) return DEFAULT_SELF_SUBSCRIPTION_PAYMENT_METHODS;
+
+  return configuredMethods
+    .split(",")
+    .map((method) => method.trim().toUpperCase())
+    .filter((method) => method && method !== "TWINT");
+}
 
 export const SAFERPAY_SELF_SUBSCRIPTION = {
   currencyCode: "CHF",
   amount: Number(process.env.SAFERPAY_SELF_SUBSCRIPTION_AMOUNT_CENTS || DEFAULT_SUBSCRIPTION_AMOUNT),
   recurringBatchSize: Number(process.env.SAFERPAY_RECURRING_BATCH_SIZE || DEFAULT_RECURRING_BATCH_SIZE),
+  paymentMethods: getSelfSubscriptionPaymentMethods(),
 };
 
 export function getSaferpayConfig() {

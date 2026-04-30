@@ -72,6 +72,7 @@ export async function POST(request: NextRequest) {
       ReturnUrl: {
         Url: returnUrl,
       },
+      PaymentMethods: SAFERPAY_SELF_SUBSCRIPTION.paymentMethods,
       ...(saferpayConfig.paymentPageConfigSet ? { ConfigSet: saferpayConfig.paymentPageConfigSet } : {}),
     };
 
