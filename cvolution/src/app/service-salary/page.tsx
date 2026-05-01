@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Image from "next/image";
-import Link from "next/link";
+import { AddToCartButton } from "@/components/AddToCartButton";
+import type { ShopProductKey } from "@/lib/shop";
 
 const salaryServices = [
   {
@@ -22,6 +22,7 @@ const salaryServices = [
     note: "Für alle, die mehr als nur Zahlen wollen.",
     price: "CHF 119",
     href: "/service-salary-tel",
+    serviceType: "salary_phone" as ShopProductKey,
   },
   {
     title: "Lohnanalyse mit PDF",
@@ -38,22 +39,11 @@ const salaryServices = [
     note: "Mit dieser Lohnanalyse erhalten Sie eine klare Standortbestimmung für eine fundierte Entscheidungsgrundlage.",
     price: "CHF 69",
     href: "/service-salary-pdf",
+    serviceType: "salary_pdf" as ShopProductKey,
   },
 ];
 
 export default function ServiceSalary() {
-  const [externalQuery, setExternalQuery] = useState("");
-
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const externalParam = params.get("external");
-    const isExternal = externalParam
-      ? ["1", "true", "yes", "ja"].includes(externalParam.trim().toLowerCase())
-      : false;
-
-    setExternalQuery(isExternal ? "?external=1" : "");
-  }, []);
-
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
       <section className="py-24">
@@ -117,12 +107,10 @@ export default function ServiceSalary() {
                       </p>
                     </div>
                   </div>
-                  <Link
-                    href={`${salaryService.href}${externalQuery}`}
-                    className="block w-full px-6 py-3 bg-[#204878] text-white font-semibold rounded-xl hover:bg-[#1a3a66] transition-colors duration-200 text-sm text-center"
-                  >
-                    Jetzt buchen
-                  </Link>
+                  <AddToCartButton
+                    serviceType={salaryService.serviceType}
+                    className="w-full px-6 py-3 bg-[#204878] text-white font-semibold rounded-xl hover:bg-[#1a3a66] transition-colors text-sm text-center"
+                  />
                 </div>
               </div>
             ))}

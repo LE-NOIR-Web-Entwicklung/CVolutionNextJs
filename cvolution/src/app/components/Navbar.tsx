@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
+import { CartNavLink } from "@/components/CartNavLink";
 
 export default function Navbar() {
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
@@ -70,8 +71,8 @@ export default function Navbar() {
   ];
 
   return (
-    <div>
-      <nav className="block w-full max-w-screen sticky top-0 z-[9999] transition-all duration-300 bg-white border-b border-gray-100 shadow-sm">
+    <div className="sticky top-0 z-[9999]">
+      <nav className="block w-full max-w-screen transition-all duration-300 bg-white border-b border-gray-100 shadow-sm">
         <div className="max-w-6xl mx-auto px-6 flex items-center justify-between h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center">
@@ -135,30 +136,33 @@ export default function Navbar() {
                 )}
               </div>
             ))}
-            <Link
-              href="/service"
+            <CartNavLink />
+            {/* <Link
+              href="/cart"
               className="ml-4 px-4 py-2 text-sm font-semibold text-white bg-[#204878] rounded-lg hover:bg-[#1a3a66] transition-colors duration-150"
             >
-              Jetzt buchen
-            </Link>
+              Zur Kasse
+            </Link> */}
           </div>
 
-          {/* Mobile Menu Button */}
-          <button
-            className="lg:hidden p-2 text-[#111827] hover:text-[#204878] rounded-md hover:bg-gray-50 transition-colors"
-            onClick={toggleMobileMenu}
-            aria-label="Menü öffnen"
-          >
-            {isMobileMenuOpen ? (
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            ) : (
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-            )}
-          </button>
+          <div className="lg:hidden flex items-center gap-2">
+            <CartNavLink compact />
+            <button
+              className="p-2 text-[#111827] hover:text-[#204878] rounded-md hover:bg-gray-50 transition-colors"
+              onClick={toggleMobileMenu}
+              aria-label="Menü öffnen"
+            >
+              {isMobileMenuOpen ? (
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              ) : (
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              )}
+            </button>
+          </div>
         </div>
 
         {/* Mobile Menu */}
@@ -223,14 +227,17 @@ export default function Navbar() {
                 </li>
               ))}
               <li className="mt-3 pt-3 border-t border-gray-100">
+                <CartNavLink onClick={closeMobileMenu} />
+              </li>
+              {/* <li className="mt-3 pt-3 border-t border-gray-100">
                 <Link
-                  href="/service"
+                  href="/cart"
                   onClick={closeMobileMenu}
                   className="block w-full text-center px-4 py-3 text-sm font-semibold text-white bg-[#204878] rounded-lg hover:bg-[#1a3a66] transition-colors"
                 >
-                  Jetzt buchen
+                  Zur Kasse
                 </Link>
-              </li>
+              </li> */}
             </ul>
           </div>
         )}

@@ -2,6 +2,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import { CouponCodeField } from "@/components/CouponCodeField";
+import { AddToCartButton } from "@/components/AddToCartButton";
 
 export default function ServiceCheck() {
   const [showForm, setShowForm] = useState(false);
@@ -118,14 +119,7 @@ export default function ServiceCheck() {
                   <p className="text-3xl font-semibold text-[#111827]">CHF 49</p>
                 </div>
 
-                {!showForm && !submitted && (
-                  <button
-                    onClick={() => setShowForm(true)}
-                    className="px-8 py-3 bg-[#204878] text-white font-semibold rounded-xl hover:bg-[#1a3a66] transition-colors duration-200 text-sm"
-                  >
-                    Jetzt buchen
-                  </button>
-                )}
+                {!submitted && <AddToCartButton serviceType="check" className="px-8 py-3 bg-[#204878] text-white font-semibold rounded-xl hover:bg-[#1a3a66] transition-colors duration-200 text-sm" />}
               </div>
 
               {showForm && !submitted && (

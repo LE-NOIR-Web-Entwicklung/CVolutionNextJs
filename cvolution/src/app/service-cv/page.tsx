@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import { CouponCodeField } from "@/components/CouponCodeField";
+import { AddToCartButton } from "@/components/AddToCartButton";
 
 export default function ServiceCV() {
 
@@ -120,14 +121,7 @@ export default function ServiceCV() {
                   <p className="text-3xl font-semibold text-[#111827]">CHF 99</p>
                 </div>
 
-                {!showForm && !submitted && (
-                  <button
-                    onClick={() => setShowForm(true)}
-                    className="px-8 py-3 bg-[#204878] text-white font-semibold rounded-xl hover:bg-[#1a3a66] transition-colors duration-200 text-sm"
-                  >
-                    Jetzt buchen
-                  </button>
-                )}
+                {!submitted && <AddToCartButton serviceType="cv" className="px-8 py-3 bg-[#204878] text-white font-semibold rounded-xl hover:bg-[#1a3a66] transition-colors duration-200 text-sm" />}
               </div>
 
               {showForm && !submitted && (
