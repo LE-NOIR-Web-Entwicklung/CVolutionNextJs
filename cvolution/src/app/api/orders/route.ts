@@ -10,6 +10,48 @@ import {
 } from '@/lib/coupons';
 import { getPaymentUrl, getServiceConfig } from '@/lib/services';
 
+const EXTERNAL_ORDER_REMARKS_PREFIX = '[external_order]';
+const EXTERNAL_ORDER_REDIRECT_URL =
+  process.env.EXTERNAL_ORDER_REDIRECT_URL || 'https://analyse.cvolution.ch';
+
+function getOrderRemarks(remarks: unknown, externalOrder: boolean, externalSource: string | null) {
+  const cleanRemarks = typeof remarks === 'string' && remarks.trim() ? remarks.trim() : null;
+
+  if (!externalOrder) {
+    return cleanRemarks;
+  }
+
+  const externalMarker = `${EXTERNAL_ORDER_REMARKS_PREFIX}${externalSource ? ` source=${externalSource}` : ''}`;
+  return cleanRemarks ? `${externalMarker}\n${cleanRemarks}` : externalMarker;
+}
+
+function isMissingExternalOrderColumnError(error: unknown) {
+  const errorText = JSON.stringify(error).toLowerCase();
+  return errorText.includes('is_external') || errorText.includes('external_source');
+}
+
+function normalizeExternalSource(value: unknown) {
+  if (typeof value !== 'string' || !value.trim()) return null;
+
+  const trimmedValue = value.trim();
+  const lowerValue = trimmedValue.toLowerCase();
+
+  if (lowerValue === 'analyse' || lowerValue === 'analyse.cvolution.ch') {
+    return 'analyse.cvolution.ch';
+  }
+
+  try {
+    const url = new URL(trimmedValue);
+    if (url.hostname === 'analyse.cvolution.ch') {
+      return url.hostname;
+    }
+  } catch {
+    return lowerValue.includes('analyse.cvolution.ch') ? 'analyse.cvolution.ch' : trimmedValue;
+  }
+
+  return trimmedValue;
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -21,7 +63,9 @@ export async function POST(request: NextRequest) {
       serviceType, serviceLabel,
       cvFileBase64, cvFileName,
       salaryFileBase64, salaryFileName,
-      couponCode
+      couponCode,
+      isExternal,
+      externalSource
     } = body;
 
     const serviceConfig = getServiceConfig(serviceType);
@@ -62,41 +106,66 @@ export async function POST(request: NextRequest) {
     const discountPercent = getDiscountPercent(coupon);
     const paymentUrl = getPaymentUrl(serviceConfig, finalPrice, discountPercent);
     const paymentStatus = finalPrice <= 0 ? 'free_coupon' : 'pending';
+    const externalOrder = isExternal === true || isExternal === 'true';
+    const normalizedExternalSource = externalOrder
+      ? (normalizeExternalSource(externalSource) || 'analyse.cvolution.ch').slice(0, 255)
+      : null;
+    const orderRemarks = getOrderRemarks(remarks, externalOrder, normalizedExternalSource);
+    const redirectUrl = externalOrder && paymentStatus === 'free_coupon'
+      ? EXTERNAL_ORDER_REDIRECT_URL
+      : null;
 
-    const { data, error } = await supabaseAdmin
+    const baseOrderInsert = {
+      name: name || null,
+      first_name: firstName || null,
+      last_name: lastName || null,
+      email,
+      birth_date: birthDate || null,
+      work_location: workLocation || null,
+      gross_annual_salary: grossAnnualSalary || null,
+      fringe_benefits: fringeBenefits || null,
+      linkedin_url: linkedinUrl || null,
+      remarks: orderRemarks,
+      service_type: serviceConfig.orderType,
+      service_label: serviceConfig.label || serviceLabel,
+      cv_file_base64: cvFileBase64 || null,
+      cv_file_name: cvFileName || null,
+      salary_file_base64: salaryFileBase64 || null,
+      salary_file_name: salaryFileName || null,
+      coupon_id: coupon?.id ?? null,
+      coupon_code: coupon?.code ?? null,
+      coupon_discount_type: coupon?.discount_type ?? null,
+      coupon_discount_value: coupon ? getDiscountPercent(coupon) : null,
+      original_price: originalPrice,
+      final_price: finalPrice,
+      payment_status: paymentStatus,
+      payment_url: paymentUrl,
+      coupon_valid: Boolean(coupon),
+      status: paymentStatus === 'free_coupon' ? 'paid' : 'pending',
+    };
+
+    let { data, error } = await supabaseAdmin
       .from('orders')
       .insert({
-        name: name || null,
-        first_name: firstName || null,
-        last_name: lastName || null,
-        email,
-        birth_date: birthDate || null,
-        work_location: workLocation || null,
-        gross_annual_salary: grossAnnualSalary || null,
-        fringe_benefits: fringeBenefits || null,
-        linkedin_url: linkedinUrl || null,
-        remarks: remarks || null,
-        service_type: serviceConfig.orderType,
-        service_label: serviceConfig.label || serviceLabel,
-        cv_file_base64: cvFileBase64 || null,
-        cv_file_name: cvFileName || null,
-        salary_file_base64: salaryFileBase64 || null,
-        salary_file_name: salaryFileName || null,
-        coupon_id: coupon?.id ?? null,
-        coupon_code: coupon?.code ?? null,
-        coupon_discount_type: coupon?.discount_type ?? null,
-        coupon_discount_value: coupon ? getDiscountPercent(coupon) : null,
-        original_price: originalPrice,
-        final_price: finalPrice,
-        payment_status: paymentStatus,
-        payment_url: paymentUrl,
-        coupon_valid: Boolean(coupon),
-        status: paymentStatus === 'free_coupon' ? 'paid' : 'pending',
+        ...baseOrderInsert,
+        is_external: externalOrder,
+        external_source: externalOrder ? normalizedExternalSource : null,
       })
       .select('id')
       .single();
 
-    if (error) {
+    if (error && isMissingExternalOrderColumnError(error)) {
+      console.warn('External order columns missing, retrying order insert with remarks fallback:', error);
+      const fallbackInsert = await supabaseAdmin
+        .from('orders')
+        .insert(baseOrderInsert)
+        .select('id')
+        .single();
+      data = fallbackInsert.data;
+      error = fallbackInsert.error;
+    }
+
+    if (error || !data) {
       console.error('Supabase insert error:', error);
       return NextResponse.json({ error: 'Failed to create order' }, { status: 500 });
     }
@@ -149,6 +218,7 @@ export async function POST(request: NextRequest) {
       orderId: data.id,
       requiresPayment: paymentStatus === 'pending',
       paymentUrl,
+      redirectUrl,
     }, { status: 201 });
     response.cookies.set('orderId', data.id, {
       httpOnly: true,
