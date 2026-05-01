@@ -12,6 +12,8 @@ import { getShopProduct } from "@/lib/shop";
 import { initializeWorldlineCheckout } from "@/lib/worldline-checkout";
 import { processPaidCart } from "@/lib/order-processing";
 
+const CONTACT_PHONE_REMARKS_PREFIX = "[contact_phone]";
+
 type CheckoutItemInput = {
   serviceType?: unknown;
   quantity?: unknown;
@@ -45,12 +47,13 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const name = getText(body.name);
     const email = getText(body.email)?.toLowerCase();
+    const phone = getText(body.phone);
     const remarks = getText(body.remarks);
     const cartCouponCode = getText(body.couponCode);
     const items = Array.isArray(body.items) ? body.items as CheckoutItemInput[] : [];
 
-    if (!name || !email || items.length === 0) {
-      return NextResponse.json({ error: "Name, E-Mail und Warenkorb sind erforderlich." }, { status: 400 });
+    if (!name || !email || !phone || items.length === 0) {
+      return NextResponse.json({ error: "Name, E-Mail, Telefonnummer und Warenkorb sind erforderlich." }, { status: 400 });
     }
 
     const preparedItems: Array<any> = [];
@@ -125,7 +128,12 @@ export async function POST(request: NextRequest) {
         gross_annual_salary: item.grossAnnualSalary,
         fringe_benefits: item.fringeBenefits,
         linkedin_url: item.linkedinUrl,
-        remarks: [remarks, item.remarks, item.quantity > 1 ? `Position ${index + 1} von ${item.quantity}` : null]
+        remarks: [
+          `${CONTACT_PHONE_REMARKS_PREFIX} ${phone}`,
+          remarks,
+          item.remarks,
+          item.quantity > 1 ? `Position ${index + 1} von ${item.quantity}` : null,
+        ]
           .filter(Boolean)
           .join("\n") || null,
         service_type: item.product.orderType,

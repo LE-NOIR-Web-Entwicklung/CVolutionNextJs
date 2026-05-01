@@ -63,6 +63,7 @@ export default function CartPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [emailConfirmation, setEmailConfirmation] = useState("");
+  const [phone, setPhone] = useState("");
   const [remarks, setRemarks] = useState("");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -289,8 +290,8 @@ export default function CartPage() {
     event.preventDefault();
     setError("");
 
-    if (!name.trim() || !email.trim()) {
-      setError("Bitte Name und E-Mail angeben.");
+    if (!name.trim() || !email.trim() || !phone.trim()) {
+      setError("Bitte Name, E-Mail und Telefonnummer angeben.");
       return;
     }
 
@@ -360,6 +361,7 @@ export default function CartPage() {
         body: JSON.stringify({
           name,
           email,
+          phone,
           remarks,
           couponCode: couponCode || null,
           items: checkoutItems,
@@ -452,6 +454,10 @@ export default function CartPage() {
                   <div>
                     <label className="block text-sm font-semibold text-[#111827] mb-2">E-Mail bestätigen</label>
                     <input type="email" value={emailConfirmation} onChange={(event) => setEmailConfirmation(event.target.value)} required className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#204878] focus:border-transparent transition" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-[#111827] mb-2">Telefonnummer</label>
+                    <input type="tel" value={phone} onChange={(event) => setPhone(event.target.value)} required className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#204878] focus:border-transparent transition" />
                   </div>
                   <div>
                     <label className="block text-sm font-semibold text-[#111827] mb-2">Bemerkungen</label>
