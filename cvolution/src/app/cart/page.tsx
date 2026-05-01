@@ -500,7 +500,6 @@ export default function CartPage() {
                     <span className="text-sm font-semibold text-[#111827]">Total</span>
                     <span className="whitespace-nowrap text-right text-xl font-semibold tabular-nums text-[#111827]">{formatPrice(total)}</span>
                   </div>
-                  <p className="text-xs text-[#64748B]">Der angezeigte Totalbetrag wird an Worldline übergeben.</p>
                   <label className="flex items-start gap-3 text-sm text-[#111827]">
                     <input
                       type="checkbox"
@@ -522,7 +521,7 @@ export default function CartPage() {
                     disabled={isSubmitting || !acceptTerms}
                     className="w-full px-6 py-3 bg-[#204878] text-white font-semibold rounded-xl hover:bg-[#1a3a66] transition-colors text-sm disabled:opacity-60"
                   >
-                    {isSubmitting ? "Checkout wird erstellt..." : "Mit Worldline bezahlen"}
+                    {isSubmitting ? "Checkout wird erstellt..." : "Jetzt bezahlen"}
                   </button>
                 </div>
               </div>
