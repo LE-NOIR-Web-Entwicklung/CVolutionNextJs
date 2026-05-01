@@ -8,6 +8,7 @@ export default function ServiceCheck() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [emailConfirmation, setEmailConfirmation] = useState("");
+  const [phone, setPhone] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [requiresPayment, setRequiresPayment] = useState(true);
   const [error, setError] = useState("");
@@ -16,8 +17,8 @@ export default function ServiceCheck() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    if (!name || !email) {
-      setError("Bitte Name und E-Mail angeben.");
+    if (!name || !email || !phone) {
+      setError("Bitte Name, E-Mail und Telefonnummer angeben.");
       return;
     }
     if (email.trim().toLowerCase() !== emailConfirmation.trim().toLowerCase()) {
@@ -31,6 +32,7 @@ export default function ServiceCheck() {
         body: JSON.stringify({
           name,
           email,
+          phone,
           serviceType: "check",
           serviceLabel: service,
           couponCode: couponCode || null,
@@ -155,6 +157,16 @@ export default function ServiceCheck() {
                       className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#204878] focus:border-transparent transition"
                       value={emailConfirmation}
                       onChange={e => setEmailConfirmation(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-[#111827] mb-2">Telefonnummer</label>
+                    <input
+                      type="tel"
+                      className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#204878] focus:border-transparent transition"
+                      value={phone}
+                      onChange={e => setPhone(e.target.value)}
                       required
                     />
                   </div>
