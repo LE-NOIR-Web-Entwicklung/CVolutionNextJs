@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { supabase } from '@/integrations/supabase/client';
+import { adminSupabase as supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -146,6 +146,7 @@ const serviceLabels: Record<ServiceKey, string> = {
 
 const adminEmails = ['jan@cvolution.ch', 'armend@cvolution.ch'];
 const FIXED_PERCENT_DISCOUNT = 30;
+const ADMIN_SESSION_STORAGE_KEY = 'cvolution-admin-session';
 
 const emptyCouponForm = (): CouponFormState => {
   const start = new Date();
@@ -212,22 +213,49 @@ const AdminContent: React.FC = () => {
   }, [isAdmin]);
 
   const checkAdminAccess = async () => {
-    const adminLoggedIn = localStorage.getItem('admin_logged_in');
-    const storedEmail = localStorage.getItem('admin_email');
-    const { data } = await supabase.auth.getSession();
+    const { data } = await ensureAdminSession();
     const sessionEmail = data.session?.user.email?.toLowerCase();
 
-    if (adminLoggedIn === 'true' && storedEmail && sessionEmail && adminEmails.includes(sessionEmail)) {
+    if (data.session && sessionEmail && adminEmails.includes(sessionEmail)) {
       setIsAdmin(true);
       setAdminEmail(sessionEmail);
+      localStorage.setItem('admin_logged_in', 'true');
       localStorage.setItem('admin_email', sessionEmail);
       return;
     }
 
     localStorage.removeItem('admin_logged_in');
     localStorage.removeItem('admin_email');
+    localStorage.removeItem(ADMIN_SESSION_STORAGE_KEY);
     await supabase.auth.signOut();
     router.push('/admin/login');
+  };
+
+  const ensureAdminSession = async () => {
+    const current = await supabase.auth.getSession();
+    if (current.data.session) return current;
+
+    const storedSession = localStorage.getItem(ADMIN_SESSION_STORAGE_KEY);
+    if (!storedSession) return current;
+
+    try {
+      const parsed = JSON.parse(storedSession) as {
+        access_token?: string;
+        refresh_token?: string;
+      };
+
+      if (!parsed.access_token || !parsed.refresh_token) return current;
+
+      await supabase.auth.setSession({
+        access_token: parsed.access_token,
+        refresh_token: parsed.refresh_token,
+      });
+
+      return supabase.auth.getSession();
+    } catch {
+      localStorage.removeItem(ADMIN_SESSION_STORAGE_KEY);
+      return current;
+    }
   };
 
   const fetchAllUsers = async () => {
@@ -307,12 +335,13 @@ const AdminContent: React.FC = () => {
   };
 
   const getAdminHeaders = async () => {
-    const { data } = await supabase.auth.getSession();
+    const { data } = await ensureAdminSession();
     const token = data.session?.access_token;
     const email = data.session?.user.email?.toLowerCase();
     if (!token || !email || !adminEmails.includes(email)) {
       localStorage.removeItem('admin_logged_in');
       localStorage.removeItem('admin_email');
+      localStorage.removeItem(ADMIN_SESSION_STORAGE_KEY);
       router.push('/admin/login');
       throw new Error('Bitte melden Sie sich erneut als Admin an.');
     }
@@ -464,6 +493,7 @@ const AdminContent: React.FC = () => {
     // Lösche Admin-Session aus localStorage
     localStorage.removeItem('admin_logged_in');
     localStorage.removeItem('admin_email');
+    localStorage.removeItem(ADMIN_SESSION_STORAGE_KEY);
     await supabase.auth.signOut();
 
     toast({

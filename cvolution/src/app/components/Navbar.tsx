@@ -65,7 +65,7 @@ export default function Navbar() {
         { name: "Team", href: "/team" },
       ],
     },
-    // { name: "Self-Service", href: "/self" },
+    { name: "Self-Service", href: "/self" },
     { name: "Kontakt", href: "/contact" },
   ];
 

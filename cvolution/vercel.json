@@ -1,0 +1,9 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "crons": [
+    {
+      "path": "/api/saferpay/self-subscription/charge",
+      "schedule": "0 5 * * *"
+    }
+  ]
+}

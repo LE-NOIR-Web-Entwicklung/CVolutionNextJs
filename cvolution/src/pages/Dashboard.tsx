@@ -5,7 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { LogOut} from 'lucide-react';
+import { LogOut } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import ProfileSection from '@/components/Dashboard/ProfileSection';
 import ExperienceSection from '@/components/Dashboard/ExperienceSection';
@@ -27,6 +27,7 @@ export const Dashboard: React.FC = () => {
   const [skillsData, setSkillsData] = useState<any[]>([]);
   const [languagesData, setLanguagesData] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState('profile');
+  const [cancelingSubscription, setCancelingSubscription] = useState(false);
   const profileSectionRef = React.useRef<{ saveProfile: () => void }>(null);
   const experienceSectionRef = React.useRef<{ saveExperiences: () => void }>(null);
   const educationSectionRef = React.useRef<{ saveEducation: () => void }>(null);
@@ -95,24 +96,90 @@ export const Dashboard: React.FC = () => {
   };
 
   const handleExportClick = () => {
-    // Prüfe, ob bezahlt wurde oder paydate älter als ein Monat ist
+    // Prüfe, ob ein aktiver Zahlungszeitraum vorhanden ist.
     if (profileData) {
       const paid = profileData.paid;
-      const paydate = profileData.paydate;
+      const periodEnd = profileData.subscription_current_period_end || profileData.paydate;
       let expired = false;
-      if (paydate) {
-        const payDateObj = new Date(paydate);
+      if (periodEnd) {
+        const periodEndDate = new Date(periodEnd);
         const now = new Date();
-        const diffMonths = (now.getTime() - payDateObj.getTime()) / (1000 * 60 * 60 * 24 * 30);
-        expired = diffMonths >= 1;
+        expired = periodEndDate.getTime() <= now.getTime();
       }
-      if ((paid === false || !paid) || !paydate || expired) {
+      if ((paid === false || !paid) || !periodEnd || expired) {
         setIsRenewal(expired);
         setPaymentModalOpen(true);
         return;
       }
     }
     setCVModalOpen(true);
+  };
+
+  const hasActiveSubscription = Boolean(
+    profileData?.subscription_provider === 'saferpay' &&
+    profileData?.subscription_status === 'active' &&
+    profileData?.subscription_current_period_end &&
+    new Date(profileData.subscription_current_period_end).getTime() > Date.now()
+  );
+
+  const hasCanceledSubscription = Boolean(
+    profileData?.subscription_provider === 'saferpay' &&
+    profileData?.subscription_status === 'canceled'
+  );
+
+  const formatSubscriptionDate = (value: string | null | undefined) => {
+    if (!value) return '';
+    return new Intl.DateTimeFormat('de-CH', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    }).format(new Date(value));
+  };
+
+  const handleCancelSubscription = async () => {
+    if (!hasActiveSubscription || cancelingSubscription) return;
+
+    const confirmed = window.confirm(
+      'Abo wirklich kündigen? Ihr Zugang bleibt bis zum Ende der bezahlten Laufzeit aktiv. Es werden danach keine weiteren monatlichen Abbuchungen ausgelöst.'
+    );
+
+    if (!confirmed) return;
+
+    setCancelingSubscription(true);
+    try {
+      const { data } = await supabase.auth.getSession();
+      const token = data.session?.access_token;
+
+      if (!token) {
+        throw new Error('Bitte melden Sie sich erneut an.');
+      }
+
+      const res = await fetch('/api/saferpay/self-subscription/cancel', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        throw new Error(data?.error || 'Abo konnte nicht gekündigt werden.');
+      }
+
+      setProfileData((current: any) => current ? { ...current, subscription_status: 'canceled' } : current);
+      toast({
+        title: 'Abo gekündigt',
+        description: 'Es werden keine weiteren monatlichen Abbuchungen ausgelöst.',
+      });
+    } catch (error) {
+      toast({
+        title: 'Kündigung fehlgeschlagen',
+        description: error instanceof Error ? error.message : 'Bitte versuchen Sie es erneut.',
+        variant: 'destructive',
+      });
+    } finally {
+      setCancelingSubscription(false);
+    }
   };
 
   // Detect tab change and trigger save when leaving profile tab
@@ -140,7 +207,7 @@ export const Dashboard: React.FC = () => {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
               <Badge variant="secondary" className="text-gray-600 sm:ml-3 text-xs sm:text-sm hidden sm:inline-flex">
-                Professionelle Lebenslauf-Management-Plattform
+                CVolution GmbH | Professioneller CV Self-Service
               </Badge>
             </div>
             <div className="flex items-center space-x-2 sm:space-x-4">
@@ -163,33 +230,47 @@ export const Dashboard: React.FC = () => {
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             {/* Mobile Tab Navigation */}
             <div className="w-full sm:hidden">
-              <TabsList className="grid w-full grid-cols-3 h-auto">
+              <TabsList className="grid h-auto w-full grid-cols-2 gap-2 bg-transparent p-0">
                 {/* <TabsTrigger value="linkedin" className="text-xs p-2">LinkedIn</TabsTrigger> */}
-                <TabsTrigger value="profile" className="text-xs p-2 text-gray-600 data-[state=active]:bg-[#204878] data-[state=active]:text-white">Profil</TabsTrigger>
-                <TabsTrigger value="experience" className="text-xs p-2 text-gray-600 data-[state=active]:bg-[#204878] data-[state=active]:text-white">Erfahrung</TabsTrigger>
-              </TabsList>
-              <TabsList className="grid w-full grid-cols-3 h-auto mt-2">
-                <TabsTrigger value="education" className="text-xs p-2 text-gray-600 data-[state=active]:bg-[#204878] data-[state=active]:text-white">Bildung</TabsTrigger>
-                <TabsTrigger value="skills" className="text-xs p-2 text-gray-600 data-[state=active]:bg-[#204878] data-[state=active]:text-white min-w-[180px]">Sprachen und Fähigkeiten</TabsTrigger>
+                <TabsTrigger value="profile" className="h-11 rounded-lg bg-white text-sm text-gray-600 shadow-sm data-[state=active]:bg-[#204878] data-[state=active]:text-white">Profil</TabsTrigger>
+                <TabsTrigger value="experience" className="h-11 rounded-lg bg-white text-sm text-gray-600 shadow-sm data-[state=active]:bg-[#204878] data-[state=active]:text-white">Erfahrung</TabsTrigger>
+                <TabsTrigger value="education" className="h-11 rounded-lg bg-white text-sm text-gray-600 shadow-sm data-[state=active]:bg-[#204878] data-[state=active]:text-white">Bildung</TabsTrigger>
+                <TabsTrigger value="skills" className="h-11 rounded-lg bg-white px-2 text-sm text-gray-600 shadow-sm data-[state=active]:bg-[#204878] data-[state=active]:text-white">Sprachen</TabsTrigger>
+                <TabsTrigger value="settings" className="col-span-2 h-11 rounded-lg bg-white text-sm text-gray-600 shadow-sm data-[state=active]:bg-[#204878] data-[state=active]:text-white">Einstellungen</TabsTrigger>
               </TabsList>
             </div>
 
             {/* Desktop Tab Navigation */}
-            <TabsList className="hidden sm:grid w-full max-w-2xl grid-cols-6">
+            <TabsList className="hidden h-auto w-full max-w-3xl grid-cols-6 gap-2 bg-transparent p-0 sm:grid">
               {/* <TabsTrigger value="linkedin">LinkedIn</TabsTrigger> */}
-              <TabsTrigger value="profile" className="text-gray-600 data-[state=active]:bg-[#204878] data-[state=active]:text-white">Profil</TabsTrigger>
-              <TabsTrigger value="experience" className="text-gray-600 data-[state=active]:bg-[#204878] data-[state=active]:text-white">Erfahrung</TabsTrigger>
-              <TabsTrigger value="education" className="text-gray-600 data-[state=active]:bg-[#204878] data-[state=active]:text-white">Bildung</TabsTrigger>
-              <TabsTrigger value="skills" className="text-gray-600 data-[state=active]:bg-[#204878] data-[state=active]:text-white col-span-2 min-w-[180px]">Sprachen & Fähigkeiten</TabsTrigger>
+              <TabsTrigger value="profile" className="h-11 rounded-lg border border-slate-200 !bg-white text-sm !text-gray-600 shadow-sm data-[state=active]:!bg-[#204878] data-[state=active]:!text-white data-[state=active]:!shadow-md">Profil</TabsTrigger>
+              <TabsTrigger value="experience" className="h-11 rounded-lg border border-slate-200 !bg-white text-sm !text-gray-600 shadow-sm data-[state=active]:!bg-[#204878] data-[state=active]:!text-white data-[state=active]:!shadow-md">Erfahrung</TabsTrigger>
+              <TabsTrigger value="education" className="h-11 rounded-lg border border-slate-200 !bg-white text-sm !text-gray-600 shadow-sm data-[state=active]:!bg-[#204878] data-[state=active]:!text-white data-[state=active]:!shadow-md">Bildung</TabsTrigger>
+              <TabsTrigger value="skills" className="col-span-2 h-11 rounded-lg border border-slate-200 !bg-white text-sm !text-gray-600 shadow-sm data-[state=active]:!bg-[#204878] data-[state=active]:!text-white data-[state=active]:!shadow-md">Sprachen & Fähigkeiten</TabsTrigger>
+              <TabsTrigger value="settings" className="h-11 rounded-lg border border-slate-200 !bg-white text-sm !text-gray-600 shadow-sm data-[state=active]:!bg-[#204878] data-[state=active]:!text-white data-[state=active]:!shadow-md">Einstellungen</TabsTrigger>
             </TabsList>
             {/* CV Export Button below desktop navigation */}
             <div className="hidden sm:block ml-4">
               <CVExportButton onExport={handleExportClick} />
             </div>
-            <div className="sm:hidden ml-4">
+            <div className="w-full sm:hidden">
               <CVExportButton onExport={handleExportClick} />
             </div>
           </div>
+
+          {(hasActiveSubscription || hasCanceledSubscription) && (
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white px-4 py-3">
+              <div>
+                <p className="text-sm font-medium text-slate-900">
+                  {hasCanceledSubscription ? 'Abo gekündigt' : 'Aktives Monatsabo'}
+                </p>
+                <p className="text-xs text-slate-600">
+                  Zugriff bis {formatSubscriptionDate(profileData?.subscription_current_period_end)}
+                  {hasCanceledSubscription ? '. Es erfolgen keine weiteren Abbuchungen.' : '. Verlängert sich automatisch monatlich.'}
+                </p>
+              </div>
+            </div>
+          )}
 
           {/* CV Export Modal */}
           <CVExportModal
@@ -229,6 +310,41 @@ export const Dashboard: React.FC = () => {
           </TabsContent>
           <TabsContent value="languages">
             <SkillsAndLanguagesSection ref={skillsAndLanguagesSectionRef} />
+          </TabsContent>
+          <TabsContent value="settings">
+            <div className="bg-white rounded-lg shadow p-4 sm:p-8">
+              <div className="border-b pb-4 mb-6">
+                <h2 className="text-3xl sm:text-2xl font-bold text-gray-900">Einstellungen</h2>
+                <p className="text-sm text-gray-600 mt-1">Konto und Abo verwalten</p>
+              </div>
+
+              <div className="rounded-lg border border-slate-200 p-4 sm:p-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div>
+                    <p className="text-sm font-medium text-slate-900">
+                      {hasCanceledSubscription ? 'Abo gekündigt' : 'Monatsabo'}
+                    </p>
+                    <p className="text-xs text-slate-600 mt-1">
+                      {profileData?.subscription_current_period_end
+                        ? `Zugriff bis ${formatSubscriptionDate(profileData.subscription_current_period_end)}`
+                        : 'Kein aktives Abo gefunden'}
+                    </p>
+                  </div>
+                  {hasActiveSubscription && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={handleCancelSubscription}
+                      disabled={cancelingSubscription}
+                      className="border-red-200 bg-white text-red-700 hover:bg-red-50 hover:text-red-800"
+                    >
+                      {cancelingSubscription ? 'Kündige...' : 'Abo kündigen'}
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </div>
           </TabsContent>
         </Tabs>
       </div>
