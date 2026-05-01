@@ -71,6 +71,7 @@ export default function CartPage() {
   const [couponPreview, setCouponPreview] = useState<CouponPreview>({ state: "idle" });
   const [salaryDetails, setSalaryDetails] = useState<Record<string, SalaryDetails>>({});
   const [salaryOpen, setSalaryOpen] = useState<Record<string, boolean>>({});
+  const [acceptTerms, setAcceptTerms] = useState(false);
 
   useEffect(() => {
     setItems(readCart());
@@ -303,6 +304,11 @@ export default function CartPage() {
       return;
     }
 
+    if (!acceptTerms) {
+      setError("Bitte bestätigen Sie, dass Sie die Allgemeinen Geschäftsbedingungen gelesen und verstanden haben.");
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -489,10 +495,25 @@ export default function CartPage() {
                     <span className="text-xl font-semibold text-[#111827]">{formatPrice(total)}</span>
                   </div>
                   <p className="text-xs text-[#64748B]">Der angezeigte Totalbetrag wird an Worldline übergeben.</p>
+                  <label className="flex items-start gap-3 text-sm text-[#111827]">
+                    <input
+                      type="checkbox"
+                      checked={acceptTerms}
+                      onChange={(event) => setAcceptTerms(event.target.checked)}
+                      className="mt-1 h-4 w-4 rounded border-gray-300 text-[#204878] focus:ring-[#204878]"
+                    />
+                    <span>
+                      Ich habe die{" "}
+                      <Link href="/agb" className="font-semibold text-[#204878] hover:underline" target="_blank">
+                        Allgemeinen Geschäftsbedingungen
+                      </Link>{" "}
+                      gelesen und verstanden.
+                    </span>
+                  </label>
                   {error && <p className="text-sm text-red-600 bg-red-50 rounded-lg px-4 py-3">{error}</p>}
                   <button
                     type="submit"
-                    disabled={isSubmitting}
+                    disabled={isSubmitting || !acceptTerms}
                     className="w-full px-6 py-3 bg-[#204878] text-white font-semibold rounded-xl hover:bg-[#1a3a66] transition-colors text-sm disabled:opacity-60"
                   >
                     {isSubmitting ? "Checkout wird erstellt..." : "Mit Worldline bezahlen"}
