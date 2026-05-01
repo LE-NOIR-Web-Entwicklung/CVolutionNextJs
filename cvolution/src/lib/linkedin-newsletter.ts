@@ -100,8 +100,7 @@ export function formatNewsletterDate(date: string) {
 export function parseNewsletterEditions(html: string): NewsletterEdition[] {
   const blocks = html.match(/<li>\s*<div class="share-update-card">[\s\S]*?<\/li>/g) ?? [];
 
-  return blocks
-    .map((block) => {
+  return blocks.flatMap((block) => {
       const dateMatch = block.match(/Published on\s+([A-Z][a-z]{2}\s+\d{1,2},\s+\d{4})/);
       const titleMatch = block.match(
         /<a class="share-article__title-link" href="([^"]+)"[\s\S]*?>([\s\S]*?)<\/a>/,
@@ -110,18 +109,17 @@ export function parseNewsletterEditions(html: string): NewsletterEdition[] {
       const sourceMatch = block.match(/<h4 class="share-article__subtitle">\s*([\s\S]*?)\s*<\/h4>/);
 
       if (!dateMatch || !titleMatch) {
-        return null;
+        return [];
       }
 
-      return {
+      return [{
         title: decodeHtml(titleMatch[2]),
         url: decodeHtml(titleMatch[1]),
         publishedAt: parseLinkedInDate(dateMatch[1]),
         imageUrl: imageMatch ? decodeHtml(imageMatch[1]) : undefined,
         source: sourceMatch ? decodeHtml(sourceMatch[1]) : "LinkedIn Newsletter",
-      };
-    })
-    .filter((edition): edition is NewsletterEdition => Boolean(edition));
+      }];
+    });
 }
 
 export async function getNewsletterEditions() {
@@ -133,6 +131,7 @@ export async function getNewsletterEditions() {
           "Mozilla/5.0 (compatible; CVolutionBot/1.0; +https://cvolution.ch/blog)",
       },
       next: { revalidate: 60 * 60 * 6 },
+      signal: AbortSignal.timeout(5000),
     });
 
     if (!response.ok) {

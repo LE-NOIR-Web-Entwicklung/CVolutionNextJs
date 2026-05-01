@@ -14,6 +14,8 @@ export const metadata: Metadata = {
   alternates: { canonical: "https://cvolution.ch/blog" },
 };
 
+export const dynamic = "force-dynamic";
+
 export default async function BlogPage() {
   const editions = await getNewsletterEditions();
 
