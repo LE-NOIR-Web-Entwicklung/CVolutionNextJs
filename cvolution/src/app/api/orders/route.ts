@@ -12,7 +12,7 @@ import { getPaymentUrl, getServiceConfig } from '@/lib/services';
 
 const EXTERNAL_ORDER_REMARKS_PREFIX = '[external_order]';
 const EXTERNAL_ORDER_REDIRECT_URL =
-  process.env.EXTERNAL_ORDER_REDIRECT_URL || 'https://analyse.cvolution.ch';
+  process.env.EXTERNAL_ORDER_REDIRECT_URL || 'https://analyse.cvolution.ch/danke/';
 
 function getOrderRemarks(remarks: unknown, externalOrder: boolean, externalSource: string | null) {
   const cleanRemarks = typeof remarks === 'string' && remarks.trim() ? remarks.trim() : null;

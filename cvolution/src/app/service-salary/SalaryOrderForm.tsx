@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
 
 type SalaryOrderVariant = "phone" | "pdf";
@@ -38,7 +37,7 @@ const salaryOrderConfig: Record<SalaryOrderVariant, { label: string; title: stri
 function isExternalOrderPage() {
   const params = new URLSearchParams(window.location.search);
   const externalParam = params.get("external");
-  if (!externalParam) return false;
+  if (!externalParam) return true;
   return ["1", "true", "yes", "ja"].includes(externalParam.trim().toLowerCase());
 }
 
@@ -198,7 +197,7 @@ export function SalaryOrderForm({ variant }: { variant: SalaryOrderVariant }) {
         }, 3000);
       } else if (orderResult.redirectUrl || isExternalOrder) {
         setTimeout(() => {
-          window.location.href = orderResult.redirectUrl || "https://analyse.cvolution.ch";
+          window.location.href = orderResult.redirectUrl || "https://analyse.cvolution.ch/danke/";
         }, 3000);
       }
     } catch (error) {
@@ -209,25 +208,8 @@ export function SalaryOrderForm({ variant }: { variant: SalaryOrderVariant }) {
 
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
-      <section className="py-24">
+      <section className="py-12">
         <div className="max-w-6xl mx-auto px-6">
-          <div className="text-center mb-14">
-            <div className="flex justify-center mb-6">
-              <Image
-                src="/images/search.png"
-                alt="Lohnanalyse"
-                width={72}
-                height={72}
-              />
-            </div>
-            <h1 className="text-4xl sm:text-5xl font-semibold text-[#111827] mb-4">
-              {config.title}
-            </h1>
-            <p className="text-lg text-[#64748B] max-w-xl mx-auto">
-              {config.lead}
-            </p>
-          </div>
-
           {!submitted && (
             <div className="max-w-3xl mx-auto bg-white rounded-2xl border border-gray-100 shadow-sm p-8 md:p-12">
               <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-8">

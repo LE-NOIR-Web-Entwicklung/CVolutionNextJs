@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import Navbar from "./components/Navbar";
-import Footer from "./components/Footer";
+import SiteChrome from "./components/SiteChrome";
 import { Analytics } from "@vercel/analytics/next";
 
 export const metadata: Metadata = {
@@ -20,9 +19,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <Navbar />
+        <SiteChrome position="header" />
         {children}
-        <Footer />
+        <SiteChrome position="footer" />
 
         <Analytics />
       </body>

@@ -3,7 +3,7 @@ import { supabaseAdmin } from '../../../../../lib/supabase-server';
 import { sendEmail, sendConfirmationEmail } from '../../../../../lib/resend';
 
 const EXTERNAL_ORDER_REDIRECT_URL =
-  process.env.EXTERNAL_ORDER_REDIRECT_URL || 'https://analyse.cvolution.ch';
+  process.env.EXTERNAL_ORDER_REDIRECT_URL || 'https://analyse.cvolution.ch/danke/';
 const EXTERNAL_ORDER_REMARKS_PREFIX = '[external_order]';
 
 function isExternalOrder(order: any) {
