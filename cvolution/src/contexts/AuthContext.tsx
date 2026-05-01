@@ -3,6 +3,16 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
+const isMissingRefreshTokenError = (error: unknown) => {
+  if (!error || typeof error !== 'object') return false;
+
+  const message = 'message' in error && typeof error.message === 'string'
+    ? error.message.toLowerCase()
+    : '';
+
+  return message.includes('invalid refresh token') || message.includes('refresh token not found');
+};
+
 interface AuthContextType {
   user: User | null;
   session: Session | null;
@@ -28,9 +38,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let isMounted = true;
+
+    const clearSession = async () => {
+      setSession(null);
+      setUser(null);
+      await supabase.auth.signOut({ scope: 'local' }).catch(() => undefined);
+    };
+
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
+        if (!isMounted) return;
         console.log('Auth state changed:', event, session?.user?.email);
         setSession(session);
         setUser(session?.user ?? null);
@@ -39,13 +58,41 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     );
 
     // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
+    supabase.auth.getSession()
+      .then(async ({ data: { session }, error }) => {
+        if (!isMounted) return;
 
-    return () => subscription.unsubscribe();
+        if (error) {
+          if (isMissingRefreshTokenError(error)) {
+            await clearSession();
+          } else {
+            console.error('Failed to restore Supabase session:', error);
+          }
+
+          if (isMounted) setLoading(false);
+          return;
+        }
+
+        setSession(session);
+        setUser(session?.user ?? null);
+        setLoading(false);
+      })
+      .catch(async (error) => {
+        if (!isMounted) return;
+
+        if (isMissingRefreshTokenError(error)) {
+          await clearSession();
+        } else {
+          console.error('Failed to restore Supabase session:', error);
+        }
+
+        if (isMounted) setLoading(false);
+      });
+
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signIn = async (email: string, password: string) => {
