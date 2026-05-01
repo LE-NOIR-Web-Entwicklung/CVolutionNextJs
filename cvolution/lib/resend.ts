@@ -203,6 +203,8 @@ type CartOrderEmailItem = {
     salary_file_name?: string | null;
 };
 
+const CONTACT_PHONE_REMARKS_PREFIX = "[contact_phone]";
+
 function formatCurrency(value: unknown) {
     const numberValue = Number(value || 0);
     return `CHF ${numberValue.toFixed(2)}`;
@@ -213,6 +215,24 @@ function getDisplayName(order: CartOrderEmailItem) {
         return [order.first_name, order.last_name].filter(Boolean).join(" ");
     }
     return order.name || "Unbekannt";
+}
+
+function getContactPhoneFromRemarks(remarks?: string | null) {
+    if (!remarks) return null;
+    const phoneLine = remarks
+        .split("\n")
+        .find((line) => line.startsWith(CONTACT_PHONE_REMARKS_PREFIX));
+    return phoneLine?.replace(CONTACT_PHONE_REMARKS_PREFIX, "").trim() || null;
+}
+
+function getCleanRemarks(remarks?: string | null) {
+    if (!remarks) return null;
+    const cleanRemarks = remarks
+        .split("\n")
+        .filter((line) => !line.startsWith(CONTACT_PHONE_REMARKS_PREFIX))
+        .join("\n")
+        .trim();
+    return cleanRemarks || null;
 }
 
 function getServiceNextSteps(service: string) {
@@ -272,20 +292,27 @@ export const sendCartInfoEmail = async (orders: CartOrderEmailItem[]) => {
     const attachments = getOrderAttachments(orders);
 
     const orderBlocks = orders.map((order, index) => `
+        ${(() => {
+            const phone = getContactPhoneFromRemarks(order.remarks);
+            const cleanRemarks = getCleanRemarks(order.remarks);
+            return `
         <div style="padding: 18px 0; border-top: 1px solid #e5e7eb;">
             <h2 style="color: #204878; font-size: 1.15rem; margin: 0 0 10px;">${index + 1}. ${order.service_label}</h2>
             <p style="color: #333; font-size: 1rem;"><strong>Name:</strong> ${getDisplayName(order)}</p>
             <p style="color: #333; font-size: 1rem;"><strong>E-Mail:</strong> ${order.email}</p>
+            ${phone ? `<p style="color: #333; font-size: 1rem;"><strong>Telefon:</strong> ${phone}</p>` : ""}
             <p style="color: #333; font-size: 1rem;"><strong>Preis:</strong> ${formatCurrency(order.final_price)}${order.original_price !== order.final_price ? ` <span style="color:#64748B;">(Original ${formatCurrency(order.original_price)})</span>` : ""}</p>
             ${order.birth_date ? `<p style="color: #333; font-size: 1rem;"><strong>Geburtsdatum:</strong> ${order.birth_date}</p>` : ""}
             ${order.work_location ? `<p style="color: #333; font-size: 1rem;"><strong>Arbeitsort:</strong> ${order.work_location}</p>` : ""}
             ${order.gross_annual_salary ? `<p style="color: #333; font-size: 1rem;"><strong>Bruttojahreslohn:</strong> ${order.gross_annual_salary}</p>` : ""}
             ${order.fringe_benefits ? `<p style="color: #333; font-size: 1rem;"><strong>Fringe & Benefits:</strong> ${order.fringe_benefits}</p>` : ""}
             ${order.linkedin_url ? `<p style="color: #333; font-size: 1rem;"><strong>LinkedIn:</strong> <a href="${order.linkedin_url}" style="color:#204878;">${order.linkedin_url}</a></p>` : ""}
-            ${order.remarks ? `<p style="color: #333; font-size: 1rem;"><strong>Bemerkungen:</strong><br/>${order.remarks.replace(/\n/g, "<br/>")}</p>` : ""}
+            ${cleanRemarks ? `<p style="color: #333; font-size: 1rem;"><strong>Bemerkungen:</strong><br/>${cleanRemarks.replace(/\n/g, "<br/>")}</p>` : ""}
             ${order.cv_file_name ? `<p style="color: #333; font-size: 1rem;"><strong>CV-Datei:</strong> ${order.cv_file_name}</p>` : ""}
             ${order.salary_file_name ? `<p style="color: #333; font-size: 1rem;"><strong>Lohnabrechnung:</strong> ${order.salary_file_name}</p>` : ""}
         </div>
+            `;
+        })()}
     `).join("");
 
     const emailData: {

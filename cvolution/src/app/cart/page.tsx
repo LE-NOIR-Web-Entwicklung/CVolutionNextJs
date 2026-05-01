@@ -42,7 +42,7 @@ const emptySalaryDetails: SalaryDetails = {
 };
 
 function formatPrice(value: number) {
-  return `CHF ${value.toFixed(2)}`;
+  return `CHF\u00a0${value.toFixed(2)}`;
 }
 
 function isSalaryService(serviceType: ShopProductKey) {
@@ -486,19 +486,19 @@ export default function CartPage() {
                       </p>
                     )}
                   </div>
-                  <div className="border-t border-gray-100 pt-5 flex items-center justify-between">
+                  <div className="border-t border-gray-100 pt-5 flex items-center justify-between gap-4">
                     <span className="text-sm text-[#64748B]">Zwischentotal vor Gutscheinen</span>
-                    <span className="text-xl font-semibold text-[#111827]">{formatPrice(originalTotal)}</span>
+                    <span className="whitespace-nowrap text-right text-xl font-semibold tabular-nums text-[#111827]">{formatPrice(originalTotal)}</span>
                   </div>
                   {discountTotal > 0 && (
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between gap-4">
                       <span className="text-sm text-green-700">Gutscheine</span>
-                      <span className="text-sm font-semibold text-green-700">-{formatPrice(discountTotal)}</span>
+                      <span className="whitespace-nowrap text-right text-sm font-semibold tabular-nums text-green-700">-{formatPrice(discountTotal)}</span>
                     </div>
                   )}
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between gap-4">
                     <span className="text-sm font-semibold text-[#111827]">Total</span>
-                    <span className="text-xl font-semibold text-[#111827]">{formatPrice(total)}</span>
+                    <span className="whitespace-nowrap text-right text-xl font-semibold tabular-nums text-[#111827]">{formatPrice(total)}</span>
                   </div>
                   <p className="text-xs text-[#64748B]">Der angezeigte Totalbetrag wird an Worldline übergeben.</p>
                   <label className="flex items-start gap-3 text-sm text-[#111827]">
