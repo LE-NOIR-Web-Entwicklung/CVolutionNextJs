@@ -1,11 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Toaster } from "@/components/ui/toaster";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { AuthProvider } from "@/contexts/AuthContext";
-import { AuthPage } from "@/components/Auth/AuthPage";
+import Link from "next/link";
 
 const features = [
   {
@@ -92,65 +88,61 @@ function DesignShowcase() {
 }
 
 export default function Self() {
-  const [queryClient] = useState(() => new QueryClient());
-
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <AuthProvider>
-          <main className="min-h-screen bg-[#F8FAFC]">
-            <section className="py-20 sm:py-24">
-              <div className="mx-auto max-w-6xl px-6">
-                <div className="mx-auto max-w-3xl text-center">
-                  <p className="mb-4 text-sm font-semibold uppercase tracking-wide text-[#204878]">Self-Service</p>
-                  <h1 className="text-4xl font-semibold tracking-tight text-[#111827] sm:text-5xl">
-                    Erstellen Sie Ihren professionellen Lebenslauf
-                  </h1>
-                  <p className="mx-auto mt-5 max-w-2xl text-lg leading-relaxed text-[#64748B]">
-                    Gestalten Sie Ihren Lebenslauf online, wählen Sie ein professionelles Design und exportieren Sie Ihr PDF jederzeit selbst.
-                  </p>
-                </div>
+    <main className="min-h-screen bg-[#F8FAFC]">
+      <section className="py-20 sm:py-24">
+        <div className="mx-auto max-w-6xl px-6">
+          <div className="mx-auto max-w-3xl text-center">
+            <p className="mb-4 text-sm font-semibold uppercase tracking-wide text-[#204878]">Self-Service</p>
+            <h1 className="text-4xl font-semibold tracking-tight text-[#111827] sm:text-5xl">
+              Erstellen Sie Ihren professionellen Lebenslauf
+            </h1>
+            <p className="mx-auto mt-5 max-w-2xl text-lg leading-relaxed text-[#64748B]">
+              Gestalten Sie Ihren Lebenslauf online, wählen Sie ein professionelles Design und exportieren Sie Ihr PDF jederzeit selbst.
+            </p>
+          </div>
 
-                <div className="mt-14 grid gap-6 md:grid-cols-3">
-                  {features.map((feature) => (
-                    <div key={feature.title} className="rounded-2xl border border-gray-100 bg-white p-8 shadow-sm">
-                      <p className="text-sm font-semibold uppercase tracking-wide text-[#204878]">{feature.label}</p>
-                      <h2 className="mt-3 text-3xl font-semibold text-[#111827]">{feature.title}</h2>
-                      <p className="mt-4 text-sm leading-relaxed text-[#64748B]">{feature.description}</p>
-                    </div>
-                  ))}
-                </div>
+          <div className="mt-10 flex justify-center">
+            <Link
+              href="/self/login"
+              className="inline-flex items-center justify-center rounded-xl bg-[#204878] px-7 py-3.5 text-sm font-semibold text-white shadow-sm transition-colors duration-200 hover:bg-[#1a3a66]"
+            >
+              Jetzt Lebenslauf erstellen
+            </Link>
+          </div>
 
-                <div className="mt-8 space-y-8">
-                  <div className="rounded-2xl border border-gray-100 bg-white p-8 shadow-sm">
-                    <h2 className="text-2xl font-semibold text-[#111827]">Alles für Ihren Lebenslauf</h2>
-                    <p className="mt-4 text-base leading-relaxed text-[#64748B]">
-                      Der Self-Service ist ideal, wenn Sie Ihren Lebenslauf selbst pflegen möchten, aber trotzdem eine professionelle Struktur und Gestaltung wünschen.
-                    </p>
-                    <ul className="mt-6 grid gap-3 sm:grid-cols-2">
-                      {benefits.map((benefit) => (
-                        <li key={benefit} className="flex items-start gap-3 text-sm text-[#64748B]">
-                          <svg className="mt-0.5 h-5 w-5 shrink-0 text-[#204878]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                          </svg>
-                          <span>{benefit}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-
-                  <DesignShowcase />
-                </div>
-
-                <div id="login" className="mx-auto mt-8 max-w-md">
-                  <AuthPage />
-                </div>
+          <div className="mt-12 grid gap-6 md:grid-cols-3">
+            {features.map((feature) => (
+              <div key={feature.title} className="rounded-2xl border border-gray-100 bg-white p-8 shadow-sm">
+                <p className="text-sm font-semibold uppercase tracking-wide text-[#204878]">{feature.label}</p>
+                <h2 className="mt-3 text-3xl font-semibold text-[#111827]">{feature.title}</h2>
+                <p className="mt-4 text-sm leading-relaxed text-[#64748B]">{feature.description}</p>
               </div>
-            </section>
-          </main>
-        </AuthProvider>
-      </TooltipProvider>
-    </QueryClientProvider>
+            ))}
+          </div>
+
+          <div className="mt-8 space-y-8">
+            <div className="rounded-2xl border border-gray-100 bg-white p-8 shadow-sm">
+              <h2 className="text-2xl font-semibold text-[#111827]">Alles für Ihren Lebenslauf</h2>
+              <p className="mt-4 text-base leading-relaxed text-[#64748B]">
+                Der Self-Service ist ideal, wenn Sie Ihren Lebenslauf selbst pflegen möchten, aber trotzdem eine professionelle Struktur und Gestaltung wünschen.
+              </p>
+              <ul className="mt-6 grid gap-3 sm:grid-cols-2">
+                {benefits.map((benefit) => (
+                  <li key={benefit} className="flex items-start gap-3 text-sm text-[#64748B]">
+                    <svg className="mt-0.5 h-5 w-5 shrink-0 text-[#204878]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span>{benefit}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <DesignShowcase />
+          </div>
+        </div>
+      </section>
+    </main>
   );
 }
