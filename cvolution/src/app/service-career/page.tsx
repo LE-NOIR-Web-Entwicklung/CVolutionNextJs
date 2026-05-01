@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import { CouponCodeField } from "@/components/CouponCodeField";
+import { AddToCartButton } from "@/components/AddToCartButton";
 
 export default function ServiceCareer() {
     const [showForm, setShowForm] = useState(false);
@@ -125,14 +126,7 @@ export default function ServiceCareer() {
                   <p className="text-3xl font-semibold text-[#111827]">CHF 149 <span className="text-lg font-normal text-[#64748B]">/ Stunde</span></p>
                 </div>
 
-                {!showForm && !submitted && (
-                  <button
-                    onClick={() => setShowForm(true)}
-                    className="px-8 py-3 bg-[#204878] text-white font-semibold rounded-xl hover:bg-[#1a3a66] transition-colors duration-200 text-sm"
-                  >
-                    Jetzt buchen
-                  </button>
-                )}
+                {!submitted && <AddToCartButton serviceType="career" className="px-8 py-3 bg-[#204878] text-white font-semibold rounded-xl hover:bg-[#1a3a66] transition-colors duration-200 text-sm" />}
               </div>
 
               {showForm && !submitted && (
