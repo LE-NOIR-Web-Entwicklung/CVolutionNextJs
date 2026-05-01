@@ -2,6 +2,36 @@ import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '../../../../../lib/supabase-server';
 import { sendEmail, sendConfirmationEmail } from '../../../../../lib/resend';
 
+const EXTERNAL_ORDER_REDIRECT_URL =
+  process.env.EXTERNAL_ORDER_REDIRECT_URL || 'https://analyse.cvolution.ch/danke/';
+const EXTERNAL_ORDER_REMARKS_PREFIX = '[external_order]';
+
+function isExternalOrder(order: any) {
+  return Boolean(order?.is_external)
+    || (typeof order?.remarks === 'string' && order.remarks.startsWith(EXTERNAL_ORDER_REMARKS_PREFIX));
+}
+
+function getCustomerRemarks(order: any) {
+  if (typeof order?.remarks !== 'string') return undefined;
+  if (!order.remarks.startsWith(EXTERNAL_ORDER_REMARKS_PREFIX)) return order.remarks;
+
+  const [, ...customerRemarkLines] = order.remarks.split('\n');
+  const customerRemarks = customerRemarkLines.join('\n').trim();
+  return customerRemarks || undefined;
+}
+
+function getSuccessRedirectUrl(order: any, request: NextRequest) {
+  if (isExternalOrder(order)) {
+    return new URL(EXTERNAL_ORDER_REDIRECT_URL, request.url);
+  }
+
+  const redirectUrl = order?.service_type === 'self'
+    ? '/confirmation?success=true&service=self'
+    : `/confirmation?success=true&service=${encodeURIComponent(order?.service_label || '')}`;
+
+  return new URL(redirectUrl, request.url);
+}
+
 /**
  * Saferpay After-Payment Callback
  * URL: https://cvolution.ch/api/afterpayment/{{{PAYMENTPAGETOKEN}}}
@@ -78,7 +108,9 @@ export async function GET(
       orderId: order.id,
       reason: paidUpdateError?.message,
     });
-    return NextResponse.redirect(new URL('/confirmation?success=true', request.url));
+    const response = NextResponse.redirect(getSuccessRedirectUrl(order, request));
+    response.cookies.delete('orderId');
+    return response;
   }
 
   order = paidOrder;
@@ -131,7 +163,7 @@ export async function GET(
         order.gross_annual_salary || undefined,
         order.fringe_benefits || undefined,
         order.linkedin_url || undefined,
-        order.remarks || undefined,
+        getCustomerRemarks(order),
         order.coupon_code || null
       ),
       sendConfirmationEmail(order.email, order.service_label),
@@ -176,11 +208,8 @@ export async function GET(
     console.error('Pushcut notification failed:', pushError);
   }
 
-  // Redirect: "self" service goes to /self, others to /confirmation
-  const redirectUrl = order.service_type === 'self'
-    ? '/confirmation?success=true&service=self'
-    : `/confirmation?success=true&service=${encodeURIComponent(order.service_label)}`;
-  const response = NextResponse.redirect(new URL(redirectUrl, request.url));
+  // Redirect: external orders return to the source app, "self" and normal orders stay on CVolution.
+  const response = NextResponse.redirect(getSuccessRedirectUrl(order, request));
   response.cookies.delete('orderId');
   return response;
 }

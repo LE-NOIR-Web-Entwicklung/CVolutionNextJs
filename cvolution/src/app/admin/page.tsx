@@ -124,6 +124,8 @@ interface Order {
   coupon_code: string | null;
   coupon_discount_type: 'percent' | 'free' | null;
   coupon_discount_value: number | null;
+  is_external: boolean | null;
+  external_source: string | null;
   cv_file_name: string | null;
   salary_file_name: string | null;
   linkedin_url: string | null;
@@ -886,6 +888,11 @@ const AdminContent: React.FC = () => {
                               <td className="p-3 text-gray-700">
                                 <p className="font-semibold text-gray-900">{order.service_label}</p>
                                 <p className="text-xs text-gray-500">{order.service_type}</p>
+                                {order.is_external && (
+                                  <p className="mt-1 text-xs font-medium text-blue-700">
+                                    Extern{order.external_source ? `: ${order.external_source}` : ''}
+                                  </p>
+                                )}
                               </td>
                               <td className="p-3 text-gray-700 whitespace-nowrap">
                                 <p>{formatPrice(order.final_price)}</p>
