@@ -57,6 +57,7 @@ export default function Navbar() {
         { name: "Check", href: "/service-check" },
       ],
     },
+    { name: "Blog", href: "/blog" },
     {
       name: "Über",
       href: "/about",
