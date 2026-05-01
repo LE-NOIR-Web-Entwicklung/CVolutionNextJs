@@ -13,18 +13,34 @@ import { getSaferpayShopReference } from '@/lib/saferpay';
 import { initializeWorldlineCheckout } from '@/lib/worldline-checkout';
 
 const EXTERNAL_ORDER_REMARKS_PREFIX = '[external_order]';
+const CONTACT_PHONE_REMARKS_PREFIX = '[contact_phone]';
 const EXTERNAL_ORDER_REDIRECT_URL =
   process.env.EXTERNAL_ORDER_REDIRECT_URL || 'https://analyse.cvolution.ch/danke/';
 
-function getOrderRemarks(remarks: unknown, externalOrder: boolean, externalSource: string | null) {
+function normalizeContactPhone(value: unknown) {
+  return typeof value === 'string' && value.trim() ? value.trim() : null;
+}
+
+function getOrderRemarks(
+  remarks: unknown,
+  externalOrder: boolean,
+  externalSource: string | null,
+  contactPhone: string | null
+) {
   const cleanRemarks = typeof remarks === 'string' && remarks.trim() ? remarks.trim() : null;
+  const remarksParts: string[] = [];
 
   if (!externalOrder) {
-    return cleanRemarks;
+    if (contactPhone) remarksParts.push(`${CONTACT_PHONE_REMARKS_PREFIX} ${contactPhone}`);
+    if (cleanRemarks) remarksParts.push(cleanRemarks);
+    return remarksParts.length ? remarksParts.join('\n') : null;
   }
 
   const externalMarker = `${EXTERNAL_ORDER_REMARKS_PREFIX}${externalSource ? ` source=${externalSource}` : ''}`;
-  return cleanRemarks ? `${externalMarker}\n${cleanRemarks}` : externalMarker;
+  remarksParts.push(externalMarker);
+  if (contactPhone) remarksParts.push(`${CONTACT_PHONE_REMARKS_PREFIX} ${contactPhone}`);
+  if (cleanRemarks) remarksParts.push(cleanRemarks);
+  return remarksParts.join('\n');
 }
 
 function isMissingExternalOrderColumnError(error: unknown) {
@@ -59,7 +75,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
 
     const {
-      name, firstName, lastName, email, birthDate,
+      name, firstName, lastName, email, phone, contactPhone, birthDate,
       workLocation, grossAnnualSalary, fringeBenefits,
       linkedinUrl, remarks,
       serviceType, serviceLabel,
@@ -71,8 +87,9 @@ export async function POST(request: NextRequest) {
     } = body;
 
     const serviceConfig = getServiceConfig(serviceType);
+    const normalizedContactPhone = normalizeContactPhone(contactPhone ?? phone);
 
-    if (!email || !serviceType || !serviceConfig) {
+    if (!email || !normalizedContactPhone || !serviceType || !serviceConfig) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
@@ -110,7 +127,7 @@ export async function POST(request: NextRequest) {
     const normalizedExternalSource = externalOrder
       ? (normalizeExternalSource(externalSource) || 'analyse.cvolution.ch').slice(0, 255)
       : null;
-    const orderRemarks = getOrderRemarks(remarks, externalOrder, normalizedExternalSource);
+    const orderRemarks = getOrderRemarks(remarks, externalOrder, normalizedExternalSource, normalizedContactPhone);
     const redirectUrl = externalOrder && paymentStatus === 'free_coupon'
       ? EXTERNAL_ORDER_REDIRECT_URL
       : null;
@@ -229,7 +246,8 @@ export async function POST(request: NextRequest) {
             fringeBenefits || undefined,
             linkedinUrl || undefined,
             remarks || undefined,
-            coupon?.code ?? null
+            coupon?.code ?? null,
+            normalizedContactPhone
           ),
           sendConfirmationEmail(email, serviceConfig.label),
         ]);

@@ -18,7 +18,8 @@ export const sendEmail = async (
     fringeBenefits?: string,
     linkedinUrl?: string,
     remarks?: string,
-    couponCode?: string | null
+    couponCode?: string | null,
+    phone?: string
 ) => {
     // Build additional fields HTML for PDF service
     let additionalFieldsHtml = '';
@@ -56,6 +57,7 @@ export const sendEmail = async (
                     <div style="margin-bottom: 24px;">
                         ${name ? `<p style="color: #333; font-size: 1.1rem;"><strong>Name:</strong> ${name}</p>` : ""}
                         <p style="color: #333; font-size: 1.1rem;"><strong>E-Mail:</strong> ${email}</p>
+                        ${phone ? `<p style="color: #333; font-size: 1.1rem;"><strong>Telefon:</strong> ${phone}</p>` : ""}
                         <p style="color: #333; font-size: 1.1rem;"><strong>Service:</strong> ${service}</p>
                         ${address ? `<p style='color: #333; font-size: 1.1rem;'><strong>Strasse + Nr:</strong> ${address}</p>` : ""}
                         ${postalCode ? `<p style='color: #333; font-size: 1.1rem;'><strong>PLZ + Ort:</strong> ${postalCode}</p>` : ""}

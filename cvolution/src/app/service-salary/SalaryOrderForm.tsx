@@ -54,6 +54,7 @@ export function SalaryOrderForm({ variant }: { variant: SalaryOrderVariant }) {
   const config = salaryOrderConfig[variant];
   const [email, setEmail] = useState("");
   const [emailConfirmation, setEmailConfirmation] = useState("");
+  const [phone, setPhone] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState("");
   const [cvFile, setCvFile] = useState<File | null>(null);
@@ -123,7 +124,7 @@ export function SalaryOrderForm({ variant }: { variant: SalaryOrderVariant }) {
     e.preventDefault();
     setError("");
 
-    if (!firstName || !lastName || !email || !birthDate || !workLocation || !grossAnnualSalary) {
+    if (!firstName || !lastName || !email || !phone || !birthDate || !workLocation || !grossAnnualSalary) {
       setError("Bitte füllen Sie alle Pflichtfelder aus.");
       return;
     }
@@ -162,6 +163,7 @@ export function SalaryOrderForm({ variant }: { variant: SalaryOrderVariant }) {
           firstName,
           lastName,
           email,
+          phone,
           birthDate,
           workLocation,
           grossAnnualSalary,
@@ -305,6 +307,16 @@ export function SalaryOrderForm({ variant }: { variant: SalaryOrderVariant }) {
                       placeholder="z.B. CHF 85'000"
                       value={grossAnnualSalary}
                       onChange={e => setGrossAnnualSalary(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-[#111827] mb-2">Telefonnummer *</label>
+                    <input
+                      type="tel"
+                      className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#204878] focus:border-transparent transition"
+                      value={phone}
+                      onChange={e => setPhone(e.target.value)}
                       required
                     />
                   </div>

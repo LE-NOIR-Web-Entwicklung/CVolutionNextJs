@@ -5,6 +5,7 @@ import { sendEmail, sendConfirmationEmail } from '../../../../../lib/resend';
 const EXTERNAL_ORDER_REDIRECT_URL =
   process.env.EXTERNAL_ORDER_REDIRECT_URL || 'https://analyse.cvolution.ch/danke/';
 const EXTERNAL_ORDER_REMARKS_PREFIX = '[external_order]';
+const CONTACT_PHONE_REMARKS_PREFIX = '[contact_phone]';
 
 function isExternalOrder(order: any) {
   return Boolean(order?.is_external)
@@ -13,11 +14,27 @@ function isExternalOrder(order: any) {
 
 function getCustomerRemarks(order: any) {
   if (typeof order?.remarks !== 'string') return undefined;
-  if (!order.remarks.startsWith(EXTERNAL_ORDER_REMARKS_PREFIX)) return order.remarks;
-
-  const [, ...customerRemarkLines] = order.remarks.split('\n');
+  const customerRemarkLines = order.remarks
+    .split('\n')
+    .filter((line: string, index: number) => {
+      if (index === 0 && line.startsWith(EXTERNAL_ORDER_REMARKS_PREFIX)) return false;
+      return !line.startsWith(CONTACT_PHONE_REMARKS_PREFIX);
+    });
   const customerRemarks = customerRemarkLines.join('\n').trim();
   return customerRemarks || undefined;
+}
+
+function getContactPhone(order: any) {
+  if (typeof order?.phone === 'string' && order.phone.trim()) return order.phone.trim();
+  if (typeof order?.contact_phone === 'string' && order.contact_phone.trim()) {
+    return order.contact_phone.trim();
+  }
+  if (typeof order?.remarks !== 'string') return undefined;
+
+  const phoneLine = order.remarks
+    .split('\n')
+    .find((line: string) => line.startsWith(CONTACT_PHONE_REMARKS_PREFIX));
+  return phoneLine?.replace(CONTACT_PHONE_REMARKS_PREFIX, '').trim() || undefined;
 }
 
 function getSuccessRedirectUrl(order: any, request: NextRequest) {
@@ -164,7 +181,8 @@ export async function GET(
         order.fringe_benefits || undefined,
         order.linkedin_url || undefined,
         getCustomerRemarks(order),
-        order.coupon_code || null
+        order.coupon_code || null,
+        getContactPhone(order)
       ),
       sendConfirmationEmail(order.email, order.service_label),
     ]);
