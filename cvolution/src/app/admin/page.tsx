@@ -22,6 +22,7 @@ import {
 interface UserProfile {
   paid: any;
   paydate: string | null;
+  subscription_status: 'active' | 'canceled' | string | null;
   id: string;
   user_id: string;
   full_name: string | null;
@@ -190,7 +191,7 @@ const AdminContent: React.FC = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [adminEmail, setAdminEmail] = useState<string>('');
   const [currentPage, setCurrentPage] = useState(1);
-  const [activeFilter, setActiveFilter] = useState<'all' | 'active' | 'inactive'>('all');
+  const [activeFilter, setActiveFilter] = useState<'all' | 'active' | 'canceled' | 'unknown'>('all');
   const [coupons, setCoupons] = useState<Coupon[]>([]);
   const [couponLoading, setCouponLoading] = useState(false);
   const [orders, setOrders] = useState<Order[]>([]);
@@ -546,25 +547,26 @@ const AdminContent: React.FC = () => {
     return null;
   }
 
-  // Helper function to check if user is active
-  const isUserActive = (user: UserData) => {
-    const { paid, paydate } = user.profile;
-    if (!paid || !paydate) return false;
-
-    const payDateObj = new Date(paydate);
-    const now = new Date();
-    const diffMonths = (now.getTime() - payDateObj.getTime()) / (1000 * 60 * 60 * 24 * 30);
-    const expired = diffMonths >= 1;
-
-    return !expired;
+  const getSubscriptionState = (user: UserData): 'active' | 'canceled' | 'unknown' => {
+    if (user.profile.subscription_status === 'active') return 'active';
+    if (user.profile.subscription_status === 'canceled') return 'canceled';
+    return 'unknown';
   };
 
-  // Filter users based on active status
+  const getSubscriptionStatus = (status: UserProfile['subscription_status']) => {
+    if (status === 'active') {
+      return { label: 'Aktiv', className: 'bg-green-50 text-green-700 border-green-200' };
+    }
+    if (status === 'canceled') {
+      return { label: 'Gekündigt', className: 'bg-red-50 text-red-700 border-red-200' };
+    }
+    return { label: 'Unknown', className: 'bg-gray-50 text-gray-700 border-gray-200' };
+  };
+
+  // Filter users based on subscription_status.
   const filteredUsers = users.filter(user => {
     if (activeFilter === 'all') return true;
-    if (activeFilter === 'active') return isUserActive(user);
-    if (activeFilter === 'inactive') return !isUserActive(user);
-    return true;
+    return getSubscriptionState(user) === activeFilter;
   });
 
   // Pagination calculations
@@ -582,13 +584,14 @@ const AdminContent: React.FC = () => {
   };
 
   const handleFilterChange = (value: string) => {
-    setActiveFilter(value as 'all' | 'active' | 'inactive');
+    setActiveFilter(value as 'all' | 'active' | 'canceled' | 'unknown');
     setCurrentPage(1); // Reset to first page when filter changes
   };
 
-  // Count active and inactive users
-  const activeCount = users.filter(isUserActive).length;
-  const inactiveCount = users.length - activeCount;
+  // Count users by subscription_status.
+  const activeCount = users.filter((user) => getSubscriptionState(user) === 'active').length;
+  const canceledCount = users.filter((user) => getSubscriptionState(user) === 'canceled').length;
+  const unknownCount = users.filter((user) => getSubscriptionState(user) === 'unknown').length;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -950,15 +953,16 @@ const AdminContent: React.FC = () => {
           <div className="mb-6 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
             <div className="flex items-center gap-2">
               <Filter className="h-5 w-5 text-black" />
-              <span className="text-sm font-medium text-black">Filter nach Status:</span>
+              <span className="text-sm font-medium text-black">Filter nach Subscription:</span>
               <Select value={activeFilter} onValueChange={handleFilterChange}>
-                <SelectTrigger className="w-[200px] bg-white text-black">
+                <SelectTrigger className="w-[220px] bg-white text-black">
                   <SelectValue placeholder="Alle anzeigen" />
                 </SelectTrigger>
                 <SelectContent className="bg-white">
                   <SelectItem value="all" className="text-black">Alle ({users.length})</SelectItem>
                   <SelectItem value="active" className="text-black">Aktiv ({activeCount})</SelectItem>
-                  <SelectItem value="inactive" className="text-black">Inaktiv ({inactiveCount})</SelectItem>
+                  <SelectItem value="canceled" className="text-black">Gekündigt ({canceledCount})</SelectItem>
+                  <SelectItem value="unknown" className="text-black">Unknown ({unknownCount})</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -968,7 +972,10 @@ const AdminContent: React.FC = () => {
                 {activeCount} Aktiv
               </Badge>
               <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">
-                {inactiveCount} Inaktiv
+                {canceledCount} Gekündigt
+              </Badge>
+              <Badge variant="outline" className="bg-gray-50 text-gray-700 border-gray-200">
+                {unknownCount} Unknown
               </Badge>
             </div>
           </div>
@@ -991,6 +998,7 @@ const AdminContent: React.FC = () => {
             <div className="space-y-4">
               {paginatedUsers.map((userData) => {
                 const isExpanded = expandedUsers.has(userData.profile.user_id);
+                const subscriptionStatus = getSubscriptionStatus(userData.profile.subscription_status);
 
               return (
                 <Card key={userData.profile.user_id} className="overflow-hidden bg-white">
@@ -1013,12 +1021,9 @@ const AdminContent: React.FC = () => {
                           <p className="text-xs text-gray-400">
                             Registriert: {formatDate(userData.profile.created_at)}
                           </p>
-                          <p className="text-xs text-gray-400">
-                            Aktiv: {userData.profile.paid ? 'Ja' : 'Nein'}
-                          </p>
-                          <p className="text-xs text-gray-400">
-                            Letzte Abrechnung: {formatDate(userData.profile.paydate)}
-                          </p>
+                          <Badge variant="outline" className={subscriptionStatus.className}>
+                            {subscriptionStatus.label}
+                          </Badge>
                         </div>
                       </div>
                       <div className="flex items-center gap-4">
