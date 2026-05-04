@@ -14,6 +14,48 @@ function readingTime(content: string) {
   return Math.max(1, Math.ceil(words / 220));
 }
 
+function renderInlineText(text: string) {
+  const linkPattern = /\b((?:https?:\/\/|www\.)[^\s<]+)/gi;
+  const parts = [];
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+
+  while ((match = linkPattern.exec(text)) !== null) {
+    const rawUrl = match[0];
+    const trailingPunctuation = rawUrl.match(/[.,!?;:)\]]+$/)?.[0] || "";
+    const displayUrl = trailingPunctuation ? rawUrl.slice(0, -trailingPunctuation.length) : rawUrl;
+    const href = displayUrl.startsWith("www.") ? `https://${displayUrl}` : displayUrl;
+
+    if (match.index > lastIndex) {
+      parts.push(text.slice(lastIndex, match.index));
+    }
+
+    parts.push(
+      <a
+        key={`${displayUrl}-${match.index}`}
+        href={href}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="font-semibold text-[#204878] underline decoration-[#204878]/25 underline-offset-4 transition hover:text-[#16375f] hover:decoration-[#204878]"
+      >
+        {displayUrl}
+      </a>
+    );
+
+    if (trailingPunctuation) {
+      parts.push(trailingPunctuation);
+    }
+
+    lastIndex = match.index + rawUrl.length;
+  }
+
+  if (lastIndex < text.length) {
+    parts.push(text.slice(lastIndex));
+  }
+
+  return parts.length > 0 ? parts : text;
+}
+
 function renderContent(content: string) {
   return content
     .split(/\n{2,}/)
@@ -23,7 +65,7 @@ function renderContent(content: string) {
       if (block.startsWith("### ")) {
         return (
           <h3 key={index} className="mt-10 text-2xl font-semibold text-slate-950">
-            {block.replace(/^###\s+/, "")}
+            {renderInlineText(block.replace(/^###\s+/, ""))}
           </h3>
         );
       }
@@ -31,7 +73,7 @@ function renderContent(content: string) {
       if (block.startsWith("## ")) {
         return (
           <h2 key={index} className="mt-12 text-3xl font-semibold text-slate-950">
-            {block.replace(/^##\s+/, "")}
+            {renderInlineText(block.replace(/^##\s+/, ""))}
           </h2>
         );
       }
@@ -41,7 +83,7 @@ function renderContent(content: string) {
         return (
           <ul key={index} className="my-7 list-disc space-y-3 pl-6 text-lg leading-8 text-slate-700">
             {items.map((item) => (
-              <li key={item}>{item}</li>
+              <li key={item}>{renderInlineText(item)}</li>
             ))}
           </ul>
         );
@@ -49,7 +91,7 @@ function renderContent(content: string) {
 
       return (
         <p key={index} className="text-lg leading-8 text-slate-700">
-          {block}
+          {renderInlineText(block)}
         </p>
       );
     });

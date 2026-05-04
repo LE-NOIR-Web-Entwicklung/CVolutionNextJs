@@ -160,7 +160,7 @@ export function AddToCartButton({ serviceType, className, productName }: AddToCa
       >
         <span className="flex items-center justify-center gap-2">
           <ShoppingCart className="h-4 w-4" aria-hidden="true" />
-          <span>{added ? "" : ""}{count > 0 ? ` (${count})` : ""}</span>
+          {count > 0 && <span>({count})</span>}
         </span>
       </button>
 

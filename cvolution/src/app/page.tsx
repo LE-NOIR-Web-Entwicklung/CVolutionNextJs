@@ -4,6 +4,8 @@ import { useState } from "react";
 import Image from "next/image";
 import { FaLinkedin, FaPhone, FaEnvelope } from "react-icons/fa";
 import Link from "next/link";
+import { AddToCartButton } from "@/components/AddToCartButton";
+import { SERVICE_OFFERS } from "@/lib/service-offers";
 
 export default function Home() {
   const slides = [
@@ -21,51 +23,6 @@ export default function Home() {
       title: "Laufbahn-Beratung",
       description: "Unsere Laufbahnberatung bietet Ihnen Orientierung und Unterstützung.",
       link: "/service-career"
-    },
-  ];
-
-  const products = [
-    {
-      name: "Laufbahnberatung",
-      description: "Analyse Ihrer Stärken, Interessen und Ziele. Erarbeitung individueller Karriere-Strategien. Beratung zu Weiterbildung und beruflicher Neuorientierung",
-      image: "/images/talk.png",
-      price: "CHF 149 / Stunde",
-      link: "/service-career",
-    },
-    {
-      name: "Lebenslauf",
-      description: "Analyse Ihrer bisherigen beruflichen Laufbahn. Individuelle Gestaltung eines professionellen Lebenslaufs. Anpassung an die gewünschte Position und Branche",
-      image: "/images/resume.png",
-      price: "CHF 99",
-      link: "/service-cv",
-    },
-    {
-      name: "Lohnanalyse",
-      description: "Transparenter Vergleich mit branchenüblichen Gehältern. Individuelle Einschätzung basierend auf Ihrer Position und Erfahrung. Wertvolle Argumente für Ihre Gehaltsverhandlung",
-      image: "/images/search.png",
-      price: "ab CHF 69",
-      link: "/service-salary",
-    },
-    {
-      name: "Motivationsschreiben",
-      description: "Gemeinsames Erarbeiten Ihrer individuellen Argumente. Formulierung eines überzeugenden Motivationsschreibens. Angepasst an spezifische Stellenanforderungen",
-      image: "/images/copy-writing.png",
-      price: "CHF 99",
-      link: "/service-motivation",
-    },
-    {
-      name: "RAV Unterstützung",
-      description: "Unterstützung bei der Erfüllung von RAV-Vorgaben. Erstellung von Lebenslauf und Motivationsschreiben. Vorbereitung auf Bewerbungsgespräche",
-      image: "/images/customer-service.png",
-      price: "ab CHF 99",
-      link: "/service-rav",
-    },
-    {
-      name: "Check",
-      description: "Wir prüfen deinen Lebenslauf, deine Arbeitszeugnisse und weitere Bewerbungsdokumente auf Inhalt, Aufbau, Gestaltung und Formulierungen",
-      image: "/images/checked.png",
-      price: "CHF 49",
-      link: "/service-check",
     },
   ];
 
@@ -263,40 +220,70 @@ export default function Home() {
       </section>
 
       {/* Products Section */}
-      <section className="py-24 bg-[#F8FAFC]">
-        <div className="max-w-6xl mx-auto px-6">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl sm:text-4xl font-semibold text-[#111827] mb-4">
+      <section className="relative isolate overflow-hidden bg-[#f4f7fb] px-5 py-20 text-[#142033] sm:px-6 sm:py-24">
+        <div className="absolute inset-x-0 top-0 -z-10 h-80 bg-[radial-gradient(circle_at_50%_0%,rgba(32,72,120,0.12),transparent_32%),linear-gradient(180deg,#ffffff_0%,#f4f7fb_100%)]" />
+
+        <div className="mx-auto max-w-6xl">
+          <div className="mx-auto max-w-2xl text-center">
+            <p className="mb-4 inline-flex rounded-md border border-[#204878]/15 bg-white/75 px-3 py-1.5 text-sm font-semibold text-[#204878] shadow-sm shadow-[#204878]/5">
+              CVolution Bewerbungsservice
+            </p>
+            <h2 className="text-4xl font-semibold leading-tight tracking-tight text-[#101828] text-balance sm:text-5xl">
               Unser Angebot
             </h2>
-            <p className="text-lg text-[#64748B] max-w-xl mx-auto">
+            <p className="mt-4 text-base leading-7 text-[#5d6b7f] text-pretty">
               Professionelle Unterstützung für jeden Schritt Ihrer Karriere.
             </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {products.map((product, index) => (
-              <a
-                key={index}
-                href={product.link}
-                className="group bg-white rounded-2xl border border-gray-100 p-8 shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-0.5 flex flex-col"
+
+          <div className="mt-12 grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
+            {SERVICE_OFFERS.map((product) => (
+              <article
+                key={product.name}
+                className="group relative flex min-h-[20rem] flex-col overflow-hidden rounded-3xl bg-white p-6 shadow-[0_1.25rem_3.5rem_rgba(15,37,65,0.07)] ring-1 ring-[#dce5ef] transition duration-300 hover:-translate-y-1 hover:shadow-[0_1.75rem_4.5rem_rgba(15,37,65,0.12)] focus-within:ring-2 focus-within:ring-[#204878]"
               >
-                <div className="mb-5">
-                  <Image
-                    src={product.image}
-                    alt={product.name}
-                    width={48}
-                    height={48}
-                  />
-                </div>
-                <h3 className="text-lg font-semibold text-[#111827] mb-2">{product.name}</h3>
-                <p className="text-sm text-[#64748B] leading-relaxed flex-1">{product.description}</p>
-                <div className="mt-6 flex items-center justify-between">
-                  <span className="text-sm font-semibold text-[#204878]">{product.price}</span>
-                  <span className="text-sm font-medium text-[#204878]">
-                    Details →
+                <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-[#204878] opacity-0 transition duration-300 group-hover:opacity-100" />
+                <div className="mb-7 flex items-start justify-between gap-5">
+                  <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#eef4fb] ring-1 ring-[#d8e4f1] transition duration-300 group-hover:bg-[#204878]">
+                    <Image
+                      src={product.image}
+                      alt=""
+                      width={34}
+                      height={34}
+                      className="transition duration-300 group-hover:invert"
+                    />
+                  </div>
+                  <span className="rounded-md bg-[#f2f6fb] px-2.5 py-1 text-sm font-semibold text-[#204878] tabular-nums">
+                    {product.price}
                   </span>
                 </div>
-              </a>
+
+                <div className="flex flex-1 flex-col">
+                  <h3 className="text-xl font-semibold tracking-tight text-[#101828]">
+                    {product.name}
+                  </h3>
+                  <p className="mt-3 text-[0.95rem] leading-7 text-[#607089] text-pretty">
+                    {product.description}
+                  </p>
+                </div>
+
+                <div className="mt-7 grid grid-cols-1 gap-3 border-t border-[#e6edf5] pt-5 sm:grid-cols-[minmax(0,1fr)_4.5rem]">
+                  <Link
+                    href={product.link}
+                    className={`${product.hasMultipleVariants ? "sm:col-span-2" : ""} inline-flex items-center justify-center gap-2 rounded-xl border border-[#204878] px-4 py-3 text-sm font-semibold text-[#204878] transition hover:-translate-y-0.5 hover:bg-[#eef4fb] hover:text-[#102f55] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#204878] focus-visible:ring-offset-4 active:translate-y-0`}
+                  >
+                    {product.offerLabel || "Angebot ansehen"}
+                    <span aria-hidden="true" className="transition group-hover:translate-x-1">→</span>
+                  </Link>
+                  {!product.hasMultipleVariants && (
+                    <AddToCartButton
+                      serviceType={product.serviceType}
+                      productName={product.name}
+                      className="inline-flex w-full items-center justify-center rounded-xl bg-[#204878] px-3 py-3 text-center text-sm font-semibold text-white shadow-lg shadow-[#204878]/20 transition duration-200 hover:-translate-y-0.5 hover:bg-[#173d66] active:translate-y-0"
+                    />
+                  )}
+                </div>
+              </article>
             ))}
           </div>
         </div>
@@ -391,4 +378,3 @@ export default function Home() {
     </div>
   );
 }
-
