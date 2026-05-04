@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 
 type SalaryOrderVariant = "phone" | "pdf";
 
@@ -420,19 +419,13 @@ export function SalaryOrderForm({ variant }: { variant: SalaryOrderVariant }) {
                 </div>
 
                 {error && <p className="text-sm text-red-600 bg-red-50 rounded-lg px-4 py-3">{error}</p>}
-                <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                <div className="pt-2">
                   <button
                     type="submit"
-                    className="flex-1 px-6 py-3 bg-[#204878] text-white font-semibold rounded-xl hover:bg-[#1a3a66] transition-colors text-sm"
+                    className="w-full px-6 py-3 bg-[#204878] text-white font-semibold rounded-xl hover:bg-[#1a3a66] transition-colors text-sm"
                   >
                     Bestellung abschliessen
                   </button>
-                  <Link
-                    href="/service-salary"
-                    className="px-6 py-3 bg-gray-100 text-[#64748B] font-semibold rounded-xl hover:bg-gray-200 transition-colors text-sm text-center"
-                  >
-                    Zurück
-                  </Link>
                 </div>
               </form>
             </div>
