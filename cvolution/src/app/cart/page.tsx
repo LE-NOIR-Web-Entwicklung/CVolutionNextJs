@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { ArrowRight, ShoppingCart } from "lucide-react";
 import { clearCart, readCart, writeCart, type CartItem } from "@/lib/cart";
 import { SHOP_PRODUCTS, type ShopProductKey } from "@/lib/shop";
 
@@ -392,16 +393,36 @@ export default function CartPage() {
     <div className="min-h-screen bg-[#F8FAFC]">
       <section className="py-16">
         <div className="max-w-6xl mx-auto px-6">
-          <div className="mb-10">
-            <h1 className="text-4xl font-semibold text-[#111827] mb-3">Warenkorb</h1>
-            <p className="text-[#64748B]">Mehrere Services gemeinsam bestellen und mit Kreditkarte oder TWINT bezahlen.</p>
+          <div className="mb-10 flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <div className="mb-3 flex items-center gap-3">
+                <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#204878] text-white">
+                  <ShoppingCart className="h-6 w-6" aria-hidden="true" />
+                </span>
+                <h1 className="text-4xl font-semibold text-[#111827]">Warenkorb</h1>
+              </div>
+              <p className="text-[#64748B]">Mehrere Services gemeinsam bestellen und mit Kreditkarte oder TWINT bezahlen.</p>
+            </div>
+            <Link
+              href="/service"
+              className="inline-flex items-center justify-center gap-2 rounded-xl border border-[#204878] px-5 py-3 text-sm font-semibold text-[#204878] transition-colors hover:bg-blue-50"
+            >
+              Zum Angebot
+              <ArrowRight className="h-4 w-4" aria-hidden="true" />
+            </Link>
           </div>
 
           {lines.length === 0 && !submitted ? (
             <div className="bg-white border border-gray-100 rounded-2xl p-8">
-              <p className="text-[#64748B] mb-6">Ihr Warenkorb ist leer.</p>
-              <Link href="/service" className="inline-flex px-6 py-3 bg-[#204878] text-white font-semibold rounded-xl hover:bg-[#1a3a66] transition-colors text-sm">
+              <div className="mb-6 flex items-center gap-4">
+                <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50 text-[#204878]">
+                  <ShoppingCart className="h-6 w-6" aria-hidden="true" />
+                </span>
+                <p className="text-[#64748B]">Ihr Warenkorb ist leer.</p>
+              </div>
+              <Link href="/service" className="inline-flex items-center gap-2 px-6 py-3 bg-[#204878] text-white font-semibold rounded-xl hover:bg-[#1a3a66] transition-colors text-sm">
                 Angebot ansehen
+                <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </Link>
             </div>
           ) : (

@@ -47,7 +47,7 @@ export default function Home() {
       name: "Lohnanalyse",
       description: "Transparenter Vergleich mit branchenüblichen Gehältern. Individuelle Einschätzung basierend auf Ihrer Position und Erfahrung. Wertvolle Argumente für Ihre Gehaltsverhandlung",
       image: "/images/search.png",
-      price: "CHF 69",
+      price: "ab CHF 69",
       link: "/service-salary",
       serviceType: "salary_pdf" as ShopProductKey,
     },
