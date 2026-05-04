@@ -23,6 +23,25 @@ export function AddToCartButton({ serviceType, className, productName }: AddToCa
   const product = SHOP_PRODUCTS[serviceType];
 
   useEffect(() => {
+    if (!showCartPopup) return;
+
+    const previousOverflow = document.body.style.overflow;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setShowCartPopup(false);
+      }
+    };
+
+    document.body.style.overflow = "hidden";
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [showCartPopup]);
+
+  useEffect(() => {
     const updateCount = () => {
       const cartItems = readCart();
       const item = cartItems.find((cartItem) => cartItem.serviceType === serviceType);
@@ -65,60 +84,72 @@ export function AddToCartButton({ serviceType, className, productName }: AddToCa
   }
 
   const cartPopup = showCartPopup ? (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-[#111827]/45 px-4 py-8">
-      <div className="flex min-h-full items-center justify-center">
-        <div className="w-full max-w-5xl rounded-2xl bg-white shadow-2xl">
-        <div className="flex flex-col gap-4 border-b border-gray-100 px-5 py-4 sm:flex-row sm:items-start sm:justify-between sm:px-7">
-          <div className="flex items-start gap-4">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-green-50 text-green-700">
-              <Check className="h-6 w-6" aria-hidden="true" />
+    <div
+      className="fixed inset-0 z-[10000] flex items-end bg-[#111827]/55 px-0 pt-8 backdrop-blur-[2px] sm:items-center sm:justify-center sm:px-5 sm:py-8"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="cart-popup-title"
+      onClick={() => setShowCartPopup(false)}
+    >
+      <div
+        className="flex max-h-[calc(100dvh-1rem)] w-full flex-col overflow-hidden rounded-t-2xl bg-white shadow-2xl shadow-[#0f2541]/25 sm:max-h-[min(48rem,calc(100dvh-4rem))] sm:max-w-5xl sm:rounded-2xl"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <div className="border-b border-[#E5EAF0] bg-white px-4 py-4 sm:px-7 sm:py-5">
+          <div className="flex items-start gap-3">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#EAF7EF] text-[#087A32]">
+              <Check className="h-5 w-5" aria-hidden="true" />
             </div>
-            <div>
-              <p className="text-sm font-semibold text-[#111827]">
+            <div className="min-w-0 flex-1">
+              <p id="cart-popup-title" className="truncate text-sm font-semibold text-[#111827]">
                 {productName || product.label}
               </p>
-              <p className="mt-1 text-sm text-green-700">Zum Warenkorb hinzugefügt</p>
+              <p className="mt-1 text-sm font-medium text-[#087A32]">Zum Warenkorb hinzugefügt</p>
             </div>
-          </div>
-          <div className="flex items-center gap-2 sm:shrink-0">
             <Link
               href="/cart"
-              className="inline-flex flex-1 justify-center rounded-xl bg-[#204878] px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#1a3a66] sm:flex-none"
+              className="hidden shrink-0 rounded-xl bg-[#204878] px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#1a3a66] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#204878] focus-visible:ring-offset-2 sm:inline-flex"
             >
               Weiter zum Warenkorb
             </Link>
             <button
               type="button"
               onClick={() => setShowCartPopup(false)}
-              className="rounded-full p-2 text-[#64748B] transition-colors hover:bg-gray-100 hover:text-[#111827]"
+              className="shrink-0 rounded-full p-2 text-[#64748B] transition-colors hover:bg-[#F1F5F9] hover:text-[#111827] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#204878]"
               aria-label="Popup schliessen"
             >
-              <X className="h-5 w-5" aria-hidden="true" />
+              <X className="h-5 w-5" aria-hidden="true" strokeWidth={2.25} />
             </button>
           </div>
+          <Link
+            href="/cart"
+            className="mt-4 inline-flex w-full justify-center rounded-xl bg-[#204878] px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#1a3a66] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#204878] focus-visible:ring-offset-2 sm:hidden"
+          >
+            Weiter zum Warenkorb
+          </Link>
         </div>
 
-        <div className="px-5 py-6 sm:px-7">
-          <h2 className="mb-5 text-xl font-semibold text-[#111827]">Weitere Services</h2>
+        <div className="overflow-y-auto px-4 py-5 sm:px-7 sm:py-6">
+          <h2 className="mb-4 text-xl font-semibold tracking-tight text-[#111827] sm:mb-5">Weitere Services</h2>
           {popupRecommendations.length > 0 ? (
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
             {popupRecommendations.map((relatedProduct) => {
               const relatedCount = cartCounts[relatedProduct.serviceType] || 0;
 
               return (
                 <div
                   key={relatedProduct.serviceType}
-                  className="flex min-h-64 flex-col rounded-xl border border-gray-100 p-5"
+                  className="flex flex-col rounded-xl border border-[#E5EAF0] bg-white p-4 shadow-[0_0.5rem_2rem_rgba(15,37,65,0.05)] sm:min-h-64 sm:p-5"
                 >
                   <div className="flex-1">
-                    <p className="text-sm font-semibold text-[#111827]">{relatedProduct.name}</p>
-                    <p className="mt-3 text-sm leading-relaxed text-[#64748B]">{relatedProduct.description}</p>
-                    <p className="mt-4 text-sm font-semibold text-[#204878]">{relatedProduct.price}</p>
+                    <p className="text-base font-semibold leading-snug text-[#111827] sm:text-sm">{relatedProduct.name}</p>
+                    <p className="mt-2 text-sm leading-6 text-[#64748B] sm:mt-3 sm:leading-relaxed">{relatedProduct.description}</p>
+                    <p className="mt-3 text-sm font-semibold text-[#204878] sm:mt-4">{relatedProduct.price}</p>
                   </div>
-                  <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <div className="mt-4 grid grid-cols-[1fr_auto] gap-3 sm:mt-5 sm:grid-cols-2">
                     <Link
                       href={relatedProduct.link}
-                      className="inline-flex items-center justify-center gap-2 rounded-xl border border-[#204878] px-4 py-3 text-sm font-semibold text-[#204878] transition-colors hover:bg-blue-50"
+                      className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-[#204878] px-4 py-3 text-sm font-semibold text-[#204878] transition-colors hover:bg-blue-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#204878] focus-visible:ring-offset-2"
                     >
                       Angebot
                       <ArrowRight className="h-4 w-4" aria-hidden="true" />
@@ -126,7 +157,7 @@ export function AddToCartButton({ serviceType, className, productName }: AddToCa
                     <button
                       type="button"
                       onClick={() => handleAddToCart(relatedProduct.serviceType, false)}
-                      className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#204878] px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#1a3a66]"
+                      className="inline-flex min-h-12 min-w-14 items-center justify-center gap-2 rounded-xl bg-[#204878] px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#1a3a66] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#204878] focus-visible:ring-offset-2"
                       aria-label={`${relatedProduct.name} in den Warenkorb legen`}
                     >
                       <ShoppingCart className="h-4 w-4" aria-hidden="true" />
@@ -138,12 +169,11 @@ export function AddToCartButton({ serviceType, className, productName }: AddToCa
             })}
           </div>
           ) : (
-            <p className="rounded-xl bg-[#F8FAFC] px-5 py-4 text-sm text-[#64748B]">
+            <p className="rounded-xl bg-[#F8FAFC] px-5 py-4 text-sm leading-6 text-[#64748B]">
               Alle verfügbaren Services sind bereits im Warenkorb.
             </p>
           )}
         </div>
-      </div>
       </div>
     </div>
   ) : null;
