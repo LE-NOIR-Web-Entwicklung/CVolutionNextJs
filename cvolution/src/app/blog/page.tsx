@@ -58,10 +58,6 @@ export default async function BlogPage() {
                       <span className="text-xl font-semibold">CVolution</span>
                     </div>
                   )}
-                  <span className="absolute left-5 top-5 inline-flex items-center gap-2 rounded-full bg-white/95 px-3 py-1.5 text-xs font-semibold text-[#204878] shadow-sm">
-                    <CalendarDays className="h-3.5 w-3.5" />
-                    {formatPostDate(getPostDate(featured))}
-                  </span>
                 </div>
                 <article className="flex flex-col justify-between p-7 lg:p-10">
                   <div>
@@ -110,10 +106,6 @@ export default async function BlogPage() {
                           <span className="font-semibold">CVolution</span>
                         </div>
                       )}
-                      <span className="absolute left-4 top-4 inline-flex items-center gap-1.5 rounded-full bg-white/95 px-2.5 py-1 text-xs font-semibold text-[#204878] shadow-sm">
-                        <CalendarDays className="h-3 w-3" />
-                        {formatPostDate(getPostDate(post))}
-                      </span>
                     </div>
                     <article className="p-6">
                       <div className="mb-4 flex flex-wrap gap-3 text-xs text-slate-500">
