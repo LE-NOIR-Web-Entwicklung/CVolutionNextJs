@@ -63,6 +63,10 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   const { id } = await params;
   const parsed = parseBlogPatch(await request.json());
   if ("error" in parsed) return NextResponse.json({ error: parsed.error }, { status: 400 });
+  const shouldReplaceCover = Object.prototype.hasOwnProperty.call(parsed.data, "cover_image_path");
+  const { data: existingPost } = shouldReplaceCover
+    ? await supabaseAdmin.from("blog_posts").select("cover_image_path").eq("id", id).maybeSingle()
+    : { data: null };
 
   const { data, error } = await supabaseAdmin
     .from("blog_posts")
@@ -75,6 +79,14 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     console.error("Admin blog update failed", { reason: error.message, admin: admin.email, id });
     const status = error.code === "23505" ? 409 : 500;
     return NextResponse.json({ error: status === 409 ? "Dieser Slug existiert bereits." : "Blog-Beitrag konnte nicht gespeichert werden." }, { status });
+  }
+
+  if (
+    shouldReplaceCover &&
+    existingPost?.cover_image_path &&
+    existingPost.cover_image_path !== data.cover_image_path
+  ) {
+    await supabaseAdmin.storage.from("blog-images").remove([existingPost.cover_image_path]);
   }
 
   return NextResponse.json({ post: data });

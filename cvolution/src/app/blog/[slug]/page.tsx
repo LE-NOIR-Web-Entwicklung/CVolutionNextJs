@@ -1,22 +1,13 @@
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { ArrowLeft, CalendarDays, Clock } from "lucide-react";
 import { getPublishedBlogPost, getPublishedBlogPosts } from "@/lib/public-blog";
+import { formatPostDate, getCoverImageUrl, getPostDate } from "@/lib/blog-display";
 
 type BlogDetailProps = {
   params: Promise<{ slug: string }>;
 };
-
-function formatDate(value: string | null) {
-  if (!value) return "";
-  return new Intl.DateTimeFormat("de-CH", {
-    day: "2-digit",
-    month: "long",
-    year: "numeric",
-  }).format(new Date(value));
-}
 
 function readingTime(content: string) {
   const words = content.trim().split(/\s+/).filter(Boolean).length;
@@ -75,7 +66,7 @@ export async function generateMetadata({ params }: BlogDetailProps): Promise<Met
     openGraph: {
       title: post.title,
       description: post.excerpt || undefined,
-      images: post.cover_image_url ? [post.cover_image_url] : undefined,
+      images: getCoverImageUrl(post) ? [getCoverImageUrl(post)] : undefined,
       type: "article",
     },
   };
@@ -103,7 +94,7 @@ export default async function BlogDetailPage({ params }: BlogDetailProps) {
             <div className="mb-5 flex flex-wrap items-center gap-3 text-sm text-slate-500">
               <span className="inline-flex items-center gap-2">
                 <CalendarDays className="h-4 w-4" />
-                {formatDate(post.published_at || post.created_at)}
+                {formatPostDate(getPostDate(post))}
               </span>
               <span className="inline-flex items-center gap-2">
                 <Clock className="h-4 w-4" />
@@ -124,17 +115,18 @@ export default async function BlogDetailPage({ params }: BlogDetailProps) {
           </div>
         </header>
 
-        {post.cover_image_url && (
+        {getCoverImageUrl(post) && (
           <div className="mx-auto max-w-6xl px-6 py-10">
-            <div className="relative aspect-[16/7] overflow-hidden rounded-lg bg-slate-200">
-              <Image
-                src={post.cover_image_url}
+            <div className="relative aspect-video overflow-hidden rounded-lg bg-slate-200">
+              <img
+                src={getCoverImageUrl(post)}
                 alt={post.title}
-                fill
-                sizes="(min-width: 1152px) 1152px, 100vw"
-                className="object-cover"
-                priority
+                className="h-full w-full object-cover"
               />
+              <span className="absolute left-5 top-5 inline-flex items-center gap-2 rounded-full bg-white/95 px-3 py-1.5 text-xs font-semibold text-[#204878] shadow-sm">
+                <CalendarDays className="h-3.5 w-3.5" />
+                {formatPostDate(getPostDate(post))}
+              </span>
             </div>
           </div>
         )}

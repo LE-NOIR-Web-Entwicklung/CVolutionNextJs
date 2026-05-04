@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Edit, Eye, ImageIcon, Plus, Trash2 } from "lucide-react";
+import { Edit, Eye, ImageIcon, Plus, Trash2, X } from "lucide-react";
 import { adminSupabase as supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "@/hooks/use-toast";
 import type { BlogPost } from "@/lib/blog-types";
 import { createSlug } from "@/lib/blog-utils";
+import { getCoverImageUrl } from "@/lib/blog-display";
 
 const adminEmails = ["jan@cvolution.ch", "armend@cvolution.ch"];
 const ADMIN_SESSION_STORAGE_KEY = "cvolution-admin-session";
@@ -62,6 +63,7 @@ export default function BlogAdminPanel() {
   const [editingPostId, setEditingPostId] = useState<string | null>(null);
   const [form, setForm] = useState<BlogFormState>(() => emptyBlogForm());
   const [formError, setFormError] = useState("");
+  const [fileInputKey, setFileInputKey] = useState(0);
 
   const sortedPosts = useMemo(
     () => [...posts].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()),
@@ -143,6 +145,7 @@ export default function BlogAdminPanel() {
     setEditingPostId(null);
     setForm(emptyBlogForm());
     setFormError("");
+    setFileInputKey((key) => key + 1);
     setShowForm(true);
   };
 
@@ -160,6 +163,7 @@ export default function BlogAdminPanel() {
       publishedAt: toDatetimeLocal(post.published_at),
     });
     setFormError("");
+    setFileInputKey((key) => key + 1);
     setShowForm(true);
   };
 
@@ -226,17 +230,66 @@ export default function BlogAdminPanel() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Bild konnte nicht hochgeladen werden.");
+      const nextForm = {
+        ...form,
+        coverImageUrl: data.publicUrl,
+        coverImagePath: data.path,
+      };
       setForm((current) => ({
         ...current,
         coverImageUrl: data.publicUrl,
         coverImagePath: data.path,
       }));
-      toast({ title: "Bild hochgeladen", description: "Das Cover-Bild wurde gespeichert." });
+      setFileInputKey((key) => key + 1);
+
+      if (editingPostId) {
+        const saveHeaders = await getAdminHeaders();
+        const saveRes = await fetch(`/api/admin/blog/${editingPostId}`, {
+          method: "PATCH",
+          headers: saveHeaders,
+          body: JSON.stringify({
+            coverImageUrl: nextForm.coverImageUrl,
+            coverImagePath: nextForm.coverImagePath,
+          }),
+        });
+        const saveData = await saveRes.json();
+        if (!saveRes.ok) throw new Error(saveData.error || "Bild konnte nicht ersetzt werden.");
+        await fetchPosts();
+      }
+
+      toast({ title: editingPostId ? "Bild ersetzt" : "Bild hochgeladen", description: editingPostId ? "Das Cover-Bild wurde direkt gespeichert." : "Bitte den Beitrag speichern, um das Bild zu übernehmen." });
     } catch (error) {
       const message = error instanceof Error ? error.message : "Bild konnte nicht hochgeladen werden.";
       setFormError(message);
     } finally {
       setUploading(false);
+    }
+  };
+
+  const clearCoverImage = async () => {
+    setForm((current) => ({
+      ...current,
+      coverImageUrl: "",
+      coverImagePath: "",
+    }));
+    setFileInputKey((key) => key + 1);
+
+    if (!editingPostId) return;
+
+    try {
+      const headers = await getAdminHeaders();
+      const res = await fetch(`/api/admin/blog/${editingPostId}`, {
+        method: "PATCH",
+        headers,
+        body: JSON.stringify({ coverImageUrl: "", coverImagePath: "" }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Cover-Bild konnte nicht entfernt werden.");
+      await fetchPosts();
+      toast({ title: "Bild entfernt", description: "Das Cover-Bild wurde entfernt." });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Cover-Bild konnte nicht entfernt werden.";
+      setFormError(message);
     }
   };
 
@@ -353,25 +406,46 @@ export default function BlogAdminPanel() {
               </div>
               <div className="lg:col-span-2">
                 <label className="mb-1 block text-sm font-medium text-gray-900">Cover-Bild</label>
-                <div className="flex flex-col gap-3 rounded-md border border-dashed border-gray-300 p-4 sm:flex-row sm:items-center">
-                  <label className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-md bg-gray-900 px-4 py-2 text-sm font-semibold text-white hover:bg-gray-800">
-                    <ImageIcon className="h-4 w-4" />
-                    {uploading ? "Lädt hoch..." : "Bild auswählen"}
-                    <input
-                      type="file"
-                      accept="image/jpeg,image/png,image/webp,image/gif"
-                      className="hidden"
-                      disabled={uploading}
-                      onChange={(event) => uploadCoverImage(event.target.files?.[0] || null)}
-                    />
-                  </label>
-                  {form.coverImageUrl ? (
-                    <a href={form.coverImageUrl} target="_blank" rel="noopener noreferrer" className="truncate text-sm text-blue-700 hover:underline">
-                      {form.coverImageUrl}
-                    </a>
-                  ) : (
-                    <span className="text-sm text-gray-500">JPG, PNG, WebP oder GIF bis 5 MB.</span>
+                <div className="space-y-3 rounded-md border border-dashed border-gray-300 p-4">
+                  {getCoverImageUrl({ cover_image_url: form.coverImageUrl }) && (
+                    <div className="aspect-video overflow-hidden rounded-md border border-gray-200 bg-gray-50">
+                      <img
+                        src={getCoverImageUrl({ cover_image_url: form.coverImageUrl })}
+                        alt="Cover Vorschau"
+                        className="h-full w-full object-cover"
+                      />
+                    </div>
                   )}
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                    <label className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-md bg-gray-900 px-4 py-2 text-sm font-semibold text-white hover:bg-gray-800">
+                      <ImageIcon className="h-4 w-4" />
+                      {uploading ? "Lädt hoch..." : form.coverImageUrl ? "Bild ersetzen" : "Bild auswählen"}
+                      <input
+                        key={fileInputKey}
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp,image/gif"
+                        className="hidden"
+                        disabled={uploading}
+                        onChange={(event) => uploadCoverImage(event.target.files?.[0] || null)}
+                      />
+                    </label>
+                    {form.coverImageUrl && (
+                      <Button type="button" variant="outline" onClick={clearCoverImage} className="gap-2">
+                        <X className="h-4 w-4" />
+                        Bild entfernen
+                      </Button>
+                    )}
+                    <span className="text-sm text-gray-500">16:9 empfohlen. JPG, PNG, WebP oder GIF bis 5 MB.</span>
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-xs font-medium text-gray-700">Cover Image URL</label>
+                    <input
+                      className="w-full rounded-md border px-3 py-2 text-sm text-gray-900"
+                      value={form.coverImageUrl}
+                      onChange={(event) => setForm({ ...form, coverImageUrl: event.target.value, coverImagePath: "" })}
+                      placeholder="https://..."
+                    />
+                  </div>
                 </div>
               </div>
               <div className="lg:col-span-2">
