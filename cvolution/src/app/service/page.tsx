@@ -2,61 +2,11 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import { AddToCartButton } from "@/components/AddToCartButton";
-import type { ShopProductKey } from "@/lib/shop";
+import { SERVICE_OFFERS } from "@/lib/service-offers";
  
 export default function Service() {
-  const products = [
-    {
-      name: "Laufbahnberatung",
-      description: "Analyse Ihrer Stärken, Interessen und Ziele. Erarbeitung individueller Karriere-Strategien. Beratung zu Weiterbildung und beruflicher Neuorientierung",
-      image: "/images/talk.png",
-      price: "CHF 149 / Stunde",
-      link: "/service-career",
-      serviceType: "career" as ShopProductKey,
-    },
-    {
-      name: "Lebenslauf",
-      description: "Analyse Ihrer bisherigen beruflichen Laufbahn. Individuelle Gestaltung eines professionellen Lebenslaufs. Anpassung an die gewünschte Position und Branche",
-      image: "/images/resume.png",
-      price: "CHF 99",
-      link: "/service-cv",
-      serviceType: "cv" as ShopProductKey,
-    },
-    {
-      name: "Lohnanalyse",
-      description: "Transparenter Vergleich mit branchenüblichen Gehältern. Individuelle Einschätzung basierend auf Ihrer Position und Erfahrung. Wertvolle Argumente für Ihre Gehaltsverhandlung",
-      image: "/images/search.png",
-      price: "CHF 69",
-      link: "/service-salary",
-      serviceType: "salary_pdf" as ShopProductKey,
-    },
-    {
-      name: "Motivationsschreiben",
-      description: "Gemeinsames Erarbeiten Ihrer individuellen Argumente. Formulierung eines überzeugenden Motivationsschreibens. Angepasst an spezifische Stellenanforderungen",
-      image: "/images/copy-writing.png",
-      price: "CHF 99",
-      link: "/service-motivation",
-      serviceType: "motivation" as ShopProductKey,
-    },
-    {
-      name: "RAV Unterstützung",
-      description: "Unterstützung bei der Erfüllung von RAV-Vorgaben. Erstellung von Lebenslauf und Motivationsschreiben. Vorbereitung auf Bewerbungsgespräche",
-      image: "/images/customer-service.png",
-      price: "ab CHF 99",
-      link: "/service-rav",
-      serviceType: "rav" as ShopProductKey,
-    },
-    {
-      name: "Check",
-      description: "Wir prüfen deinen Lebenslauf, deine Arbeitszeugnisse und weitere Bewerbungsdokumente auf Inhalt, Aufbau, Gestaltung und Formulierungen",
-      image: "/images/checked.png",
-      price: "CHF 49",
-      link: "/service-check",
-      serviceType: "check" as ShopProductKey,
-    },
-  ];
-
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
       <section className="py-24">
@@ -70,7 +20,7 @@ export default function Service() {
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {products.map((product, index) => (
+            {SERVICE_OFFERS.map((product, index) => (
               <div
                 key={index}
                 className="group bg-white rounded-2xl border border-gray-100 p-8 shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-0.5 flex flex-col"
@@ -85,13 +35,25 @@ export default function Service() {
                 </div>
                 <h3 className="text-lg font-semibold text-[#111827] mb-2">{product.name}</h3>
                 <p className="text-sm text-[#64748B] leading-relaxed flex-1">{product.description}</p>
-                <div className="mt-6 flex items-center justify-between">
+                <div className="mt-6">
                   <span className="text-sm font-semibold text-[#204878]">{product.price}</span>
-                  <Link href={product.link} className="text-sm font-medium text-[#204878]">
-                    Angebot →
-                  </Link>
                 </div>
-                <AddToCartButton serviceType={product.serviceType} className="mt-5 w-full px-6 py-3 bg-[#204878] text-white font-semibold rounded-xl hover:bg-[#1a3a66] transition-colors text-sm text-center" />
+                <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <Link
+                    href={product.link}
+                    className={`${product.hasMultipleVariants ? "sm:col-span-2" : ""} inline-flex items-center justify-center gap-2 rounded-xl border border-[#204878] px-4 py-3 text-sm font-semibold text-[#204878] transition-colors hover:bg-blue-50`}
+                  >
+                    {product.offerLabel || "Angebot"}
+                    <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                  </Link>
+                  {!product.hasMultipleVariants && (
+                    <AddToCartButton
+                      serviceType={product.serviceType}
+                      productName={product.name}
+                      className="w-full px-4 py-3 bg-[#204878] text-white font-semibold rounded-xl hover:bg-[#1a3a66] transition-colors text-sm text-center"
+                    />
+                  )}
+                </div>
               </div>
             ))}
           </div>
