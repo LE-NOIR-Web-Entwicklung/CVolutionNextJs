@@ -22,8 +22,19 @@ export default function Service() {
             </div>
           </div>
 
+
+          <article className="mt-8 rounded-3xl border border-[#b8d0e8] bg-white p-6 shadow-[0_1.75rem_4rem_rgba(15,37,65,0.12)] sm:p-8">
+            <p className="inline-flex rounded-md bg-[#204878] px-3 py-1 text-xs font-semibold text-white">Premium Paket</p>
+            <h2 className="mt-3 text-2xl font-semibold text-[#101828]">Jobwechsel Komplett</h2>
+            <p className="mt-2 max-w-3xl text-base leading-7 text-[#607089]">Bereit für deinen nächsten Karriereschritt, mit Unterlagen, Strategie und Verhandlungsargumenten aus einer Hand.</p>
+            <div className="mt-5 flex flex-col gap-3 sm:flex-row">
+              <Link href="/service-jobwechsel-komplett" className="inline-flex items-center justify-center rounded-xl bg-[#204878] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#173d66]">Jobwechsel Komplett anfragen</Link>
+              <Link href="/service-jobwechsel-komplett" className="inline-flex items-center justify-center rounded-xl border border-[#c7d8ea] bg-white px-5 py-3 text-sm font-semibold text-[#204878] transition hover:bg-[#eef4fb]">Mehr erfahren</Link>
+            </div>
+          </article>
+
           <div className="mt-12 grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
-            {SERVICE_OFFERS.map((product) => (
+            {SERVICE_OFFERS.filter((product) => !product.isPremium).map((product) => (
               <article
                 key={product.name}
                 className={`group relative flex min-h-[20rem] flex-col overflow-hidden rounded-3xl p-6 ring-1 transition duration-300 hover:-translate-y-1 focus-within:ring-2 focus-within:ring-[#204878] ${
