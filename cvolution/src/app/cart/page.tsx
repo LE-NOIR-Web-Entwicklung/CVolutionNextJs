@@ -61,7 +61,8 @@ function convertFileToBase64(file: File): Promise<string> {
 
 export default function CartPage() {
   const [items, setItems] = useState<CartItem[]>([]);
-  const [name, setName] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [emailConfirmation, setEmailConfirmation] = useState("");
   const [phone, setPhone] = useState("");
@@ -291,8 +292,8 @@ export default function CartPage() {
     event.preventDefault();
     setError("");
 
-    if (!name.trim() || !email.trim() || !phone.trim()) {
-      setError("Bitte Name, E-Mail und Telefonnummer angeben.");
+    if (!firstName.trim() || !lastName.trim() || !email.trim() || !phone.trim()) {
+      setError("Bitte Vorname, Name, E-Mail und Telefonnummer angeben.");
       return;
     }
 
@@ -360,7 +361,7 @@ export default function CartPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          name,
+          name: `${firstName.trim()} ${lastName.trim()}`,
           email,
           phone,
           remarks,
@@ -464,9 +465,15 @@ export default function CartPage() {
               <div className="bg-white border border-gray-100 rounded-2xl p-6 h-fit">
                 <h2 className="text-xl font-semibold text-[#111827] mb-5">Checkout</h2>
                 <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-semibold text-[#111827] mb-2">Name + Vorname</label>
-                    <input value={name} onChange={(event) => setName(event.target.value)} required className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#204878] focus:border-transparent transition" />
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-sm font-semibold text-[#111827] mb-2">Vorname</label>
+                      <input value={firstName} onChange={(event) => setFirstName(event.target.value)} required className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#204878] focus:border-transparent transition" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-[#111827] mb-2">Name</label>
+                      <input value={lastName} onChange={(event) => setLastName(event.target.value)} required className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#204878] focus:border-transparent transition" />
+                    </div>
                   </div>
                   <div>
                     <label className="block text-sm font-semibold text-[#111827] mb-2">E-Mail</label>
