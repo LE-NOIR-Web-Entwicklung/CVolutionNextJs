@@ -76,35 +76,46 @@ function ContactPage() {
     }
   };
 
+  const inputClass =
+    "w-full rounded-xl border border-[#d5e1ee] bg-white px-4 py-3 text-sm text-[#111827] shadow-sm shadow-[#173d66]/[0.02] transition placeholder:text-[#94a3b8] focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#204878]";
+  const labelClass = "mb-2 block text-sm font-semibold text-[#101828]";
+
   return (
-    <div className="min-h-screen bg-[#F8FAFC]">
-      <section className="py-24">
-        <div className="max-w-6xl mx-auto px-6">
-          <div className="text-center mb-16">
-            <h1 className="text-4xl sm:text-5xl font-semibold text-[#111827] mb-4">
+    <main className="min-h-screen overflow-hidden bg-[#f4f7fb] text-[#142033]">
+      <section className="relative isolate px-5 pb-20 pt-12 sm:px-6 sm:pb-24 sm:pt-16">
+        <div className="absolute inset-x-0 top-0 -z-10 h-[28rem] bg-[radial-gradient(circle_at_50%_0%,rgba(32,72,120,0.14),transparent_34%),linear-gradient(180deg,#ffffff_0%,#eef4fb_100%)]" />
+
+        <div className="mx-auto max-w-6xl">
+          <div className="mx-auto mb-12 max-w-2xl text-center">
+            <p className="mb-4 inline-flex rounded-md border border-[#204878]/15 bg-white/75 px-3 py-1.5 text-sm font-semibold text-[#204878] shadow-sm shadow-[#204878]/5">
+              Kontakt
+            </p>
+            <h1 className="text-4xl font-semibold leading-tight tracking-tight text-[#101828] text-balance sm:text-5xl">
               Kontaktieren Sie uns
             </h1>
-            <p className="text-lg text-[#64748B] max-w-xl mx-auto">
+            <p className="mt-4 text-base leading-7 text-[#5d6b7f] text-pretty">
               Wir freuen uns, von Ihnen zu hören.
             </p>
           </div>
 
-          <div className="max-w-lg mx-auto bg-white rounded-2xl border border-gray-100 shadow-sm p-8 md:p-10">
+          <div className="mx-auto max-w-4xl overflow-hidden rounded-3xl bg-white shadow-[0_1.5rem_4rem_rgba(15,37,65,0.09)] ring-1 ring-[#dce5ef]">
+            <div className="h-1.5 bg-[#204878]" />
+            <div className="p-7 sm:p-9">
             {submitSuccess && (
-              <div className="mb-6 p-4 bg-green-50 border border-green-100 text-green-700 rounded-xl text-sm">
+              <div className="mb-6 rounded-xl border border-green-100 bg-green-50 p-4 text-sm font-medium text-green-700">
                 {submitSuccess}
               </div>
             )}
             {submitError && (
-              <div className="mb-6 p-4 bg-red-50 border border-red-100 text-red-700 rounded-xl text-sm">
+              <div className="mb-6 rounded-xl border border-red-100 bg-red-50 p-4 text-sm font-medium text-red-700">
                 {submitError}
               </div>
             )}
 
-            <form className="space-y-5" onSubmit={handleSubmit}>
+            <form className="grid gap-5 md:grid-cols-2" onSubmit={handleSubmit}>
               {/* Name Field */}
               <div>
-                <label htmlFor="name" className="block text-sm font-semibold text-[#111827] mb-2">
+                <label htmlFor="name" className={labelClass}>
                   Name
                 </label>
                 <input
@@ -113,7 +124,7 @@ function ContactPage() {
                   name="name"
                   value={formData.name}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm text-[#111827] bg-white focus:outline-none focus:ring-2 focus:ring-[#204878] focus:border-transparent transition"
+                  className={inputClass}
                   placeholder="Name"
                   required
                 />
@@ -121,7 +132,7 @@ function ContactPage() {
 
               {/* Email Field */}
               <div>
-                <label htmlFor="email" className="block text-sm font-semibold text-[#111827] mb-2">
+                <label htmlFor="email" className={labelClass}>
                   E-Mail
                 </label>
                 <input
@@ -130,15 +141,49 @@ function ContactPage() {
                   name="email"
                   value={formData.email}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm text-[#111827] bg-white focus:outline-none focus:ring-2 focus:ring-[#204878] focus:border-transparent transition"
+                  className={inputClass}
                   placeholder="E-Mail Adresse"
                   required
                 />
               </div>
 
-              {/* Subject Field */}
+              {/* Street + Nr Field */}
               <div>
-                <label htmlFor="subject" className="block text-sm font-semibold text-[#111827] mb-2">
+                <label htmlFor="address" className={labelClass}>
+                  Strasse + Nr
+                </label>
+                <input
+                  type="text"
+                  id="address"
+                  name="address"
+                  value={formData.address}
+                  onChange={handleInputChange}
+                  className={inputClass}
+                  placeholder="Strasse + Hausnummer"
+                  required
+                />
+              </div>
+
+              {/* Postal Code Field */}
+              <div>
+                <label htmlFor="postalCode" className={labelClass}>
+                  PLZ + Ort
+                </label>
+                <input
+                  type="text"
+                  id="postalCode"
+                  name="postalCode"
+                  value={formData.postalCode}
+                  onChange={handleInputChange}
+                  className={inputClass}
+                  placeholder="PLZ + Ort"
+                  required
+                />
+              </div>
+
+              {/* Subject Field */}
+              <div className="md:col-span-2">
+                <label htmlFor="subject" className={labelClass}>
                   Betreff
                 </label>
                 <input
@@ -148,51 +193,17 @@ function ContactPage() {
                   value={formData.subject}
                   onChange={handleInputChange}
                   readOnly={!!subjectFromParams}
-                  className={`w-full px-4 py-3 border border-gray-200 rounded-xl text-sm text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#204878] focus:border-transparent transition ${
-                    subjectFromParams ? "bg-gray-50 cursor-not-allowed" : "bg-white"
+                  className={`${inputClass} ${
+                    subjectFromParams ? "cursor-not-allowed bg-[#f8fafc]" : ""
                   }`}
                   placeholder="Betreff"
                   required
                 />
               </div>
 
-              {/* Street + Nr Field */}
-              <div>
-                <label htmlFor="address" className="block text-sm font-semibold text-[#111827] mb-2">
-                  Strasse + Nr
-                </label>
-                <input
-                  type="text"
-                  id="address"
-                  name="address"
-                  value={formData.address}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm text-[#111827] bg-white focus:outline-none focus:ring-2 focus:ring-[#204878] focus:border-transparent transition"
-                  placeholder="Strasse + Hausnummer"
-                  required
-                />
-              </div>
-
-              {/* Postal Code Field */}
-              <div>
-                <label htmlFor="postalCode" className="block text-sm font-semibold text-[#111827] mb-2">
-                  PLZ + Ort
-                </label>
-                <input
-                  type="text"
-                  id="postalCode"
-                  name="postalCode"
-                  value={formData.postalCode}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm text-[#111827] bg-white focus:outline-none focus:ring-2 focus:ring-[#204878] focus:border-transparent transition"
-                  placeholder="PLZ + Ort"
-                  required
-                />
-              </div>
-
               {/* Message Field */}
-              <div>
-                <label htmlFor="message" className="block text-sm font-semibold text-[#111827] mb-2">
+              <div className="md:col-span-2">
+                <label htmlFor="message" className={labelClass}>
                   Nachricht
                 </label>
                 <textarea
@@ -201,21 +212,21 @@ function ContactPage() {
                   rows={5}
                   value={formData.message}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm text-[#111827] bg-white focus:outline-none focus:ring-2 focus:ring-[#204878] focus:border-transparent transition"
+                  className={`${inputClass} min-h-32 resize-y`}
                   placeholder="Ihre Nachricht an uns"
                   required
                 ></textarea>
               </div>
 
               {/* AGB Checkbox */}
-              <div className="flex items-start gap-3">
+              <div className="flex items-start gap-3 md:col-span-2">
                 <input
                   type="checkbox"
                   id="agb"
                   name="agb"
                   checked={isAgbChecked}
                   onChange={(e) => setIsAgbChecked(e.target.checked)}
-                  className="w-4 h-4 mt-0.5 text-[#204878] border-gray-300 rounded focus:ring-[#204878] flex-shrink-0"
+                  className="mt-0.5 h-4 w-4 flex-shrink-0 rounded border-[#cbd9e8] text-[#204878] focus:ring-[#204878]"
                 />
                 <label htmlFor="agb" className="text-sm text-[#64748B]">
                   Ich habe die{" "}
@@ -227,24 +238,25 @@ function ContactPage() {
               </div>
 
               {/* Submit Button */}
-              <div className="pt-2">
+              <div className="pt-2 md:col-span-2">
                 <button
                   type="submit"
                   disabled={!isFormValid || isSubmitting}
-                  className={`w-full px-6 py-3 font-semibold rounded-xl text-sm transition-colors duration-200 ${
+                  className={`w-full rounded-xl px-6 py-3 text-sm font-semibold transition duration-200 ${
                     isFormValid && !isSubmitting
-                      ? "bg-[#0F172A] text-white hover:bg-[#1e293b]"
-                      : "bg-gray-100 text-gray-400 cursor-not-allowed"
+                      ? "bg-[#204878] text-white shadow-lg shadow-[#204878]/20 hover:-translate-y-0.5 hover:bg-[#173d66] active:translate-y-0"
+                      : "cursor-not-allowed bg-[#eef2f7] text-[#94a3b8]"
                   }`}
                 >
                   {isSubmitting ? "Wird gesendet..." : "Senden"}
                 </button>
               </div>
             </form>
+            </div>
           </div>
         </div>
       </section>
-    </div>
+    </main>
   );
 }
 
