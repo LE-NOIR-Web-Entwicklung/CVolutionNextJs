@@ -26,23 +26,6 @@ export default function Service() {
                 persönlich und mit klarem Blick auf den Schweizer Arbeitsmarkt.
               </p>
             </div>
-
-            <aside className="rounded-3xl bg-[#173d66] p-6 text-white shadow-2xl shadow-[#173d66]/18">
-              <p className="text-sm font-medium text-white/70">Was Sie bekommen</p>
-              <div className="mt-5 grid grid-cols-2 gap-4">
-                {[
-                  ["6", "Services"],
-                  ["1:1", "Beratung"],
-                  ["CHF 49", "Einstieg"],
-                  ["Flexibel", "kombinierbar"],
-                ].map(([value, label]) => (
-                  <div key={label} className="border-t border-white/18 pt-4">
-                    <div className="text-xl font-semibold tabular-nums">{value}</div>
-                    <div className="mt-1 text-sm text-white/68">{label}</div>
-                  </div>
-                ))}
-              </div>
-            </aside>
           </div>
 
           <div className="mt-10 grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
@@ -79,18 +62,18 @@ export default function Service() {
                 <div className="mt-7 grid grid-cols-1 gap-3 border-t border-[#e6edf5] pt-5 sm:grid-cols-[minmax(0,1fr)_4.5rem]">
                   <Link
                     href={product.link}
-                    className={`${product.hasMultipleVariants ? "sm:col-span-2" : ""} inline-flex items-center justify-center gap-2 rounded-xl border border-[#204878] px-4 py-3 text-sm font-semibold text-[#204878] transition hover:-translate-y-0.5 hover:bg-[#eef4fb] hover:text-[#102f55] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#204878] focus-visible:ring-offset-4 active:translate-y-0`}
+                    className={`sm:col-span-2 inline-flex w-full items-center justify-center rounded-xl bg-[#204878] px-3 py-3 text-center text-sm font-semibold text-white shadow-lg shadow-[#204878]/20 transition duration-200 hover:-translate-y-0.5 hover:bg-[#173d66] active:translate-y-0`}
                   >
-                    {product.offerLabel || "Angebot ansehen"}
+                    Angebot ansehen
                     <ArrowRight className="h-4 w-4" aria-hidden="true" />
                   </Link>
-                  {!product.hasMultipleVariants && (
+                  {/* {!product.hasMultipleVariants && (
                     <AddToCartButton
                       serviceType={product.serviceType}
                       productName={product.name}
                       className="inline-flex w-full items-center justify-center rounded-xl bg-[#204878] px-3 py-3 text-center text-sm font-semibold text-white shadow-lg shadow-[#204878]/20 transition duration-200 hover:-translate-y-0.5 hover:bg-[#173d66] active:translate-y-0"
                     />
-                  )}
+                  )} */}
                 </div>
               </article>
             ))}
