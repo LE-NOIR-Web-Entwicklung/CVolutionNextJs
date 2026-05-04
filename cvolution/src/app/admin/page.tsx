@@ -6,11 +6,12 @@ import { adminSupabase as supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { LogOut, Users, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Filter, Plus, Edit, Trash2, ShoppingCart, TicketPercent, FileText } from 'lucide-react';
+import { LogOut, Users, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Filter, Plus, Edit, Trash2, ShoppingCart, TicketPercent, FileText, Download } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { COUPON_SERVICE_KEYS, type ServiceKey } from '@/lib/services';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import BlogAdminPanel from './BlogAdminPanel';
+import { CVPdfDocument } from '@/components/CVExport/pdf/CVPdfDocument';
 import {
   Select,
   SelectContent,
@@ -191,7 +192,7 @@ const AdminContent: React.FC = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [adminEmail, setAdminEmail] = useState<string>('');
   const [currentPage, setCurrentPage] = useState(1);
-  const [activeFilter, setActiveFilter] = useState<'all' | 'active' | 'canceled' | 'unknown'>('all');
+  const [activeFilter, setActiveFilter] = useState<'all' | 'active' | 'canceled' | 'unknown'>('active');
   const [coupons, setCoupons] = useState<Coupon[]>([]);
   const [couponLoading, setCouponLoading] = useState(false);
   const [orders, setOrders] = useState<Order[]>([]);
@@ -200,6 +201,7 @@ const AdminContent: React.FC = () => {
   const [editingCouponId, setEditingCouponId] = useState<string | null>(null);
   const [couponForm, setCouponForm] = useState<CouponFormState>(() => emptyCouponForm());
   const [couponFormError, setCouponFormError] = useState('');
+  const [exportingUserId, setExportingUserId] = useState<string | null>(null);
   const ITEMS_PER_PAGE = 10;
 
   useEffect(() => {
@@ -541,6 +543,46 @@ const AdminContent: React.FC = () => {
     if (status === 'free_coupon') return { label: 'Gratis-Coupon', className: 'bg-blue-50 text-blue-700 border-blue-200' };
     if (status === 'failed') return { label: 'Fehlgeschlagen', className: 'bg-red-50 text-red-700 border-red-200' };
     return { label: 'Ausstehend', className: 'bg-yellow-50 text-yellow-700 border-yellow-200' };
+  };
+
+  const getCvFileName = (profile: UserProfile) => {
+    const name = profile.full_name?.trim() || profile.email?.split('@')[0] || 'Benutzer';
+    const safeName = name.replace(/[^a-zA-Z0-9äöüÄÖÜéèàÉÈÀß]+/g, '_').replace(/^_+|_+$/g, '');
+    return `Lebenslauf_${safeName || 'Benutzer'}.pdf`;
+  };
+
+  const downloadClassicCv = async (userData: UserData) => {
+    setExportingUserId(userData.profile.user_id);
+    try {
+      const pdf = (await import('@react-pdf/renderer')).pdf;
+      const doc = (
+        <CVPdfDocument
+          user={{ email: userData.profile.email || '' }}
+          profile={userData.profile}
+          experiences={userData.experiences}
+          education={userData.education}
+          skills={userData.skills}
+          languages={userData.languages}
+          design="design3"
+        />
+      );
+      const blob = await pdf(doc).toBlob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = getCvFileName(userData.profile);
+      link.click();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Admin CV export failed:', error);
+      toast({
+        title: 'Fehler',
+        description: 'Der klassische Lebenslauf konnte nicht exportiert werden.',
+        variant: 'destructive',
+      });
+    } finally {
+      setExportingUserId(null);
+    }
   };
 
   if (!isAdmin) {
@@ -1001,77 +1043,119 @@ const AdminContent: React.FC = () => {
                 const subscriptionStatus = getSubscriptionStatus(userData.profile.subscription_status);
 
               return (
-                <Card key={userData.profile.user_id} className="overflow-hidden bg-white">
-                  <CardHeader
-                    className="cursor-pointer hover:bg-gray-100 transition-colors bg-white"
-                    onClick={() => toggleUserExpanded(userData.profile.user_id)}
-                  >
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3">
-                          <CardTitle className="text-lg text-black">
+                <Card key={userData.profile.user_id} className="overflow-hidden border border-slate-200 bg-white shadow-sm">
+                  <CardHeader className="border-l-4 border-l-[#204878] bg-white transition-colors hover:bg-slate-50">
+                    <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+                      <div className="min-w-0 flex-1 cursor-pointer" onClick={() => toggleUserExpanded(userData.profile.user_id)}>
+                        <div className="flex flex-wrap items-center gap-3">
+                          <CardTitle className="text-xl font-semibold text-slate-950">
                             {userData.profile.full_name || 'Kein Name'}
                           </CardTitle>
-                        </div>
-                        <div className="mt-2 space-y-1 text-sm text-black">
-                          {userData.profile.email && <p className="font-medium">Email: {userData.profile.email}</p>}
-                          {userData.profile.headline && <p className="font-medium">{userData.profile.headline}</p>}
-                          {userData.profile.phone && <p>Telefon: {userData.profile.phone}</p>}
-                          {userData.profile.location && <p>Ort: {userData.profile.location}</p>}
-                          <p className="text-xs text-gray-400">
-                            Registriert: {formatDate(userData.profile.created_at)}
-                          </p>
                           <Badge variant="outline" className={subscriptionStatus.className}>
                             {subscriptionStatus.label}
                           </Badge>
+                          <Button
+                            type="button"
+                            size="sm"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              downloadClassicCv(userData);
+                            }}
+                            disabled={exportingUserId === userData.profile.user_id}
+                            className="bg-[#204878] px-3 text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-[#1a3a66]"
+                          >
+                            <Download className="mr-2 h-4 w-4" />
+                            {exportingUserId === userData.profile.user_id ? 'Exportiert...' : 'CV PDF'}
+                          </Button>
+                        </div>
+                        {userData.profile.headline && (
+                          <p className="mt-1 text-sm font-medium text-[#204878]">{userData.profile.headline}</p>
+                        )}
+                        <div className="mt-4 grid gap-2 text-sm text-slate-600 sm:grid-cols-2 lg:grid-cols-3">
+                          {userData.profile.email && (
+                            <p className="truncate rounded-md bg-slate-50 px-3 py-2">
+                              <span className="font-semibold text-slate-900">Email:</span> {userData.profile.email}
+                            </p>
+                          )}
+                          {userData.profile.phone && (
+                            <p className="rounded-md bg-slate-50 px-3 py-2">
+                              <span className="font-semibold text-slate-900">Telefon:</span> {userData.profile.phone}
+                            </p>
+                          )}
+                          {userData.profile.location && (
+                            <p className="rounded-md bg-slate-50 px-3 py-2">
+                              <span className="font-semibold text-slate-900">Ort:</span> {userData.profile.location}
+                            </p>
+                          )}
+                          <p className="rounded-md bg-slate-50 px-3 py-2">
+                            <span className="font-semibold text-slate-900">Registriert:</span> {formatDate(userData.profile.created_at)}
+                          </p>
                         </div>
                       </div>
                       <div className="flex items-center gap-4">
-                        <div className="text-right text-sm text-black">
-                          <div>{userData.experiences.length} Erfahrungen</div>
-                          <div>{userData.education.length} Ausbildungen</div>
-                          <div>{userData.skills.length} Fähigkeiten</div>
-                          <div>{userData.languages.length} Sprachen</div>
+                        <div className="grid grid-cols-2 gap-2 text-center text-sm text-slate-700 sm:grid-cols-4 lg:grid-cols-2">
+                          <div className="rounded-lg bg-slate-50 px-3 py-2 ring-1 ring-slate-200">
+                            <p className="text-lg font-semibold text-slate-950">{userData.experiences.length}</p>
+                            <p className="text-xs">Erfahrungen</p>
+                          </div>
+                          <div className="rounded-lg bg-slate-50 px-3 py-2 ring-1 ring-slate-200">
+                            <p className="text-lg font-semibold text-slate-950">{userData.education.length}</p>
+                            <p className="text-xs">Ausbildungen</p>
+                          </div>
+                          <div className="rounded-lg bg-slate-50 px-3 py-2 ring-1 ring-slate-200">
+                            <p className="text-lg font-semibold text-slate-950">{userData.skills.length}</p>
+                            <p className="text-xs">Skills</p>
+                          </div>
+                          <div className="rounded-lg bg-slate-50 px-3 py-2 ring-1 ring-slate-200">
+                            <p className="text-lg font-semibold text-slate-950">{userData.languages.length}</p>
+                            <p className="text-xs">Sprachen</p>
+                          </div>
                         </div>
                         {isExpanded ? (
-                          <ChevronUp className="h-5 w-5 text-black" />
+                          <ChevronUp
+                            className="h-5 w-5 shrink-0 cursor-pointer text-slate-500"
+                            onClick={() => toggleUserExpanded(userData.profile.user_id)}
+                          />
                         ) : (
-                          <ChevronDown className="h-5 w-5 text-black" />
+                          <ChevronDown
+                            className="h-5 w-5 shrink-0 cursor-pointer text-slate-500"
+                            onClick={() => toggleUserExpanded(userData.profile.user_id)}
+                          />
                         )}
                       </div>
                     </div>
                   </CardHeader>
 
                   {isExpanded && (
-                    <CardContent className="border-t bg-gray-50">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
+                    <CardContent className="border-t bg-slate-50/80 p-5">
+                      <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
                         {/* Kontaktdaten */}
-                        <div>
-                          <h3 className="font-semibold text-sm mb-2 text-[#204878]">Kontaktdaten</h3>
-                          <div className="text-sm text-gray-900 space-y-1">
-                            {userData.profile.location && <p>Standort: {userData.profile.location}</p>}
-                            {userData.profile.phone && <p>Telefon: {userData.profile.phone}</p>}
-                            {userData.profile.website && <p>Website: {userData.profile.website}</p>}
+                        <div className="rounded-lg bg-white p-4 shadow-sm ring-1 ring-slate-200 lg:col-span-2">
+                          <h3 className="mb-3 text-sm font-semibold text-[#204878]">Kontaktdaten</h3>
+                          <div className="grid gap-2 text-sm text-slate-700 sm:grid-cols-2 lg:grid-cols-3">
+                            {userData.profile.location && <p><span className="font-medium text-slate-950">Standort:</span> {userData.profile.location}</p>}
+                            {userData.profile.phone && <p><span className="font-medium text-slate-950">Telefon:</span> {userData.profile.phone}</p>}
+                            {userData.profile.website && <p><span className="font-medium text-slate-950">Website:</span> {userData.profile.website}</p>}
                             {userData.profile.linkedin_url && (
-                              <p>LinkedIn: <a href={userData.profile.linkedin_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Profil</a></p>
+                              <p><span className="font-medium text-slate-950">LinkedIn:</span> <a href={userData.profile.linkedin_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Profil</a></p>
                             )}
-                            {userData.profile.birthdate && <p>Geburtsdatum: {formatDate(userData.profile.birthdate)}</p>}
-                            {userData.profile.civil_status && <p>Zivilstand: {userData.profile.civil_status}</p>}
-                            {userData.profile.place_of_origin && <p>Heimatort: {userData.profile.place_of_origin}</p>}
+                            {userData.profile.birthdate && <p><span className="font-medium text-slate-950">Geburtsdatum:</span> {formatDate(userData.profile.birthdate)}</p>}
+                            {userData.profile.civil_status && <p><span className="font-medium text-slate-950">Zivilstand:</span> {userData.profile.civil_status}</p>}
+                            {userData.profile.place_of_origin && <p><span className="font-medium text-slate-950">Heimatort:</span> {userData.profile.place_of_origin}</p>}
                           </div>
                         </div>
 
                         {/* Erfahrungen */}
                         {userData.experiences.length > 0 && (
-                          <div>
-                            <h3 className="font-semibold text-sm mb-2 text-[#204878]">Berufserfahrung</h3>
+                          <div className="rounded-lg bg-white p-4 shadow-sm ring-1 ring-slate-200">
+                            <h3 className="mb-3 text-sm font-semibold text-[#204878]">Berufserfahrung</h3>
                             <div className="space-y-2">
                               {userData.experiences.map((exp) => (
-                                <div key={exp.id} className="text-sm bg-white text-gray-900 p-2 rounded">
-                                  <p className="font-medium">{exp.job_title || 'Position'}</p>
-                                  <p className="text-gray-600">{exp.company}</p>
-                                  {exp.employment_type && <p className="text-xs text-gray-500">{exp.employment_type}</p>}
-                                  <p className="text-xs text-gray-500">
+                                <div key={exp.id} className="rounded-md border border-slate-100 bg-slate-50 px-3 py-2 text-sm text-slate-900">
+                                  <p className="font-semibold">{exp.job_title || 'Position'}</p>
+                                  <p className="text-slate-600">{exp.company}</p>
+                                  {exp.employment_type && <p className="text-xs text-slate-500">{exp.employment_type}</p>}
+                                  <p className="text-xs text-slate-500">
                                     {formatDate(exp.start_date)} - {formatDate(exp.end_date)}
                                   </p>
                                 </div>
@@ -1082,14 +1166,14 @@ const AdminContent: React.FC = () => {
 
                         {/* Ausbildung */}
                         {userData.education.length > 0 && (
-                          <div>
-                            <h3 className="font-semibold text-sm mb-2 text-[#204878]">Ausbildung</h3>
+                          <div className="rounded-lg bg-white p-4 shadow-sm ring-1 ring-slate-200">
+                            <h3 className="mb-3 text-sm font-semibold text-[#204878]">Ausbildung</h3>
                             <div className="space-y-2">
                               {userData.education.map((edu) => (
-                                <div key={edu.id} className="text-sm bg-white p-2 rounded">
-                                  <p className="font-medium text-gray-900">{edu.degree}</p>
-                                  <p className="text-gray-600">{edu.institution}</p>
-                                  <p className="text-xs text-gray-500">
+                                <div key={edu.id} className="rounded-md border border-slate-100 bg-slate-50 px-3 py-2 text-sm">
+                                  <p className="font-semibold text-slate-900">{edu.degree}</p>
+                                  <p className="text-slate-600">{edu.institution}</p>
+                                  <p className="text-xs text-slate-500">
                                     {formatDate(edu.start_date)} - {formatDate(edu.end_date)}
                                   </p>
                                 </div>
@@ -1100,11 +1184,11 @@ const AdminContent: React.FC = () => {
 
                         {/* Skills */}
                         {userData.skills.length > 0 && (
-                          <div>
-                            <h3 className="font-semibold text-sm mb-2 text-[#204878]">Fähigkeiten</h3>
-                            <div className="flex flex-wrap text-gray-900 gap-2">
+                          <div className="rounded-lg bg-white p-4 shadow-sm ring-1 ring-slate-200">
+                            <h3 className="mb-3 text-sm font-semibold text-[#204878]">Fähigkeiten</h3>
+                            <div className="flex flex-wrap gap-2 text-slate-900">
                               {userData.skills.map((skill) => (
-                                <Badge key={skill.id} variant="outline" className="text-sm text-gray-900">
+                                <Badge key={skill.id} variant="outline" className="border-slate-300 bg-slate-50 text-sm text-slate-800">
                                   {skill.skill_name}
                                 </Badge>
                               ))}
@@ -1114,11 +1198,11 @@ const AdminContent: React.FC = () => {
 
                         {/* Sprachen */}
                         {userData.languages.length > 0 && (
-                          <div>
-                            <h3 className="font-semibold text-sm mb-2 text-[#204878]">Sprachen</h3>
+                          <div className="rounded-lg bg-white p-4 shadow-sm ring-1 ring-slate-200">
+                            <h3 className="mb-3 text-sm font-semibold text-[#204878]">Sprachen</h3>
                             <div className="flex flex-wrap gap-2">
                               {userData.languages.map((lang) => (
-                                <Badge key={lang.id} variant="outline" className="text-sm text-gray-900">
+                                <Badge key={lang.id} variant="outline" className="border-slate-300 bg-slate-50 text-sm text-slate-800">
                                   {lang.language_name} {lang.proficiency && `(${lang.proficiency})`}
                                 </Badge>
                               ))}
