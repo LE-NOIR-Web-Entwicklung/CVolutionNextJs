@@ -3,6 +3,7 @@ const DEFAULT_SAFERPAY_SPEC_VERSION = "1.51";
 const DEFAULT_SUBSCRIPTION_AMOUNT = 1390;
 const DEFAULT_RECURRING_BATCH_SIZE = 25;
 const DEFAULT_SELF_SUBSCRIPTION_PAYMENT_METHODS = ["VISA", "MASTERCARD"];
+const DEFAULT_SHOP_PAYMENT_METHODS = ["VISA", "MASTERCARD", "TWINT"];
 
 function getSelfSubscriptionPaymentMethods() {
   const configuredMethods = process.env.SAFERPAY_SELF_SUBSCRIPTION_PAYMENT_METHODS;
@@ -19,6 +20,14 @@ export const SAFERPAY_SELF_SUBSCRIPTION = {
   amount: Number(process.env.SAFERPAY_SELF_SUBSCRIPTION_AMOUNT_CENTS || DEFAULT_SUBSCRIPTION_AMOUNT),
   recurringBatchSize: Number(process.env.SAFERPAY_RECURRING_BATCH_SIZE || DEFAULT_RECURRING_BATCH_SIZE),
   paymentMethods: getSelfSubscriptionPaymentMethods(),
+};
+
+export const SAFERPAY_SHOP = {
+  currencyCode: process.env.SAFERPAY_SHOP_CURRENCY || "CHF",
+  paymentMethods: (process.env.SAFERPAY_SHOP_PAYMENT_METHODS || DEFAULT_SHOP_PAYMENT_METHODS.join(","))
+    .split(",")
+    .map((method) => method.trim().toUpperCase())
+    .filter(Boolean),
 };
 
 export function getSaferpayConfig() {
@@ -103,6 +112,16 @@ export function getSaferpayMerchantReference(prefix: "self" | "self-recurring", 
   const compactDate = date.toISOString().slice(0, 10).replace(/-/g, "");
   const shortUserId = userId.replace(/[^a-zA-Z0-9]/g, "").slice(0, 18);
   return `${prefix}-${shortUserId}-${compactDate}`;
+}
+
+export function getSaferpayShopReference(prefix: "shop" | "order", id: string, date = new Date()) {
+  const compactDate = date.toISOString().slice(0, 10).replace(/-/g, "");
+  const shortId = id.replace(/[^a-zA-Z0-9]/g, "").slice(0, 28);
+  return `${prefix}-${shortId}-${compactDate}`;
+}
+
+export function toSaferpayAmount(value: number) {
+  return Math.round(value * 100);
 }
 
 export function isSaferpayTransactionSuccessful(transaction: any) {

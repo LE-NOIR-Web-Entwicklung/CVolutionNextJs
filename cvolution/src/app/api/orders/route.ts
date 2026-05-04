@@ -8,7 +8,9 @@ import {
   validateCouponForService,
   type Coupon,
 } from '@/lib/coupons';
-import { getPaymentUrl, getServiceConfig } from '@/lib/services';
+import { getServiceConfig } from '@/lib/services';
+import { getSaferpayShopReference } from '@/lib/saferpay';
+import { initializeWorldlineCheckout } from '@/lib/worldline-checkout';
 
 const EXTERNAL_ORDER_REMARKS_PREFIX = '[external_order]';
 const CONTACT_PHONE_REMARKS_PREFIX = '[contact_phone]';
@@ -120,8 +122,6 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const discountPercent = getDiscountPercent(coupon);
-    const paymentUrl = getPaymentUrl(serviceConfig, finalPrice, discountPercent);
     const paymentStatus = finalPrice <= 0 ? 'free_coupon' : 'pending';
     const externalOrder = isExternal === true || isExternal === 'true';
     const normalizedExternalSource = externalOrder
@@ -156,7 +156,7 @@ export async function POST(request: NextRequest) {
       original_price: originalPrice,
       final_price: finalPrice,
       payment_status: paymentStatus,
-      payment_url: paymentUrl,
+      payment_url: null,
       coupon_valid: Boolean(coupon),
       status: paymentStatus === 'free_coupon' ? 'paid' : 'pending',
     };
@@ -185,6 +185,37 @@ export async function POST(request: NextRequest) {
     if (error || !data) {
       console.error('Supabase insert error:', error);
       return NextResponse.json({ error: 'Failed to create order' }, { status: 500 });
+    }
+
+    let paymentUrl: string | null = null;
+    let saferpayToken: string | null = null;
+
+    if (paymentStatus === 'pending') {
+      const origin = process.env.NEXT_PUBLIC_SITE_URL || request.nextUrl.origin;
+      const orderReference = getSaferpayShopReference('order', data.id);
+      const checkout = await initializeWorldlineCheckout({
+        amount: finalPrice,
+        orderIds: [data.id],
+        reference: orderReference,
+        description: `CVolution ${serviceConfig.label}`,
+        returnUrl: `${origin}/api/worldline/checkout/return?orderId=${data.id}`,
+        payer: {
+          id: data.id,
+          email,
+        },
+      });
+
+      if (!checkout.ok) {
+        console.error('Worldline checkout initialize failed for order', {
+          orderId: data.id,
+          status: checkout.status,
+          body: checkout.body,
+        });
+        return NextResponse.json({ error: 'Worldline Checkout konnte nicht erstellt werden.' }, { status: 502 });
+      }
+
+      paymentUrl = checkout.paymentUrl;
+      saferpayToken = checkout.saferpayToken;
     }
 
     if (paymentStatus === 'free_coupon' && serviceConfig.orderType !== 'self') {
@@ -236,6 +267,7 @@ export async function POST(request: NextRequest) {
       orderId: data.id,
       requiresPayment: paymentStatus === 'pending',
       paymentUrl,
+      saferpayToken,
       redirectUrl,
     }, { status: 201 });
     response.cookies.set('orderId', data.id, {

@@ -1,6 +1,9 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
+import { AddToCartButton } from "@/components/AddToCartButton";
+import type { ShopProductKey } from "@/lib/shop";
  
 export default function Service() {
   const products = [
@@ -10,6 +13,7 @@ export default function Service() {
       image: "/images/talk.png",
       price: "CHF 149 / Stunde",
       link: "/service-career",
+      serviceType: "career" as ShopProductKey,
     },
     {
       name: "Lebenslauf",
@@ -17,6 +21,7 @@ export default function Service() {
       image: "/images/resume.png",
       price: "CHF 99",
       link: "/service-cv",
+      serviceType: "cv" as ShopProductKey,
     },
     {
       name: "Lohnanalyse",
@@ -24,6 +29,7 @@ export default function Service() {
       image: "/images/search.png",
       price: "CHF 69",
       link: "/service-salary",
+      serviceType: "salary_pdf" as ShopProductKey,
     },
     {
       name: "Motivationsschreiben",
@@ -31,6 +37,7 @@ export default function Service() {
       image: "/images/copy-writing.png",
       price: "CHF 99",
       link: "/service-motivation",
+      serviceType: "motivation" as ShopProductKey,
     },
     {
       name: "RAV Unterstützung",
@@ -38,6 +45,7 @@ export default function Service() {
       image: "/images/customer-service.png",
       price: "ab CHF 99",
       link: "/service-rav",
+      serviceType: "rav" as ShopProductKey,
     },
     {
       name: "Check",
@@ -45,6 +53,7 @@ export default function Service() {
       image: "/images/checked.png",
       price: "CHF 49",
       link: "/service-check",
+      serviceType: "check" as ShopProductKey,
     },
   ];
 
@@ -62,9 +71,8 @@ export default function Service() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {products.map((product, index) => (
-              <a
+              <div
                 key={index}
-                href={products[index].link}
                 className="group bg-white rounded-2xl border border-gray-100 p-8 shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-0.5 flex flex-col"
               >
                 <div className="mb-5">
@@ -79,11 +87,12 @@ export default function Service() {
                 <p className="text-sm text-[#64748B] leading-relaxed flex-1">{product.description}</p>
                 <div className="mt-6 flex items-center justify-between">
                   <span className="text-sm font-semibold text-[#204878]">{product.price}</span>
-                  <span className="text-sm font-medium text-[#204878]">
+                  <Link href={product.link} className="text-sm font-medium text-[#204878]">
                     Angebot →
-                  </span>
+                  </Link>
                 </div>
-              </a>
+                <AddToCartButton serviceType={product.serviceType} className="mt-5 w-full px-6 py-3 bg-[#204878] text-white font-semibold rounded-xl hover:bg-[#1a3a66] transition-colors text-sm text-center" />
+              </div>
             ))}
           </div>
         </div>
