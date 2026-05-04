@@ -6,10 +6,11 @@ import { adminSupabase as supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { LogOut, Users, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Filter, Plus, Edit, Trash2, ShoppingCart, TicketPercent } from 'lucide-react';
+import { LogOut, Users, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Filter, Plus, Edit, Trash2, ShoppingCart, TicketPercent, FileText } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { COUPON_SERVICE_KEYS, type ServiceKey } from '@/lib/services';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import BlogAdminPanel from './BlogAdminPanel';
 import {
   Select,
   SelectContent,
@@ -630,6 +631,10 @@ const AdminContent: React.FC = () => {
               <ShoppingCart className="h-4 w-4" />
               Orders
             </TabsTrigger>
+            <TabsTrigger value="blog" className="gap-2 data-[state=active]:bg-[#204878] text-black data-[state=active]:text-white">
+              <FileText className="h-4 w-4" />
+              Blog
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="coupons" className="mt-0">
@@ -810,6 +815,10 @@ const AdminContent: React.FC = () => {
             </CardContent>
           </Card>
         </section>
+          </TabsContent>
+
+          <TabsContent value="blog" className="mt-0">
+            <BlogAdminPanel />
           </TabsContent>
 
           <TabsContent value="orders" className="mt-0">

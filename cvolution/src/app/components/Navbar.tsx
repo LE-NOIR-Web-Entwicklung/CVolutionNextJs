@@ -67,6 +67,7 @@ export default function Navbar() {
       ],
     },
     { name: "Self-Service", href: "/self" },
+    { name: "Blog", href: "/blog" },
     { name: "Kontakt", href: "/contact" },
   ];
 
