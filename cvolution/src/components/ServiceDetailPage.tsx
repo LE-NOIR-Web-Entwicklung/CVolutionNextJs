@@ -44,12 +44,11 @@ export function ServiceDetailPage({
         <div className="mx-auto max-w-5xl">
           <div className="grid gap-7 lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-center">
             <div>
-              <Link
-                href="/service"
+              <p
                 className="mb-4 inline-flex rounded-md border border-[#204878]/15 bg-white/80 px-3 py-1.5 text-sm font-semibold text-[#204878] shadow-sm shadow-[#204878]/5 transition hover:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#204878]"
               >
-                Angebot ansehen
-              </Link>
+                CVolution Bewerbungsservice
+              </p>
               <p className="mb-3 text-sm font-semibold text-[#204878]">{eyebrow}</p>
               <h1 className="max-w-2xl text-4xl font-semibold leading-[1.05] tracking-tight text-[#101828] text-balance sm:text-5xl">
                 {title}
