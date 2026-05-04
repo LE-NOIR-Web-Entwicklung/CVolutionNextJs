@@ -5,7 +5,7 @@ import Image from "next/image";
 import { FaLinkedin, FaPhone, FaEnvelope } from "react-icons/fa";
 import Link from "next/link";
 import { AddToCartButton } from "@/components/AddToCartButton";
-import type { ShopProductKey } from "@/lib/shop";
+import { SERVICE_OFFERS } from "@/lib/service-offers";
 
 export default function Home() {
   const slides = [
@@ -23,57 +23,6 @@ export default function Home() {
       title: "Laufbahn-Beratung",
       description: "Unsere Laufbahnberatung bietet Ihnen Orientierung und Unterstützung.",
       link: "/service-career"
-    },
-  ];
-
-  const products = [
-    {
-      name: "Laufbahnberatung",
-      description: "Analyse Ihrer Stärken, Interessen und Ziele. Erarbeitung individueller Karriere-Strategien. Beratung zu Weiterbildung und beruflicher Neuorientierung",
-      image: "/images/talk.png",
-      price: "CHF 149 / Stunde",
-      link: "/service-career",
-      serviceType: "career" as ShopProductKey,
-    },
-    {
-      name: "Lebenslauf",
-      description: "Analyse Ihrer bisherigen beruflichen Laufbahn. Individuelle Gestaltung eines professionellen Lebenslaufs. Anpassung an die gewünschte Position und Branche",
-      image: "/images/resume.png",
-      price: "CHF 99",
-      link: "/service-cv",
-      serviceType: "cv" as ShopProductKey,
-    },
-    {
-      name: "Lohnanalyse",
-      description: "Transparenter Vergleich mit branchenüblichen Gehältern. Individuelle Einschätzung basierend auf Ihrer Position und Erfahrung. Wertvolle Argumente für Ihre Gehaltsverhandlung",
-      image: "/images/search.png",
-      price: "ab CHF 69",
-      link: "/service-salary",
-      serviceType: "salary_pdf" as ShopProductKey,
-    },
-    {
-      name: "Motivationsschreiben",
-      description: "Gemeinsames Erarbeiten Ihrer individuellen Argumente. Formulierung eines überzeugenden Motivationsschreibens. Angepasst an spezifische Stellenanforderungen",
-      image: "/images/copy-writing.png",
-      price: "CHF 99",
-      link: "/service-motivation",
-      serviceType: "motivation" as ShopProductKey,
-    },
-    {
-      name: "RAV Unterstützung",
-      description: "Unterstützung bei der Erfüllung von RAV-Vorgaben. Erstellung von Lebenslauf und Motivationsschreiben. Vorbereitung auf Bewerbungsgespräche",
-      image: "/images/customer-service.png",
-      price: "ab CHF 99",
-      link: "/service-rav",
-      serviceType: "rav" as ShopProductKey,
-    },
-    {
-      name: "Check",
-      description: "Wir prüfen deinen Lebenslauf, deine Arbeitszeugnisse und weitere Bewerbungsdokumente auf Inhalt, Aufbau, Gestaltung und Formulierungen",
-      image: "/images/checked.png",
-      price: "CHF 49",
-      link: "/service-check",
-      serviceType: "check" as ShopProductKey,
     },
   ];
 
@@ -288,9 +237,9 @@ export default function Home() {
           </div>
 
           <div className="mt-12 grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
-            {products.map((product, index) => (
+            {SERVICE_OFFERS.map((product) => (
               <article
-                key={index}
+                key={product.name}
                 className="group relative flex min-h-[20rem] flex-col overflow-hidden rounded-3xl bg-white p-6 shadow-[0_1.25rem_3.5rem_rgba(15,37,65,0.07)] ring-1 ring-[#dce5ef] transition duration-300 hover:-translate-y-1 hover:shadow-[0_1.75rem_4.5rem_rgba(15,37,65,0.12)] focus-within:ring-2 focus-within:ring-[#204878]"
               >
                 <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-[#204878] opacity-0 transition duration-300 group-hover:opacity-100" />
@@ -318,17 +267,21 @@ export default function Home() {
                   </p>
                 </div>
 
-                <div className="mt-7 flex items-center justify-between gap-4 border-t border-[#e6edf5] pt-5">
+                <div className="mt-7 grid grid-cols-1 gap-3 border-t border-[#e6edf5] pt-5 sm:grid-cols-[minmax(0,1fr)_4.5rem]">
                   <Link
                     href={product.link}
-                    className="text-sm font-semibold text-[#204878] transition hover:text-[#102f55] focus:outline-none focus-visible:rounded focus-visible:ring-2 focus-visible:ring-[#204878] focus-visible:ring-offset-4"
+                    className={`${product.hasMultipleVariants ? "sm:col-span-2" : ""} inline-flex items-center justify-center gap-2 rounded-xl border border-[#204878] px-4 py-3 text-sm font-semibold text-[#204878] transition hover:-translate-y-0.5 hover:bg-[#eef4fb] hover:text-[#102f55] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#204878] focus-visible:ring-offset-4 active:translate-y-0`}
                   >
-                    Details ansehen
-                    <span aria-hidden="true" className="ml-1 transition group-hover:translate-x-1">→</span>
+                    {product.offerLabel || "Angebot ansehen"}
+                    <span aria-hidden="true" className="transition group-hover:translate-x-1">→</span>
                   </Link>
-                  <div className="w-[10.5rem] max-w-[58%]">
-                    <AddToCartButton serviceType={product.serviceType} className="w-full rounded-xl bg-[#204878] px-4 py-3 text-center text-sm font-semibold text-white shadow-lg shadow-[#204878]/20 transition duration-200 hover:-translate-y-0.5 hover:bg-[#173d66] active:translate-y-0" />
-                  </div>
+                  {!product.hasMultipleVariants && (
+                    <AddToCartButton
+                      serviceType={product.serviceType}
+                      productName={product.name}
+                      className="inline-flex w-full items-center justify-center rounded-xl bg-[#204878] px-3 py-3 text-center text-sm font-semibold text-white shadow-lg shadow-[#204878]/20 transition duration-200 hover:-translate-y-0.5 hover:bg-[#173d66] active:translate-y-0"
+                    />
+                  )}
                 </div>
               </article>
             ))}
