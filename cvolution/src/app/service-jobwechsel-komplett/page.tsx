@@ -55,7 +55,7 @@ export default function ServiceJobwechselKomplettPage() {
               <p className="mt-4 text-sm leading-6 text-[#4f6078]">Bereit für deinen nächsten Karriereschritt, mit Unterlagen, Strategie und Verhandlungsargumenten aus einer Hand.</p>
               <div className="mt-5 space-y-3">
                 <input value={name} onChange={(e) => setName(e.target.value)} type="text" placeholder="Name" className="w-full rounded-xl border border-[#c7d8ea] bg-white px-3 py-2.5 text-sm text-[#101828] outline-none focus:border-[#204878]" />
-                <input value={email} onChange={(e) => setEmail(e.target.value)} type="email" placeholder="E Mail" className="w-full rounded-xl border border-[#c7d8ea] bg-white px-3 py-2.5 text-sm text-[#101828] outline-none focus:border-[#204878]" required />
+                <input value={email} onChange={(e) => setEmail(e.target.value)} type="email" placeholder="E-Mail" className="w-full rounded-xl border border-[#c7d8ea] bg-white px-3 py-2.5 text-sm text-[#101828] outline-none focus:border-[#204878]" required />
                 <input value={phone} onChange={(e) => setPhone(e.target.value)} type="tel" placeholder="Telefon" className="w-full rounded-xl border border-[#c7d8ea] bg-white px-3 py-2.5 text-sm text-[#101828] outline-none focus:border-[#204878]" required />
               </div>
               <button onClick={startCheckout} disabled={isLoading || !email || !phone} className="mt-5 inline-flex w-full items-center justify-center rounded-xl bg-[#204878] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#173d66] disabled:cursor-not-allowed disabled:opacity-60">{isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Jobwechsel Komplett anfragen"}</button>

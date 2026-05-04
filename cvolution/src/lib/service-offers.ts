@@ -29,7 +29,6 @@ export const SERVICE_OFFERS: ServiceOffer[] = [
     image: "/images/customer-service.png",
     price: "CHF 499 einmalig",
     link: "/service-jobwechsel-komplett",
-    link: "/contact",
     serviceType: "career",
     isPremium: true,
     premiumBadge: "Premium Paket",
