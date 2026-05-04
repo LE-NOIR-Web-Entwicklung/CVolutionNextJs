@@ -272,8 +272,7 @@ export default function Home() {
                     href={product.link}
                     className={`sm:col-span-2 inline-flex w-full items-center justify-center rounded-xl bg-[#204878] px-3 py-3 text-center text-sm font-semibold text-white shadow-lg shadow-[#204878]/20 transition duration-200 hover:-translate-y-0.5 hover:bg-[#173d66] active:translate-y-0`}
                   >
-                    {"Angebot ansehen"}
-                    <span aria-hidden="true" className="transition group-hover:translate-x-1">→</span>
+                    <p>Angebot ansehen <span aria-hidden="true" className="transition group-hover:translate-x-1">→</span></p>
                   </Link>
                   {/* {!product.hasMultipleVariants && (
                     <AddToCartButton
