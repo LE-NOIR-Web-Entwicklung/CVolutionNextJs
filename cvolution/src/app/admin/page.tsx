@@ -599,9 +599,9 @@ const AdminContent: React.FC = () => {
             <div className="flex items-center">
               <Users className="h-6 w-6 text-[#204878] mr-2" />
               <h1 className="text-xl font-semibold text-gray-900">Admin Dashboard</h1>
-              <Badge variant="secondary" className="ml-3 text-gray-900">
+              {/* <Badge variant="secondary" className="ml-3 text-gray-900">
                 {users.length} Benutzer
-              </Badge>
+              </Badge> */}
             </div>
             <div className="flex items-center space-x-4">
               <span className="text-sm text-gray-600 hidden md:inline">
