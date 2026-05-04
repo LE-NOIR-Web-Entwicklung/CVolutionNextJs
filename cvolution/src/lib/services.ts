@@ -26,6 +26,16 @@ export interface ServiceConfig {
 const SAFERPAY_BASE = "https://www.saferpay.com/SecurePayGate/MultiUsePayment/364685/17772867";
 
 export const SERVICE_CONFIGS: Record<string, ServiceConfig> = {
+  jobwechsel_komplett: {
+    orderType: "jobwechsel_komplett",
+    couponServiceKey: "service-career",
+    label: "Jobwechsel Komplett",
+    basePrice: 499,
+    paymentUrls: {
+      normal: `${SAFERPAY_BASE}/1d20d6ab-f1bd-4981-b0af-eada47e6ec9e`,
+      percent30: `${SAFERPAY_BASE}/8069730c-7b44-41b0-adfb-837655c52085`,
+    },
+  },
   career: {
     orderType: "career",
     couponServiceKey: "service-career",
@@ -111,6 +121,7 @@ export const SERVICE_CONFIGS: Record<string, ServiceConfig> = {
 
 const SERVICE_ALIASES: Record<string, string> = {
   "service-career": "career",
+  "service-jobwechsel-komplett": "jobwechsel_komplett",
   "service-check": "check",
   "service-cv": "cv",
   "service-motivation": "motivation",
