@@ -20,20 +20,25 @@ export default async function BlogPage() {
   const remainingPosts = posts.slice(1);
 
   return (
-    <main className="min-h-screen bg-[#f7f9fc] text-slate-950">
-      <section className="border-b border-slate-200 bg-white">
-        <div className="mx-auto max-w-6xl px-6 py-16 lg:py-20">
-          <p className="mb-4 text-sm font-semibold uppercase tracking-[0.18em] text-[#204878]">CVolution Blog</p>
-          <h1 className="max-w-3xl text-4xl font-semibold leading-tight text-slate-950 md:text-6xl">
-            Karriere aus erster Hand
-          </h1>
-          <p className="mt-4 max-w-2xl text-lg leading-8 text-slate-600">
-            Karriere aus erster Hand gibt praxisnahe Einblicke in Recruiting, Löhne und Bewerbungen.
-          </p>
+    <main className="min-h-screen overflow-hidden bg-[#f4f7fb] text-slate-950">
+      <section className="relative isolate bg-[radial-gradient(circle_at_24%_4%,rgba(32,72,120,0.16),transparent_31%),linear-gradient(180deg,#ffffff_0%,#eef4fb_100%)] px-5 pb-18 pt-10 sm:px-6 sm:pb-20 sm:pt-12">
+
+        <div className="mx-auto max-w-6xl">
+          <div>
+            <p className="mb-4 inline-flex rounded-md border border-[#204878]/15 bg-white/70 px-3 py-1.5 text-sm font-semibold text-[#204878] shadow-sm shadow-[#204878]/5">
+              CVolution Blog
+            </p>
+            <h1 className="max-w-3xl text-4xl font-semibold leading-[1.03] tracking-tight text-[#101828] text-balance sm:text-5xl lg:text-6xl">
+              Karriere aus erster Hand
+            </h1>
+            <p className="mt-5 max-w-2xl text-base leading-7 text-[#5d6b7f] text-pretty sm:text-lg sm:leading-8">
+              Praxisnahe Einblicke in Recruiting, Löhne und Bewerbungen für den Schweizer Arbeitsmarkt, mit konkreten Tipps für klarere Unterlagen und bessere Entscheidungen.
+            </p>
+          </div>
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-6 py-12 lg:py-16">
+      <section className="mx-auto mt-10 max-w-6xl px-6 pb-16 lg:mt-20 lg:pb-20">
         {posts.length === 0 ? (
           <div className="rounded-lg border border-dashed border-slate-300 bg-white px-6 py-14 text-center">
             <h2 className="text-2xl font-semibold text-slate-950">Noch keine Beiträge veröffentlicht</h2>
