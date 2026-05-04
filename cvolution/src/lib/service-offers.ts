@@ -28,7 +28,7 @@ export const SERVICE_OFFERS: ServiceOffer[] = [
       "Das Rundum Paket für deinen nächsten Karriereschritt, mit professionellen Unterlagen, klarer Strategie und starken Argumenten für Bewerbung und Lohnverhandlung.",
     image: "/images/customer-service.png",
     price: "CHF 499 einmalig",
-    link: "/contact",
+    link: "/service-jobwechsel-komplett",
     serviceType: "career",
     isPremium: true,
     premiumBadge: "Premium Paket",
