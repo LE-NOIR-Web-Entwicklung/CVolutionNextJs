@@ -24,6 +24,7 @@ type BlogFormState = {
   coverImagePath: string;
   tags: string;
   isPublished: boolean;
+  publishedAt: string;
 };
 
 const emptyBlogForm = (): BlogFormState => ({
@@ -35,11 +36,20 @@ const emptyBlogForm = (): BlogFormState => ({
   coverImagePath: "",
   tags: "",
   isPublished: false,
+  publishedAt: "",
 });
 
 function formatDateTime(value: string | null) {
   if (!value) return "-";
   return new Date(value).toLocaleString("de-CH");
+}
+
+function toDatetimeLocal(value: string | null) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  const local = new Date(date.getTime() - date.getTimezoneOffset() * 60 * 1000);
+  return local.toISOString().slice(0, 16);
 }
 
 export default function BlogAdminPanel() {
@@ -147,6 +157,7 @@ export default function BlogAdminPanel() {
       coverImagePath: post.cover_image_path || "",
       tags: post.tags.join(", "),
       isPublished: post.is_published,
+      publishedAt: toDatetimeLocal(post.published_at),
     });
     setFormError("");
     setShowForm(true);
@@ -180,6 +191,7 @@ export default function BlogAdminPanel() {
         coverImagePath: form.coverImagePath,
         tags: form.tags,
         isPublished: form.isPublished,
+        publishedAt: form.publishedAt ? new Date(form.publishedAt).toISOString() : "",
       };
       const res = await fetch(editingPostId ? `/api/admin/blog/${editingPostId}` : "/api/admin/blog", {
         method: editingPostId ? "PATCH" : "POST",
@@ -330,6 +342,15 @@ export default function BlogAdminPanel() {
                 />
                 Veröffentlicht
               </label>
+              <div>
+                <label className="mb-1 block text-sm font-medium text-gray-900">Veröffentlichungsdatum</label>
+                <input
+                  type="datetime-local"
+                  className="w-full rounded-md border px-3 py-2 text-sm text-gray-900"
+                  value={form.publishedAt}
+                  onChange={(event) => setForm({ ...form, publishedAt: event.target.value })}
+                />
+              </div>
               <div className="lg:col-span-2">
                 <label className="mb-1 block text-sm font-medium text-gray-900">Cover-Bild</label>
                 <div className="flex flex-col gap-3 rounded-md border border-dashed border-gray-300 p-4 sm:flex-row sm:items-center">

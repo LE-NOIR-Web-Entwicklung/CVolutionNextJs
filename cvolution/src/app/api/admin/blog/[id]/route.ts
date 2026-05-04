@@ -12,6 +12,7 @@ type BlogPayload = {
   coverImagePath?: unknown;
   tags?: unknown;
   isPublished?: unknown;
+  publishedAt?: unknown;
 };
 
 function parseBlogPatch(payload: BlogPayload) {
@@ -38,9 +39,18 @@ function parseBlogPatch(payload: BlogPayload) {
   if (typeof payload.coverImageUrl === "string") data.cover_image_url = payload.coverImageUrl.trim() || null;
   if (typeof payload.coverImagePath === "string") data.cover_image_path = payload.coverImagePath.trim() || null;
   if (payload.tags !== undefined) data.tags = normalizeTags(payload.tags);
+  if (payload.publishedAt !== undefined) {
+    if (typeof payload.publishedAt !== "string" || !payload.publishedAt.trim()) {
+      data.published_at = null;
+    } else {
+      const publishedAt = new Date(payload.publishedAt);
+      if (Number.isNaN(publishedAt.getTime())) return { error: "Ungültiges Veröffentlichungsdatum." };
+      data.published_at = publishedAt.toISOString();
+    }
+  }
   if (typeof payload.isPublished === "boolean") {
     data.is_published = payload.isPublished;
-    data.published_at = payload.isPublished ? new Date().toISOString() : null;
+    if (payload.isPublished && !data.published_at) data.published_at = new Date().toISOString();
   }
 
   return { data };

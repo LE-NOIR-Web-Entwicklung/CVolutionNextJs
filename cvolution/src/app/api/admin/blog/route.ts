@@ -12,6 +12,7 @@ type BlogPayload = {
   coverImagePath?: unknown;
   tags?: unknown;
   isPublished?: unknown;
+  publishedAt?: unknown;
 };
 
 function parseBlogPayload(payload: BlogPayload) {
@@ -20,10 +21,14 @@ function parseBlogPayload(payload: BlogPayload) {
   const slug = createSlug(rawSlug);
   const content = typeof payload.content === "string" ? payload.content.trim() : "";
   const isPublished = typeof payload.isPublished === "boolean" ? payload.isPublished : false;
+  const publishedAt = typeof payload.publishedAt === "string" && payload.publishedAt.trim()
+    ? new Date(payload.publishedAt)
+    : null;
 
   if (!title) return { error: "Titel ist erforderlich." };
   if (!slug) return { error: "Slug ist erforderlich." };
   if (!content) return { error: "Inhalt ist erforderlich." };
+  if (publishedAt && Number.isNaN(publishedAt.getTime())) return { error: "Ungültiges Veröffentlichungsdatum." };
 
   return {
     data: {
@@ -41,7 +46,7 @@ function parseBlogPayload(payload: BlogPayload) {
           : null,
       tags: normalizeTags(payload.tags),
       is_published: isPublished,
-      published_at: isPublished ? new Date().toISOString() : null,
+      published_at: isPublished ? (publishedAt || new Date()).toISOString() : publishedAt?.toISOString() || null,
     },
   };
 }

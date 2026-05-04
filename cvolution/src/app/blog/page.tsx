@@ -31,15 +31,13 @@ export default async function BlogPage() {
   return (
     <main className="min-h-screen bg-[#f7f9fc] text-slate-950">
       <section className="border-b border-slate-200 bg-white">
-        <div className="mx-auto grid max-w-6xl gap-10 px-6 py-16 lg:grid-cols-[0.9fr_1.1fr] lg:items-end lg:py-20">
-          <div>
-            <p className="mb-4 text-sm font-semibold uppercase tracking-[0.18em] text-[#204878]">CVolution Blog</p>
-            <h1 className="max-w-3xl text-4xl font-semibold leading-tight text-slate-950 md:text-6xl">
-              Karrierewissen, das Bewerbungen besser macht.
-            </h1>
-          </div>
-          <p className="max-w-2xl text-lg leading-8 text-slate-600">
-            Praxisnahe Beiträge für Lebenslauf, Motivationsschreiben, Lohnverhandlung und Jobsuche in der Schweiz.
+        <div className="mx-auto max-w-6xl px-6 py-16 lg:py-20">
+          <p className="mb-4 text-sm font-semibold uppercase tracking-[0.18em] text-[#204878]">CVolution Blog</p>
+          <h1 className="max-w-3xl text-4xl font-semibold leading-tight text-slate-950 md:text-6xl">
+            Karriere aus erster Hand
+          </h1>
+          <p className="mt-4 max-w-2xl text-lg leading-8 text-slate-600">
+            Karriere aus erster Hand gibt praxisnahe Einblicke in Recruiting, Löhne und Bewerbungen.
           </p>
         </div>
       </section>
