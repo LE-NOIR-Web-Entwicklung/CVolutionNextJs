@@ -3,10 +3,12 @@ import { supabaseAdmin } from "../../../../../../lib/supabase-server";
 import {
   getCartSuccessRedirectUrl,
   getOrderSuccessRedirectUrl,
+  isExternalOrder,
   processPaidCart,
   processPaidOrder,
   sendPushNotifications,
 } from "@/lib/order-processing";
+import { createTopLevelRedirectResponse } from "@/lib/top-level-redirect";
 import { assertAndCaptureWorldlinePayment } from "@/lib/worldline-checkout";
 
 async function loadPendingOrders(request: NextRequest) {
@@ -111,9 +113,10 @@ export async function GET(request: NextRequest) {
       lookup: loaded.lookup,
       reason: paidError?.message,
     });
-    const response = NextResponse.redirect(
-      loaded.isCart ? getCartSuccessRedirectUrl(request.url) : getOrderSuccessRedirectUrl(orders[0], request.url)
-    );
+    const successUrl = loaded.isCart ? getCartSuccessRedirectUrl(request.url) : getOrderSuccessRedirectUrl(orders[0], request.url);
+    const response = !loaded.isCart && isExternalOrder(orders[0])
+      ? createTopLevelRedirectResponse(successUrl)
+      : NextResponse.redirect(successUrl);
     response.cookies.delete("orderId");
     response.cookies.delete("checkoutGroupId");
     return response;
@@ -129,9 +132,10 @@ export async function GET(request: NextRequest) {
 
   await sendPushNotifications();
 
-  const response = NextResponse.redirect(
-    loaded.isCart ? getCartSuccessRedirectUrl(request.url) : getOrderSuccessRedirectUrl(paidOrders[0], request.url)
-  );
+  const successUrl = loaded.isCart ? getCartSuccessRedirectUrl(request.url) : getOrderSuccessRedirectUrl(paidOrders[0], request.url);
+  const response = !loaded.isCart && isExternalOrder(paidOrders[0])
+    ? createTopLevelRedirectResponse(successUrl)
+    : NextResponse.redirect(successUrl);
   response.cookies.delete("orderId");
   response.cookies.delete("checkoutGroupId");
   return response;

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '../../../../../lib/supabase-server';
 import { sendEmail, sendConfirmationEmail } from '../../../../../lib/resend';
+import { createTopLevelRedirectResponse } from '@/lib/top-level-redirect';
 
 const EXTERNAL_ORDER_REDIRECT_URL =
   process.env.EXTERNAL_ORDER_REDIRECT_URL || 'https://analyse.cvolution.ch/danke/';
@@ -47,6 +48,13 @@ function getSuccessRedirectUrl(order: any, request: NextRequest) {
     : `/confirmation?success=true&service=${encodeURIComponent(order?.service_label || '')}`;
 
   return new URL(redirectUrl, request.url);
+}
+
+function createSuccessRedirectResponse(order: any, request: NextRequest) {
+  const redirectUrl = getSuccessRedirectUrl(order, request);
+  return isExternalOrder(order)
+    ? createTopLevelRedirectResponse(redirectUrl)
+    : NextResponse.redirect(redirectUrl);
 }
 
 /**
@@ -125,7 +133,7 @@ export async function GET(
       orderId: order.id,
       reason: paidUpdateError?.message,
     });
-    const response = NextResponse.redirect(getSuccessRedirectUrl(order, request));
+    const response = createSuccessRedirectResponse(order, request);
     response.cookies.delete('orderId');
     return response;
   }
@@ -227,7 +235,7 @@ export async function GET(
   }
 
   // Redirect: external orders return to the source app, "self" and normal orders stay on CVolution.
-  const response = NextResponse.redirect(getSuccessRedirectUrl(order, request));
+  const response = createSuccessRedirectResponse(order, request);
   response.cookies.delete('orderId');
   return response;
 }

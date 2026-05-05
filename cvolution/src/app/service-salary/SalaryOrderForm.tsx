@@ -49,6 +49,20 @@ const convertFileToBase64 = (file: File): Promise<string> => {
   });
 };
 
+function navigateTopLevel(url: string) {
+  try {
+    if (window.top && window.top !== window.self) {
+      window.parent.postMessage({ type: "CVOLUTION_NAVIGATE_TOP", url }, "https://analyse.cvolution.ch");
+      window.top.location.href = url;
+      return;
+    }
+  } catch (error) {
+    window.parent.postMessage({ type: "CVOLUTION_NAVIGATE_TOP", url }, "https://analyse.cvolution.ch");
+  }
+
+  window.location.href = url;
+}
+
 export function SalaryOrderForm({ variant }: { variant: SalaryOrderVariant }) {
   const config = salaryOrderConfig[variant];
   const [email, setEmail] = useState("");
@@ -194,11 +208,11 @@ export function SalaryOrderForm({ variant }: { variant: SalaryOrderVariant }) {
 
       if (orderResult.requiresPayment && orderResult.paymentUrl) {
         setTimeout(() => {
-          window.location.href = orderResult.paymentUrl as string;
+          navigateTopLevel(orderResult.paymentUrl as string);
         }, 3000);
       } else if (orderResult.redirectUrl || isExternalOrder) {
         setTimeout(() => {
-          window.location.href = orderResult.redirectUrl || "https://analyse.cvolution.ch/danke/";
+          navigateTopLevel(orderResult.redirectUrl || "https://analyse.cvolution.ch/danke/");
         }, 3000);
       }
     } catch (error) {
