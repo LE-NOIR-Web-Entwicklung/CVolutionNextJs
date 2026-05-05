@@ -125,7 +125,7 @@ export default function Home() {
           ))}
         </div>
       </section> */}
-      <section className="relative min-h-[75vh] flex items-center text-white overflow-hidden">
+      <section className="relative min-h-[calc(100svh-4rem)] flex items-center text-white overflow-hidden bg-[#102a45]">
         {/* Hero background image */}
         <Image
           src="/images/hero2.png"
@@ -133,49 +133,47 @@ export default function Home() {
           fill
           sizes="100vw"
           quality={100}
-          className="object-cover object-center"
+          className="object-cover object-center scale-[1.03] saturate-[0.92] contrast-[1.08]"
           priority
         />
         {/* Dark overlay to keep text readable */}
-        <div className="absolute inset-0 bg-[#204878]/40 md:bg-[#204878]/70" />
-
-        {/* Glow — soft radial light source */}
-        <div className="absolute top-[40%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[500px] rounded-full bg-white/[0.07] blur-[80px] pointer-events-none" />
-        <div className="absolute top-[38%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[300px] rounded-full bg-white/[0.08] blur-[60px] pointer-events-none" />
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(10,28,48,0.70)_0%,rgba(18,49,82,0.66)_50%,rgba(20,42,66,0.58)_100%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_21%,rgba(255,255,255,0.13),transparent_36%),linear-gradient(180deg,rgba(8,21,36,0.18)_0%,rgba(8,21,36,0.02)_72%,rgba(8,21,36,0.12)_100%)]" />
+        <div className="absolute inset-0 opacity-[0.16] mix-blend-soft-light [background-image:linear-gradient(rgba(255,255,255,.12)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.12)_1px,transparent_1px)] [background-size:72px_72px]" />
 
         {/* Top edge highlight */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+        <div className="absolute top-0 left-0 right-0 h-px bg-white/20" />
 
-        <div className="relative z-10 w-full max-w-5xl mx-auto px-6 py-12 sm:py-32">
-          <div className="text-center flex flex-col items-center">
+        <div className="relative z-10 w-full max-w-7xl mx-auto px-5 py-12 sm:px-6 sm:py-16 lg:py-20">
+          <div className="mx-auto flex max-w-5xl flex-col items-center text-center">
 
             {/* Badge */}
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-white/8 rounded-full text-xs font-medium text-blue-200 mb-5 border border-white/10 backdrop-blur-sm">
-              <span className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-pulse" />
+            <div className="inline-flex items-center gap-2 rounded-md border border-white/16 bg-white/[0.09] px-3.5 py-2 text-xs font-semibold text-white/82 shadow-[0_1rem_3rem_rgba(0,0,0,0.16)] backdrop-blur-md mb-7">
+              <span className="h-1.5 w-1.5 rounded-full bg-white/78" />
               1000+ Kunden bereits erfolgreich unterstützt
             </div>
 
             {/* Headline */}
-            <h1 className="text-5xl md:text-6xl font-semibold tracking-tight leading-tight mb-4 max-w-3xl">
+            <h1 className="max-w-5xl text-[clamp(2.85rem,12vw,7.25rem)] font-semibold leading-[0.94] mb-6 text-white [text-wrap:balance]">
               Unsere Bewerbung,{" "}
               <br className="hidden sm:block" />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-100 to-[#627EA0]">
+              <span className="text-white/72">
                 deine Entwicklung!
               </span>
             </h1>
 
             {/* Subheadline */}
-            <p className="text-lg text-blue-100/70 leading-relaxed max-w-xl mb-5">
+            <p className="max-w-2xl text-base leading-8 text-white/74 sm:text-lg mb-8">
               Mit über 10 Jahren Erfahrung im Recruiting
               unterstützen wir bei Lebenslauf, Lohnanalyse
               und strategischer Laufbahnberatung.
             </p>
 
             {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-14">
+            <div className="flex w-full flex-col items-stretch justify-center gap-3 sm:w-auto sm:flex-row sm:items-center mb-10 sm:mb-14">
               <Link
                 href="/service-salary"
-                className="inline-flex items-center justify-center px-6 py-3 bg-white text-[#0F172A] font-semibold rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200 text-sm"
+                className="inline-flex min-h-12 items-center justify-center rounded-md bg-white px-6 py-3 text-sm font-semibold text-[#0F172A] shadow-[0_1rem_2.5rem_rgba(0,0,0,0.22)] transition duration-300 hover:-translate-y-0.5 hover:bg-[#f4f7fb]"
               >
                 Lohnanalyse buchen
                 <svg className="w-4 h-4 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
@@ -184,27 +182,28 @@ export default function Home() {
               </Link>
               <Link
                 href="/service"
-                className="inline-flex items-center justify-center px-6 py-3 bg-white/10 text-white font-medium rounded-xl hover:bg-white/20 hover:-translate-y-0.5 transition-all duration-200 border border-white/15 text-sm backdrop-blur-sm"
+                className="inline-flex min-h-12 items-center justify-center rounded-md border border-white/22 bg-white/[0.08] px-6 py-3 text-sm font-semibold text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.12)] backdrop-blur-md transition duration-300 hover:-translate-y-0.5 hover:bg-white/[0.14]"
               >
                 Alle Angebote ansehen
               </Link>
             </div>
 
             {/* Service Highlights */}
-            <div className="flex flex-wrap justify-center gap-2 text-sm">
+            <div className="grid w-full max-w-[18.5rem] grid-cols-2 justify-items-stretch gap-2 text-xs sm:flex sm:max-w-6xl sm:flex-wrap sm:justify-center sm:text-sm lg:flex-nowrap">
               {[
                 { label: "Lohnanalyse", href: "/service-salary" },
                 { label: "Laufbahnberatung", href: "/service-career" },
                 { label: "Lebenslauf", href: "/service-cv" },
                 { label: "Motivationsschreiben", href: "/service-motivation" },
                 { label: "CV Check", href: "/service-check" },
+                { label: "CV Self-Service", href: "/self" },
               ].map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/8 border border-white/10 text-blue-200/70 hover:text-white hover:bg-white/15 hover:border-white/20 transition-all duration-150"
+                  className="group inline-flex min-h-9 items-center justify-center gap-1.5 rounded-full border border-white/14 bg-white/[0.08] px-3 py-2 text-white/72 shadow-[inset_0_1px_0_rgba(255,255,255,0.10),0_0.75rem_2rem_rgba(4,18,34,0.10)] backdrop-blur-md transition duration-300 hover:-translate-y-0.5 hover:border-white/28 hover:bg-white/[0.15] hover:text-white sm:min-h-10 sm:justify-start sm:gap-2 sm:px-4"
                 >
-                  <svg className="w-3 h-3 text-blue-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                  <svg className="h-2.5 w-2.5 flex-shrink-0 text-white/48 transition duration-300 group-hover:text-white/88 sm:h-3 sm:w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                   </svg>
                   {item.label}
@@ -215,12 +214,20 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Bottom fade */}
-        <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-[#204878]/60 to-transparent pointer-events-none" />
+        <a
+          href="#angebote"
+          aria-label="Zu den Angeboten scrollen"
+          className="absolute bottom-5 left-1/2 z-20 hidden -translate-x-1/2 flex-col items-center gap-2 text-white/62 transition duration-300 hover:text-white lg:flex"
+        >
+          <span className="h-10 w-6 rounded-full border border-white/28 bg-white/[0.06] shadow-[inset_0_1px_0_rgba(255,255,255,0.12)] backdrop-blur-sm">
+            <span className="mx-auto mt-2 block h-2 w-1 animate-bounce rounded-full bg-white/70" />
+          </span>
+          <span className="h-8 w-px bg-gradient-to-b from-white/52 to-transparent" />
+        </a>
       </section>
 
       {/* Products Section */}
-      <section className="relative isolate overflow-hidden bg-[#f4f7fb] px-5 py-20 text-[#142033] sm:px-6 sm:py-24">
+      <section id="angebote" className="relative isolate overflow-hidden bg-[#f4f7fb] px-5 py-20 text-[#142033] sm:px-6 sm:py-24">
         <div className="absolute inset-x-0 top-0 -z-10 h-80 bg-[radial-gradient(circle_at_50%_0%,rgba(32,72,120,0.12),transparent_32%),linear-gradient(180deg,#ffffff_0%,#f4f7fb_100%)]" />
 
         <div className="mx-auto max-w-6xl">
