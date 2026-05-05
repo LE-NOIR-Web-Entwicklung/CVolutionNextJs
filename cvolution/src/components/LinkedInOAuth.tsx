@@ -16,9 +16,9 @@ export const LinkedInOAuth: React.FC<LinkedInOAuthProps> = ({ onTokenReceived })
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    // Generate LinkedIn OAuth URL with the specified redirect URI
+    // Generate LinkedIn OAuth URL for the current app origin.
     const clientId = '777cnr7lry8ine';
-    const redirectUri = 'https://linked-vita-builder.lovable.app/auth/linkedin/callback';
+    const redirectUri = `${window.location.origin}/auth/linkedin/callback`;
     const scope = 'openid profile email';
     
     console.log('LinkedIn OAuth Configuration:', {

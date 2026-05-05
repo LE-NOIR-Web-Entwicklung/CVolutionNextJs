@@ -33,15 +33,15 @@ const benefits = [
 const designs = [
   {
     title: "Klassisch",
-    image: "/lovable-uploads/cdc6fbed-c846-4243-b7ea-4eb12246f389.png",
+    image: "/images/cv-designs/cv-design-klassisch.png",
   },
   {
     title: "Modern",
-    image: "/lovable-uploads/52816b4d-4592-4ac6-a2ca-7eba6c6d86d2.png",
+    image: "/images/cv-designs/cv-design-modern.png",
   },
   {
     title: "Zeitlos",
-    image: "/lovable-uploads/f40ab6d8-a47e-4e91-b431-58002f60e221.png",
+    image: "/images/cv-designs/cv-design-zeitlos.png",
   },
 ];
 
