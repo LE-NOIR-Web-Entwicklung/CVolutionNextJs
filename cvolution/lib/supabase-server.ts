@@ -1,20 +1,8 @@
 import { createClient } from '@supabase/supabase-js';
-import { assertServerSupabaseEnv } from '@/lib/supabase-env';
+import { getSupabaseSecretKey, getSupabaseUrl, hasSupabaseServerEnv } from '@/lib/supabase-env';
 
-let supabaseUrl = "";
-let supabaseSecretKey = "";
-
-try {
-  const env = assertServerSupabaseEnv();
-  supabaseUrl = env.url;
-  supabaseSecretKey = env.key;
-} catch (error) {
-  if (process.env.NODE_ENV !== "production") {
-    console.warn(error instanceof Error ? error.message : "Supabase ENV fehlt.");
-  }
+if (!hasSupabaseServerEnv() && process.env.NODE_ENV !== "production") {
+  console.warn("Supabase Server ENV fehlt: NEXT_PUBLIC_SUPABASE_URL + SUPABASE_SECRET_KEY (oder Legacy Fallbacks).");
 }
 
-export const supabaseAdmin = createClient(
-  supabaseUrl || "missing-supabase-url",
-  supabaseSecretKey || "missing-supabase-secret-key"
-);
+export const supabaseAdmin = createClient(getSupabaseUrl(), getSupabaseSecretKey());

@@ -1,20 +1,23 @@
+const FALLBACK_SUPABASE_URL = "https://placeholder.supabase.co";
+const FALLBACK_PUBLISHABLE_KEY = "placeholder-publishable-key";
+const FALLBACK_SECRET_KEY = "placeholder-secret-key";
+
 export function getSupabaseUrl() {
-  return process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || "";
+  return process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || FALLBACK_SUPABASE_URL;
 }
 
 export function getSupabasePublishableKey() {
-  return process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
+  return process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || FALLBACK_PUBLISHABLE_KEY;
 }
 
 export function getSupabaseSecretKey() {
-  return process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+  return process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || FALLBACK_SECRET_KEY;
 }
 
-export function assertServerSupabaseEnv() {
-  const url = getSupabaseUrl();
-  const key = getSupabaseSecretKey();
-  if (!url || !key) {
-    throw new Error("Supabase ENV fehlt: NEXT_PUBLIC_SUPABASE_URL + SUPABASE_SECRET_KEY (oder Legacy Fallback) müssen gesetzt sein.");
-  }
-  return { url, key };
+export function hasSupabaseServerEnv() {
+  return Boolean((process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL) && (process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY));
+}
+
+export function hasSupabaseClientEnv() {
+  return Boolean((process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL) && (process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY));
 }
