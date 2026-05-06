@@ -1,13 +1,20 @@
 import { createClient } from '@supabase/supabase-js';
+import { assertServerSupabaseEnv } from '@/lib/supabase-env';
 
-const supabaseUrl = "https://umvuqbeuzjqmmudkvscy.supabase.co";
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+let supabaseUrl = "";
+let supabaseSecretKey = "";
 
-if (!supabaseServiceKey && process.env.NODE_ENV !== "production") {
-  console.warn("SUPABASE_SERVICE_ROLE_KEY is not set. Server-side Supabase API calls will fail until it is configured.");
+try {
+  const env = assertServerSupabaseEnv();
+  supabaseUrl = env.url;
+  supabaseSecretKey = env.key;
+} catch (error) {
+  if (process.env.NODE_ENV !== "production") {
+    console.warn(error instanceof Error ? error.message : "Supabase ENV fehlt.");
+  }
 }
 
 export const supabaseAdmin = createClient(
-  supabaseUrl,
-  supabaseServiceKey || "missing-supabase-service-role-key"
+  supabaseUrl || "missing-supabase-url",
+  supabaseSecretKey || "missing-supabase-secret-key"
 );
