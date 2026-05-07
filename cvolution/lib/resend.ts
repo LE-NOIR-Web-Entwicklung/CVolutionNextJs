@@ -203,11 +203,52 @@ type CartOrderEmailItem = {
     salary_file_name?: string | null;
 };
 
+type SelfServiceInfoEmailData = {
+    fullName?: string | null;
+    email: string;
+    phone?: string | null;
+    userId?: string | null;
+    orderId?: string | null;
+    service?: string | null;
+    amount?: number | string | null;
+    paidAt?: string | null;
+    subscriptionCurrentPeriodEnd?: string | null;
+    transactionId?: string | null;
+};
+
 const CONTACT_PHONE_REMARKS_PREFIX = "[contact_phone]";
 
 function formatCurrency(value: unknown) {
     const numberValue = Number(value || 0);
     return `CHF ${numberValue.toFixed(2)}`;
+}
+
+function escapeHtml(value: unknown) {
+    return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+function formatDateTime(value?: string | null) {
+    if (!value) return null;
+
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return value;
+
+    return new Intl.DateTimeFormat("de-CH", {
+        dateStyle: "medium",
+        timeStyle: "short",
+        timeZone: "Europe/Zurich",
+    }).format(date);
+}
+
+function renderInfoRow(label: string, value: unknown) {
+    if (value === null || value === undefined || value === "") return "";
+
+    return `<p style="color: #333; font-size: 1rem;"><strong>${escapeHtml(label)}:</strong> ${escapeHtml(value)}</p>`;
 }
 
 function getDisplayName(order: CartOrderEmailItem) {
@@ -234,6 +275,42 @@ function getCleanRemarks(remarks?: string | null) {
         .trim();
     return cleanRemarks || null;
 }
+
+export const sendSelfServiceInfoEmail = async (data: SelfServiceInfoEmailData) => {
+    const displayName = data.fullName?.trim() || data.email;
+    const paidAt = formatDateTime(data.paidAt);
+    const subscriptionEnd = formatDateTime(data.subscriptionCurrentPeriodEnd);
+
+    await resend.emails.send({
+        from: "CVolution <info@cvolution.ch>",
+        to: "info@cvolution.ch",
+        replyTo: data.email,
+        subject: `Neue Self-Service-Buchung: ${displayName}`,
+        html: `
+            <div style="font-family: 'Segoe UI', Arial, sans-serif; background: #f4f8fb; padding: 32px;">
+                <div style="max-width: 640px; margin: 0 auto; background: #fff; border-radius: 12px; box-shadow: 0 2px 8px rgba(32,72,120,0.08); padding: 32px 24px; text-align: left;">
+                    <img src="https://cvolution.ch/images/logo.png" alt="CVolution Logo" style="width: 80px; margin-bottom: 24px; display: block; margin-left: auto; margin-right: auto;" />
+                    <h1 style="color: #204878; font-size: 1.5rem; margin-bottom: 16px; text-align: center;">Neue Self-Service-Buchung</h1>
+                    <div style="margin-bottom: 24px;">
+                        ${renderInfoRow("Name / Vorname", displayName)}
+                        ${renderInfoRow("E-Mail", data.email)}
+                        ${renderInfoRow("Telefon", data.phone)}
+                        ${renderInfoRow("Service", data.service || "Self-Service Abo")}
+                        ${renderInfoRow("Betrag", formatCurrency(data.amount))}
+                        ${renderInfoRow("Bezahlt am", paidAt)}
+                        ${renderInfoRow("Abo gültig bis", subscriptionEnd)}
+                        ${renderInfoRow("User ID", data.userId)}
+                        ${renderInfoRow("Order ID", data.orderId)}
+                        ${renderInfoRow("Transaktion", data.transactionId)}
+                    </div>
+                    <p style="color: #888; font-size: 0.95rem; text-align: center;">Diese Self-Service-Buchung wurde nach erfolgreicher Saferpay-Zahlung automatisch gemeldet.</p>
+                    <hr style="margin: 32px 0 16px 0; border: none; border-top: 1px solid #e5e7eb;" />
+                    <a href="https://cvolution.ch" style="color: #204878; text-decoration: none; font-weight: bold; text-align: center; display: block;">www.cvolution.ch</a>
+                </div>
+            </div>
+        `,
+    });
+};
 
 function getServiceNextSteps(service: string) {
     const lowerService = service.toLowerCase();

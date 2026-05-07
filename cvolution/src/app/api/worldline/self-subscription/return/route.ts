@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "../../../../../../lib/supabase-server";
+import { sendSelfServiceInfoEmail } from "../../../../../../lib/resend";
 import {
   addSubscriptionMonth,
   getSaferpayRequestHeader,
@@ -7,6 +8,122 @@ import {
   isSaferpayTransactionSuccessful,
   saferpayRequest,
 } from "@/lib/saferpay";
+import { sendPushNotifications } from "@/lib/order-processing";
+
+type SelfServiceCustomer = {
+  email: string;
+  fullName: string | null;
+  phone: string | null;
+  userId: string | null;
+};
+
+function createSuccessResponse(request: NextRequest) {
+  const response = NextResponse.redirect(new URL("/confirmation?success=true&service=self", request.url));
+  response.cookies.delete("orderId");
+  return response;
+}
+
+function getTrimmedString(value: unknown) {
+  return typeof value === "string" && value.trim() ? value.trim() : null;
+}
+
+function getMetadataFullName(metadata: Record<string, unknown> | undefined) {
+  const fullName = getTrimmedString(metadata?.full_name);
+  if (fullName) return fullName;
+
+  const firstName = getTrimmedString(metadata?.first_name);
+  const lastName = getTrimmedString(metadata?.last_name);
+  return [firstName, lastName].filter(Boolean).join(" ").trim() || null;
+}
+
+async function getSelfServiceCustomer(order: Record<string, any>): Promise<SelfServiceCustomer> {
+  const fallbackEmail = getTrimmedString(order.email) || "unbekannt";
+  const userId = getTrimmedString(order.name);
+
+  if (!userId) {
+    return {
+      email: fallbackEmail,
+      fullName: null,
+      phone: null,
+      userId: null,
+    };
+  }
+
+  try {
+    const [profileResult, userResult] = await Promise.allSettled([
+      supabaseAdmin
+        .from("profiles")
+        .select("full_name, phone")
+        .eq("user_id", userId)
+        .maybeSingle(),
+      supabaseAdmin.auth.admin.getUserById(userId),
+    ]);
+
+    const profile = profileResult.status === "fulfilled" ? profileResult.value.data : null;
+    const profileError = profileResult.status === "fulfilled" ? profileResult.value.error : profileResult.reason;
+    if (profileError) {
+      console.warn("Self-service profile lookup failed", { userId, reason: profileError });
+    }
+
+    const user = userResult.status === "fulfilled" ? userResult.value.data.user : null;
+    const userError = userResult.status === "fulfilled" ? userResult.value.error : userResult.reason;
+    if (userError) {
+      console.warn("Self-service auth user lookup failed", { userId, reason: userError });
+    }
+
+    const metadata = user?.user_metadata as Record<string, unknown> | undefined;
+    const fullName = getTrimmedString(profile?.full_name) || getMetadataFullName(metadata);
+
+    return {
+      email: getTrimmedString(order.email) || getTrimmedString(user?.email) || fallbackEmail,
+      fullName,
+      phone: getTrimmedString(profile?.phone) || getTrimmedString(metadata?.phone),
+      userId,
+    };
+  } catch (error) {
+    console.error("Self-service customer lookup failed", { userId, error });
+    return {
+      email: fallbackEmail,
+      fullName: null,
+      phone: null,
+      userId,
+    };
+  }
+}
+
+async function sendSelfServicePaymentNotifications({
+  order,
+  customer,
+  paidAt,
+  currentPeriodEnd,
+  transactionId,
+}: {
+  order: Record<string, any>;
+  customer: SelfServiceCustomer;
+  paidAt: Date;
+  currentPeriodEnd: Date;
+  transactionId: string | null;
+}) {
+  const [emailResult] = await Promise.allSettled([
+    sendSelfServiceInfoEmail({
+      fullName: customer.fullName,
+      email: customer.email,
+      phone: customer.phone,
+      userId: customer.userId,
+      orderId: order.id,
+      service: order.service_label || "Self-Service Abo",
+      amount: order.final_price,
+      paidAt: paidAt.toISOString(),
+      subscriptionCurrentPeriodEnd: currentPeriodEnd.toISOString(),
+      transactionId,
+    }),
+    sendPushNotifications(),
+  ]);
+
+  if (emailResult.status === "rejected") {
+    console.error("Self-service info email failed", { orderId: order.id, reason: emailResult.reason });
+  }
+}
 
 export async function GET(request: NextRequest) {
   const orderId = request.nextUrl.searchParams.get("orderId") || request.cookies.get("orderId")?.value;
@@ -25,6 +142,10 @@ export async function GET(request: NextRequest) {
   if (orderError || !order?.saferpay_token) {
     console.error("Saferpay return order not found", { orderId, reason: orderError?.message });
     return NextResponse.redirect(new URL("/confirmation?error=order_not_found", request.url));
+  }
+
+  if (order.payment_status === "paid" || order.status === "processed") {
+    return createSuccessResponse(request);
   }
 
   try {
@@ -98,6 +219,7 @@ export async function GET(request: NextRequest) {
 
     const now = new Date();
     const currentPeriodEnd = addSubscriptionMonth(now);
+    const customer = await getSelfServiceCustomer(order);
 
     await supabaseAdmin
       .from("orders")
@@ -126,9 +248,15 @@ export async function GET(request: NextRequest) {
       })
       .eq("user_id", order.name);
 
-    const response = NextResponse.redirect(new URL("/confirmation?success=true&service=self", request.url));
-    response.cookies.delete("orderId");
-    return response;
+    await sendSelfServicePaymentNotifications({
+      order,
+      customer,
+      paidAt: now,
+      currentPeriodEnd,
+      transactionId,
+    });
+
+    return createSuccessResponse(request);
   } catch (error) {
     console.error("Saferpay self subscription return failed", error);
     return NextResponse.redirect(new URL("/confirmation?error=payment_failed", request.url));
