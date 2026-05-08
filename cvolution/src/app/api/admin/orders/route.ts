@@ -83,16 +83,22 @@ export async function GET(request: NextRequest) {
     return query;
   };
 
-  let { data, error } = await buildBaseQuery(orderSelect);
+  let initialResult = await buildBaseQuery(orderSelect);
+  let data = initialResult.data as Record<string, unknown>[] | null;
+  let error = initialResult.error;
 
   if (error && isMissingExternalOrderColumnError(error)) {
     const fallback = await buildBaseQuery(orderSelectWithoutExternalColumns);
+    const fallbackData = fallback.data as Record<string, unknown>[] | null;
 
-    data = fallback.data?.map((order) => ({
-      ...order,
-      is_external: typeof order.remarks === "string" && order.remarks.startsWith("[external_order]"),
-      external_source: null,
-    })) ?? null;
+    data = fallbackData?.map((order) => {
+      const normalizedOrder = (order ?? {}) as Record<string, unknown> & { remarks?: unknown };
+      return {
+        ...normalizedOrder,
+        is_external: typeof normalizedOrder.remarks === "string" && normalizedOrder.remarks.startsWith("[external_order]"),
+        external_source: null,
+      };
+    }) ?? null;
     error = fallback.error;
   }
 
