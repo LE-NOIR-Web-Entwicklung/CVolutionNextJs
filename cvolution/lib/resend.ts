@@ -312,30 +312,36 @@ export const sendSelfServiceInfoEmail = async (data: SelfServiceInfoEmailData) =
     });
 };
 
-function getServiceNextSteps(service: string) {
+function getServiceNextStepsHtml(service: string) {
     const lowerService = service.toLowerCase();
     if (lowerService === "lebenslauf") {
-        return "Bitte sende uns deinen aktuellen Lebenslauf oder den Link zu deinem LinkedIn-Profil per E-Mail an info@cvolution.ch. Falls vorhanden, helfen auch Arbeitszeugnisse.";
+        return "<span style='color:#64748B;'>Bitte sende uns deinen aktuellen Lebenslauf oder den Link zu deinem LinkedIn-Profil per E-Mail an info@cvolution.ch. Falls vorhanden, helfen auch Arbeitszeugnisse.</span>";
     }
     if (lowerService === "lohnanalyse telefon") {
-        return "Bitte buche deinen Termin für die telefonische Besprechung: https://calendly.com/armend-cvolution/lohnanalyse";
+        return `
+            <span style="color:#64748B; display:block; margin-bottom:10px;">Bitte buche deinen Termin für die telefonische Besprechung:</span>
+            <a href="https://calendly.com/armend-cvolution/lohnanalyse" target="_blank" rel="noopener noreferrer" style="display:inline-block; background:#204878; color:#ffffff; text-decoration:none; font-weight:600; font-size:0.95rem; padding:10px 16px; border-radius:8px;">Termin buchen</a>
+        `;
     }
     if (lowerService === "lohnanalyse pdf") {
-        return "Wir analysieren deine Angaben und senden dir deine Lohnanalyse als PDF innerhalb von 2 Arbeitstagen per E-Mail.";
+        return "<span style='color:#64748B;'>Wir analysieren deine Angaben und senden dir deine Lohnanalyse als PDF innerhalb von 2 Arbeitstagen per E-Mail.</span>";
     }
     if (lowerService === "laufbahnberatung") {
-        return "Bitte buche deinen Termin für das Erstgespräch: https://calendly.com/armend-cvolution/kennenlern-gesprach. Sende uns vorab gerne relevante Unterlagen.";
+        return `
+            <span style="color:#64748B; display:block; margin-bottom:10px;">Bitte buche deinen Termin für das Erstgespräch. Sende uns vorab gerne relevante Unterlagen.</span>
+            <a href="https://calendly.com/armend-cvolution/kennenlern-gesprach" target="_blank" rel="noopener noreferrer" style="display:inline-block; background:#204878; color:#ffffff; text-decoration:none; font-weight:600; font-size:0.95rem; padding:10px 16px; border-radius:8px;">Termin buchen</a>
+        `;
     }
     if (lowerService === "bewerbungsunterlagen-check") {
-        return "Bitte sende uns dein Bewerbungsdossier als PDF an info@cvolution.ch, falls du es noch nicht übermittelt hast.";
+        return "<span style='color:#64748B;'>Bitte sende uns dein Bewerbungsdossier als PDF an info@cvolution.ch, falls du es noch nicht übermittelt hast.</span>";
     }
     if (lowerService === "motivationsschreiben") {
-        return "Bitte sende uns das Stelleninserat sowie deinen Lebenslauf oder dein LinkedIn-Profil an info@cvolution.ch.";
+        return "<span style='color:#64748B;'>Bitte sende uns das Stelleninserat sowie deinen Lebenslauf oder dein LinkedIn-Profil an info@cvolution.ch.</span>";
     }
     if (lowerService === "rav unterstützung") {
-        return "Wir melden uns bei dir mit den nächsten Schritten für deine RAV-Unterstützung.";
+        return "<span style='color:#64748B;'>Wir melden uns bei dir mit den nächsten Schritten für deine RAV-Unterstützung.</span>";
     }
-    return "Wir melden uns bei dir mit den nächsten Schritten.";
+    return "<span style='color:#64748B;'>Wir melden uns bei dir mit den nächsten Schritten.</span>";
 }
 
 function getOrderAttachments(orders: CartOrderEmailItem[]) {
@@ -433,7 +439,7 @@ export const sendCartConfirmationEmail = async (email: string, orders: CartOrder
     const serviceRows = orders.map((order) => `
         <li style="margin-bottom: 14px;">
             <strong>${order.service_label}</strong> – ${formatCurrency(order.final_price)}<br/>
-            <span style="color:#64748B;">${getServiceNextSteps(order.service_label)}</span>
+            ${getServiceNextStepsHtml(order.service_label)}
         </li>
     `).join("");
 
