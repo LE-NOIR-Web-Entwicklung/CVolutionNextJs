@@ -61,18 +61,32 @@ export async function GET(request: NextRequest) {
   const admin = await requireAdmin(request);
   if (!admin.ok) return NextResponse.json({ error: admin.error }, { status: admin.status });
 
-  let { data, error } = await supabaseAdmin
-    .from("orders")
-    .select(orderSelect)
-    .order("created_at", { ascending: false })
-    .limit(200);
+  const paymentStatus = request.nextUrl.searchParams.get("paymentStatus");
+  const isExternal = request.nextUrl.searchParams.get("isExternal");
+
+  const buildBaseQuery = (selectColumns: string) => {
+    let query = supabaseAdmin
+      .from("orders")
+      .select(selectColumns)
+      .order("created_at", { ascending: false });
+
+    if (paymentStatus && paymentStatus !== "all") {
+      query = query.eq("payment_status", paymentStatus);
+    }
+
+    if (isExternal === "true") {
+      query = query.eq("is_external", true);
+    } else if (isExternal === "false") {
+      query = query.or("is_external.is.null,is_external.eq.false");
+    }
+
+    return query;
+  };
+
+  let { data, error } = await buildBaseQuery(orderSelect);
 
   if (error && isMissingExternalOrderColumnError(error)) {
-    const fallback = await supabaseAdmin
-      .from("orders")
-      .select(orderSelectWithoutExternalColumns)
-      .order("created_at", { ascending: false })
-      .limit(200);
+    const fallback = await buildBaseQuery(orderSelectWithoutExternalColumns);
 
     data = fallback.data?.map((order) => ({
       ...order,
