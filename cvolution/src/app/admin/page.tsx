@@ -197,6 +197,8 @@ const AdminContent: React.FC = () => {
   const [couponLoading, setCouponLoading] = useState(false);
   const [orders, setOrders] = useState<Order[]>([]);
   const [ordersLoading, setOrdersLoading] = useState(false);
+  const [orderPaymentFilter, setOrderPaymentFilter] = useState<'all' | 'paid' | 'pending' | 'failed' | 'free_coupon'>('all');
+  const [orderExternalFilter, setOrderExternalFilter] = useState<'all' | 'true' | 'false'>('all');
   const [showCouponForm, setShowCouponForm] = useState(false);
   const [editingCouponId, setEditingCouponId] = useState<string | null>(null);
   const [couponForm, setCouponForm] = useState<CouponFormState>(() => emptyCouponForm());
@@ -212,7 +214,6 @@ const AdminContent: React.FC = () => {
     if (isAdmin) {
       fetchAllUsers();
       fetchCoupons();
-      fetchOrders();
     }
   }, [isAdmin]);
 
@@ -375,7 +376,11 @@ const AdminContent: React.FC = () => {
     setOrdersLoading(true);
     try {
       const headers = await getAdminHeaders();
-      const res = await fetch('/api/admin/orders', { headers });
+      const params = new URLSearchParams();
+      if (orderPaymentFilter !== 'all') params.set('paymentStatus', orderPaymentFilter);
+      if (orderExternalFilter !== 'all') params.set('isExternal', orderExternalFilter);
+      const query = params.toString();
+      const res = await fetch(`/api/admin/orders${query ? `?${query}` : ''}`, { headers });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Bestellungen konnten nicht geladen werden.');
       setOrders(data.orders || []);
@@ -386,6 +391,11 @@ const AdminContent: React.FC = () => {
       setOrdersLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (!isAdmin) return;
+    fetchOrders();
+  }, [isAdmin, orderPaymentFilter, orderExternalFilter]);
 
   const startCreateCoupon = () => {
     setEditingCouponId(null);
@@ -877,6 +887,30 @@ const AdminContent: React.FC = () => {
                   Aktualisieren
                 </Button>
               </div>
+              <div className="mb-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <Select value={orderPaymentFilter} onValueChange={(v) => setOrderPaymentFilter(v as typeof orderPaymentFilter)}>
+                  <SelectTrigger className="bg-white text-black">
+                    <SelectValue placeholder="Payment-Status filtern" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white">
+                    <SelectItem value="all">Payment: Alle</SelectItem>
+                    <SelectItem value="paid">Payment: Bezahlt</SelectItem>
+                    <SelectItem value="pending">Payment: Ausstehend</SelectItem>
+                    <SelectItem value="failed">Payment: Fehlgeschlagen</SelectItem>
+                    <SelectItem value="free_coupon">Payment: Gratis-Coupon</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={orderExternalFilter} onValueChange={(v) => setOrderExternalFilter(v as typeof orderExternalFilter)}>
+                  <SelectTrigger className="bg-white text-black">
+                    <SelectValue placeholder="External filtern" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white">
+                    <SelectItem value="all">Extern: Alle</SelectItem>
+                    <SelectItem value="true">Extern: Ja</SelectItem>
+                    <SelectItem value="false">Extern: Nein</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
                 <Card className="bg-white">
@@ -914,12 +948,15 @@ const AdminContent: React.FC = () => {
                       <thead className="bg-gray-50 text-left text-gray-700">
                         <tr>
                           <th className="p-3">Datum</th>
+                          <th className="p-3">Order-ID</th>
                           <th className="p-3">Kunde</th>
                           <th className="p-3">Service</th>
+                          <th className="p-3">Extern</th>
                           <th className="p-3">Preis</th>
                           <th className="p-3">Coupon</th>
                           <th className="p-3">Zahlung</th>
                           <th className="p-3">Dateien</th>
+                          <th className="p-3">Notizen</th>
                           <th className="p-3">Status</th>
                         </tr>
                       </thead>
@@ -930,6 +967,7 @@ const AdminContent: React.FC = () => {
                           return (
                             <tr key={order.id} className="border-t align-top">
                               <td className="p-3 text-gray-700 whitespace-nowrap">{formatDateTime(order.created_at)}</td>
+                              <td className="p-3 text-gray-700 font-mono text-xs">{order.id}</td>
                               <td className="p-3 text-gray-700">
                                 <p className="font-semibold text-gray-900">{getOrderCustomerName(order)}</p>
                                 <p>{order.email}</p>
@@ -942,10 +980,14 @@ const AdminContent: React.FC = () => {
                               <td className="p-3 text-gray-700">
                                 <p className="font-semibold text-gray-900">{order.service_label}</p>
                                 <p className="text-xs text-gray-500">{order.service_type}</p>
-                                {order.is_external && (
-                                  <p className="mt-1 text-xs font-medium text-blue-700">
-                                    Extern{order.external_source ? `: ${order.external_source}` : ''}
-                                  </p>
+                              </td>
+                              <td className="p-3 text-gray-700">
+                                {order.is_external ? (
+                                  <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                                    Ja{order.external_source ? ` (${order.external_source})` : ''}
+                                  </Badge>
+                                ) : (
+                                  <Badge variant="outline" className="bg-gray-50 text-gray-700 border-gray-200">Nein</Badge>
                                 )}
                               </td>
                               <td className="p-3 text-gray-700 whitespace-nowrap">
@@ -971,7 +1013,9 @@ const AdminContent: React.FC = () => {
                               </td>
                               <td className="p-3 text-gray-700 max-w-[220px]">
                                 {files || '-'}
-                                {order.remarks && <p className="text-xs text-gray-500 mt-1 line-clamp-2">{order.remarks}</p>}
+                              </td>
+                              <td className="p-3 text-gray-700 max-w-[260px]">
+                                {order.remarks ? <p className="text-xs text-gray-500 line-clamp-3">{order.remarks}</p> : '-'}
                               </td>
                               <td className="p-3 text-gray-700">
                                 <p>{order.status}</p>
