@@ -4,8 +4,6 @@ import { normalizeCouponCode } from "@/lib/coupons";
 import { COUPON_SERVICE_KEYS, isServiceKey } from "@/lib/services";
 import { supabaseAdmin } from "../../../../../lib/supabase-server";
 
-const FIXED_PERCENT_DISCOUNT = 30;
-
 type CouponPayload = {
   code?: unknown;
   description?: unknown;
@@ -15,6 +13,10 @@ type CouponPayload = {
   startsAt?: unknown;
   endsAt?: unknown;
   isActive?: unknown;
+  maxRedemptions?: unknown;
+  maxRedemptionsPerUser?: unknown;
+  minOrderAmount?: unknown;
+  campaignTag?: unknown;
 };
 
 function parseCouponPayload(payload: CouponPayload) {
@@ -32,7 +34,9 @@ function parseCouponPayload(payload: CouponPayload) {
   if (discountType !== "percent" && discountType !== "free") return { error: "Ungültige Rabatt-Art." };
   let discountValue = 100;
   if (discountType === "percent") {
-    discountValue = FIXED_PERCENT_DISCOUNT;
+    const parsedDiscount = Number(payload.discountValue);
+    if (!Number.isFinite(parsedDiscount) || parsedDiscount <= 0 || parsedDiscount > 100) return { error: "Rabattwert muss zwischen 1 und 100 liegen." };
+    discountValue = parsedDiscount;
   }
   if (applicableServices.length === 0 || applicableServices.length !== new Set(applicableServices).size) {
     return { error: "Bitte mindestens einen gültigen Service auswählen." };
@@ -53,6 +57,10 @@ function parseCouponPayload(payload: CouponPayload) {
       starts_at: startsDate.toISOString(),
       ends_at: endsDate.toISOString(),
       is_active: typeof payload.isActive === "boolean" ? payload.isActive : true,
+      max_redemptions: Number.isFinite(Number(payload.maxRedemptions)) ? Number(payload.maxRedemptions) : null,
+      max_redemptions_per_user: Number.isFinite(Number(payload.maxRedemptionsPerUser)) ? Number(payload.maxRedemptionsPerUser) : null,
+      min_order_amount: Number.isFinite(Number(payload.minOrderAmount)) ? Number(payload.minOrderAmount) : null,
+      campaign_tag: typeof payload.campaignTag === "string" && payload.campaignTag.trim() ? payload.campaignTag.trim() : null,
     },
   };
 }

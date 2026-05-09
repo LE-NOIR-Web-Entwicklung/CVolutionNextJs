@@ -34,9 +34,11 @@ async function fetchBlogRows(path: string) {
 }
 
 export async function getPublishedBlogPosts() {
+  const nowIso = new Date().toISOString();
   const query = new URLSearchParams({
     select: "*",
     is_published: "eq.true",
+    published_at: `lte.${nowIso}`,
     order: "published_at.desc.nullslast,created_at.desc",
   });
 
@@ -44,10 +46,12 @@ export async function getPublishedBlogPosts() {
 }
 
 export async function getPublishedBlogPost(slug: string) {
+  const nowIso = new Date().toISOString();
   const query = new URLSearchParams({
     select: "*",
     slug: `eq.${slug}`,
     is_published: "eq.true",
+    published_at: `lte.${nowIso}`,
     limit: "1",
   });
   const rows = await fetchBlogRows(`blog_posts?${query.toString()}`);
