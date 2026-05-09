@@ -14,7 +14,6 @@ import { createSlug } from "@/lib/blog-utils";
 import { getCoverImageUrl } from "@/lib/blog-display";
 
 const adminEmails = ["jan@cvolution.ch", "armend@cvolution.ch"];
-const ADMIN_SESSION_STORAGE_KEY = "cvolution-admin-session";
 
 type BlogFormState = {
   title: string;
@@ -75,30 +74,7 @@ export default function BlogAdminPanel() {
   }, []);
 
   const ensureAdminSession = async () => {
-    const current = await supabase.auth.getSession();
-    if (current.data.session) return current;
-
-    const storedSession = localStorage.getItem(ADMIN_SESSION_STORAGE_KEY);
-    if (!storedSession) return current;
-
-    try {
-      const parsed = JSON.parse(storedSession) as {
-        access_token?: string;
-        refresh_token?: string;
-      };
-
-      if (!parsed.access_token || !parsed.refresh_token) return current;
-
-      await supabase.auth.setSession({
-        access_token: parsed.access_token,
-        refresh_token: parsed.refresh_token,
-      });
-
-      return supabase.auth.getSession();
-    } catch {
-      localStorage.removeItem(ADMIN_SESSION_STORAGE_KEY);
-      return current;
-    }
+    return supabase.auth.getSession();
   };
 
   const getAdminHeaders = async (contentType: string | null = "application/json"): Promise<Record<string, string>> => {
@@ -107,9 +83,6 @@ export default function BlogAdminPanel() {
     const email = data.session?.user.email?.toLowerCase();
 
     if (!token || !email || !adminEmails.includes(email)) {
-      localStorage.removeItem("admin_logged_in");
-      localStorage.removeItem("admin_email");
-      localStorage.removeItem(ADMIN_SESSION_STORAGE_KEY);
       router.push("/admin/login");
       throw new Error("Bitte melden Sie sich erneut als Admin an.");
     }

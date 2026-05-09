@@ -5,7 +5,6 @@ import { isServiceKey } from "@/lib/services";
 import { supabaseAdmin } from "../../../../../../lib/supabase-server";
 
 type Params = { params: Promise<{ id: string }> };
-const FIXED_PERCENT_DISCOUNT = 30;
 
 function parsePatchPayload(payload: Record<string, unknown>) {
   const update: Record<string, unknown> = {};
@@ -21,11 +20,13 @@ function parsePatchPayload(payload: Record<string, unknown>) {
   if ("discountType" in payload) {
     if (payload.discountType !== "percent" && payload.discountType !== "free") return { error: "Ungültige Rabatt-Art." };
     update.discount_type = payload.discountType;
-    update.discount_value = payload.discountType === "percent" ? FIXED_PERCENT_DISCOUNT : 100;
+    if (payload.discountType === "free") update.discount_value = 100;
   }
   if ("discountValue" in payload) {
     if (update.discount_type === "percent") {
-      update.discount_value = FIXED_PERCENT_DISCOUNT;
+      const discountValue = Number(payload.discountValue);
+      if (!Number.isFinite(discountValue) || discountValue <= 0 || discountValue > 100) return { error: "Rabattwert muss zwischen 1 und 100 liegen." };
+      update.discount_value = discountValue;
     } else if (update.discount_type === "free") {
       update.discount_value = 100;
     }
@@ -50,6 +51,10 @@ function parsePatchPayload(payload: Record<string, unknown>) {
   if ("isActive" in payload) {
     update.is_active = payload.isActive === true;
   }
+  if ("maxRedemptions" in payload) update.max_redemptions = Number.isFinite(Number(payload.maxRedemptions)) ? Number(payload.maxRedemptions) : null;
+  if ("maxRedemptionsPerUser" in payload) update.max_redemptions_per_user = Number.isFinite(Number(payload.maxRedemptionsPerUser)) ? Number(payload.maxRedemptionsPerUser) : null;
+  if ("minOrderAmount" in payload) update.min_order_amount = Number.isFinite(Number(payload.minOrderAmount)) ? Number(payload.minOrderAmount) : null;
+  if ("campaignTag" in payload) update.campaign_tag = typeof payload.campaignTag === "string" && payload.campaignTag.trim() ? payload.campaignTag.trim() : null;
   update.updated_at = new Date().toISOString();
   return { data: update };
 }

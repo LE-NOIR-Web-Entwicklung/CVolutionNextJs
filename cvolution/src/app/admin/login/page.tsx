@@ -8,8 +8,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Lock } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
-const ADMIN_SESSION_STORAGE_KEY = 'cvolution-admin-session';
-
 const waitForAdminSession = async () => {
   for (let attempt = 0; attempt < 5; attempt += 1) {
     const { data } = await adminSupabase.auth.getSession();
@@ -58,28 +56,11 @@ export default function AdminLoginPage() {
           throw new Error('Admin-Session konnte nicht erstellt werden.');
         }
 
-        if (data.session) {
-          await adminSupabase.auth.setSession({
-            access_token: data.session.access_token,
-            refresh_token: data.session.refresh_token,
-          });
-
-          localStorage.setItem(ADMIN_SESSION_STORAGE_KEY, JSON.stringify({
-            access_token: data.session.access_token,
-            refresh_token: data.session.refresh_token,
-            expires_at: data.session.expires_at,
-            email: userEmail,
-          }));
-        }
 
         const verifiedSession = await waitForAdminSession();
         if (!verifiedSession) {
           throw new Error('Admin-Session konnte nicht gespeichert werden. Bitte Browser-Speicher fuer diese Seite erlauben.');
         }
-
-        // Setze Admin-Session im localStorage
-        localStorage.setItem('admin_logged_in', 'true');
-        localStorage.setItem('admin_email', userEmail);
 
         toast({
           title: 'Erfolgreich angemeldet',

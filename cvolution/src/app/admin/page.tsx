@@ -97,6 +97,10 @@ interface Coupon {
   ends_at: string;
   is_active: boolean;
   redemption_count: number;
+  max_redemptions: number | null;
+  max_redemptions_per_user: number | null;
+  min_order_amount: number | null;
+  campaign_tag: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -106,6 +110,10 @@ interface CouponFormState {
   description: string;
   discountType: 'percent' | 'free';
   discountValue: string;
+  maxRedemptions: string;
+  maxRedemptionsPerUser: string;
+  minOrderAmount: string;
+  campaignTag: string;
   applicableServices: ServiceKey[];
   startsAt: string;
   endsAt: string;
@@ -149,7 +157,6 @@ const serviceLabels: Record<ServiceKey, string> = {
 
 const adminEmails = ['jan@cvolution.ch', 'armend@cvolution.ch'];
 const FIXED_PERCENT_DISCOUNT = 30;
-const ADMIN_SESSION_STORAGE_KEY = 'cvolution-admin-session';
 
 const emptyCouponForm = (): CouponFormState => {
   const start = new Date();
@@ -162,6 +169,10 @@ const emptyCouponForm = (): CouponFormState => {
     description: '',
     discountType: 'percent',
     discountValue: String(FIXED_PERCENT_DISCOUNT),
+    maxRedemptions: '',
+    maxRedemptionsPerUser: '',
+    minOrderAmount: '',
+    campaignTag: '',
     applicableServices: [],
     startsAt: toDatetimeLocal(start.toISOString()),
     endsAt: toDatetimeLocal(end.toISOString()),
@@ -199,6 +210,12 @@ const AdminContent: React.FC = () => {
   const [ordersLoading, setOrdersLoading] = useState(false);
   const [orderPaymentFilter, setOrderPaymentFilter] = useState<'all' | 'paid' | 'pending' | 'failed' | 'free_coupon'>('all');
   const [orderExternalFilter, setOrderExternalFilter] = useState<'all' | 'true' | 'false'>('all');
+  const [orderSearch, setOrderSearch] = useState('');
+  const [orderDateFrom, setOrderDateFrom] = useState('');
+  const [orderDateTo, setOrderDateTo] = useState('');
+  const [orderPage, setOrderPage] = useState(1);
+  const [orderTotal, setOrderTotal] = useState(0);
+  const ORDER_PAGE_SIZE = 20;
   const [showCouponForm, setShowCouponForm] = useState(false);
   const [editingCouponId, setEditingCouponId] = useState<string | null>(null);
   const [couponForm, setCouponForm] = useState<CouponFormState>(() => emptyCouponForm());
@@ -224,43 +241,15 @@ const AdminContent: React.FC = () => {
     if (data.session && sessionEmail && adminEmails.includes(sessionEmail)) {
       setIsAdmin(true);
       setAdminEmail(sessionEmail);
-      localStorage.setItem('admin_logged_in', 'true');
-      localStorage.setItem('admin_email', sessionEmail);
       return;
     }
 
-    localStorage.removeItem('admin_logged_in');
-    localStorage.removeItem('admin_email');
-    localStorage.removeItem(ADMIN_SESSION_STORAGE_KEY);
     await supabase.auth.signOut();
     router.push('/admin/login');
   };
 
   const ensureAdminSession = async () => {
-    const current = await supabase.auth.getSession();
-    if (current.data.session) return current;
-
-    const storedSession = localStorage.getItem(ADMIN_SESSION_STORAGE_KEY);
-    if (!storedSession) return current;
-
-    try {
-      const parsed = JSON.parse(storedSession) as {
-        access_token?: string;
-        refresh_token?: string;
-      };
-
-      if (!parsed.access_token || !parsed.refresh_token) return current;
-
-      await supabase.auth.setSession({
-        access_token: parsed.access_token,
-        refresh_token: parsed.refresh_token,
-      });
-
-      return supabase.auth.getSession();
-    } catch {
-      localStorage.removeItem(ADMIN_SESSION_STORAGE_KEY);
-      return current;
-    }
+    return supabase.auth.getSession();
   };
 
   const fetchAllUsers = async () => {
@@ -344,9 +333,6 @@ const AdminContent: React.FC = () => {
     const token = data.session?.access_token;
     const email = data.session?.user.email?.toLowerCase();
     if (!token || !email || !adminEmails.includes(email)) {
-      localStorage.removeItem('admin_logged_in');
-      localStorage.removeItem('admin_email');
-      localStorage.removeItem(ADMIN_SESSION_STORAGE_KEY);
       router.push('/admin/login');
       throw new Error('Bitte melden Sie sich erneut als Admin an.');
     }
@@ -379,11 +365,17 @@ const AdminContent: React.FC = () => {
       const params = new URLSearchParams();
       if (orderPaymentFilter !== 'all') params.set('paymentStatus', orderPaymentFilter);
       if (orderExternalFilter !== 'all') params.set('isExternal', orderExternalFilter);
+      if (orderSearch.trim()) params.set('search', orderSearch.trim());
+      if (orderDateFrom) params.set('dateFrom', orderDateFrom);
+      if (orderDateTo) params.set('dateTo', orderDateTo);
+      params.set('page', String(orderPage));
+      params.set('pageSize', String(ORDER_PAGE_SIZE));
       const query = params.toString();
       const res = await fetch(`/api/admin/orders${query ? `?${query}` : ''}`, { headers });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Bestellungen konnten nicht geladen werden.');
       setOrders(data.orders || []);
+      setOrderTotal(typeof data.total === 'number' ? data.total : (data.orders || []).length);
     } catch (error) {
       console.error('Error fetching orders:', error);
       toast({ title: 'Fehler', description: 'Bestellungen konnten nicht geladen werden.', variant: 'destructive' });
@@ -395,7 +387,7 @@ const AdminContent: React.FC = () => {
   useEffect(() => {
     if (!isAdmin) return;
     fetchOrders();
-  }, [isAdmin, orderPaymentFilter, orderExternalFilter]);
+  }, [isAdmin, orderPaymentFilter, orderExternalFilter, orderSearch, orderDateFrom, orderDateTo, orderPage]);
 
   const startCreateCoupon = () => {
     setEditingCouponId(null);
@@ -411,6 +403,10 @@ const AdminContent: React.FC = () => {
       description: coupon.description || '',
       discountType: coupon.discount_type,
       discountValue: String(coupon.discount_type === 'percent' ? FIXED_PERCENT_DISCOUNT : 100),
+      maxRedemptions: coupon.max_redemptions ? String(coupon.max_redemptions) : '',
+      maxRedemptionsPerUser: coupon.max_redemptions_per_user ? String(coupon.max_redemptions_per_user) : '',
+      minOrderAmount: coupon.min_order_amount ? String(coupon.min_order_amount) : '',
+      campaignTag: coupon.campaign_tag || '',
       applicableServices: coupon.applicable_services,
       startsAt: toDatetimeLocal(coupon.starts_at),
       endsAt: toDatetimeLocal(coupon.ends_at),
@@ -443,7 +439,11 @@ const AdminContent: React.FC = () => {
         code: couponForm.code,
         description: couponForm.description,
         discountType: couponForm.discountType,
-        discountValue: couponForm.discountType === 'free' ? 100 : FIXED_PERCENT_DISCOUNT,
+        discountValue: couponForm.discountType === 'free' ? 100 : Number(couponForm.discountValue || FIXED_PERCENT_DISCOUNT),
+        maxRedemptions: couponForm.maxRedemptions ? Number(couponForm.maxRedemptions) : null,
+        maxRedemptionsPerUser: couponForm.maxRedemptionsPerUser ? Number(couponForm.maxRedemptionsPerUser) : null,
+        minOrderAmount: couponForm.minOrderAmount ? Number(couponForm.minOrderAmount) : null,
+        campaignTag: couponForm.campaignTag,
         applicableServices: couponForm.applicableServices,
         startsAt: new Date(couponForm.startsAt).toISOString(),
         endsAt: new Date(couponForm.endsAt).toISOString(),
@@ -505,9 +505,6 @@ const AdminContent: React.FC = () => {
 
   const handleSignOut = async () => {
     // Lösche Admin-Session aus localStorage
-    localStorage.removeItem('admin_logged_in');
-    localStorage.removeItem('admin_email');
-    localStorage.removeItem(ADMIN_SESSION_STORAGE_KEY);
     await supabase.auth.signOut();
 
     toast({
@@ -750,11 +747,32 @@ const AdminContent: React.FC = () => {
                   {couponForm.discountType === 'percent' && (
                     <div>
                       <label className="block text-sm font-medium text-gray-900 mb-1">Rabattwert</label>
-                      <div className="w-full border rounded-md px-3 py-2 text-sm text-gray-700 bg-gray-50">
-                        {FIXED_PERCENT_DISCOUNT}% Rabatt
-                      </div>
+                      <input
+                        type="number"
+                        min="1"
+                        max="100"
+                        className="w-full border rounded-md px-3 py-2 text-sm text-gray-900"
+                        value={couponForm.discountValue}
+                        onChange={(event) => setCouponForm({ ...couponForm, discountValue: event.target.value })}
+                      />
                     </div>
                   )}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-900 mb-1">Max. Einlösungen (optional)</label>
+                    <input type="number" min="1" className="w-full border rounded-md px-3 py-2 text-sm text-gray-900" value={couponForm.maxRedemptions} onChange={(event) => setCouponForm({ ...couponForm, maxRedemptions: event.target.value })} />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-900 mb-1">Max. pro Benutzer (optional)</label>
+                    <input type="number" min="1" className="w-full border rounded-md px-3 py-2 text-sm text-gray-900" value={couponForm.maxRedemptionsPerUser} onChange={(event) => setCouponForm({ ...couponForm, maxRedemptionsPerUser: event.target.value })} />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-900 mb-1">Mindestbestellwert CHF (optional)</label>
+                    <input type="number" step="0.01" min="0" className="w-full border rounded-md px-3 py-2 text-sm text-gray-900" value={couponForm.minOrderAmount} onChange={(event) => setCouponForm({ ...couponForm, minOrderAmount: event.target.value })} />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-900 mb-1">Campaign Tag (optional)</label>
+                    <input className="w-full border rounded-md px-3 py-2 text-sm text-gray-900" value={couponForm.campaignTag} onChange={(event) => setCouponForm({ ...couponForm, campaignTag: event.target.value })} />
+                  </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-900 mb-1">Startdatum und Startzeit</label>
                     <input
@@ -887,7 +905,10 @@ const AdminContent: React.FC = () => {
                   Aktualisieren
                 </Button>
               </div>
-              <div className="mb-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="mb-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                <input className="w-full border rounded-md px-3 py-2 text-sm text-gray-900" placeholder="Suche..." value={orderSearch} onChange={(event) => { setOrderPage(1); setOrderSearch(event.target.value); }} />
+                <input type="date" className="w-full border rounded-md px-3 py-2 text-sm text-gray-900" value={orderDateFrom} onChange={(event) => { setOrderPage(1); setOrderDateFrom(event.target.value); }} />
+                <input type="date" className="w-full border rounded-md px-3 py-2 text-sm text-gray-900" value={orderDateTo} onChange={(event) => { setOrderPage(1); setOrderDateTo(event.target.value); }} />
                 <Select value={orderPaymentFilter} onValueChange={(v) => setOrderPaymentFilter(v as typeof orderPaymentFilter)}>
                   <SelectTrigger className="bg-white text-black">
                     <SelectValue placeholder="Payment-Status filtern" />
@@ -916,7 +937,7 @@ const AdminContent: React.FC = () => {
                 <Card className="bg-white">
                   <CardContent className="p-4">
                     <p className="text-sm text-gray-500">Orders gesamt</p>
-                    <p className="text-2xl font-semibold text-gray-900">{orders.length}</p>
+                    <p className="text-2xl font-semibold text-gray-900">{orderTotal}</p>
                   </CardContent>
                 </Card>
                 <Card className="bg-white">
@@ -1028,6 +1049,13 @@ const AdminContent: React.FC = () => {
                       </tbody>
                     </table>
                   )}
+                  <div className="flex items-center justify-between border-t p-3 text-sm text-gray-600">
+                    <span>Seite {orderPage} · Total {orderTotal}</span>
+                    <div className="flex gap-2">
+                      <Button variant="outline" size="sm" disabled={orderPage <= 1} onClick={() => setOrderPage((prev) => Math.max(1, prev - 1))}>Zurück</Button>
+                      <Button variant="outline" size="sm" disabled={orderPage * ORDER_PAGE_SIZE >= orderTotal} onClick={() => setOrderPage((prev) => prev + 1)}>Weiter</Button>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
             </section>

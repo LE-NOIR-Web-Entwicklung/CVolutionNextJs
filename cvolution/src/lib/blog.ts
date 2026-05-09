@@ -19,11 +19,13 @@ function withTimeout<T>(promise: PromiseLike<T>, fallback: T, label: string) {
 }
 
 export async function getPublishedBlogPosts() {
+  const nowIso = new Date().toISOString();
   const { data, error } = await withTimeout(
     supabaseAdmin
       .from("blog_posts")
       .select("*")
       .eq("is_published", true)
+      .lte("published_at", nowIso)
       .order("published_at", { ascending: false, nullsFirst: false })
       .order("created_at", { ascending: false }),
     { data: [], error: null, count: null, status: 200, statusText: "timeout fallback" },
@@ -39,12 +41,14 @@ export async function getPublishedBlogPosts() {
 }
 
 export async function getPublishedBlogPost(slug: string) {
+  const nowIso = new Date().toISOString();
   const { data, error } = await withTimeout(
     supabaseAdmin
       .from("blog_posts")
       .select("*")
       .eq("slug", slug)
       .eq("is_published", true)
+      .lte("published_at", nowIso)
       .maybeSingle(),
     { data: null, error: null, count: null, status: 200, statusText: "timeout fallback" },
     `Published blog detail ${slug}`

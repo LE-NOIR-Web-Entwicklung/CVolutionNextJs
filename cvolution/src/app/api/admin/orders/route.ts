@@ -63,11 +63,18 @@ export async function GET(request: NextRequest) {
 
   const paymentStatus = request.nextUrl.searchParams.get("paymentStatus");
   const isExternal = request.nextUrl.searchParams.get("isExternal");
+  const search = request.nextUrl.searchParams.get("search")?.trim();
+  const dateFrom = request.nextUrl.searchParams.get("dateFrom");
+  const dateTo = request.nextUrl.searchParams.get("dateTo");
+  const page = Math.max(Number(request.nextUrl.searchParams.get("page") || "1"), 1);
+  const pageSize = Math.min(Math.max(Number(request.nextUrl.searchParams.get("pageSize") || "20"), 1), 100);
+  const from = (page - 1) * pageSize;
+  const to = from + pageSize - 1;
 
   const buildBaseQuery = (selectColumns: string) => {
     let query = supabaseAdmin
       .from("orders")
-      .select(selectColumns)
+      .select(selectColumns, { count: "exact" })
       .order("created_at", { ascending: false });
 
     if (paymentStatus && paymentStatus !== "all") {
@@ -79,11 +86,17 @@ export async function GET(request: NextRequest) {
     } else if (isExternal === "false") {
       query = query.or("is_external.is.null,is_external.eq.false");
     }
+    if (search) {
+      query = query.or(`email.ilike.%${search}%,name.ilike.%${search}%,first_name.ilike.%${search}%,last_name.ilike.%${search}%,coupon_code.ilike.%${search}%`);
+    }
+    if (dateFrom) query = query.gte("created_at", new Date(`${dateFrom}T00:00:00.000Z`).toISOString());
+    if (dateTo) query = query.lte("created_at", new Date(`${dateTo}T23:59:59.999Z`).toISOString());
+    query = query.range(from, to);
 
     return query;
   };
 
-  let initialResult = await buildBaseQuery(orderSelect);
+  const initialResult = await buildBaseQuery(orderSelect);
   let data = initialResult.data as Record<string, unknown>[] | null;
   let error = initialResult.error;
 
@@ -107,5 +120,5 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Bestellungen konnten nicht geladen werden." }, { status: 500 });
   }
 
-  return NextResponse.json({ orders: data ?? [] });
+  return NextResponse.json({ orders: data ?? [], total: initialResult.count ?? (data?.length ?? 0), page, pageSize });
 }
