@@ -180,6 +180,17 @@ const emptyCouponForm = (): CouponFormState => {
   };
 };
 
+
+function toDateInputValue(value: Date) {
+  return value.toISOString().slice(0, 10);
+}
+
+function getDefaultOrdersDateFrom() {
+  const today = new Date();
+  today.setMonth(today.getMonth() - 1);
+  return toDateInputValue(today);
+}
+
 function toDatetimeLocal(value: string) {
   const date = new Date(value);
   const offset = date.getTimezoneOffset();
@@ -211,8 +222,8 @@ const AdminContent: React.FC = () => {
   const [orderPaymentFilter, setOrderPaymentFilter] = useState<'all' | 'paid' | 'pending' | 'failed' | 'free_coupon'>('all');
   const [orderExternalFilter, setOrderExternalFilter] = useState<'all' | 'true' | 'false'>('all');
   const [orderSearch, setOrderSearch] = useState('');
-  const [orderDateFrom, setOrderDateFrom] = useState('');
-  const [orderDateTo, setOrderDateTo] = useState('');
+  const [orderDateFrom, setOrderDateFrom] = useState(getDefaultOrdersDateFrom);
+  const [orderDateTo, setOrderDateTo] = useState(() => toDateInputValue(new Date()));
   const [orderPage, setOrderPage] = useState(1);
   const [orderTotal, setOrderTotal] = useState(0);
   const ORDER_PAGE_SIZE = 20;
@@ -907,8 +918,8 @@ const AdminContent: React.FC = () => {
               </div>
               <div className="mb-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
                 <input className="w-full border rounded-md px-3 py-2 text-sm text-gray-900" placeholder="Suche..." value={orderSearch} onChange={(event) => { setOrderPage(1); setOrderSearch(event.target.value); }} />
-                <input type="date" className="w-full border rounded-md px-3 py-2 text-sm text-gray-900" value={orderDateFrom} onChange={(event) => { setOrderPage(1); setOrderDateFrom(event.target.value); }} />
-                <input type="date" className="w-full border rounded-md px-3 py-2 text-sm text-gray-900" value={orderDateTo} onChange={(event) => { setOrderPage(1); setOrderDateTo(event.target.value); }} />
+                <input type="date" className="w-full min-w-0 max-w-full appearance-none border rounded-md px-3 py-2 text-sm text-gray-900" value={orderDateFrom} onChange={(event) => { setOrderPage(1); setOrderDateFrom(event.target.value); }} />
+                <input type="date" className="w-full min-w-0 max-w-full appearance-none border rounded-md px-3 py-2 text-sm text-gray-900" value={orderDateTo} onChange={(event) => { setOrderPage(1); setOrderDateTo(event.target.value); }} />
                 <Select value={orderPaymentFilter} onValueChange={(v) => setOrderPaymentFilter(v as typeof orderPaymentFilter)}>
                   <SelectTrigger className="bg-white text-black">
                     <SelectValue placeholder="Payment-Status filtern" />
