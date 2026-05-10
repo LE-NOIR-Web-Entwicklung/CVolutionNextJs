@@ -71,13 +71,13 @@ export async function GET(request: NextRequest) {
   const from = (page - 1) * pageSize;
   const to = from + pageSize - 1;
 
-  const buildBaseQuery = (selectColumns: string) => {
-    let query = supabaseAdmin
-      .from("orders")
-      .select(selectColumns, { count: "exact" })
-      .order("created_at", { ascending: false });
+  const applySharedFilters = (
+    query: ReturnType<typeof supabaseAdmin.from>,
+    options?: { includePaymentStatus?: boolean },
+  ) => {
+    const includePaymentStatus = options?.includePaymentStatus ?? true;
 
-    if (paymentStatus && paymentStatus !== "all") {
+    if (includePaymentStatus && paymentStatus && paymentStatus !== "all") {
       query = query.eq("payment_status", paymentStatus);
     }
 
@@ -91,9 +91,16 @@ export async function GET(request: NextRequest) {
     }
     if (dateFrom) query = query.gte("created_at", new Date(`${dateFrom}T00:00:00.000Z`).toISOString());
     if (dateTo) query = query.lte("created_at", new Date(`${dateTo}T23:59:59.999Z`).toISOString());
-    query = query.range(from, to);
-
     return query;
+  };
+
+  const buildBaseQuery = (selectColumns: string) => {
+    let query = supabaseAdmin
+      .from("orders")
+      .select(selectColumns, { count: "exact" })
+      .order("created_at", { ascending: false });
+    query = applySharedFilters(query, { includePaymentStatus: true });
+    return query.range(from, to);
   };
 
   const initialResult = await buildBaseQuery(orderSelect);
@@ -120,5 +127,25 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Bestellungen konnten nicht geladen werden." }, { status: 500 });
   }
 
-  return NextResponse.json({ orders: data ?? [], total: initialResult.count ?? (data?.length ?? 0), page, pageSize });
+  const [paidCountResult, pendingCountResult] = await Promise.all([
+    applySharedFilters(
+      supabaseAdmin.from("orders").select("id", { count: "exact", head: true }).in("payment_status", ["paid", "free_coupon"]),
+      { includePaymentStatus: false },
+    ),
+    applySharedFilters(
+      supabaseAdmin.from("orders").select("id", { count: "exact", head: true }).eq("payment_status", "pending"),
+      { includePaymentStatus: false },
+    ),
+  ]);
+
+  return NextResponse.json({
+    orders: data ?? [],
+    total: initialResult.count ?? (data?.length ?? 0),
+    summary: {
+      paid: paidCountResult.count ?? 0,
+      pending: pendingCountResult.count ?? 0,
+    },
+    page,
+    pageSize,
+  });
 }

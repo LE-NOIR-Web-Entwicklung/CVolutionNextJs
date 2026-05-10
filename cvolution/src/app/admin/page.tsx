@@ -226,6 +226,8 @@ const AdminContent: React.FC = () => {
   const [orderDateTo, setOrderDateTo] = useState(() => toDateInputValue(new Date()));
   const [orderPage, setOrderPage] = useState(1);
   const [orderTotal, setOrderTotal] = useState(0);
+  const [orderPaidTotal, setOrderPaidTotal] = useState(0);
+  const [orderPendingTotal, setOrderPendingTotal] = useState(0);
   const ORDER_PAGE_SIZE = 20;
   const [showCouponForm, setShowCouponForm] = useState(false);
   const [editingCouponId, setEditingCouponId] = useState<string | null>(null);
@@ -387,6 +389,8 @@ const AdminContent: React.FC = () => {
       if (!res.ok) throw new Error(data.error || 'Bestellungen konnten nicht geladen werden.');
       setOrders(data.orders || []);
       setOrderTotal(typeof data.total === 'number' ? data.total : (data.orders || []).length);
+      setOrderPaidTotal(typeof data.summary?.paid === 'number' ? data.summary.paid : 0);
+      setOrderPendingTotal(typeof data.summary?.pending === 'number' ? data.summary.pending : 0);
     } catch (error) {
       console.error('Error fetching orders:', error);
       toast({ title: 'Fehler', description: 'Bestellungen konnten nicht geladen werden.', variant: 'destructive' });
@@ -955,7 +959,7 @@ const AdminContent: React.FC = () => {
                   <CardContent className="p-4">
                     <p className="text-sm text-gray-500">Bezahlt</p>
                     <p className="text-2xl font-semibold text-gray-900">
-                      {orders.filter((order) => order.payment_status === 'paid' || order.payment_status === 'free_coupon').length}
+                      {orderPaidTotal}
                     </p>
                   </CardContent>
                 </Card>
@@ -963,7 +967,7 @@ const AdminContent: React.FC = () => {
                   <CardContent className="p-4">
                     <p className="text-sm text-gray-500">Ausstehend</p>
                     <p className="text-2xl font-semibold text-gray-900">
-                      {orders.filter((order) => order.payment_status === 'pending').length}
+                      {orderPendingTotal}
                     </p>
                   </CardContent>
                 </Card>
