@@ -72,7 +72,7 @@ export async function GET(request: NextRequest) {
   const to = from + pageSize - 1;
 
   const applySharedFilters = (
-    query: ReturnType<typeof supabaseAdmin.from>,
+    query: any,
     options?: { includePaymentStatus?: boolean },
   ) => {
     const includePaymentStatus = options?.includePaymentStatus ?? true;
