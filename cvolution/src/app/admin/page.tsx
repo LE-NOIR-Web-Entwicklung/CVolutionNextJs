@@ -928,22 +928,22 @@ const AdminContent: React.FC = () => {
                   <SelectTrigger className="bg-white text-black">
                     <SelectValue placeholder="Payment-Status filtern" />
                   </SelectTrigger>
-                  <SelectContent className="bg-white">
-                    <SelectItem value="all">Payment: Alle</SelectItem>
-                    <SelectItem value="paid">Payment: Bezahlt</SelectItem>
-                    <SelectItem value="pending">Payment: Ausstehend</SelectItem>
-                    <SelectItem value="failed">Payment: Fehlgeschlagen</SelectItem>
-                    <SelectItem value="free_coupon">Payment: Gratis-Coupon</SelectItem>
+                  <SelectContent className="bg-white text-black">
+                    <SelectItem className="text-black focus:text-black" value="all">Payment: Alle</SelectItem>
+                    <SelectItem className="text-black focus:text-black" value="paid">Payment: Bezahlt</SelectItem>
+                    <SelectItem className="text-black focus:text-black" value="pending">Payment: Ausstehend</SelectItem>
+                    <SelectItem className="text-black focus:text-black" value="failed">Payment: Fehlgeschlagen</SelectItem>
+                    <SelectItem className="text-black focus:text-black" value="free_coupon">Payment: Gratis-Coupon</SelectItem>
                   </SelectContent>
                 </Select>
                 <Select value={orderExternalFilter} onValueChange={(v) => setOrderExternalFilter(v as typeof orderExternalFilter)}>
                   <SelectTrigger className="bg-white text-black">
                     <SelectValue placeholder="External filtern" />
                   </SelectTrigger>
-                  <SelectContent className="bg-white">
-                    <SelectItem value="all">Extern: Alle</SelectItem>
-                    <SelectItem value="true">Extern: Ja</SelectItem>
-                    <SelectItem value="false">Extern: Nein</SelectItem>
+                  <SelectContent className="bg-white text-black">
+                    <SelectItem className="text-black focus:text-black" value="all">Extern: Alle</SelectItem>
+                    <SelectItem className="text-black focus:text-black" value="true">Extern: Ja</SelectItem>
+                    <SelectItem className="text-black focus:text-black" value="false">Extern: Nein</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
