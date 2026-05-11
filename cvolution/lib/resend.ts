@@ -317,7 +317,11 @@ export const sendSelfServiceInfoEmail = async (data: SelfServiceInfoEmailData) =
 function getServiceNextStepsHtml(service: string) {
     const lowerService = service.toLowerCase();
     if (lowerService === "lebenslauf") {
-        return "<span style='color:#64748B;'>Bitte sende uns deinen aktuellen Lebenslauf oder den Link zu deinem LinkedIn-Profil per E-Mail an info@cvolution.ch. Falls vorhanden, helfen auch Arbeitszeugnisse.</span>";
+        return `
+            <span style="color:#64748B; display:block; margin-bottom:10px;">Sieh dir unsere 4 Topseller-Lebensläufe an und teile uns mit, welche Vorlage wir für dich erstellen dürfen:</span>
+            <a href="https://1drv.ms/f/c/b90389d448c1c616/EhXyumsKpldDpvb6DOnDYPoBcQw-_mBWn4wzybsuTFpSZQ?e=2haAaD" target="_blank" rel="noopener noreferrer" style="display:inline-block; background:#204878; color:#ffffff; text-decoration:none; font-weight:600; font-size:0.95rem; padding:10px 16px; border-radius:8px; margin-bottom:10px;">Lebensläufe ansehen</a>
+            <span style="color:#64748B; display:block;">Bitte sende uns deinen aktuellen Lebenslauf oder den Link zu deinem LinkedIn-Profil per E-Mail an info@cvolution.ch. Falls vorhanden, helfen auch Arbeitszeugnisse.</span>
+        `;
     }
     if (lowerService === "lohnanalyse telefon") {
         return `
