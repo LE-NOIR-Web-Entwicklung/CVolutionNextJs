@@ -99,8 +99,10 @@ export const sendConfirmationEmail = async (email: string, service: string) => {
             <p style=\"color: #333; font-size: 1.1rem; margin-bottom: 24px;\">Vielen Dank für deine Bestellung!<br />
             Es freut uns, dass du mit unserer Unterstützung den nächsten Karriereschritt gehen möchtest.</p>
             <h2 style=\"color: #204878; font-size: 1.1rem; margin-bottom: 12px;\">Wie geht es weiter?</h2>
-            <p style=\"color: #333; font-size: 1.1rem; margin-bottom: 16px;\">Im Anhang findest du unsere 4 Topseller-Lebensläufe. Welche dürfen wir für dich erstellen?<br />
-            <a href=\"https://1drv.ms/f/c/b90389d448c1c616/EhXyumsKpldDpvb6DOnDYPoBcQw-_mBWn4wzybsuTFpSZQ?e=2haAaD\" style=\"color: #204878; text-decoration: underline; font-weight: bold;\" target=\"_blank\">Hier ansehen</a></p>
+            <p style=\"color: #333; font-size: 1.1rem; margin-bottom: 12px;\">Im Anhang findest du unsere 4 Topseller-Lebensläufe. Welche dürfen wir für dich erstellen?</p>
+            <p style=\"margin-bottom: 16px;\">
+              <a href=\"https://1drv.ms/f/c/b90389d448c1c616/EhXyumsKpldDpvb6DOnDYPoBcQw-_mBWn4wzybsuTFpSZQ?e=2haAaD\" style=\"display: inline-block; background-color: #204878; color: #ffffff; text-decoration: none; font-weight: 700; padding: 12px 20px; border-radius: 8px;\" target=\"_blank\" rel=\"noopener noreferrer\">Lebensläufe ansehen</a>
+            </p>
             <p style=\"color: #333; font-size: 1.1rem; margin-bottom: 16px;\">Sende uns bitte deinen aktuellen Lebenslauf oder den Link zu deinem LinkedIn-Profil per E-Mail an <a href=\"mailto:info@cvolution.ch\" style=\"color: #204878; text-decoration: underline;\">info@cvolution.ch</a> – das hilft uns bei der Ausarbeitung.<br />
             Hast du auch Arbeitszeugnisse zur Hand, können wir deinen CV noch aussagekräftiger gestalten.</p>
             <p style=\"color: #333; font-size: 1.1rem; margin-bottom: 16px;\">Falls du keine Unterlagen zur Verfügung hast, ist das kein Problem – melde dich einfach telefonisch bei uns unter <a href=\"tel:+41764405151\" style=\"color: #204878; text-decoration: underline;\">076 440 51 51</a>.</p>
@@ -315,7 +317,11 @@ export const sendSelfServiceInfoEmail = async (data: SelfServiceInfoEmailData) =
 function getServiceNextStepsHtml(service: string) {
     const lowerService = service.toLowerCase();
     if (lowerService === "lebenslauf") {
-        return "<span style='color:#64748B;'>Bitte sende uns deinen aktuellen Lebenslauf oder den Link zu deinem LinkedIn-Profil per E-Mail an info@cvolution.ch. Falls vorhanden, helfen auch Arbeitszeugnisse.</span>";
+        return `
+            <span style="color:#64748B; display:block; margin-bottom:10px;">Sieh dir unsere 4 Topseller-Lebensläufe an und teile uns mit, welche Vorlage wir für dich erstellen dürfen:</span>
+            <a href="https://1drv.ms/f/c/b90389d448c1c616/EhXyumsKpldDpvb6DOnDYPoBcQw-_mBWn4wzybsuTFpSZQ?e=2haAaD" target="_blank" rel="noopener noreferrer" style="display:inline-block; background:#204878; color:#ffffff; text-decoration:none; font-weight:600; font-size:0.95rem; padding:10px 16px; border-radius:8px; margin-bottom:10px;">Lebensläufe ansehen</a>
+            <span style="color:#64748B; display:block;">Bitte sende uns deinen aktuellen Lebenslauf oder den Link zu deinem LinkedIn-Profil per E-Mail an info@cvolution.ch. Falls vorhanden, helfen auch Arbeitszeugnisse.</span>
+        `;
     }
     if (lowerService === "lohnanalyse telefon") {
         return `
