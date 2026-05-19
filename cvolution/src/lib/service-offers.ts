@@ -62,9 +62,9 @@ export const SERVICE_OFFERS: ServiceOffer[] = [
   {
     name: "Check",
     description:
-      "Wir prüfen deinen Lebenslauf, deine Arbeitszeugnisse und weitere Bewerbungsdokumente auf Inhalt, Aufbau, Gestaltung und Formulierungen",
+      "Wir prüfen deinen Lebenslauf, dein Motivationsschreiben, deine Arbeitszeugnisse und weitere Bewerbungsdokumente auf Inhalt, Aufbau, Gestaltung und Formulierungen",
     image: "/images/checked.png",
-    price: "CHF 49",
+    price: "ab CHF 59",
     link: "/service-check",
     serviceType: "check",
   },

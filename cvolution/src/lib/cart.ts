@@ -1,14 +1,23 @@
 import type { ShopProductKey } from "@/lib/shop";
+import {
+  normalizeCheckDocumentSelections,
+  type CheckDocumentKey,
+} from "@/lib/check-service";
 
 export const CART_STORAGE_KEY = "cvolution_cart";
 
 export type CartItem = {
   serviceType: ShopProductKey;
   quantity: number;
+  checkSelections?: CheckDocumentKey[];
 };
 
 function isSingleQuantityService(serviceType: unknown) {
   return serviceType === "salary_pdf" || serviceType === "salary_phone";
+}
+
+function isDocumentCheckService(serviceType: unknown) {
+  return serviceType === "check";
 }
 
 function normalizeItems(value: unknown): CartItem[] {
@@ -16,10 +25,17 @@ function normalizeItems(value: unknown): CartItem[] {
   return value
     .map((item) => {
       const serviceType = item?.serviceType;
+      const checkSelections = isDocumentCheckService(serviceType)
+        ? normalizeCheckDocumentSelections(item?.checkSelections)
+        : undefined;
       const maxQuantity = isSingleQuantityService(serviceType) ? 1 : 10;
+      const quantity = checkSelections
+        ? checkSelections.length
+        : Math.min(maxQuantity, Math.max(1, Number(item?.quantity || 1)));
       return {
         serviceType,
-        quantity: Math.min(maxQuantity, Math.max(1, Number(item?.quantity || 1))),
+        quantity,
+        ...(checkSelections ? { checkSelections } : {}),
       };
     })
     .filter((item) => typeof item.serviceType === "string") as CartItem[];
@@ -39,14 +55,33 @@ export function writeCart(items: CartItem[]) {
   window.dispatchEvent(new Event("cvolution-cart-changed"));
 }
 
-export function addCartItem(serviceType: ShopProductKey) {
+export function addCartItem(
+  serviceType: ShopProductKey,
+  options?: { checkSelections?: CheckDocumentKey[] }
+) {
   const items = readCart();
   const fixedSingleQuantity = isSingleQuantityService(serviceType);
+  const hasCheckSelectionOption = options?.checkSelections !== undefined;
+  const checkSelections = isDocumentCheckService(serviceType)
+    ? normalizeCheckDocumentSelections(options?.checkSelections)
+    : undefined;
   const existing = items.find((item) => item.serviceType === serviceType);
   if (existing) {
-    existing.quantity = fixedSingleQuantity ? 1 : Math.min(10, existing.quantity + 1);
+    if (checkSelections && (hasCheckSelectionOption || !existing.checkSelections)) {
+      existing.checkSelections = checkSelections;
+      existing.quantity = checkSelections.length;
+    } else if (isDocumentCheckService(serviceType)) {
+      existing.checkSelections = normalizeCheckDocumentSelections(existing.checkSelections);
+      existing.quantity = existing.checkSelections.length;
+    } else {
+      existing.quantity = fixedSingleQuantity ? 1 : Math.min(10, existing.quantity + 1);
+    }
   } else {
-    items.push({ serviceType, quantity: 1 });
+    items.push({
+      serviceType,
+      quantity: checkSelections ? checkSelections.length : 1,
+      ...(checkSelections ? { checkSelections } : {}),
+    });
   }
   writeCart(items);
   return items;

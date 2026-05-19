@@ -12,12 +12,13 @@ export default function ServiceCheck() {
       description="Ein überzeugendes Bewerbungsdossier ist oft der Schlüssel zum Vorstellungsgespräch. Personalverantwortliche entscheiden innert Sekunden, ob eine Bewerbung weiter geprüft wird – oder eben nicht. Deshalb ist es entscheidend, dass deine Unterlagen inhaltlich wie formal überzeugen. Wir prüfen Aufbau, Inhalt, Formulierungen, Gestaltung sowie die Gesamtaussage deines Dossiers. Du erhältst von uns ein verständliches Feedback mit konkreten Empfehlungen. Wir analysieren deine Bewerbungsdokumente sorgfältig und zeigen dir auf, wo du optimieren kannst."
       servicesTitle="Wir prüfen insbesondere"
       services={[
-        "Lebenslauf und CV",
+        "Lebenslauf",
+        "Motivationsschreiben",
         "Arbeitszeugnisse",
-        "Weitere Unterlagen wie Motivationsschreiben oder Deckblatt",
+        "Weitere Dokumente",
       ]}
       closingText="Mit optimierten Bewerbungsunterlagen erhöhen Sie Ihre Chancen auf ein Vorstellungsgespräch und den nächsten Karriereschritt."
-      price="CHF 49"
+      price="ab CHF 59"
       serviceType="check"
     />
   );

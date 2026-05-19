@@ -4,6 +4,12 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { ArrowRight, ShoppingCart } from "lucide-react";
 import { clearCart, readCart, writeCart, type CartItem } from "@/lib/cart";
+import {
+  CHECK_DOCUMENT_OPTIONS,
+  getCheckDocumentLabels,
+  normalizeCheckDocumentSelections,
+  type CheckDocumentKey,
+} from "@/lib/check-service";
 import { SHOP_PRODUCTS, type ShopProductKey } from "@/lib/shop";
 
 type CouponPreview =
@@ -27,6 +33,11 @@ type SalaryDetails = {
   cvFile: File | null;
 };
 
+type CartLine = CartItem & {
+  product: (typeof SHOP_PRODUCTS)[ShopProductKey];
+  lineTotal: number;
+};
+
 const emptySalaryDetails: SalaryDetails = {
   firstName: "",
   lastName: "",
@@ -48,6 +59,10 @@ function formatPrice(value: number) {
 
 function isSalaryService(serviceType: ShopProductKey) {
   return serviceType === "salary_pdf" || serviceType === "salary_phone";
+}
+
+function isDocumentCheckService(serviceType: ShopProductKey) {
+  return serviceType === "check";
 }
 
 function convertFileToBase64(file: File): Promise<string> {
@@ -85,18 +100,26 @@ export default function CartPage() {
       .map((item) => {
         const product = SHOP_PRODUCTS[item.serviceType as ShopProductKey];
         if (!product) return null;
-        const quantity = isSalaryService(item.serviceType as ShopProductKey) ? 1 : item.quantity;
+        const checkSelections = isDocumentCheckService(item.serviceType as ShopProductKey)
+          ? normalizeCheckDocumentSelections(item.checkSelections)
+          : undefined;
+        const quantity = isSalaryService(item.serviceType as ShopProductKey)
+          ? 1
+          : checkSelections
+            ? checkSelections.length
+            : item.quantity;
         return {
           ...item,
           quantity,
+          ...(checkSelections ? { checkSelections } : {}),
           product,
           lineTotal: product.basePrice * quantity,
         };
       })
-      .filter(Boolean) as Array<CartItem & { product: (typeof SHOP_PRODUCTS)[ShopProductKey]; lineTotal: number }>;
+      .filter(Boolean) as CartLine[];
   }, [items]);
 
-  const originalTotal = lines.reduce((sum, line) => sum + line.product.basePrice * line.quantity, 0);
+  const originalTotal = lines.reduce((sum, line) => sum + line.lineTotal, 0);
   const total = couponPreview.state === "valid" ? couponPreview.finalTotal : originalTotal;
   const discountTotal = Math.max(0, originalTotal - total);
 
@@ -174,6 +197,29 @@ export default function CartPage() {
 
   function removeItem(serviceType: ShopProductKey) {
     updateItems(items.filter((item) => item.serviceType !== serviceType));
+  }
+
+  function updateCheckSelection(serviceType: ShopProductKey, selection: CheckDocumentKey) {
+    updateItems(
+      items.map((item) => {
+        if (item.serviceType !== serviceType) return item;
+
+        const currentSelections = normalizeCheckDocumentSelections(item.checkSelections);
+        const nextSelections = currentSelections.includes(selection)
+          ? currentSelections.length === 1
+            ? currentSelections
+            : currentSelections.filter((itemSelection) => itemSelection !== selection)
+          : CHECK_DOCUMENT_OPTIONS
+            .map((option) => option.key)
+            .filter((optionKey) => currentSelections.includes(optionKey) || optionKey === selection);
+
+        return {
+          ...item,
+          quantity: nextSelections.length,
+          checkSelections: nextSelections,
+        };
+      })
+    );
   }
 
   function updateSalaryDetails(serviceType: ShopProductKey, patch: Partial<SalaryDetails>) {
@@ -288,6 +334,41 @@ export default function CartPage() {
     );
   }
 
+  function renderCheckDocumentFields(line: CartLine) {
+    const selectedLabels = getCheckDocumentLabels(line.checkSelections);
+    const selectedSet = new Set(normalizeCheckDocumentSelections(line.checkSelections));
+
+    return (
+      <div className="mt-3 border-t border-gray-100 pt-4">
+        <div className="mb-3 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="text-sm font-semibold text-[#111827]">Zu prüfende Unterlagen</p>
+            <p className="text-xs text-[#64748B]">CHF 59 pro Auswahl</p>
+          </div>
+          <p className="text-xs font-semibold text-[#204878]">
+            {selectedLabels.length} Ausgewählt
+          </p>
+        </div>
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+          {CHECK_DOCUMENT_OPTIONS.map((option) => (
+            <label
+              key={option.key}
+              className="flex min-h-11 cursor-pointer items-center gap-3 rounded-lg border border-gray-200 bg-[#F8FAFC] px-3 py-2 text-sm font-medium text-[#111827] transition hover:border-[#b8c7da] hover:bg-white"
+            >
+              <input
+                type="checkbox"
+                checked={selectedSet.has(option.key)}
+                onChange={() => updateCheckSelection(line.serviceType, option.key)}
+                className="h-4 w-4 rounded border-gray-300 text-[#204878] focus:ring-[#204878]"
+              />
+              <span>{option.label}</span>
+            </label>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
     setError("");
@@ -330,7 +411,12 @@ export default function CartPage() {
         if (!isSalaryService(item.serviceType)) {
           return {
             serviceType: item.serviceType,
-            quantity: item.quantity,
+            quantity: isDocumentCheckService(item.serviceType)
+              ? normalizeCheckDocumentSelections(item.checkSelections).length
+              : item.quantity,
+            ...(isDocumentCheckService(item.serviceType)
+              ? { checkSelections: normalizeCheckDocumentSelections(item.checkSelections) }
+              : {}),
           };
         }
 
@@ -437,7 +523,7 @@ export default function CartPage() {
                         <p className="text-xs text-[#64748B] truncate">{line.product.shortDescription}</p>
                       </div>
                       <div className="flex items-center gap-3 shrink-0">
-                        {!isSalaryService(line.serviceType) && (
+                        {!isSalaryService(line.serviceType) && !isDocumentCheckService(line.serviceType) && (
                           <input
                             type="number"
                             min={1}
@@ -447,7 +533,9 @@ export default function CartPage() {
                             className="w-14 border border-gray-200 rounded-lg px-2 py-1 text-sm text-center text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#204878] focus:border-transparent transition"
                           />
                         )}
-                        <span className="text-sm font-semibold text-[#204878] w-20 text-right">{formatPrice(line.product.basePrice)}</span>
+                        <span className="text-sm font-semibold text-[#204878] w-20 text-right">
+                          {formatPrice(isDocumentCheckService(line.serviceType) ? line.lineTotal : line.product.basePrice)}
+                        </span>
                         <button
                           type="button"
                           onClick={() => removeItem(line.serviceType)}
@@ -457,6 +545,7 @@ export default function CartPage() {
                         </button>
                       </div>
                     </div>
+                    {isDocumentCheckService(line.serviceType) && renderCheckDocumentFields(line)}
                     {isSalaryService(line.serviceType) && renderSalaryFields(line.serviceType)}
                   </div>
                 ))}

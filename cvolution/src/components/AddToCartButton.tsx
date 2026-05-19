@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { ArrowRight, Check, ShoppingCart, X } from "lucide-react";
 import { addCartItem, readCart } from "@/lib/cart";
+import type { CheckDocumentKey } from "@/lib/check-service";
 import { SHOP_PRODUCTS, type ShopProductKey } from "@/lib/shop";
 import { CART_RECOMMENDATION_OFFERS } from "@/lib/service-offers";
 
@@ -12,9 +13,10 @@ type AddToCartButtonProps = {
   serviceType: ShopProductKey;
   className?: string;
   productName?: string;
+  checkSelections?: CheckDocumentKey[];
 };
 
-export function AddToCartButton({ serviceType, className, productName }: AddToCartButtonProps) {
+export function AddToCartButton({ serviceType, className, productName, checkSelections }: AddToCartButtonProps) {
   const [added, setAdded] = useState(false);
   const [count, setCount] = useState(0);
   const [cartCounts, setCartCounts] = useState<Partial<Record<ShopProductKey, number>>>({});
@@ -63,7 +65,10 @@ export function AddToCartButton({ serviceType, className, productName }: AddToCa
   }, [serviceType]);
 
   function handleAddToCart(nextServiceType: ShopProductKey, openPopup: boolean) {
-    const nextItems = addCartItem(nextServiceType);
+    const nextItems = addCartItem(
+      nextServiceType,
+      nextServiceType === serviceType && checkSelections ? { checkSelections } : undefined
+    );
     const item = nextItems.find((cartItem) => cartItem.serviceType === serviceType);
     const nextCounts: Partial<Record<ShopProductKey, number>> = {};
 

@@ -7,6 +7,10 @@ import {
   validateCouponForService,
   type Coupon,
 } from "@/lib/coupons";
+import {
+  getCheckDocumentLabels,
+  normalizeCheckDocumentSelections,
+} from "@/lib/check-service";
 import { getSaferpayShopReference } from "@/lib/saferpay";
 import { getShopProduct } from "@/lib/shop";
 import { initializeWorldlineCheckout } from "@/lib/worldline-checkout";
@@ -30,6 +34,7 @@ type CheckoutItemInput = {
   salaryFileName?: unknown;
   cvFileBase64?: unknown;
   cvFileName?: unknown;
+  checkSelections?: unknown;
 };
 
 function normalizeQuantity(value: unknown) {
@@ -70,7 +75,12 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: "Unbekannter Service im Warenkorb." }, { status: 400 });
       }
 
-      const quantity = normalizeQuantity(item.quantity);
+      const checkDocumentLabels = product.orderType === "check"
+        ? getCheckDocumentLabels(item.checkSelections)
+        : [];
+      const quantity = product.orderType === "check"
+        ? normalizeCheckDocumentSelections(item.checkSelections).length
+        : normalizeQuantity(item.quantity);
       if (cartCouponCode) {
         const validation = await validateCouponForService(cartCouponCode, product.orderType);
         if (validation.valid) {
@@ -83,6 +93,7 @@ export async function POST(request: NextRequest) {
       preparedItems.push({
         product,
         quantity: product.orderType === "salary_pdf" || product.orderType === "salary_phone" ? 1 : quantity,
+        checkDocumentLabels,
         coupon: null,
         originalUnitPrice: product.basePrice,
         finalUnitPrice: product.basePrice,
@@ -116,43 +127,51 @@ export async function POST(request: NextRequest) {
     });
 
     const total = preparedItems.reduce((sum, item) => sum + item.finalUnitPrice * item.quantity, 0);
+    const checkoutPositionCount = preparedItems.length;
     const initialPaymentStatus = total <= 0 ? "free_coupon" : "pending";
     const orderRows = preparedItems.flatMap((item) => {
-      return Array.from({ length: item.quantity }, (_, index) => ({
-        name,
-        first_name: item.firstName,
-        last_name: item.lastName,
-        email: item.email || email,
-        birth_date: item.birthDate,
-        work_location: item.workLocation,
-        gross_annual_salary: item.grossAnnualSalary,
-        fringe_benefits: item.fringeBenefits,
-        linkedin_url: item.linkedinUrl,
-        remarks: [
-          `${CONTACT_PHONE_REMARKS_PREFIX} ${phone}`,
-          remarks,
-          item.remarks,
-          item.quantity > 1 ? `Position ${index + 1} von ${item.quantity}` : null,
-        ]
-          .filter(Boolean)
-          .join("\n") || null,
-        service_type: item.product.orderType,
-        service_label: item.product.label,
-        cv_file_base64: item.cvFileBase64,
-        cv_file_name: item.cvFileName,
-        salary_file_base64: item.salaryFileBase64,
-        salary_file_name: item.salaryFileName,
-        coupon_id: item.coupon?.id ?? null,
-        coupon_code: item.coupon?.code ?? null,
-        coupon_discount_type: item.coupon?.discount_type ?? null,
-        coupon_discount_value: item.coupon ? getDiscountPercent(item.coupon) : null,
-        original_price: item.originalUnitPrice,
-        final_price: item.finalUnitPrice,
-        payment_status: initialPaymentStatus,
-        payment_url: null,
-        coupon_valid: Boolean(item.coupon),
-        status: initialPaymentStatus === "free_coupon" ? "paid" : "pending",
-      }));
+      return Array.from({ length: item.quantity }, (_, index) => {
+        const checkDocumentLabel = item.product.orderType === "check"
+          ? item.checkDocumentLabels[index]
+          : null;
+
+        return {
+          name,
+          first_name: item.firstName,
+          last_name: item.lastName,
+          email: item.email || email,
+          birth_date: item.birthDate,
+          work_location: item.workLocation,
+          gross_annual_salary: item.grossAnnualSalary,
+          fringe_benefits: item.fringeBenefits,
+          linkedin_url: item.linkedinUrl,
+          remarks: [
+            `${CONTACT_PHONE_REMARKS_PREFIX} ${phone}`,
+            remarks,
+            item.remarks,
+            checkDocumentLabel ? `Unterlage: ${checkDocumentLabel}` : null,
+            item.product.orderType !== "check" && item.quantity > 1 ? `Position ${index + 1} von ${item.quantity}` : null,
+          ]
+            .filter(Boolean)
+            .join("\n") || null,
+          service_type: item.product.orderType,
+          service_label: checkDocumentLabel ? `${item.product.label}: ${checkDocumentLabel}` : item.product.label,
+          cv_file_base64: item.cvFileBase64,
+          cv_file_name: item.cvFileName,
+          salary_file_base64: item.salaryFileBase64,
+          salary_file_name: item.salaryFileName,
+          coupon_id: item.coupon?.id ?? null,
+          coupon_code: item.coupon?.code ?? null,
+          coupon_discount_type: item.coupon?.discount_type ?? null,
+          coupon_discount_value: item.coupon ? getDiscountPercent(item.coupon) : null,
+          original_price: item.originalUnitPrice,
+          final_price: item.finalUnitPrice,
+          payment_status: initialPaymentStatus,
+          payment_url: null,
+          coupon_valid: Boolean(item.coupon),
+          status: initialPaymentStatus === "free_coupon" ? "paid" : "pending",
+        };
+      });
     });
 
     const { data: orders, error } = await supabaseAdmin
@@ -189,7 +208,7 @@ export async function POST(request: NextRequest) {
       amount: total,
       orderIds: payableOrderIds,
       reference,
-      description: `CVolution Warenkorb (${orders.length} Positionen)`,
+      description: `CVolution Warenkorb (${checkoutPositionCount} ${checkoutPositionCount === 1 ? "Position" : "Positionen"})`,
       returnUrl: `${origin}/api/worldline/checkout/return?groupId=${encodeURIComponent(reference)}`,
       payer: {
         id: reference,

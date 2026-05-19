@@ -1,3 +1,5 @@
+import { CHECK_SERVICE_UNIT_PRICE } from "@/lib/check-service";
+
 export const COUPON_SERVICE_KEYS = [
   "service-career",
   "service-check",
@@ -40,7 +42,7 @@ export const SERVICE_CONFIGS: Record<string, ServiceConfig> = {
     orderType: "check",
     couponServiceKey: "service-check",
     label: "Bewerbungsunterlagen-Check",
-    basePrice: 49,
+    basePrice: CHECK_SERVICE_UNIT_PRICE,
     paymentUrls: { 
       normal: `${SAFERPAY_BASE}/ec04d072-37de-4a15-81ec-8c62a28234e1`,
       percent30: `${SAFERPAY_BASE}/5171ac53-621c-4b4d-8d64-16d7d8e87834`,

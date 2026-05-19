@@ -218,7 +218,16 @@ type SelfServiceInfoEmailData = {
     transactionId?: string | null;
 };
 
+type CartEmailDisplayItem = {
+    orders: CartOrderEmailItem[];
+    serviceLabel: string;
+    originalPrice: number;
+    finalPrice: number;
+    selectedCheckDocuments: string[];
+};
+
 const CONTACT_PHONE_REMARKS_PREFIX = "[contact_phone]";
+const CHECK_DOCUMENT_REMARKS_PREFIX = "Unterlage:";
 
 function formatCurrency(value: unknown) {
     const numberValue = Number(value || 0);
@@ -272,10 +281,88 @@ function getCleanRemarks(remarks?: string | null) {
     if (!remarks) return null;
     const cleanRemarks = remarks
         .split("\n")
-        .filter((line) => !line.startsWith(CONTACT_PHONE_REMARKS_PREFIX))
+        .filter((line) =>
+            !line.startsWith(CONTACT_PHONE_REMARKS_PREFIX)
+            && !line.startsWith(CHECK_DOCUMENT_REMARKS_PREFIX)
+        )
         .join("\n")
         .trim();
     return cleanRemarks || null;
+}
+
+function getCheckDocumentSelection(order: CartOrderEmailItem) {
+    if (order.service_type !== "check" && !order.service_label.toLowerCase().startsWith("bewerbungsunterlagen-check")) {
+        return null;
+    }
+
+    const labelSelection = order.service_label.match(/^Bewerbungsunterlagen-Check:\s*(.+)$/i)?.[1]?.trim();
+    if (labelSelection) return labelSelection;
+
+    const remarksSelection = order.remarks
+        ?.split("\n")
+        .find((line) => line.startsWith(CHECK_DOCUMENT_REMARKS_PREFIX))
+        ?.replace(CHECK_DOCUMENT_REMARKS_PREFIX, "")
+        .trim();
+
+    return remarksSelection || null;
+}
+
+function getEmailServiceLabel(order: CartOrderEmailItem) {
+    return getCheckDocumentSelection(order) ? "Bewerbungsunterlagen-Check" : order.service_label;
+}
+
+function getUniqueCleanRemarks(orders: CartOrderEmailItem[]) {
+    const remarks = orders
+        .map((order) => getCleanRemarks(order.remarks))
+        .filter((value): value is string => Boolean(value));
+
+    return Array.from(new Set(remarks)).join("\n\n") || null;
+}
+
+function buildCartEmailDisplayItems(orders: CartOrderEmailItem[]): CartEmailDisplayItem[] {
+    const displayItems: CartEmailDisplayItem[] = [];
+    let checkItemIndex = -1;
+
+    orders.forEach((order) => {
+        const selectedCheckDocument = getCheckDocumentSelection(order);
+        const originalPrice = Number(order.original_price || 0);
+        const finalPrice = Number(order.final_price || 0);
+
+        if (selectedCheckDocument) {
+            if (checkItemIndex === -1) {
+                checkItemIndex = displayItems.length;
+                displayItems.push({
+                    orders: [],
+                    serviceLabel: "Bewerbungsunterlagen-Check",
+                    originalPrice: 0,
+                    finalPrice: 0,
+                    selectedCheckDocuments: [],
+                });
+            }
+
+            const checkItem = displayItems[checkItemIndex];
+            checkItem.orders.push(order);
+            checkItem.originalPrice += originalPrice;
+            checkItem.finalPrice += finalPrice;
+            checkItem.selectedCheckDocuments.push(selectedCheckDocument);
+            return;
+        }
+
+        displayItems.push({
+            orders: [order],
+            serviceLabel: getEmailServiceLabel(order),
+            originalPrice,
+            finalPrice,
+            selectedCheckDocuments: [],
+        });
+    });
+
+    if (checkItemIndex !== -1) {
+        const checkItem = displayItems[checkItemIndex];
+        checkItem.selectedCheckDocuments = Array.from(new Set(checkItem.selectedCheckDocuments));
+    }
+
+    return displayItems;
 }
 
 export const sendSelfServiceInfoEmail = async (data: SelfServiceInfoEmailData) => {
@@ -338,7 +425,7 @@ function getServiceNextStepsHtml(service: string) {
             <a href="https://calendly.com/armend-cvolution/kennenlern-gesprach" target="_blank" rel="noopener noreferrer" style="display:inline-block; background:#204878; color:#ffffff; text-decoration:none; font-weight:600; font-size:0.95rem; padding:10px 16px; border-radius:8px;">Termin buchen</a>
         `;
     }
-    if (lowerService === "bewerbungsunterlagen-check") {
+    if (lowerService.startsWith("bewerbungsunterlagen-check")) {
         return "<span style='color:#64748B;'>Bitte sende uns dein Bewerbungsdossier als PDF an info@cvolution.ch, falls du es noch nicht übermittelt hast.</span>";
     }
     if (lowerService === "motivationsschreiben") {
@@ -379,26 +466,31 @@ export const sendCartInfoEmail = async (orders: CartOrderEmailItem[]) => {
     const total = orders.reduce((sum, order) => sum + Number(order.final_price || 0), 0);
     const couponCode = orders.find((order) => order.coupon_code)?.coupon_code;
     const attachments = getOrderAttachments(orders);
+    const displayItems = buildCartEmailDisplayItems(orders);
 
-    const orderBlocks = orders.map((order, index) => `
+    const orderBlocks = displayItems.map((item, index) => `
         ${(() => {
+            const order = item.orders[0];
             const phone = getContactPhoneFromRemarks(order.remarks);
-            const cleanRemarks = getCleanRemarks(order.remarks);
+            const cleanRemarks = getUniqueCleanRemarks(item.orders);
+            const selectedDocumentsText = item.selectedCheckDocuments.join(", ");
             return `
         <div style="padding: 18px 0; border-top: 1px solid #e5e7eb;">
-            <h2 style="color: #204878; font-size: 1.15rem; margin: 0 0 10px;">${index + 1}. ${order.service_label}</h2>
-            <p style="color: #333; font-size: 1rem;"><strong>Name:</strong> ${getDisplayName(order)}</p>
-            <p style="color: #333; font-size: 1rem;"><strong>E-Mail:</strong> ${order.email}</p>
-            ${phone ? `<p style="color: #333; font-size: 1rem;"><strong>Telefon:</strong> ${phone}</p>` : ""}
-            <p style="color: #333; font-size: 1rem;"><strong>Preis:</strong> ${formatCurrency(order.final_price)}${order.original_price !== order.final_price ? ` <span style="color:#64748B;">(Original ${formatCurrency(order.original_price)})</span>` : ""}</p>
-            ${order.birth_date ? `<p style="color: #333; font-size: 1rem;"><strong>Geburtsdatum:</strong> ${order.birth_date}</p>` : ""}
-            ${order.work_location ? `<p style="color: #333; font-size: 1rem;"><strong>Arbeitsort:</strong> ${order.work_location}</p>` : ""}
-            ${order.gross_annual_salary ? `<p style="color: #333; font-size: 1rem;"><strong>Bruttojahreslohn:</strong> ${order.gross_annual_salary}</p>` : ""}
-            ${order.fringe_benefits ? `<p style="color: #333; font-size: 1rem;"><strong>Fringe & Benefits:</strong> ${order.fringe_benefits}</p>` : ""}
-            ${order.linkedin_url ? `<p style="color: #333; font-size: 1rem;"><strong>LinkedIn:</strong> <a href="${order.linkedin_url}" style="color:#204878;">${order.linkedin_url}</a></p>` : ""}
-            ${cleanRemarks ? `<p style="color: #333; font-size: 1rem;"><strong>Bemerkungen:</strong><br/>${cleanRemarks.replace(/\n/g, "<br/>")}</p>` : ""}
-            ${order.cv_file_name ? `<p style="color: #333; font-size: 1rem;"><strong>CV-Datei:</strong> ${order.cv_file_name}</p>` : ""}
-            ${order.salary_file_name ? `<p style="color: #333; font-size: 1rem;"><strong>Lohnabrechnung:</strong> ${order.salary_file_name}</p>` : ""}
+            <h2 style="color: #204878; font-size: 1.15rem; margin: 0 0 10px;">${index + 1}. ${escapeHtml(item.serviceLabel)}</h2>
+            <p style="color: #333; font-size: 1rem;"><strong>Name:</strong> ${escapeHtml(getDisplayName(order))}</p>
+            <p style="color: #333; font-size: 1rem;"><strong>E-Mail:</strong> ${escapeHtml(order.email)}</p>
+            ${phone ? `<p style="color: #333; font-size: 1rem;"><strong>Telefon:</strong> ${escapeHtml(phone)}</p>` : ""}
+            <p style="color: #333; font-size: 1rem;"><strong>Preis:</strong> ${formatCurrency(item.finalPrice)}${item.originalPrice !== item.finalPrice ? ` <span style="color:#64748B;">(Original ${formatCurrency(item.originalPrice)})</span>` : ""}</p>
+            ${selectedDocumentsText ? `<p style="color: #333; font-size: 1rem;"><strong>Ausgewählte Unterlagen:</strong> ${escapeHtml(selectedDocumentsText)}</p>` : ""}
+            ${selectedDocumentsText ? `<p style="color: #333; font-size: 1rem;"><strong>Vom Kunden zu senden:</strong> Bewerbungsdossier als PDF an info@cvolution.ch</p>` : ""}
+            ${order.birth_date ? `<p style="color: #333; font-size: 1rem;"><strong>Geburtsdatum:</strong> ${escapeHtml(order.birth_date)}</p>` : ""}
+            ${order.work_location ? `<p style="color: #333; font-size: 1rem;"><strong>Arbeitsort:</strong> ${escapeHtml(order.work_location)}</p>` : ""}
+            ${order.gross_annual_salary ? `<p style="color: #333; font-size: 1rem;"><strong>Bruttojahreslohn:</strong> ${escapeHtml(order.gross_annual_salary)}</p>` : ""}
+            ${order.fringe_benefits ? `<p style="color: #333; font-size: 1rem;"><strong>Fringe & Benefits:</strong> ${escapeHtml(order.fringe_benefits)}</p>` : ""}
+            ${order.linkedin_url ? `<p style="color: #333; font-size: 1rem;"><strong>LinkedIn:</strong> <a href="${escapeHtml(order.linkedin_url)}" style="color:#204878;">${escapeHtml(order.linkedin_url)}</a></p>` : ""}
+            ${cleanRemarks ? `<p style="color: #333; font-size: 1rem;"><strong>Bemerkungen:</strong><br/>${escapeHtml(cleanRemarks).replace(/\n/g, "<br/>")}</p>` : ""}
+            ${order.cv_file_name ? `<p style="color: #333; font-size: 1rem;"><strong>CV-Datei:</strong> ${escapeHtml(order.cv_file_name)}</p>` : ""}
+            ${order.salary_file_name ? `<p style="color: #333; font-size: 1rem;"><strong>Lohnabrechnung:</strong> ${escapeHtml(order.salary_file_name)}</p>` : ""}
         </div>
             `;
         })()}
@@ -413,13 +505,13 @@ export const sendCartInfoEmail = async (orders: CartOrderEmailItem[]) => {
     } = {
         from: "CVolution <info@cvolution.ch>",
         to: "info@cvolution.ch",
-        subject: `Neue Warenkorb-Bestellung (${orders.length} Positionen)`,
+        subject: `Neue Warenkorb-Bestellung (${displayItems.length} Positionen)`,
         html: `
             <div style="font-family: 'Segoe UI', Arial, sans-serif; background: #f4f8fb; padding: 32px;">
                 <div style="max-width: 640px; margin: 0 auto; background: #fff; border-radius: 12px; box-shadow: 0 2px 8px rgba(32,72,120,0.08); padding: 32px 24px; text-align: left;">
                     <img src="https://cvolution.ch/images/logo.png" alt="CVolution Logo" style="width: 80px; margin-bottom: 24px; display: block; margin-left: auto; margin-right: auto;" />
                     <h1 style="color: #204878; font-size: 1.5rem; margin-bottom: 16px; text-align: center;">Neue Warenkorb-Bestellung</h1>
-                    <p style="color:#333; font-size:1rem;"><strong>Positionen:</strong> ${orders.length}</p>
+                    <p style="color:#333; font-size:1rem;"><strong>Positionen:</strong> ${displayItems.length}</p>
                     <p style="color:#333; font-size:1rem;"><strong>Subtotal:</strong> ${formatCurrency(subtotal)}</p>
                     ${couponCode ? `<p style="color:#333; font-size:1rem;"><strong>Coupon Code:</strong> ${couponCode}</p>` : ""}
                     <p style="color:#333; font-size:1rem;"><strong>Total bezahlt:</strong> ${formatCurrency(total)}</p>
@@ -442,11 +534,16 @@ export const sendCartConfirmationEmail = async (email: string, orders: CartOrder
     if (!orders.length) return;
 
     const total = orders.reduce((sum, order) => sum + Number(order.final_price || 0), 0);
-    const serviceRows = orders.map((order) => `
-        <li style="margin-bottom: 14px;">
-            <strong>${order.service_label}</strong> – ${formatCurrency(order.final_price)}<br/>
-            ${getServiceNextStepsHtml(order.service_label)}
-        </li>
+    const displayItems = buildCartEmailDisplayItems(orders);
+    const serviceRows = displayItems.map((item) => `
+        <div style="margin-bottom: 16px; padding: 16px; border: 1px solid #e5e7eb; border-radius: 12px; background: #ffffff;">
+            <div style="display:flex; justify-content:space-between; gap:16px; align-items:flex-start;">
+                <strong style="color:#111827; font-size:1rem;">${escapeHtml(item.serviceLabel)}</strong>
+                <span style="white-space:nowrap; color:#111827;">${formatCurrency(item.finalPrice)}</span>
+            </div>
+            ${item.selectedCheckDocuments.length ? `<p style="color:#64748B; font-size:0.95rem; margin:10px 0 0;"><strong style="color:#334155;">Ausgewählte Unterlagen:</strong> ${escapeHtml(item.selectedCheckDocuments.join(", "))}</p>` : ""}
+            <div style="margin-top:10px;">${getServiceNextStepsHtml(item.serviceLabel)}</div>
+        </div>
     `).join("");
 
     await resend.emails.send({
@@ -460,7 +557,7 @@ export const sendCartConfirmationEmail = async (email: string, orders: CartOrder
                     <h1 style="color: #204878; font-size: 2rem; margin-bottom: 16px; text-align:center;">Vielen Dank für deine Bestellung!</h1>
                     <p style="color:#333; font-size:1.1rem;">Wir haben deine Warenkorb-Bestellung erhalten.</p>
                     <h2 style="color:#204878; font-size:1.15rem; margin-top:24px;">Deine bestellten Services</h2>
-                    <ul style="color:#333; font-size:1rem; padding-left:20px;">${serviceRows}</ul>
+                    ${serviceRows}
                     <p style="color:#333; font-size:1.1rem;"><strong>Total:</strong> ${formatCurrency(total)}</p>
                     <p style="color:#333; font-size:1.1rem;">Bei Fragen erreichst du uns unter <a href="mailto:info@cvolution.ch" style="color:#204878;">info@cvolution.ch</a> oder telefonisch unter <a href="tel:+41764405151" style="color:#204878;">076 440 51 51</a>.</p>
                     <hr style="margin: 32px 0 16px 0; border: none; border-top: 1px solid #e5e7eb;" />
