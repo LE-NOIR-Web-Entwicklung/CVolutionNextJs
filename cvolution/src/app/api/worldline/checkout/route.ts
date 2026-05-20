@@ -35,6 +35,12 @@ type CheckoutItemInput = {
   cvFileBase64?: unknown;
   cvFileName?: unknown;
   checkSelections?: unknown;
+  checkFiles?: unknown;
+};
+
+type UploadedFileInput = {
+  fileName: string;
+  fileBase64: string;
 };
 
 function normalizeQuantity(value: unknown) {
@@ -45,6 +51,24 @@ function normalizeQuantity(value: unknown) {
 
 function getText(value: unknown) {
   return typeof value === "string" && value.trim() ? value.trim() : null;
+}
+
+function normalizeUploadedFiles(value: unknown): UploadedFileInput[] {
+  if (!Array.isArray(value)) return [];
+
+  return value
+    .map((file) => {
+      if (!file || typeof file !== "object") return null;
+
+      const candidate = file as Record<string, unknown>;
+      const fileName = getText(candidate.fileName);
+      const fileBase64 = getText(candidate.fileBase64);
+      if (!fileName || !fileBase64) return null;
+
+      return { fileName, fileBase64 };
+    })
+    .filter((file): file is UploadedFileInput => Boolean(file))
+    .slice(0, 10);
 }
 
 export async function POST(request: NextRequest) {
@@ -110,6 +134,7 @@ export async function POST(request: NextRequest) {
         salaryFileName: getText(item.salaryFileName),
         cvFileBase64: getText(item.cvFileBase64),
         cvFileName: getText(item.cvFileName),
+        checkFiles: product.orderType === "check" ? normalizeUploadedFiles(item.checkFiles) : [],
       });
     }
 
@@ -160,6 +185,9 @@ export async function POST(request: NextRequest) {
           cv_file_name: item.cvFileName,
           salary_file_base64: item.salaryFileBase64,
           salary_file_name: item.salaryFileName,
+          check_files: item.product.orderType === "check" && index === 0 && item.checkFiles.length > 0
+            ? item.checkFiles
+            : null,
           coupon_id: item.coupon?.id ?? null,
           coupon_code: item.coupon?.code ?? null,
           coupon_discount_type: item.coupon?.discount_type ?? null,

@@ -1,6 +1,13 @@
-import { Resend } from "resend"; 
+import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+let resendClient: Resend | null = null;
+
+function getResend() {
+    if (!resendClient) {
+        resendClient = new Resend(process.env.RESEND_API_KEY);
+    }
+    return resendClient;
+}
 
 export const sendEmail = async (
     name: string,
@@ -84,7 +91,7 @@ export const sendEmail = async (
         emailData.attachments = attachments;
     }
 
-    await resend.emails.send(emailData);
+    await getResend().emails.send(emailData);
 };
 
 
@@ -137,14 +144,14 @@ export const sendConfirmationEmail = async (email: string, service: string) => {
             <p style=\"color: #333; font-size: 1.1rem; margin-bottom: 16px;\">Bitte sende uns vorab, falls vorhanden, deinen aktuellen Lebenslauf oder relevante Unterlagen per E-Mail an <a href=\"mailto:info@cvolution.ch\" style=\"color: #204878; text-decoration: underline;\">info@cvolution.ch</a>.</p>
             <p style=\"color: #333; font-size: 1.1rem;\">Wir freuen uns auf die Zusammenarbeit mit dir!</p>
         `;
-    } else if (service && service.toLowerCase() === "bewerbungsunterlagen-check") {
+    } else if (service && service.toLowerCase().startsWith("bewerbungsunterlagen-check")) {
         customMessage = `
             <p style=\"color: #333; font-size: 1.1rem; margin-bottom: 24px;\">Vielen Dank für deine Bestellung!<br />
             Es freut uns, dass wir dein Bewerbungsdossier prüfen dürfen.</p>
             <h2 style=\"color: #204878; font-size: 1.1rem; margin-bottom: 12px;\">Wie geht es weiter?</h2>
-            <p style=\"color: #333; font-size: 1.1rem; margin-bottom: 16px;\">Sende uns dein Bewerbungsdossier als PDF zu.</p>
-            <p style=\"color: #333; font-size: 1.1rem; margin-bottom: 16px;\">Wir werden dieses prüfen und dir per Mail eine ausführliche Rückmeldung zukommen lassen. Solltest du im Nachgang noch Fragen oder Unklarheiten haben, darfst du dich gerne melden.</p>
-            <p style=\"color: #333; font-size: 1.1rem; margin-bottom: 16px;\">Sende uns bitte dein aktuelles Bewerbungsdossier per E-Mail an <a href=\"mailto:info@cvolution.ch\" style=\"color: #204878; text-decoration: underline;\">info@cvolution.ch</a>.</p>
+            <p style=\"color: #333; font-size: 1.1rem; margin-bottom: 16px;\">Falls du dein Bewerbungsdossier im Checkout bereits hochgeladen hast, ist nichts weiter nötig.</p>
+            <p style=\"color: #333; font-size: 1.1rem; margin-bottom: 16px;\">Falls noch Unterlagen fehlen, sende sie uns bitte per E-Mail an <a href=\"mailto:info@cvolution.ch\" style=\"color: #204878; text-decoration: underline;\">info@cvolution.ch</a>.</p>
+            <p style=\"color: #333; font-size: 1.1rem; margin-bottom: 16px;\">Wir werden dein Dossier prüfen und dir per Mail eine ausführliche Rückmeldung zukommen lassen. Solltest du im Nachgang noch Fragen oder Unklarheiten haben, darfst du dich gerne melden.</p>
             <p style=\"color: #333; font-size: 1.1rem;\">Wir freuen uns auf die Zusammenarbeit mit dir!</p>
         `;
     } else if (service && service.toLowerCase() === "motivationsschreiben") {
@@ -158,7 +165,7 @@ export const sendConfirmationEmail = async (email: string, service: string) => {
             <p style=\"color: #333; font-size: 1.1rem;\">Wir freuen uns auf die Zusammenarbeit mit dir!</p>
         `;
     }
-    await resend.emails.send({
+    await getResend().emails.send({
         from: "CVolution <info@cvolution.ch>",
         to: email,
         subject: "Bestellbestätigung",
@@ -203,6 +210,7 @@ type CartOrderEmailItem = {
     cv_file_name?: string | null;
     salary_file_base64?: string | null;
     salary_file_name?: string | null;
+    check_files?: unknown;
 };
 
 type SelfServiceInfoEmailData = {
@@ -226,6 +234,11 @@ type CartEmailDisplayItem = {
     selectedCheckDocuments: string[];
 };
 
+type UploadedOrderFile = {
+    fileName: string;
+    fileBase64: string;
+};
+
 const CONTACT_PHONE_REMARKS_PREFIX = "[contact_phone]";
 const CHECK_DOCUMENT_REMARKS_PREFIX = "Unterlage:";
 
@@ -241,6 +254,38 @@ function escapeHtml(value: unknown) {
         .replace(/>/g, "&gt;")
         .replace(/"/g, "&quot;")
         .replace(/'/g, "&#039;");
+}
+
+function getString(value: unknown) {
+    return typeof value === "string" && value.trim() ? value.trim() : null;
+}
+
+function normalizeOrderUploadedFiles(value: unknown): UploadedOrderFile[] {
+    if (!value) return [];
+
+    let parsedValue = value;
+    if (typeof value === "string") {
+        try {
+            parsedValue = JSON.parse(value);
+        } catch {
+            return [];
+        }
+    }
+
+    if (!Array.isArray(parsedValue)) return [];
+
+    return parsedValue
+        .map((file) => {
+            if (!file || typeof file !== "object") return null;
+
+            const candidate = file as Record<string, unknown>;
+            const fileName = getString(candidate.fileName ?? candidate.filename);
+            const fileBase64 = getString(candidate.fileBase64 ?? candidate.content);
+            if (!fileName || !fileBase64) return null;
+
+            return { fileName, fileBase64 };
+        })
+        .filter((file): file is UploadedOrderFile => Boolean(file));
 }
 
 function formatDateTime(value?: string | null) {
@@ -370,7 +415,7 @@ export const sendSelfServiceInfoEmail = async (data: SelfServiceInfoEmailData) =
     const paidAt = formatDateTime(data.paidAt);
     const subscriptionEnd = formatDateTime(data.subscriptionCurrentPeriodEnd);
 
-    await resend.emails.send({
+    await getResend().emails.send({
         from: "CVolution <info@cvolution.ch>",
         to: "info@cvolution.ch",
         replyTo: data.email,
@@ -401,8 +446,12 @@ export const sendSelfServiceInfoEmail = async (data: SelfServiceInfoEmailData) =
     });
 };
 
-function getServiceNextStepsHtml(service: string) {
-    const lowerService = service.toLowerCase();
+function getCheckUploadedFiles(orders: CartOrderEmailItem[]) {
+    return orders.flatMap((order) => normalizeOrderUploadedFiles(order.check_files));
+}
+
+function getServiceNextStepsHtml(item: CartEmailDisplayItem) {
+    const lowerService = item.serviceLabel.toLowerCase();
     if (lowerService === "lebenslauf") {
         return `
             <span style="color:#64748B; display:block; margin-bottom:10px;">Sieh dir unsere 4 Topseller-Lebensläufe an und teile uns mit, welche Vorlage wir für dich erstellen dürfen:</span>
@@ -426,6 +475,9 @@ function getServiceNextStepsHtml(service: string) {
         `;
     }
     if (lowerService.startsWith("bewerbungsunterlagen-check")) {
+        if (getCheckUploadedFiles(item.orders).length > 0) {
+            return "<span style='color:#64748B;'>Wir haben deine hochgeladenen Unterlagen erhalten und prüfen dein Dossier. Du erhältst unsere Rückmeldung per E-Mail.</span>";
+        }
         return "<span style='color:#64748B;'>Bitte sende uns dein Bewerbungsdossier als PDF an info@cvolution.ch, falls du es noch nicht übermittelt hast.</span>";
     }
     if (lowerService === "motivationsschreiben") {
@@ -439,21 +491,36 @@ function getServiceNextStepsHtml(service: string) {
 
 function getOrderAttachments(orders: CartOrderEmailItem[]) {
     const attachments: Array<{ filename: string; content: string }> = [];
+    const seenAttachments = new Set<string>();
+
+    function addAttachment(filename: string, content: string) {
+        const key = `${filename}:${content.slice(0, 80)}`;
+        if (seenAttachments.has(key)) return;
+
+        seenAttachments.add(key);
+        attachments.push({ filename, content });
+    }
 
     orders.forEach((order, index) => {
         const prefix = `${index + 1}-${order.service_label.replace(/[^a-zA-Z0-9_-]/g, "-")}`;
         if (order.cv_file_base64 && order.cv_file_name) {
-            attachments.push({
-                filename: `${prefix}-${order.cv_file_name}`,
-                content: String(order.cv_file_base64).split(",")[1] || String(order.cv_file_base64),
-            });
+            addAttachment(
+                `${prefix}-${order.cv_file_name}`,
+                String(order.cv_file_base64).split(",")[1] || String(order.cv_file_base64)
+            );
         }
         if (order.salary_file_base64 && order.salary_file_name) {
-            attachments.push({
-                filename: `${prefix}-${order.salary_file_name}`,
-                content: String(order.salary_file_base64).split(",")[1] || String(order.salary_file_base64),
-            });
+            addAttachment(
+                `${prefix}-${order.salary_file_name}`,
+                String(order.salary_file_base64).split(",")[1] || String(order.salary_file_base64)
+            );
         }
+        normalizeOrderUploadedFiles(order.check_files).forEach((file) => {
+            addAttachment(
+                `${prefix}-${file.fileName}`,
+                String(file.fileBase64).split(",")[1] || String(file.fileBase64)
+            );
+        });
     });
 
     return attachments;
@@ -474,6 +541,7 @@ export const sendCartInfoEmail = async (orders: CartOrderEmailItem[]) => {
             const phone = getContactPhoneFromRemarks(order.remarks);
             const cleanRemarks = getUniqueCleanRemarks(item.orders);
             const selectedDocumentsText = item.selectedCheckDocuments.join(", ");
+            const uploadedCheckFileNames = getCheckUploadedFiles(item.orders).map((file) => file.fileName);
             return `
         <div style="padding: 18px 0; border-top: 1px solid #e5e7eb;">
             <h2 style="color: #204878; font-size: 1.15rem; margin: 0 0 10px;">${index + 1}. ${escapeHtml(item.serviceLabel)}</h2>
@@ -482,7 +550,8 @@ export const sendCartInfoEmail = async (orders: CartOrderEmailItem[]) => {
             ${phone ? `<p style="color: #333; font-size: 1rem;"><strong>Telefon:</strong> ${escapeHtml(phone)}</p>` : ""}
             <p style="color: #333; font-size: 1rem;"><strong>Preis:</strong> ${formatCurrency(item.finalPrice)}${item.originalPrice !== item.finalPrice ? ` <span style="color:#64748B;">(Original ${formatCurrency(item.originalPrice)})</span>` : ""}</p>
             ${selectedDocumentsText ? `<p style="color: #333; font-size: 1rem;"><strong>Ausgewählte Unterlagen:</strong> ${escapeHtml(selectedDocumentsText)}</p>` : ""}
-            ${selectedDocumentsText ? `<p style="color: #333; font-size: 1rem;"><strong>Vom Kunden zu senden:</strong> Bewerbungsdossier als PDF an info@cvolution.ch</p>` : ""}
+            ${uploadedCheckFileNames.length ? `<p style="color: #333; font-size: 1rem;"><strong>Hochgeladene Dateien:</strong> ${uploadedCheckFileNames.map(escapeHtml).join(", ")}</p>` : ""}
+            ${selectedDocumentsText && !uploadedCheckFileNames.length ? `<p style="color: #333; font-size: 1rem;"><strong>Vom Kunden zu senden:</strong> Bewerbungsdossier als PDF an info@cvolution.ch</p>` : ""}
             ${order.birth_date ? `<p style="color: #333; font-size: 1rem;"><strong>Geburtsdatum:</strong> ${escapeHtml(order.birth_date)}</p>` : ""}
             ${order.work_location ? `<p style="color: #333; font-size: 1rem;"><strong>Arbeitsort:</strong> ${escapeHtml(order.work_location)}</p>` : ""}
             ${order.gross_annual_salary ? `<p style="color: #333; font-size: 1rem;"><strong>Bruttojahreslohn:</strong> ${escapeHtml(order.gross_annual_salary)}</p>` : ""}
@@ -527,7 +596,7 @@ export const sendCartInfoEmail = async (orders: CartOrderEmailItem[]) => {
         emailData.attachments = attachments;
     }
 
-    await resend.emails.send(emailData);
+    await getResend().emails.send(emailData);
 };
 
 export const sendCartConfirmationEmail = async (email: string, orders: CartOrderEmailItem[]) => {
@@ -535,18 +604,22 @@ export const sendCartConfirmationEmail = async (email: string, orders: CartOrder
 
     const total = orders.reduce((sum, order) => sum + Number(order.final_price || 0), 0);
     const displayItems = buildCartEmailDisplayItems(orders);
-    const serviceRows = displayItems.map((item) => `
+    const serviceRows = displayItems.map((item) => {
+        const uploadedCheckFileNames = getCheckUploadedFiles(item.orders).map((file) => file.fileName);
+        return `
         <div style="margin-bottom: 16px; padding: 16px; border: 1px solid #e5e7eb; border-radius: 12px; background: #ffffff;">
             <div style="display:flex; justify-content:space-between; gap:16px; align-items:flex-start;">
                 <strong style="color:#111827; font-size:1rem;">${escapeHtml(item.serviceLabel)}</strong>
                 <span style="white-space:nowrap; color:#111827;">${formatCurrency(item.finalPrice)}</span>
             </div>
             ${item.selectedCheckDocuments.length ? `<p style="color:#64748B; font-size:0.95rem; margin:10px 0 0;"><strong style="color:#334155;">Ausgewählte Unterlagen:</strong> ${escapeHtml(item.selectedCheckDocuments.join(", "))}</p>` : ""}
-            <div style="margin-top:10px;">${getServiceNextStepsHtml(item.serviceLabel)}</div>
+            ${uploadedCheckFileNames.length ? `<p style="color:#64748B; font-size:0.95rem; margin:10px 0 0;"><strong style="color:#334155;">Hochgeladen:</strong> ${uploadedCheckFileNames.map(escapeHtml).join(", ")}</p>` : ""}
+            <div style="margin-top:10px;">${getServiceNextStepsHtml(item)}</div>
         </div>
-    `).join("");
+    `;
+    }).join("");
 
-    await resend.emails.send({
+    await getResend().emails.send({
         from: "CVolution <info@cvolution.ch>",
         to: email,
         subject: "Bestellbestätigung",

@@ -33,6 +33,9 @@ type SalaryDetails = {
   cvFile: File | null;
 };
 
+const CHECK_FILE_ACCEPT = ".pdf,.doc,.docx,.png,.jpg,.jpeg";
+const MAX_CHECK_FILE_COUNT = 10;
+
 type CartLine = CartItem & {
   product: (typeof SHOP_PRODUCTS)[ShopProductKey];
   lineTotal: number;
@@ -89,6 +92,7 @@ export default function CartPage() {
   const [couponPreview, setCouponPreview] = useState<CouponPreview>({ state: "idle" });
   const [salaryDetails, setSalaryDetails] = useState<Record<string, SalaryDetails>>({});
   const [salaryOpen, setSalaryOpen] = useState<Record<string, boolean>>({});
+  const [checkFiles, setCheckFiles] = useState<Record<string, File[]>>({});
   const [acceptTerms, setAcceptTerms] = useState(false);
 
   useEffect(() => {
@@ -196,6 +200,11 @@ export default function CartPage() {
   }
 
   function removeItem(serviceType: ShopProductKey) {
+    setCheckFiles((current) => {
+      const next = { ...current };
+      delete next[serviceType];
+      return next;
+    });
     updateItems(items.filter((item) => item.serviceType !== serviceType));
   }
 
@@ -229,6 +238,13 @@ export default function CartPage() {
         ...(current[serviceType] || emptySalaryDetails),
         ...patch,
       },
+    }));
+  }
+
+  function updateCheckFiles(serviceType: ShopProductKey, fileList: FileList | null) {
+    setCheckFiles((current) => ({
+      ...current,
+      [serviceType]: Array.from(fileList || []).slice(0, MAX_CHECK_FILE_COUNT),
     }));
   }
 
@@ -337,6 +353,7 @@ export default function CartPage() {
   function renderCheckDocumentFields(line: CartLine) {
     const selectedLabels = getCheckDocumentLabels(line.checkSelections);
     const selectedSet = new Set(normalizeCheckDocumentSelections(line.checkSelections));
+    const uploadedFiles = checkFiles[line.serviceType] || [];
 
     return (
       <div className="mt-3 border-t border-gray-100 pt-4">
@@ -364,6 +381,28 @@ export default function CartPage() {
               <span>{option.label}</span>
             </label>
           ))}
+        </div>
+        <div className="mt-4">
+          <label className="block text-sm font-semibold text-[#111827] mb-2">Unterlagen hochladen</label>
+          <input
+            type="file"
+            multiple
+            accept={CHECK_FILE_ACCEPT}
+            onChange={(event) => updateCheckFiles(line.serviceType, event.target.files)}
+            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#204878] focus:border-transparent transition"
+          />
+          <p className="mt-2 text-xs text-[#64748B]">
+            Optional: Sie können PDF-, Word- oder Bilddateien direkt mit der Bestellung übermitteln.
+          </p>
+          {uploadedFiles.length > 0 && (
+            <ul className="mt-2 space-y-1 text-xs text-[#111827]">
+              {uploadedFiles.map((file) => (
+                <li key={`${file.name}-${file.size}`} className="truncate">
+                  {file.name}
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       </div>
     );
@@ -409,13 +448,23 @@ export default function CartPage() {
 
       const checkoutItems = await Promise.all(items.map(async (item) => {
         if (!isSalaryService(item.serviceType)) {
+          const checkSelections = isDocumentCheckService(item.serviceType)
+            ? normalizeCheckDocumentSelections(item.checkSelections)
+            : undefined;
+          const uploadedCheckFiles = isDocumentCheckService(item.serviceType)
+            ? await Promise.all((checkFiles[item.serviceType] || []).map(async (file) => ({
+              fileName: file.name,
+              fileBase64: await convertFileToBase64(file),
+            })))
+            : undefined;
+
           return {
             serviceType: item.serviceType,
             quantity: isDocumentCheckService(item.serviceType)
-              ? normalizeCheckDocumentSelections(item.checkSelections).length
+              ? checkSelections?.length
               : item.quantity,
             ...(isDocumentCheckService(item.serviceType)
-              ? { checkSelections: normalizeCheckDocumentSelections(item.checkSelections) }
+              ? { checkSelections, checkFiles: uploadedCheckFiles }
               : {}),
           };
         }
