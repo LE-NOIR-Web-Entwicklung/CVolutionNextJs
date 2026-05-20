@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 type SalaryOrderVariant = "phone" | "pdf";
 
@@ -69,6 +69,7 @@ export function SalaryOrderForm({ variant }: { variant: SalaryOrderVariant }) {
   const [emailConfirmation, setEmailConfirmation] = useState("");
   const [phone, setPhone] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [cvFile, setCvFile] = useState<File | null>(null);
   const [salaryFile, setSalaryFile] = useState<File | null>(null);
@@ -84,6 +85,7 @@ export function SalaryOrderForm({ variant }: { variant: SalaryOrderVariant }) {
   const [remarks, setRemarks] = useState("");
   const [couponCode, setCouponCode] = useState("");
   const [couponPreview, setCouponPreview] = useState<CouponPreview>({ state: "idle" });
+  const submittingRef = useRef(false);
 
   useEffect(() => {
     setIsExternalOrder(isExternalOrderPage());
@@ -135,6 +137,8 @@ export function SalaryOrderForm({ variant }: { variant: SalaryOrderVariant }) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (submittingRef.current || submitted) return;
+
     setError("");
 
     if (!firstName || !lastName || !email || !phone || !birthDate || !workLocation || !grossAnnualSalary) {
@@ -153,6 +157,9 @@ export function SalaryOrderForm({ variant }: { variant: SalaryOrderVariant }) {
       setError("Bitte laden Sie entweder einen CV hoch oder geben Sie Ihre LinkedIn-URL an.");
       return;
     }
+
+    submittingRef.current = true;
+    setIsSubmitting(true);
 
     try {
       let salaryBase64 = "";
@@ -218,6 +225,8 @@ export function SalaryOrderForm({ variant }: { variant: SalaryOrderVariant }) {
     } catch (error) {
       console.error("Error:", error);
       setError("Fehler beim Senden der Anfrage. Bitte versuchen Sie es erneut.");
+      submittingRef.current = false;
+      setIsSubmitting(false);
     }
   };
 
@@ -436,9 +445,11 @@ export function SalaryOrderForm({ variant }: { variant: SalaryOrderVariant }) {
                 <div className="pt-2">
                   <button
                     type="submit"
-                    className="w-full px-6 py-3 bg-[#204878] text-white font-semibold rounded-xl hover:bg-[#1a3a66] transition-colors text-sm"
+                    disabled={isSubmitting}
+                    aria-busy={isSubmitting}
+                    className="w-full px-6 py-3 bg-[#204878] text-white font-semibold rounded-xl hover:bg-[#1a3a66] transition-colors text-sm disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:bg-[#204878]"
                   >
-                    Bestellung abschliessen
+                    {isSubmitting ? "Bestellung wird verarbeitet..." : "Bestellung abschliessen"}
                   </button>
                 </div>
               </form>

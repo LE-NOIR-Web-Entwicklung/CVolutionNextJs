@@ -214,7 +214,7 @@ export default function Home() {
           </div>
         </div>
 
-        <a
+        {/* <a
           href="#angebote"
           aria-label="Zu den Angeboten scrollen"
           className="absolute bottom-5 left-1/2 z-20 hidden -translate-x-1/2 flex-col items-center gap-2 text-white/62 transition duration-300 hover:text-white lg:flex"
@@ -223,7 +223,7 @@ export default function Home() {
             <span className="mx-auto mt-2 block h-2 w-1 animate-bounce rounded-full bg-white/70" />
           </span>
           <span className="h-8 w-px bg-gradient-to-b from-white/52 to-transparent" />
-        </a>
+        </a> */}
       </section>
 
       {/* Products Section */}
