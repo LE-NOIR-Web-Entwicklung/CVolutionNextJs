@@ -7,12 +7,17 @@ const features = [
   {
     title: "CHF 13.90",
     label: "pro Monat",
-    description: "Unbegrenzter Zugriff auf Editor, Designs und PDF-Export.",
+    description: "Lebenslauf, Designs, Export und KI-Motivationsschreiben im gleichen Abo.",
+  },
+  {
+    title: "Claude KI",
+    label: "inklusive",
+    description: "Motivationsschreiben direkt aus Profil und Stellenanzeige erstellen.",
   },
   {
     title: "3 Designs",
     label: "professionell",
-    description: "Klassisch, modern und zeitlos fuer unterschiedliche Bewerbungen.",
+    description: "Klassisch, modern und zeitlos für unterschiedliche Bewerbungen.",
   },
   {
     title: "Sofort nutzbar",
@@ -22,12 +27,14 @@ const features = [
 ];
 
 const benefits = [
-  "Einfache Benutzeroberflaeche",
+  "Einfache Benutzeroberfläche",
   "PDF-Export",
-  "Unbegrenzt veraenderbar",
+  "KI-Motivationsschreiben ohne fixes Monatskontingent",
+  "Anpassung an konkrete Stellenanzeigen",
+  "Unbegrenzt veränderbar",
   "Unbegrenzte Downloads",
   "Sichere Datenspeicherung",
-  "Zugriff von ueberall",
+  "Zugriff von überall",
 ];
 
 const designs = [
@@ -95,10 +102,10 @@ export default function Self() {
           <div className="mx-auto max-w-3xl text-center">
             <p className="mb-4 text-sm font-semibold uppercase tracking-wide text-[#204878]">Self-Service</p>
             <h1 className="text-4xl font-semibold tracking-tight text-[#111827] sm:text-5xl">
-              Erstellen Sie Ihren professionellen Lebenslauf
+              Lebenslauf und Motivationsschreiben im Monatsabo
             </h1>
             <p className="mx-auto mt-5 max-w-2xl text-lg leading-relaxed text-[#64748B]">
-              Gestalten Sie Ihren Lebenslauf online, wählen Sie ein professionelles Design und exportieren Sie Ihr PDF jederzeit selbst.
+              Gestalten Sie Ihren Lebenslauf online, exportieren Sie Ihr PDF und erstellen Sie passende Motivationsschreiben mit Claude.
             </p>
           </div>
 
@@ -107,11 +114,11 @@ export default function Self() {
               href="/self/login"
               className="inline-flex items-center justify-center rounded-xl bg-[#204878] px-7 py-3.5 text-sm font-semibold text-white shadow-sm transition-colors duration-200 hover:bg-[#1a3a66]"
             >
-              Jetzt Lebenslauf erstellen
+              Jetzt Self-Service starten
             </Link>
           </div>
 
-          <div className="mt-12 grid gap-6 md:grid-cols-3">
+          <div className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
             {features.map((feature) => (
               <div key={feature.title} className="rounded-2xl border border-gray-100 bg-white p-8 shadow-sm">
                 <p className="text-sm font-semibold uppercase tracking-wide text-[#204878]">{feature.label}</p>
@@ -123,9 +130,9 @@ export default function Self() {
 
           <div className="mt-8 space-y-8">
             <div className="rounded-2xl border border-gray-100 bg-white p-8 shadow-sm">
-              <h2 className="text-2xl font-semibold text-[#111827]">Alles für Ihren Lebenslauf</h2>
+              <h2 className="text-2xl font-semibold text-[#111827]">Alles für Ihre Bewerbung</h2>
               <p className="mt-4 text-base leading-relaxed text-[#64748B]">
-                Der Self-Service ist ideal, wenn Sie Ihren Lebenslauf selbst pflegen möchten, aber trotzdem eine professionelle Struktur und Gestaltung wünschen.
+                Der Self-Service ist ideal, wenn Sie Ihre Bewerbungsunterlagen selbst pflegen möchten, aber trotzdem eine professionelle Struktur und Formulierung wünschen.
               </p>
               <ul className="mt-6 grid gap-3 sm:grid-cols-2">
                 {benefits.map((benefit) => (

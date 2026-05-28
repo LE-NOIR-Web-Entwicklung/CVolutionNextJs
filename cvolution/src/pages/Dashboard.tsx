@@ -11,6 +11,7 @@ import ProfileSection from '@/components/Dashboard/ProfileSection';
 import ExperienceSection from '@/components/Dashboard/ExperienceSection';
 import EducationSection from '@/components/Dashboard/EducationSection';
 import SkillsAndLanguagesSection from '@/components/Dashboard/SkillsAndLanguagesSection';
+import { MotivationLetterSection } from '@/components/Dashboard/MotivationLetterSection';
 import { CVExportButton } from '@/components/CVExport/CVExportButton';
 import { CVExportModal } from '@/components/CVExport/CVExportModal';
 import { PaymentModal } from '@/components/ui/PaymentModal';
@@ -127,6 +128,16 @@ export const Dashboard: React.FC = () => {
     profileData?.subscription_status === 'canceled'
   );
 
+  const paidPeriodEnd = profileData?.subscription_current_period_end || profileData?.paydate;
+  const hasCurrentPaidPeriod = Boolean(
+    paidPeriodEnd && new Date(paidPeriodEnd).getTime() > Date.now()
+  );
+  const hasSelfServiceAccess = Boolean(
+    profileData &&
+    hasCurrentPaidPeriod &&
+    (profileData.paid || ['active', 'canceled'].includes(profileData.subscription_status))
+  );
+
   const formatSubscriptionDate = (value: string | null | undefined) => {
     if (!value) return '';
     return new Intl.DateTimeFormat('de-CH', {
@@ -134,6 +145,16 @@ export const Dashboard: React.FC = () => {
       month: '2-digit',
       year: 'numeric',
     }).format(new Date(value));
+  };
+
+  const openSelfServicePayment = () => {
+    let expired = false;
+    if (paidPeriodEnd) {
+      expired = new Date(paidPeriodEnd).getTime() <= Date.now();
+    }
+
+    setIsRenewal(expired);
+    setPaymentModalOpen(true);
   };
 
   const handleCancelSubscription = async () => {
@@ -236,16 +257,18 @@ export const Dashboard: React.FC = () => {
                 <TabsTrigger value="experience" className="h-11 rounded-lg bg-white text-sm text-gray-600 shadow-sm data-[state=active]:bg-[#204878] data-[state=active]:text-white">Erfahrung</TabsTrigger>
                 <TabsTrigger value="education" className="h-11 rounded-lg bg-white text-sm text-gray-600 shadow-sm data-[state=active]:bg-[#204878] data-[state=active]:text-white">Bildung</TabsTrigger>
                 <TabsTrigger value="skills" className="h-11 rounded-lg bg-white px-2 text-sm text-gray-600 shadow-sm data-[state=active]:bg-[#204878] data-[state=active]:text-white">Sprachen</TabsTrigger>
-                <TabsTrigger value="settings" className="col-span-2 h-11 rounded-lg bg-white text-sm text-gray-600 shadow-sm data-[state=active]:bg-[#204878] data-[state=active]:text-white">Einstellungen</TabsTrigger>
+                <TabsTrigger value="motivation" className="h-11 rounded-lg bg-white text-sm text-gray-600 shadow-sm data-[state=active]:bg-[#204878] data-[state=active]:text-white">Motivation</TabsTrigger>
+                <TabsTrigger value="settings" className="h-11 rounded-lg bg-white text-sm text-gray-600 shadow-sm data-[state=active]:bg-[#204878] data-[state=active]:text-white">Einstellungen</TabsTrigger>
               </TabsList>
             </div>
 
             {/* Desktop Tab Navigation */}
-            <TabsList className="hidden h-auto w-full max-w-3xl grid-cols-6 gap-2 bg-transparent p-0 sm:grid">
+            <TabsList className="hidden h-auto w-full max-w-5xl grid-cols-7 gap-2 bg-transparent p-0 sm:grid">
               {/* <TabsTrigger value="linkedin">LinkedIn</TabsTrigger> */}
               <TabsTrigger value="profile" className="h-11 rounded-lg border border-slate-200 !bg-white text-sm !text-gray-600 shadow-sm data-[state=active]:!bg-[#204878] data-[state=active]:!text-white data-[state=active]:!shadow-md">Profil</TabsTrigger>
               <TabsTrigger value="experience" className="h-11 rounded-lg border border-slate-200 !bg-white text-sm !text-gray-600 shadow-sm data-[state=active]:!bg-[#204878] data-[state=active]:!text-white data-[state=active]:!shadow-md">Erfahrung</TabsTrigger>
               <TabsTrigger value="education" className="h-11 rounded-lg border border-slate-200 !bg-white text-sm !text-gray-600 shadow-sm data-[state=active]:!bg-[#204878] data-[state=active]:!text-white data-[state=active]:!shadow-md">Bildung</TabsTrigger>
+              <TabsTrigger value="motivation" className="h-11 rounded-lg border border-slate-200 !bg-white text-sm !text-gray-600 shadow-sm data-[state=active]:!bg-[#204878] data-[state=active]:!text-white data-[state=active]:!shadow-md">Motivation</TabsTrigger>
               <TabsTrigger value="skills" className="col-span-2 h-11 rounded-lg border border-slate-200 !bg-white text-sm !text-gray-600 shadow-sm data-[state=active]:!bg-[#204878] data-[state=active]:!text-white data-[state=active]:!shadow-md">Sprachen & Fähigkeiten</TabsTrigger>
               <TabsTrigger value="settings" className="h-11 rounded-lg border border-slate-200 !bg-white text-sm !text-gray-600 shadow-sm data-[state=active]:!bg-[#204878] data-[state=active]:!text-white data-[state=active]:!shadow-md">Einstellungen</TabsTrigger>
             </TabsList>
@@ -310,6 +333,12 @@ export const Dashboard: React.FC = () => {
           </TabsContent>
           <TabsContent value="languages">
             <SkillsAndLanguagesSection ref={skillsAndLanguagesSectionRef} />
+          </TabsContent>
+          <TabsContent value="motivation">
+            <MotivationLetterSection
+              hasSelfServiceAccess={hasSelfServiceAccess}
+              onRequirePayment={openSelfServicePayment}
+            />
           </TabsContent>
           <TabsContent value="settings">
             <div className="bg-white rounded-lg shadow p-4 sm:p-8">
