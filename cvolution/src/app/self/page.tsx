@@ -152,10 +152,10 @@ export default function Self() {
           <div className="mx-auto max-w-3xl text-center">
             <p className="mb-4 text-sm font-semibold uppercase tracking-wide text-[#204878]">Self-Service</p>
             <h1 className="text-4xl font-semibold tracking-tight text-[#111827] sm:text-5xl">
-              CV Self-Service und AI Motivationsschreiben, klar getrennt.
+              CV Self-Service & <br /> AI Motivationsschreiben
             </h1>
             <p className="mx-auto mt-5 max-w-2xl text-lg leading-relaxed text-[#64748B]">
-              Pflegen Sie zuerst Ihren Lebenslauf im Self-Service. Danach erstellen Sie im separaten AI-Bereich ein passendes Motivationsschreiben mit Stellenanzeige und Unternehmensadresse.
+              Pflegen Sie zuerst Ihren Lebenslauf im Self-Service. <br /> Danach erstellen Sie im separaten AI-Bereich ein passendes Motivationsschreiben mit Stellenanzeige und Unternehmensadresse.
             </p>
           </div>
 
