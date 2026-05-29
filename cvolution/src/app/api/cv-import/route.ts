@@ -4,6 +4,9 @@ import { supabaseAdmin } from "../../../../lib/supabase-server";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+export const maxDuration = 60;
+
+const DEFAULT_ANTHROPIC_MODEL = "claude-sonnet-4-20250514";
 
 type ClaudeResponse = {
   content?: Array<{ type: string; text?: string }>;
@@ -385,7 +388,7 @@ async function callClaudeForCv(fileKind: "pdf" | "docx", buffer: Buffer, extract
       "anthropic-version": "2023-06-01",
     },
     body: JSON.stringify({
-      model: process.env.ANTHROPIC_MODEL || "claude-sonnet-4-6",
+      model: process.env.ANTHROPIC_MODEL || DEFAULT_ANTHROPIC_MODEL,
       max_tokens: 6000,
       temperature: 0.1,
       system:

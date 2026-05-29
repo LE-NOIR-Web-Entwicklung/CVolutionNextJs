@@ -6,7 +6,7 @@ Create a local environment file with the required server keys. The Claude motiva
 
 ```bash
 ANTHROPIC_API_KEY=your_anthropic_api_key
-ANTHROPIC_MODEL=claude-sonnet-4-6
+ANTHROPIC_MODEL=claude-sonnet-4-20250514
 ```
 
 First, run the development server:

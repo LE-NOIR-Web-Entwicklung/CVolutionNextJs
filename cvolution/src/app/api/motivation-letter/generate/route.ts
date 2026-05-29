@@ -5,6 +5,8 @@ import { supabaseAdmin } from "../../../../../lib/supabase-server";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+const DEFAULT_ANTHROPIC_MODEL = "claude-sonnet-4-20250514";
+
 type MotivationRequest = {
   jobTitle?: string;
   company?: string;
@@ -359,7 +361,7 @@ export async function POST(request: NextRequest) {
 
   try {
     response = await callAnthropicMessages(anthropicApiKey, {
-      model: process.env.ANTHROPIC_MODEL || "claude-sonnet-4-6",
+      model: process.env.ANTHROPIC_MODEL || DEFAULT_ANTHROPIC_MODEL,
       max_tokens: 1800,
       temperature: 0.45,
       system:
