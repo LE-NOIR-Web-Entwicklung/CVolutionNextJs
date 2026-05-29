@@ -13,7 +13,7 @@ export type CartItem = {
 };
 
 function isSingleQuantityService(serviceType: unknown) {
-  return serviceType === "salary_pdf" || serviceType === "salary_phone";
+  return serviceType === "linkedin" || serviceType === "salary_pdf" || serviceType === "salary_phone";
 }
 
 function isDocumentCheckService(serviceType: unknown) {

@@ -63,6 +63,13 @@ function navigateTopLevel(url: string) {
   window.location.href = url;
 }
 
+function normalizeLinkedInUrl(value: string) {
+  const trimmedValue = value.trim();
+  if (!trimmedValue) return "";
+  if (/^https?:\/\//i.test(trimmedValue)) return trimmedValue;
+  return `https://${trimmedValue}`;
+}
+
 export function SalaryOrderForm({ variant }: { variant: SalaryOrderVariant }) {
   const config = salaryOrderConfig[variant];
   const [email, setEmail] = useState("");
@@ -153,7 +160,7 @@ export function SalaryOrderForm({ variant }: { variant: SalaryOrderVariant }) {
       setError("Bitte laden Sie die aktuelle Lohnabrechnung hoch.");
       return;
     }
-    if (!cvFile && !linkedinUrl) {
+    if (!cvFile && !linkedinUrl.trim()) {
       setError("Bitte laden Sie entweder einen CV hoch oder geben Sie Ihre LinkedIn-URL an.");
       return;
     }
@@ -188,7 +195,7 @@ export function SalaryOrderForm({ variant }: { variant: SalaryOrderVariant }) {
           workLocation,
           grossAnnualSalary,
           fringeBenefits,
-          linkedinUrl,
+          linkedinUrl: normalizeLinkedInUrl(linkedinUrl),
           remarks,
           serviceType: variant === "phone" ? "salary_phone" : "salary_pdf",
           cvFileBase64: cvBase64 || null,
@@ -395,9 +402,10 @@ export function SalaryOrderForm({ variant }: { variant: SalaryOrderVariant }) {
                     Bitte geben Sie Ihre LinkedIn-URL an, falls Sie keinen CV hochgeladen haben
                   </p>
                   <input
-                    type="url"
+                    type="text"
+                    inputMode="url"
                     className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#204878] focus:border-transparent transition"
-                    placeholder="https://www.linkedin.com/in/..."
+                    placeholder="www.linkedin.com/in/..."
                     value={linkedinUrl}
                     onChange={e => setLinkedinUrl(e.target.value)}
                   />

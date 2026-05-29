@@ -4,6 +4,7 @@ export type ShopProductKey =
   | "career"
   | "check"
   | "cv"
+  | "linkedin"
   | "motivation"
   | "rav"
   | "salary_pdf"
@@ -27,6 +28,12 @@ export const SHOP_PRODUCTS: Record<ShopProductKey, ShopProduct> = {
     key: "cv",
     href: "/service-cv",
     shortDescription: "Professioneller Lebenslauf mit Struktur, Inhalt und Design.",
+  },
+  linkedin: {
+    ...SERVICE_CONFIGS.linkedin,
+    key: "linkedin",
+    href: "/service-linkedin",
+    shortDescription: "Optimiertes LinkedIn-Profil mit klarem Suchfokus und starkem Copywriting.",
   },
   motivation: {
     ...SERVICE_CONFIGS.motivation,

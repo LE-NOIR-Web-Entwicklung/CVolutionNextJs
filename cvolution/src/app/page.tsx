@@ -194,6 +194,7 @@ export default function Home() {
                 { label: "Lohnanalyse", href: "/service-salary" },
                 { label: "Laufbahnberatung", href: "/service-career" },
                 { label: "Lebenslauf", href: "/service-cv" },
+                { label: "LinkedIn Profil", href: "/service-linkedin" },
                 { label: "Motivationsschreiben", href: "/service-motivation" },
                 { label: "CV Check", href: "/service-check" },
                 { label: "CV Self-Service", href: "/self" },
