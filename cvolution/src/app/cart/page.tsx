@@ -33,6 +33,12 @@ type SalaryDetails = {
   cvFile: File | null;
 };
 
+type LinkedInDetails = {
+  linkedinUrl: string;
+  targetRole: string;
+  remarks: string;
+};
+
 const CHECK_FILE_ACCEPT = ".pdf,.doc,.docx,.png,.jpg,.jpeg";
 const MAX_CHECK_FILE_COUNT = 10;
 
@@ -56,6 +62,12 @@ const emptySalaryDetails: SalaryDetails = {
   cvFile: null,
 };
 
+const emptyLinkedInDetails: LinkedInDetails = {
+  linkedinUrl: "",
+  targetRole: "",
+  remarks: "",
+};
+
 function formatPrice(value: number) {
   return `CHF\u00a0${value.toFixed(2)}`;
 }
@@ -66,6 +78,17 @@ function isSalaryService(serviceType: ShopProductKey) {
 
 function isDocumentCheckService(serviceType: ShopProductKey) {
   return serviceType === "check";
+}
+
+function isLinkedInProfileService(serviceType: ShopProductKey) {
+  return serviceType === "linkedin";
+}
+
+function normalizeLinkedInUrl(value: string) {
+  const trimmedValue = value.trim();
+  if (!trimmedValue) return "";
+  if (/^https?:\/\//i.test(trimmedValue)) return trimmedValue;
+  return `https://${trimmedValue}`;
 }
 
 function convertFileToBase64(file: File): Promise<string> {
@@ -92,6 +115,8 @@ export default function CartPage() {
   const [couponPreview, setCouponPreview] = useState<CouponPreview>({ state: "idle" });
   const [salaryDetails, setSalaryDetails] = useState<Record<string, SalaryDetails>>({});
   const [salaryOpen, setSalaryOpen] = useState<Record<string, boolean>>({});
+  const [linkedInDetails, setLinkedInDetails] = useState<Record<string, LinkedInDetails>>({});
+  const [linkedInOpen, setLinkedInOpen] = useState<Record<string, boolean>>({});
   const [checkFiles, setCheckFiles] = useState<Record<string, File[]>>({});
   const [acceptTerms, setAcceptTerms] = useState(false);
 
@@ -205,6 +230,11 @@ export default function CartPage() {
       delete next[serviceType];
       return next;
     });
+    setLinkedInDetails((current) => {
+      const next = { ...current };
+      delete next[serviceType];
+      return next;
+    });
     updateItems(items.filter((item) => item.serviceType !== serviceType));
   }
 
@@ -241,6 +271,16 @@ export default function CartPage() {
     }));
   }
 
+  function updateLinkedInDetails(serviceType: ShopProductKey, patch: Partial<LinkedInDetails>) {
+    setLinkedInDetails((current) => ({
+      ...current,
+      [serviceType]: {
+        ...(current[serviceType] || emptyLinkedInDetails),
+        ...patch,
+      },
+    }));
+  }
+
   function updateCheckFiles(serviceType: ShopProductKey, fileList: FileList | null) {
     setCheckFiles((current) => ({
       ...current,
@@ -259,8 +299,16 @@ export default function CartPage() {
     if (!details.salaryFile) {
       return "Bitte laden Sie für die Lohnanalyse die aktuelle Lohnabrechnung hoch.";
     }
-    if (!details.cvFile && !details.linkedinUrl) {
+    if (!details.cvFile && !details.linkedinUrl.trim()) {
       return "Bitte laden Sie für die Lohnanalyse einen CV hoch oder geben Sie Ihre LinkedIn-URL an.";
+    }
+    return null;
+  }
+
+  function validateLinkedInLine(serviceType: ShopProductKey) {
+    const details = linkedInDetails[serviceType] || emptyLinkedInDetails;
+    if (!details.linkedinUrl.trim()) {
+      return "Bitte geben Sie Ihre LinkedIn-URL für die Profiloptimierung an.";
     }
     return null;
   }
@@ -268,7 +316,7 @@ export default function CartPage() {
   function renderSalaryFields(serviceType: ShopProductKey) {
     const details = salaryDetails[serviceType] || emptySalaryDetails;
     const isOpen = salaryOpen[serviceType] ?? false;
-    const isComplete = !!(details.firstName && details.lastName && details.email && details.birthDate && details.workLocation && details.grossAnnualSalary && details.salaryFile && (details.cvFile || details.linkedinUrl));
+    const isComplete = !!(details.firstName && details.lastName && details.email && details.birthDate && details.workLocation && details.grossAnnualSalary && details.salaryFile && (details.cvFile || details.linkedinUrl.trim()));
 
     return (
       <div className="mt-2 border-t border-gray-100">
@@ -338,11 +386,73 @@ export default function CartPage() {
             </div>
             <div>
               <label className="block text-xs font-semibold text-[#111827] mb-1">LinkedIn Profil</label>
-              <input type="url" value={details.linkedinUrl} onChange={(event) => updateSalaryDetails(serviceType, { linkedinUrl: event.target.value })} placeholder="https://www.linkedin.com/in/..." className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#204878] focus:border-transparent transition" />
+              <input type="text" inputMode="url" value={details.linkedinUrl} onChange={(event) => updateSalaryDetails(serviceType, { linkedinUrl: event.target.value })} placeholder="www.linkedin.com/in/..." className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#204878] focus:border-transparent transition" />
             </div>
             <div>
               <label className="block text-xs font-semibold text-[#111827] mb-1">Bemerkungen</label>
               <textarea value={details.remarks} onChange={(event) => updateSalaryDetails(serviceType, { remarks: event.target.value })} rows={2} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#204878] focus:border-transparent transition" />
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  function renderLinkedInFields(serviceType: ShopProductKey) {
+    const details = linkedInDetails[serviceType] || emptyLinkedInDetails;
+    const isOpen = linkedInOpen[serviceType] ?? true;
+    const isComplete = !!details.linkedinUrl.trim();
+
+    return (
+      <div className="mt-2 border-t border-gray-100">
+        <button
+          type="button"
+          onClick={() => setLinkedInOpen((prev) => ({ ...prev, [serviceType]: !isOpen }))}
+          className="w-full flex items-center justify-between px-0 py-3 text-left"
+        >
+          <span className="text-sm font-semibold text-[#111827]">Angaben für die LinkedIn Optimierung</span>
+          <div className="flex items-center gap-2">
+            {isComplete ? (
+              <span className="text-xs font-medium text-green-700 bg-green-50 px-2 py-0.5 rounded-full">Vollständig</span>
+            ) : (
+              <span className="text-xs font-medium text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full">Erforderlich</span>
+            )}
+            <svg className={`w-4 h-4 text-[#64748B] transition-transform ${isOpen ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+            </svg>
+          </div>
+        </button>
+
+        {isOpen && (
+          <div className="pb-4 space-y-4">
+            <div>
+              <label className="block text-xs font-semibold text-[#111827] mb-1">LinkedIn Profil *</label>
+              <input
+                type="text"
+                inputMode="url"
+                value={details.linkedinUrl}
+                onChange={(event) => updateLinkedInDetails(serviceType, { linkedinUrl: event.target.value })}
+                placeholder="www.linkedin.com/in/..."
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#204878] focus:border-transparent transition"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-[#111827] mb-1">Zielposition oder Branche</label>
+              <input
+                value={details.targetRole}
+                onChange={(event) => updateLinkedInDetails(serviceType, { targetRole: event.target.value })}
+                placeholder="z.B. HR Business Partner, Projektleitung, Quereinstieg IT"
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#204878] focus:border-transparent transition"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-[#111827] mb-1">Wünsche und Hinweise</label>
+              <textarea
+                value={details.remarks}
+                onChange={(event) => updateLinkedInDetails(serviceType, { remarks: event.target.value })}
+                rows={2}
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#204878] focus:border-transparent transition"
+              />
             </div>
           </div>
         )}
@@ -444,6 +554,14 @@ export default function CartPage() {
             return;
           }
         }
+        if (isLinkedInProfileService(item.serviceType)) {
+          const linkedInError = validateLinkedInLine(item.serviceType);
+          if (linkedInError) {
+            setError(linkedInError);
+            setIsSubmitting(false);
+            return;
+          }
+        }
       }
 
       const checkoutItems = await Promise.all(items.map(async (item) => {
@@ -458,11 +576,24 @@ export default function CartPage() {
             })))
             : undefined;
 
+          const linkedInItemDetails = isLinkedInProfileService(item.serviceType)
+            ? linkedInDetails[item.serviceType] || emptyLinkedInDetails
+            : null;
+          const linkedInRemarks = linkedInItemDetails
+            ? [
+              linkedInItemDetails.targetRole ? `Zielposition/Branche: ${linkedInItemDetails.targetRole}` : null,
+              linkedInItemDetails.remarks || null,
+            ].filter(Boolean).join("\n")
+            : null;
+
           return {
             serviceType: item.serviceType,
             quantity: isDocumentCheckService(item.serviceType)
               ? checkSelections?.length
               : item.quantity,
+            ...(linkedInItemDetails
+              ? { linkedinUrl: normalizeLinkedInUrl(linkedInItemDetails.linkedinUrl), remarks: linkedInRemarks }
+              : {}),
             ...(isDocumentCheckService(item.serviceType)
               ? { checkSelections, checkFiles: uploadedCheckFiles }
               : {}),
@@ -483,7 +614,7 @@ export default function CartPage() {
           workLocation: details.workLocation,
           grossAnnualSalary: details.grossAnnualSalary,
           fringeBenefits: details.fringeBenefits,
-          linkedinUrl: details.linkedinUrl,
+          linkedinUrl: normalizeLinkedInUrl(details.linkedinUrl),
           remarks: details.remarks,
           salaryFileBase64,
           salaryFileName: details.salaryFile?.name || null,
@@ -572,7 +703,7 @@ export default function CartPage() {
                         <p className="text-xs text-[#64748B] truncate">{line.product.shortDescription}</p>
                       </div>
                       <div className="flex items-center gap-3 shrink-0">
-                        {!isSalaryService(line.serviceType) && !isDocumentCheckService(line.serviceType) && (
+                        {!isSalaryService(line.serviceType) && !isDocumentCheckService(line.serviceType) && !isLinkedInProfileService(line.serviceType) && (
                           <input
                             type="number"
                             min={1}
@@ -596,6 +727,7 @@ export default function CartPage() {
                     </div>
                     {isDocumentCheckService(line.serviceType) && renderCheckDocumentFields(line)}
                     {isSalaryService(line.serviceType) && renderSalaryFields(line.serviceType)}
+                    {isLinkedInProfileService(line.serviceType) && renderLinkedInFields(line.serviceType)}
                   </div>
                 ))}
               </div>

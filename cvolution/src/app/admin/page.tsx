@@ -150,6 +150,7 @@ const serviceLabels: Record<ServiceKey, string> = {
   'service-career': 'Career Service',
   'service-check': 'Check Service',
   'service-cv': 'CV Service',
+  'service-linkedin': 'LinkedIn Profil',
   'service-motivation': 'Motivation Service',
   'service-rav': 'RAV Service',
   'service-salary': 'Salary Service',

@@ -6,6 +6,17 @@ import { supabaseAdmin } from "../../../../../../lib/supabase-server";
 
 type Params = { params: Promise<{ id: string }> };
 
+function getCouponDatabaseErrorMessage(error: { code?: string; message?: string }) {
+  const message = error.message || "";
+  if (error.code === "23514" && message.includes("coupons_services_check")) {
+    return "Die Datenbankmigration für LinkedIn-Coupons fehlt. Bitte Migration 20260529_add_linkedin_service_coupon.sql anwenden.";
+  }
+  if (error.code === "23505") {
+    return "Dieser Coupon Code existiert bereits.";
+  }
+  return "Coupon konnte nicht aktualisiert werden.";
+}
+
 function parsePatchPayload(payload: Record<string, unknown>) {
   const update: Record<string, unknown> = {};
 
@@ -76,7 +87,7 @@ export async function PATCH(request: NextRequest, { params }: Params) {
 
   if (error) {
     console.error("Admin coupon update failed", { id, reason: error.message, admin: admin.email });
-    return NextResponse.json({ error: "Coupon konnte nicht aktualisiert werden." }, { status: 500 });
+    return NextResponse.json({ error: getCouponDatabaseErrorMessage(error) }, { status: 500 });
   }
 
   return NextResponse.json({ coupon: data });

@@ -27,6 +27,7 @@ CREATE TABLE IF NOT EXISTS coupons (
       'service-career',
       'service-check',
       'service-cv',
+      'service-linkedin',
       'service-motivation',
       'service-rav',
       'service-salary'

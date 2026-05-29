@@ -53,6 +53,17 @@ function getText(value: unknown) {
   return typeof value === "string" && value.trim() ? value.trim() : null;
 }
 
+function normalizeLinkedInUrl(value: unknown) {
+  const text = getText(value);
+  if (!text) return null;
+  if (/^https?:\/\//i.test(text)) return text;
+  return `https://${text}`;
+}
+
+function isSingleQuantityOrderType(orderType: string) {
+  return orderType === "linkedin" || orderType === "salary_pdf" || orderType === "salary_phone";
+}
+
 function normalizeUploadedFiles(value: unknown): UploadedFileInput[] {
   if (!Array.isArray(value)) return [];
 
@@ -105,6 +116,10 @@ export async function POST(request: NextRequest) {
       const quantity = product.orderType === "check"
         ? normalizeCheckDocumentSelections(item.checkSelections).length
         : normalizeQuantity(item.quantity);
+      const linkedinUrl = normalizeLinkedInUrl(item.linkedinUrl);
+      if (product.orderType === "linkedin" && !linkedinUrl) {
+        return NextResponse.json({ error: "LinkedIn-URL ist für die Profiloptimierung erforderlich." }, { status: 400 });
+      }
       if (cartCouponCode) {
         const validation = await validateCouponForService(cartCouponCode, product.orderType);
         if (validation.valid) {
@@ -116,7 +131,7 @@ export async function POST(request: NextRequest) {
 
       preparedItems.push({
         product,
-        quantity: product.orderType === "salary_pdf" || product.orderType === "salary_phone" ? 1 : quantity,
+        quantity: isSingleQuantityOrderType(product.orderType) ? 1 : quantity,
         checkDocumentLabels,
         coupon: null,
         originalUnitPrice: product.basePrice,
@@ -129,7 +144,7 @@ export async function POST(request: NextRequest) {
         workLocation: getText(item.workLocation),
         grossAnnualSalary: getText(item.grossAnnualSalary),
         fringeBenefits: getText(item.fringeBenefits),
-        linkedinUrl: getText(item.linkedinUrl),
+        linkedinUrl,
         salaryFileBase64: getText(item.salaryFileBase64),
         salaryFileName: getText(item.salaryFileName),
         cvFileBase64: getText(item.cvFileBase64),

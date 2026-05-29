@@ -14,9 +14,16 @@ type AddToCartButtonProps = {
   className?: string;
   productName?: string;
   checkSelections?: CheckDocumentKey[];
+  label?: string;
 };
 
-export function AddToCartButton({ serviceType, className, productName, checkSelections }: AddToCartButtonProps) {
+export function AddToCartButton({
+  serviceType,
+  className,
+  productName,
+  checkSelections,
+  label = "In den Warenkorb",
+}: AddToCartButtonProps) {
   const [added, setAdded] = useState(false);
   const [count, setCount] = useState(0);
   const [cartCounts, setCartCounts] = useState<Partial<Record<ShopProductKey, number>>>({});
@@ -192,9 +199,11 @@ export function AddToCartButton({ serviceType, className, productName, checkSele
           handleAddToCart(serviceType, true);
         }}
         className={className || "px-6 py-3 bg-white border border-[#204878] text-[#204878] font-semibold rounded-xl hover:bg-blue-50 transition-colors text-sm text-center"}
+        aria-label={`${productName || product.label} in den Warenkorb legen`}
       >
         <span className="flex items-center justify-center gap-2">
           <ShoppingCart className="h-4 w-4" aria-hidden="true" />
+          <span>{label}</span>
           {count > 0 && <span>({count})</span>}
         </span>
       </button>
