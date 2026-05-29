@@ -5,14 +5,14 @@ import Link from "next/link";
 
 const features = [
   {
-    title: "CHF 13.90",
-    label: "pro Monat",
-    description: "Lebenslauf, Designs, Export und KI-Motivationsschreiben im gleichen Abo.",
+    title: "CV Self-Service",
+    label: "Lebenslauf",
+    description: "Profil, Erfahrung, Ausbildung und Fähigkeiten strukturiert erfassen und als professionellen CV exportieren.",
   },
   {
-    title: "Claude KI",
-    label: "inklusive",
-    description: "Motivationsschreiben direkt aus Profil und Stellenanzeige erstellen.",
+    title: "AI Motivations-Schreiben",
+    label: "Schreibtool",
+    description: "Separates Formular für Stelle, Unternehmen, Adresse und Inserat mit formatiertem DOCX-Download.",
   },
   {
     title: "3 Designs",
@@ -28,8 +28,8 @@ const features = [
 
 const benefits = [
   "Einfache Benutzeroberfläche",
-  "PDF-Export",
-  "KI-Motivationsschreiben ohne fixes Monatskontingent",
+  "Professioneller CV-Export",
+  "Word Download für Motivationsschreiben",
   "Anpassung an konkrete Stellenanzeigen",
   "Unbegrenzt veränderbar",
   "Unbegrenzte Downloads",
@@ -102,10 +102,10 @@ export default function Self() {
           <div className="mx-auto max-w-3xl text-center">
             <p className="mb-4 text-sm font-semibold uppercase tracking-wide text-[#204878]">Self-Service</p>
             <h1 className="text-4xl font-semibold tracking-tight text-[#111827] sm:text-5xl">
-              Lebenslauf und Motivationsschreiben im Monatsabo
+              CV Self-Service und AI Motivationsschreiben, klar getrennt.
             </h1>
             <p className="mx-auto mt-5 max-w-2xl text-lg leading-relaxed text-[#64748B]">
-              Gestalten Sie Ihren Lebenslauf online, exportieren Sie Ihr PDF und erstellen Sie passende Motivationsschreiben mit Claude.
+              Pflegen Sie zuerst Ihren Lebenslauf im Self-Service. Danach erstellen Sie im separaten AI-Bereich ein passendes Motivationsschreiben mit Stellenanzeige und Unternehmensadresse.
             </p>
           </div>
 
@@ -126,6 +126,23 @@ export default function Self() {
                 <p className="mt-4 text-sm leading-relaxed text-[#64748B]">{feature.description}</p>
               </div>
             ))}
+          </div>
+
+          <div className="mt-8 grid gap-6 lg:grid-cols-2">
+            <section className="rounded-2xl border border-gray-100 bg-white p-8 shadow-sm">
+              <p className="text-sm font-semibold uppercase tracking-wide text-[#204878]">CV Self-Service</p>
+              <h2 className="mt-3 text-2xl font-semibold text-[#111827]">Lebenslauf selbst erstellen und pflegen</h2>
+              <p className="mt-4 text-base leading-relaxed text-[#64748B]">
+                Erfassen Sie Profil, Berufserfahrung, Ausbildung, Sprachen und Fähigkeiten an einem Ort. Der CV-Bereich bleibt bewusst auf Lebenslauf und Export fokussiert.
+              </p>
+            </section>
+            <section className="rounded-2xl border border-gray-100 bg-white p-8 shadow-sm">
+              <p className="text-sm font-semibold uppercase tracking-wide text-[#204878]">AI Motivationsschreiben</p>
+              <h2 className="mt-3 text-2xl font-semibold text-[#111827]">Schreiben pro Stelle generieren</h2>
+              <p className="mt-4 text-base leading-relaxed text-[#64748B]">
+                Das Motivationsschreiben ist ein eigenes Werkzeug: Stelle, Unternehmen, Adresse und Inserat einfügen, Entwurf prüfen und als Word-Datei herunterladen.
+              </p>
+            </section>
           </div>
 
           <div className="mt-8 space-y-8">

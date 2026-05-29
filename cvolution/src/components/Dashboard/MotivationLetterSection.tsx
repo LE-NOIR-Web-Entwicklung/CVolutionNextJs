@@ -16,7 +16,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
 import {
   AlertCircle,
-  CheckCircle2,
   Clipboard,
   Download,
   FileText,
@@ -27,6 +26,9 @@ import {
 type MotivationForm = {
   jobTitle: string;
   company: string;
+  companyStreet: string;
+  companyPostalCode: string;
+  companyCity: string;
   recipient: string;
   jobAd: string;
   motivation: string;
@@ -43,6 +45,9 @@ type MotivationLetterSectionProps = {
 const initialForm: MotivationForm = {
   jobTitle: "",
   company: "",
+  companyStreet: "",
+  companyPostalCode: "",
+  companyCity: "",
   recipient: "",
   jobAd: "",
   motivation: "",
@@ -61,14 +66,6 @@ function slugify(value: string) {
     .slice(0, 64);
 }
 
-function escapeHtml(value: string) {
-  return value
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
-}
-
 export const MotivationLetterSection: React.FC<MotivationLetterSectionProps> = ({
   hasSelfServiceAccess,
   onRequirePayment,
@@ -78,11 +75,18 @@ export const MotivationLetterSection: React.FC<MotivationLetterSectionProps> = (
   const [letter, setLetter] = useState("");
   const [error, setError] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
-  const [usage, setUsage] = useState<{ input_tokens?: number; output_tokens?: number } | null>(null);
+  const [isDownloading, setIsDownloading] = useState(false);
 
   const canGenerate = useMemo(() => {
-    return Boolean(form.jobTitle.trim() && form.company.trim() && form.jobAd.trim());
-  }, [form.company, form.jobAd, form.jobTitle]);
+    return Boolean(
+      form.jobTitle.trim() &&
+      form.company.trim() &&
+      form.companyStreet.trim() &&
+      form.companyPostalCode.trim() &&
+      form.companyCity.trim() &&
+      form.jobAd.trim()
+    );
+  }, [form.company, form.companyCity, form.companyPostalCode, form.companyStreet, form.jobAd, form.jobTitle]);
 
   const updateField = <K extends keyof MotivationForm>(key: K, value: MotivationForm[K]) => {
     setForm((current) => ({ ...current, [key]: value }));
@@ -98,7 +102,7 @@ export const MotivationLetterSection: React.FC<MotivationLetterSectionProps> = (
     }
 
     if (!canGenerate) {
-      setError("Bitte Stelle, Unternehmen und Stellenanzeige ausfüllen.");
+      setError("Bitte Stelle, Unternehmen, Adresse, PLZ, Ort und Stellenanzeige ausfüllen.");
       return;
     }
 
@@ -137,7 +141,6 @@ export const MotivationLetterSection: React.FC<MotivationLetterSectionProps> = (
       }
 
       setLetter(result.letter || "");
-      setUsage(result.usage || null);
       toast({
         title: "Motivationsschreiben erstellt",
         description: "Der Entwurf ist bereit.",
@@ -167,58 +170,83 @@ export const MotivationLetterSection: React.FC<MotivationLetterSectionProps> = (
     }
   };
 
-  const handleDownload = () => {
+  const handleDownload = async () => {
     if (!letter) return;
 
-    const fileName = `motivationsschreiben-${slugify(form.company || form.jobTitle || "cvolution")}.doc`;
-    const html = `<!doctype html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <title>Motivationsschreiben</title>
-  <style>
-    body { font-family: Arial, Helvetica, sans-serif; color: #111827; line-height: 1.55; margin: 48px; }
-    main { max-width: 720px; margin: 0 auto; white-space: pre-wrap; }
-  </style>
-</head>
-<body><main>${escapeHtml(letter)}</main></body>
-</html>`;
+    setIsDownloading(true);
+    try {
+      const { data } = await supabase.auth.getSession();
+      const token = data.session?.access_token;
 
-    const blob = new Blob(["\ufeff", html], {
-      type: "application/msword;charset=utf-8",
-    });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = fileName;
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    URL.revokeObjectURL(url);
+      if (!token) {
+        throw new Error("Bitte melden Sie sich erneut an.");
+      }
+
+      const fileName = `motivationsschreiben-${slugify(form.company || form.jobTitle || "cvolution")}.docx`;
+
+      const response = await fetch("/api/motivation-letter/docx", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          letter,
+          jobTitle: form.jobTitle,
+          company: form.company,
+        }),
+      });
+
+      if (response.status === 402) {
+        onRequirePayment();
+      }
+
+      if (!response.ok) {
+        const result = await response.json().catch(() => null);
+        throw new Error(result?.error || "Das DOCX konnte nicht erstellt werden.");
+      }
+
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const link = window.document.createElement("a");
+      link.href = url;
+      link.download = fileName;
+      window.document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      toast({
+        title: "Download fehlgeschlagen",
+        description: err instanceof Error ? err.message : "Das DOCX konnte nicht erstellt werden.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDownloading(false);
+    }
   };
 
   return (
     <div className="space-y-5">
-      <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+      <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-[0_1rem_3rem_rgba(15,37,65,0.06)] sm:p-6">
         <div className="flex flex-col gap-4 border-b border-slate-100 pb-5 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <div className="flex flex-wrap items-center gap-2">
-              <h2 className="text-2xl font-bold text-slate-950">Motivationsschreiben</h2>
-              <Badge className="border-[#204878]/20 bg-[#204878]/10 text-[#204878] hover:bg-[#204878]/10">
-                CHF 13.90 inklusive
+              <h2 className="text-2xl font-bold tracking-tight text-slate-950">
+                AI Motivationsschreiben
+              </h2>
+              <Badge className="rounded-md border-[#204878]/15 bg-[#204878]/10 text-[#204878] hover:bg-[#204878]/10">
+                Claude AI
               </Badge>
             </div>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
-              Claude erstellt einen individuellen Entwurf auf Basis Ihres Profils und der Stellenanzeige.
+              CV-Daten im Self-Service pflegen, Stellenanzeige ergänzen und daraus ein passendes
+              Motivationsschreiben als Word-Datei herunterladen.
             </p>
-          </div>
-          <div className="flex items-center gap-2 rounded-lg border border-emerald-100 bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-700">
-            <CheckCircle2 className="h-4 w-4" />
-            Ohne fixes Monatskontingent
           </div>
         </div>
 
-        <form onSubmit={handleGenerate} className="mt-6 grid gap-5 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
+        <form onSubmit={handleGenerate} className="mt-6 grid gap-5 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] lg:items-stretch">
           <div className="space-y-4">
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
@@ -245,6 +273,48 @@ export const MotivationLetterSection: React.FC<MotivationLetterSectionProps> = (
                   placeholder="Muster AG"
                   className="border-slate-200 bg-white text-slate-950 focus-visible:ring-[#204878]/20"
                   maxLength={140}
+                />
+              </div>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-[minmax(0,1.4fr)_minmax(0,0.6fr)_minmax(0,1fr)]">
+              <div className="space-y-2">
+                <label htmlFor="companyStreet" className="text-sm font-semibold text-slate-900">
+                  Adresse *
+                </label>
+                <Input
+                  id="companyStreet"
+                  value={form.companyStreet}
+                  onChange={(event) => updateField("companyStreet", event.target.value)}
+                  placeholder="Musterstrasse 1"
+                  className="border-slate-200 bg-white text-slate-950 focus-visible:ring-[#204878]/20"
+                  maxLength={160}
+                />
+              </div>
+              <div className="space-y-2">
+                <label htmlFor="companyPostalCode" className="text-sm font-semibold text-slate-900">
+                  PLZ *
+                </label>
+                <Input
+                  id="companyPostalCode"
+                  value={form.companyPostalCode}
+                  onChange={(event) => updateField("companyPostalCode", event.target.value)}
+                  placeholder="8000"
+                  className="border-slate-200 bg-white text-slate-950 focus-visible:ring-[#204878]/20"
+                  maxLength={16}
+                />
+              </div>
+              <div className="space-y-2">
+                <label htmlFor="companyCity" className="text-sm font-semibold text-slate-900">
+                  Ort *
+                </label>
+                <Input
+                  id="companyCity"
+                  value={form.companyCity}
+                  onChange={(event) => updateField("companyCity", event.target.value)}
+                  placeholder="Zürich"
+                  className="border-slate-200 bg-white text-slate-950 focus-visible:ring-[#204878]/20"
+                  maxLength={80}
                 />
               </div>
             </div>
@@ -331,7 +401,7 @@ export const MotivationLetterSection: React.FC<MotivationLetterSectionProps> = (
                 id="achievements"
                 value={form.achievements}
                 onChange={(event) => updateField("achievements", event.target.value)}
-                placeholder="Relevante Projekte, Resultate oder Staerken"
+                placeholder="Relevante Projekte, Resultate oder Stärken"
                 className="min-h-24 resize-y border-slate-200 bg-white text-slate-950 focus-visible:ring-[#204878]/20"
                 maxLength={2500}
               />
@@ -359,7 +429,6 @@ export const MotivationLetterSection: React.FC<MotivationLetterSectionProps> = (
                 onClick={() => {
                   setForm(initialForm);
                   setLetter("");
-                  setUsage(null);
                   setError("");
                 }}
                 className="min-h-11 border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
@@ -369,62 +438,58 @@ export const MotivationLetterSection: React.FC<MotivationLetterSectionProps> = (
             </div>
           </div>
 
-          <aside className="rounded-lg border border-slate-200 bg-slate-50 p-4 sm:p-5">
-            <div className="mb-4 flex flex-col gap-3 border-b border-slate-200 pb-4 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex items-center gap-2">
-                <FileText className="h-5 w-5 text-[#204878]" />
-                <h3 className="text-lg font-semibold text-slate-950">Entwurf</h3>
-              </div>
-              <div className="flex gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={handleCopy}
-                  disabled={!letter}
-                  className="border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
-                >
-                  <Clipboard className="h-4 w-4" />
-                  Kopieren
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={handleDownload}
-                  disabled={!letter}
-                  className="border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
-                >
-                  <Download className="h-4 w-4" />
-                  DOC
-                </Button>
-              </div>
-            </div>
-
-            <div className="min-h-[38rem] rounded-lg border border-slate-200 bg-white p-5 text-sm leading-7 text-slate-800 shadow-sm">
-              {isGenerating ? (
-                <div className="flex h-full min-h-[28rem] flex-col items-center justify-center text-center text-slate-500">
-                  <Loader2 className="mb-4 h-8 w-8 animate-spin text-[#204878]" />
-                  <p className="font-medium text-slate-700">Claude formuliert den Entwurf...</p>
+          <div className="min-h-[28rem] lg:relative lg:min-h-0">
+            <aside className="flex h-full min-h-0 flex-col overflow-hidden rounded-lg border border-slate-200 bg-[#F8FAFC] p-4 sm:p-5 lg:absolute lg:inset-0">
+              <div className="mb-4 flex flex-col gap-3 border-b border-slate-200 pb-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex items-center gap-2">
+                  <FileText className="h-5 w-5 text-[#204878]" />
+                  <h3 className="text-lg font-semibold text-slate-950">Entwurf</h3>
                 </div>
-              ) : letter ? (
-                <pre className="whitespace-pre-wrap break-words font-sans text-sm leading-7 text-slate-900">
-                  {letter}
-                </pre>
-              ) : (
-                <div className="flex h-full min-h-[28rem] flex-col items-center justify-center text-center text-slate-500">
-                  <FileText className="mb-4 h-10 w-10 text-slate-300" />
-                  <p className="max-w-xs text-sm leading-6">Der generierte Text erscheint hier.</p>
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleCopy}
+                    disabled={!letter}
+                    className="border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+                  >
+                    <Clipboard className="h-4 w-4" />
+                    Kopieren
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleDownload}
+                    disabled={!letter || isDownloading}
+                    className="border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+                  >
+                    {isDownloading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+                    DOCX
+                  </Button>
                 </div>
-              )}
-            </div>
+              </div>
 
-            {usage && (
-              <p className="mt-3 text-xs text-slate-500">
-                Claude Tokens: {usage.input_tokens || 0} Input / {usage.output_tokens || 0} Output
-              </p>
-            )}
-          </aside>
+              <div className="min-h-0 flex-1 overflow-y-auto rounded-lg border border-slate-200 bg-white p-5 text-sm leading-7 text-slate-800 shadow-sm">
+                {isGenerating ? (
+                  <div className="flex h-full flex-col items-center justify-center text-center text-slate-500">
+                    <Loader2 className="mb-4 h-8 w-8 animate-spin text-[#204878]" />
+                    <p className="font-medium text-slate-700">Einen Moment! Wir machen aus Gedanken gerade Bewerbungsmaterial....</p>
+                  </div>
+                ) : letter ? (
+                  <pre className="whitespace-pre-wrap break-words font-sans text-sm leading-7 text-slate-900">
+                    {letter}
+                  </pre>
+                ) : (
+                  <div className="flex h-full flex-col items-center justify-center text-center text-slate-500">
+                    <FileText className="mb-4 h-10 w-10 text-slate-300" />
+                    <p className="max-w-xs text-sm leading-6">Der generierte Text erscheint hier.</p>
+                  </div>
+                )}
+              </div>
+            </aside>
+          </div>
         </form>
       </div>
     </div>
