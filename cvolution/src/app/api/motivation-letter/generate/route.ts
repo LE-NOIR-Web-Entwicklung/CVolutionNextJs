@@ -26,6 +26,7 @@ type ClaudeResponse = {
   content?: Array<{ type: string; text?: string }>;
   model?: string;
   error?: {
+    type?: string;
     message?: string;
   };
 };
@@ -35,6 +36,7 @@ type AnthropicHttpResponse = {
   status: number;
   data: ClaudeResponse | null;
   rawText: string;
+  retryAfterMs: number | null;
 };
 
 type NormalizedMotivationRequest = {
@@ -67,6 +69,9 @@ const MAX_LENGTHS = {
 
 const allowedTones = new Set(["professionell", "warm", "direkt", "selbstbewusst"]);
 const allowedLanguages = new Set(["de-CH", "de", "en", "fr"]);
+const RETRYABLE_ANTHROPIC_STATUSES = new Set([408, 409, 429, 500, 502, 503, 529]);
+const MAX_ANTHROPIC_ATTEMPTS = 3;
+const MAX_RETRY_AFTER_MS = 2500;
 
 function jsonError(message: string, status: number) {
   return NextResponse.json({ error: message }, { status });
@@ -92,6 +97,53 @@ function normalizeSwissMotivationLetter(value: string) {
 
 function wait(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function parseRetryAfterMs(value: string | string[] | undefined) {
+  const retryAfter = Array.isArray(value) ? value[0] : value;
+  if (!retryAfter) return null;
+
+  const seconds = Number(retryAfter);
+  if (Number.isFinite(seconds)) {
+    return Math.max(0, seconds * 1000);
+  }
+
+  const retryAt = new Date(retryAfter).getTime();
+  if (!Number.isFinite(retryAt)) return null;
+
+  return Math.max(0, retryAt - Date.now());
+}
+
+function getAnthropicRetryDelayMs(attempt: number, response?: AnthropicHttpResponse | null) {
+  if (response?.retryAfterMs) {
+    return Math.min(response.retryAfterMs, MAX_RETRY_AFTER_MS);
+  }
+
+  return [350, 900, 1500][attempt] || 1500;
+}
+
+function getAnthropicUserMessage(status: number, errorType?: string) {
+  if (status === 400 || status === 413 || errorType === "invalid_request_error") {
+    return "Die Eingaben konnten vom AI-Service nicht verarbeitet werden. Bitte kürzen Sie die Stellenanzeige oder CV-Daten und versuchen Sie es erneut.";
+  }
+
+  if (status === 401 || status === 403 || errorType === "authentication_error" || errorType === "permission_error") {
+    return "AI-Service ist nicht korrekt konfiguriert. Bitte Support kontaktieren.";
+  }
+
+  if (status === 404 || errorType === "not_found_error") {
+    return "Das konfigurierte AI-Modell ist momentan nicht verfügbar. Bitte Support kontaktieren.";
+  }
+
+  if (status === 429 || errorType === "rate_limit_error") {
+    return "AI-Service ist gerade ausgelastet. Bitte in wenigen Sekunden erneut versuchen.";
+  }
+
+  if (RETRYABLE_ANTHROPIC_STATUSES.has(status) || errorType === "overloaded_error") {
+    return "AI-Service ist momentan ausgelastet. Bitte gleich nochmals versuchen.";
+  }
+
+  return "Motivationsschreiben konnte nicht erstellt werden.";
 }
 
 function postAnthropicMessages(apiKey: string, payload: unknown): Promise<AnthropicHttpResponse> {
@@ -135,6 +187,7 @@ function postAnthropicMessages(apiKey: string, payload: unknown): Promise<Anthro
           status,
           data,
           rawText,
+          retryAfterMs: parseRetryAfterMs(res.headers["retry-after"]),
         });
       });
     });
@@ -152,14 +205,26 @@ function postAnthropicMessages(apiKey: string, payload: unknown): Promise<Anthro
 async function callAnthropicMessages(apiKey: string, payload: unknown) {
   let lastError: unknown = null;
 
-  for (let attempt = 0; attempt < 2; attempt += 1) {
+  for (let attempt = 0; attempt < MAX_ANTHROPIC_ATTEMPTS; attempt += 1) {
     try {
-      return await postAnthropicMessages(apiKey, payload);
+      const response = await postAnthropicMessages(apiKey, payload);
+
+      if (
+        response.ok ||
+        !RETRYABLE_ANTHROPIC_STATUSES.has(response.status) ||
+        attempt === MAX_ANTHROPIC_ATTEMPTS - 1
+      ) {
+        return response;
+      }
+
+      await wait(getAnthropicRetryDelayMs(attempt, response));
     } catch (error) {
       lastError = error;
-      if (attempt === 0) {
-        await wait(350);
+      if (attempt === MAX_ANTHROPIC_ATTEMPTS - 1) {
+        break;
       }
+
+      await wait(getAnthropicRetryDelayMs(attempt));
     }
   }
 
@@ -391,9 +456,12 @@ export async function POST(request: NextRequest) {
   if (!response.ok) {
     console.error("AI motivation letter request failed", {
       status: response.status,
+      errorType: claudeData?.error?.type,
       error: claudeData?.error?.message,
+      retryAfterMs: response.retryAfterMs,
+      rawText: claudeData ? undefined : response.rawText.slice(0, 500),
     });
-    return jsonError("Motivationsschreiben konnte nicht erstellt werden.", 502);
+    return jsonError(getAnthropicUserMessage(response.status, claudeData?.error?.type), 502);
   }
 
   const rawLetter = claudeData?.content
