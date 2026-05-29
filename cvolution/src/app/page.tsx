@@ -197,7 +197,7 @@ export default function Home() {
                 { label: "LinkedIn Profil", href: "/service-linkedin" },
                 { label: "Motivationsschreiben", href: "/service-motivation" },
                 { label: "CV Check", href: "/service-check" },
-                { label: "CV Self-Service", href: "/self" },
+                { label: "CV + KI Self-Service", href: "/self" },
               ].map((item) => (
                 <Link
                   key={item.href}
