@@ -26,6 +26,19 @@ function cleanText(value: unknown, maxLength: number) {
   return value.replace(/\s+\n/g, "\n").trim().slice(0, maxLength);
 }
 
+function normalizeSwissMotivationLetter(value: string) {
+  return value
+    .replace(/ß/g, "ss")
+    .replace(/ẞ/g, "SS")
+    .replace(/\s*[–—―]\s*/g, ", ")
+    .replace(/\s+-\s+/g, ", ")
+    .replace(/,{2,}/g, ",")
+    .replace(/[ \t]{2,}/g, " ")
+    .replace(/,\s*([.!?])/g, "$1")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
 function isSelfServiceIncluded(profile: any) {
   const now = Date.now();
   const periodEnd = profile?.subscription_current_period_end || profile?.paydate;
@@ -103,7 +116,7 @@ export async function POST(request: NextRequest) {
     return jsonError("Ungültige Anfrage.", 400);
   }
 
-  const letter = cleanText(body.letter, 12000);
+  const letter = normalizeSwissMotivationLetter(cleanText(body.letter, 12000));
   const jobTitle = cleanText(body.jobTitle, 140);
   const company = cleanText(body.company, 140);
 
