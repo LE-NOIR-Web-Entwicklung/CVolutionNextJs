@@ -19,6 +19,17 @@ type CouponPayload = {
   campaignTag?: unknown;
 };
 
+function getCouponDatabaseErrorMessage(error: { code?: string; message?: string }) {
+  const message = error.message || "";
+  if (error.code === "23514" && message.includes("coupons_services_check")) {
+    return "Die Datenbankmigration für LinkedIn-Coupons fehlt. Bitte Migration 20260529_add_linkedin_service_coupon.sql anwenden.";
+  }
+  if (error.code === "23505") {
+    return "Dieser Coupon Code existiert bereits.";
+  }
+  return "Coupon konnte nicht erstellt werden.";
+}
+
 function parseCouponPayload(payload: CouponPayload) {
   const code = normalizeCouponCode(payload.code);
   const discountType = payload.discountType;
@@ -97,7 +108,7 @@ export async function POST(request: NextRequest) {
 
   if (error) {
     console.error("Admin coupon create failed", { reason: error.message, admin: admin.email });
-    return NextResponse.json({ error: "Coupon konnte nicht erstellt werden." }, { status: 500 });
+    return NextResponse.json({ error: getCouponDatabaseErrorMessage(error) }, { status: 500 });
   }
 
   return NextResponse.json({ coupon: data }, { status: 201 });

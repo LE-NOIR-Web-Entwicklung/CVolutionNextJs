@@ -4,6 +4,7 @@ export const COUPON_SERVICE_KEYS = [
   "service-career",
   "service-check",
   "service-cv",
+  "service-linkedin",
   "service-motivation",
   "service-rav",
   "service-salary",
@@ -19,7 +20,7 @@ export interface ServiceConfig {
   label: string;
   basePrice: number;
   paymentUrls: {
-    normal: string;
+    normal: string | null;
     percent30?: string;
     free?: null;
   };
@@ -58,6 +59,15 @@ export const SERVICE_CONFIGS: Record<string, ServiceConfig> = {
     paymentUrls: { 
       normal: `${SAFERPAY_BASE}/c1b94ab8-a0bf-4852-94dd-8c49a820373b`, 
       percent30: `${SAFERPAY_BASE}/2bdf1a12-6ce9-4cec-a327-bf6631bbc1da` 
+    },
+  },
+  linkedin: {
+    orderType: "linkedin",
+    couponServiceKey: "service-linkedin",
+    label: "LinkedIn Profil Optimierung",
+    basePrice: 149,
+    paymentUrls: {
+      normal: null,
     },
   },
   motivation: {
@@ -115,6 +125,7 @@ const SERVICE_ALIASES: Record<string, string> = {
   "service-career": "career",
   "service-check": "check",
   "service-cv": "cv",
+  "service-linkedin": "linkedin",
   "service-motivation": "motivation",
   "service-rav": "rav",
   "service-salary": "salary_pdf",

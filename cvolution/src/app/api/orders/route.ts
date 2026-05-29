@@ -21,6 +21,13 @@ function normalizeContactPhone(value: unknown) {
   return typeof value === 'string' && value.trim() ? value.trim() : null;
 }
 
+function normalizeLinkedInUrl(value: unknown) {
+  if (typeof value !== 'string' || !value.trim()) return null;
+  const trimmedValue = value.trim();
+  if (/^https?:\/\//i.test(trimmedValue)) return trimmedValue;
+  return `https://${trimmedValue}`;
+}
+
 function getOrderRemarks(
   remarks: unknown,
   externalOrder: boolean,
@@ -93,6 +100,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
+    const normalizedLinkedInUrl = normalizeLinkedInUrl(linkedinUrl);
+
+    if (serviceConfig.orderType === 'linkedin' && !normalizedLinkedInUrl) {
+      return NextResponse.json({ error: 'LinkedIn-URL ist für die Profiloptimierung erforderlich.' }, { status: 400 });
+    }
+
     const originalPrice = serviceConfig.basePrice;
     let coupon: Coupon | null = null;
     let finalPrice = originalPrice;
@@ -141,7 +154,7 @@ export async function POST(request: NextRequest) {
       work_location: workLocation || null,
       gross_annual_salary: grossAnnualSalary || null,
       fringe_benefits: fringeBenefits || null,
-      linkedin_url: linkedinUrl || null,
+      linkedin_url: normalizedLinkedInUrl,
       remarks: orderRemarks,
       service_type: serviceConfig.orderType,
       service_label: serviceConfig.label || serviceLabel,
@@ -244,7 +257,7 @@ export async function POST(request: NextRequest) {
             workLocation || undefined,
             grossAnnualSalary || undefined,
             fringeBenefits || undefined,
-            linkedinUrl || undefined,
+            normalizedLinkedInUrl || undefined,
             remarks || undefined,
             coupon?.code ?? null,
             normalizedContactPhone

@@ -31,6 +31,15 @@ export const SERVICE_OFFERS: ServiceOffer[] = [
     serviceType: "cv",
   },
   {
+    name: "LinkedIn Profil Optimierung",
+    description:
+      "Schärfung Ihres LinkedIn-Auftritts für die Stellensuche. Klare Positionierung, optimierte Profilstruktur und ansprechendes Copywriting für Recruiter",
+    image: "/images/copy-writing.png",
+    price: "CHF 149",
+    link: "/service-linkedin",
+    serviceType: "linkedin",
+  },
+  {
     name: "Lohnanalyse",
     description:
       "Transparenter Vergleich mit branchenüblichen Gehältern. Individuelle Einschätzung basierend auf Ihrer Position und Erfahrung. Wertvolle Argumente für Ihre Gehaltsverhandlung",
@@ -73,8 +82,9 @@ export const SERVICE_OFFERS: ServiceOffer[] = [
 export const CART_RECOMMENDATION_OFFERS: ServiceOffer[] = [
   SERVICE_OFFERS[0],
   SERVICE_OFFERS[1],
-  SERVICE_OFFERS[3],
+  SERVICE_OFFERS[2],
   SERVICE_OFFERS[4],
+  SERVICE_OFFERS[5],
   {
     name: "Lohnanalyse PDF",
     description:
@@ -93,5 +103,5 @@ export const CART_RECOMMENDATION_OFFERS: ServiceOffer[] = [
     link: "/service-salary-tel",
     serviceType: "salary_phone",
   },
-  SERVICE_OFFERS[5],
+  SERVICE_OFFERS[6],
 ];

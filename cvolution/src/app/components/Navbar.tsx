@@ -52,6 +52,7 @@ export default function Navbar() {
       items: [
         { name: "Laufbahnberatung", href: "/service-career" },
         { name: "Lebenslauf", href: "/service-cv" },
+        { name: "LinkedIn Profil", href: "/service-linkedin" },
         { name: "Lohnanalyse", href: "/service-salary" },
         { name: "Motivationsschreiben", href: "/service-motivation" },
         { name: "RAV Unterstützung", href: "/service-rav" },

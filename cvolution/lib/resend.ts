@@ -30,10 +30,11 @@ export const sendEmail = async (
 ) => {
     // Build additional fields HTML for PDF service
     let additionalFieldsHtml = '';
-    if (firstName || lastName || birthDate || workLocation || grossAnnualSalary) {
+    if (firstName || lastName || birthDate || workLocation || grossAnnualSalary || fringeBenefits || linkedinUrl || remarks) {
+        const detailsTitle = grossAnnualSalary || birthDate || workLocation ? "Lohnanalyse Details:" : "Bestelldetails:";
         additionalFieldsHtml = `
             <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid #e5e7eb;">
-                <h3 style="color: #204878; font-size: 1.2rem; margin-bottom: 12px;">Lohnanalyse Details:</h3>
+                <h3 style="color: #204878; font-size: 1.2rem; margin-bottom: 12px;">${detailsTitle}</h3>
                 ${firstName ? `<p style='color: #333; font-size: 1.1rem;'><strong>Vorname:</strong> ${firstName}</p>` : ""}
                 ${lastName ? `<p style='color: #333; font-size: 1.1rem;'><strong>Nachname:</strong> ${lastName}</p>` : ""}
                 ${birthDate ? `<p style='color: #333; font-size: 1.1rem;'><strong>Geburtsdatum:</strong> ${birthDate}</p>` : ""}
@@ -152,6 +153,15 @@ export const sendConfirmationEmail = async (email: string, service: string) => {
             <p style=\"color: #333; font-size: 1.1rem; margin-bottom: 16px;\">Falls du dein Bewerbungsdossier im Checkout bereits hochgeladen hast, ist nichts weiter nötig.</p>
             <p style=\"color: #333; font-size: 1.1rem; margin-bottom: 16px;\">Falls noch Unterlagen fehlen, sende sie uns bitte per E-Mail an <a href=\"mailto:info@cvolution.ch\" style=\"color: #204878; text-decoration: underline;\">info@cvolution.ch</a>.</p>
             <p style=\"color: #333; font-size: 1.1rem; margin-bottom: 16px;\">Wir werden dein Dossier prüfen und dir per Mail eine ausführliche Rückmeldung zukommen lassen. Solltest du im Nachgang noch Fragen oder Unklarheiten haben, darfst du dich gerne melden.</p>
+            <p style=\"color: #333; font-size: 1.1rem;\">Wir freuen uns auf die Zusammenarbeit mit dir!</p>
+        `;
+    } else if (service && service.toLowerCase() === "linkedin profil optimierung") {
+        customMessage = `
+            <p style=\"color: #333; font-size: 1.1rem; margin-bottom: 24px;\">Vielen Dank für deine Bestellung!<br />
+            Es freut uns, dass wir dein LinkedIn-Profil für die Stellensuche optimieren dürfen.</p>
+            <h2 style=\"color: #204878; font-size: 1.1rem; margin-bottom: 12px;\">Wie geht es weiter?</h2>
+            <p style=\"color: #333; font-size: 1.1rem; margin-bottom: 16px;\">Wir prüfen dein Profil, schärfen deine Positionierung und erarbeiten ansprechende Formulierungen für Headline, Info-Bereich und relevante Stationen.</p>
+            <p style=\"color: #333; font-size: 1.1rem; margin-bottom: 16px;\">Falls du zusätzlich einen aktuellen Lebenslauf, ein Wunschstelleninserat oder besondere Zielrollen hast, kannst du uns diese Unterlagen gerne per E-Mail an <a href=\"mailto:info@cvolution.ch\" style=\"color: #204878; text-decoration: underline;\">info@cvolution.ch</a> senden.</p>
             <p style=\"color: #333; font-size: 1.1rem;\">Wir freuen uns auf die Zusammenarbeit mit dir!</p>
         `;
     } else if (service && service.toLowerCase() === "motivationsschreiben") {
@@ -479,6 +489,9 @@ function getServiceNextStepsHtml(item: CartEmailDisplayItem) {
             return "<span style='color:#64748B;'>Wir haben deine hochgeladenen Unterlagen erhalten und prüfen dein Dossier. Du erhältst unsere Rückmeldung per E-Mail.</span>";
         }
         return "<span style='color:#64748B;'>Bitte sende uns dein Bewerbungsdossier als PDF an info@cvolution.ch, falls du es noch nicht übermittelt hast.</span>";
+    }
+    if (lowerService === "linkedin profil optimierung") {
+        return "<span style='color:#64748B;'>Wir prüfen dein LinkedIn-Profil, schärfen deine Positionierung und senden dir ansprechende Formulierungen für die Stellensuche.</span>";
     }
     if (lowerService === "motivationsschreiben") {
         return "<span style='color:#64748B;'>Bitte sende uns das Stelleninserat sowie deinen Lebenslauf oder dein LinkedIn-Profil an info@cvolution.ch.</span>";
