@@ -13,33 +13,6 @@ export type ServiceOffer = {
 
 export const SERVICE_OFFERS: ServiceOffer[] = [
   {
-    name: "Laufbahnberatung",
-    description:
-      "Analyse Ihrer Stärken, Interessen und Ziele. Erarbeitung individueller Karriere-Strategien. Beratung zu Weiterbildung und beruflicher Neuorientierung",
-    image: "/images/talk.png",
-    price: "CHF 149 / Stunde",
-    link: "/service-career",
-    serviceType: "career",
-  },
-  {
-    name: "Lebenslauf",
-    description:
-      "Analyse Ihrer bisherigen beruflichen Laufbahn. Individuelle Gestaltung eines professionellen Lebenslaufs. Anpassung an die gewünschte Position und Branche",
-    image: "/images/resume.png",
-    price: "CHF 99",
-    link: "/service-cv",
-    serviceType: "cv",
-  },
-  {
-    name: "LinkedIn Profil Optimierung",
-    description:
-      "Schärfung Ihres LinkedIn-Auftritts für die Stellensuche. Klare Positionierung, optimierte Profilstruktur und ansprechendes Copywriting für Recruiter",
-    image: "/images/copy-writing.png",
-    price: "CHF 149",
-    link: "/service-linkedin",
-    serviceType: "linkedin",
-  },
-  {
     name: "Lohnanalyse",
     description:
       "Transparenter Vergleich mit branchenüblichen Gehältern. Individuelle Einschätzung basierend auf Ihrer Position und Erfahrung. Wertvolle Argumente für Ihre Gehaltsverhandlung",
@@ -51,6 +24,15 @@ export const SERVICE_OFFERS: ServiceOffer[] = [
     offerLabel: "2 Angebote ansehen",
   },
   {
+    name: "Lebenslauf",
+    description:
+    "Analyse Ihrer bisherigen beruflichen Laufbahn. Individuelle Gestaltung eines professionellen Lebenslaufs. Anpassung an die gewünschte Position und Branche",
+    image: "/images/resume.png",
+    price: "CHF 99",
+    link: "/service-cv",
+    serviceType: "cv",
+  },
+  {
     name: "Motivationsschreiben",
     description:
       "Gemeinsames Erarbeiten Ihrer individuellen Argumente. Formulierung eines überzeugenden Motivationsschreibens. Angepasst an spezifische Stellenanforderungen",
@@ -60,22 +42,40 @@ export const SERVICE_OFFERS: ServiceOffer[] = [
     serviceType: "motivation",
   },
   {
+    name: "Laufbahnberatung",
+    description:
+    "Analyse Ihrer Stärken, Interessen und Ziele. Erarbeitung individueller Karriere-Strategien. Beratung zu Weiterbildung und beruflicher Neuorientierung",
+    image: "/images/talk.png",
+    price: "CHF 149 / Stunde",
+    link: "/service-career",
+    serviceType: "career",
+  },
+  {
+    name: "Check",
+    description:
+    "Wir prüfen deinen Lebenslauf, dein Motivationsschreiben, deine Arbeitszeugnisse und weitere Bewerbungsdokumente auf Inhalt, Aufbau, Gestaltung und Formulierungen",
+    image: "/images/checked.png",
+    price: "ab CHF 59",
+    link: "/service-check",
+    serviceType: "check",
+  },
+  {
     name: "RAV Unterstützung",
     description:
-      "Unterstützung bei der Erfüllung von RAV-Vorgaben. Erstellung von Lebenslauf und Motivationsschreiben. Vorbereitung auf Bewerbungsgespräche",
+    "Unterstützung bei der Erfüllung von RAV-Vorgaben. Erstellung von Lebenslauf und Motivationsschreiben. Vorbereitung auf Bewerbungsgespräche",
     image: "/images/customer-service.png",
     price: "ab CHF 99",
     link: "/service-rav",
     serviceType: "rav",
   },
   {
-    name: "Check",
+    name: "LinkedIn Profil Optimierung",
     description:
-      "Wir prüfen deinen Lebenslauf, dein Motivationsschreiben, deine Arbeitszeugnisse und weitere Bewerbungsdokumente auf Inhalt, Aufbau, Gestaltung und Formulierungen",
-    image: "/images/checked.png",
-    price: "ab CHF 59",
-    link: "/service-check",
-    serviceType: "check",
+    "Schärfung Ihres LinkedIn-Auftritts für die Stellensuche. Klare Positionierung, optimierte Profilstruktur und ansprechendes Copywriting für Recruiter",
+    image: "/images/copy-writing.png",
+    price: "CHF 149",
+    link: "/service-linkedin",
+    serviceType: "linkedin",
   },
 ];
 
