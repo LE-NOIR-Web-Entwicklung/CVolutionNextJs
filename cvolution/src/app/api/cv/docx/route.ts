@@ -215,11 +215,25 @@ async function fetchProfilePhoto(url?: string | null): Promise<Photo | null> {
     const res = await fetch(url, { signal: controller.signal });
     clearTimeout(timer);
     if (!res.ok) return null;
-    const buf = Buffer.from(await res.arrayBuffer());
-    if (buf.length < 8 || buf.length > 8 * 1024 * 1024) return null;
-    if (buf[0] === 0xff && buf[1] === 0xd8) return { data: buf, type: "jpg" };
-    if (buf[0] === 0x89 && buf[1] === 0x50) return { data: buf, type: "png" };
-    return null;
+    const raw = Buffer.from(await res.arrayBuffer());
+    if (raw.length < 8 || raw.length > 8 * 1024 * 1024) return null;
+
+    // Wie objectFit "cover" im PDF: zentriert auf 92:110 zuschneiden,
+    // damit das Foto in Word nicht verzerrt wird.
+    try {
+      const sharp = (await import("sharp")).default;
+      const cropped = await sharp(raw)
+        .rotate() // EXIF-Orientierung korrigieren
+        .resize(PHOTO_W_PX * 3, PHOTO_H_PX * 3, { fit: "cover", position: "centre" })
+        .jpeg({ quality: 88 })
+        .toBuffer();
+      return { data: cropped, type: "jpg" };
+    } catch {
+      // Fallback ohne sharp: Originalbild unveraendert einbetten
+      if (raw[0] === 0xff && raw[1] === 0xd8) return { data: raw, type: "jpg" };
+      if (raw[0] === 0x89 && raw[1] === 0x50) return { data: raw, type: "png" };
+      return null;
+    }
   } catch {
     return null;
   }
