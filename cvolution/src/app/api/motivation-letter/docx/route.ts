@@ -27,7 +27,9 @@ function jsonError(message: string, status: number) {
 
 function cleanText(value: unknown, maxLength: number) {
   if (typeof value !== "string") return "";
-  return value.replace(/\s+\n/g, "\n").trim().slice(0, maxLength);
+  // Nur Leerzeichen/Tabs am Zeilenende entfernen. Leerzeilen (\n\n) muessen
+  // erhalten bleiben, sie trennen die Absatz-Bloecke fuer die Word-Formatierung.
+  return value.replace(/[ \t]+\n/g, "\n").trim().slice(0, maxLength);
 }
 
 function normalizeSwissMotivationLetter(value: string) {
