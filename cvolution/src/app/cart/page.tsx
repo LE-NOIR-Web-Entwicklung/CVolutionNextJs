@@ -26,6 +26,7 @@ type SalaryDetails = {
   email: string;
   emailConfirmation: string;
   grossAnnualSalary: string;
+  workload: string;
   fringeBenefits: string;
   linkedinUrl: string;
   remarks: string;
@@ -55,6 +56,7 @@ const emptySalaryDetails: SalaryDetails = {
   email: "",
   emailConfirmation: "",
   grossAnnualSalary: "",
+  workload: "",
   fringeBenefits: "",
   linkedinUrl: "",
   remarks: "",
@@ -290,7 +292,7 @@ export default function CartPage() {
 
   function validateSalaryLine(serviceType: ShopProductKey) {
     const details = salaryDetails[serviceType] || emptySalaryDetails;
-    if (!details.firstName || !details.lastName || !details.email || !details.birthDate || !details.workLocation || !details.grossAnnualSalary) {
+    if (!details.firstName || !details.lastName || !details.email || !details.birthDate || !details.workLocation || !details.grossAnnualSalary || !details.workload) {
       return "Bitte füllen Sie alle Pflichtfelder für die Lohnanalyse aus.";
     }
     if (details.email.trim().toLowerCase() !== details.emailConfirmation.trim().toLowerCase()) {
@@ -316,7 +318,7 @@ export default function CartPage() {
   function renderSalaryFields(serviceType: ShopProductKey) {
     const details = salaryDetails[serviceType] || emptySalaryDetails;
     const isOpen = salaryOpen[serviceType] ?? false;
-    const isComplete = !!(details.firstName && details.lastName && details.email && details.birthDate && details.workLocation && details.grossAnnualSalary && details.salaryFile && (details.cvFile || details.linkedinUrl.trim()));
+    const isComplete = !!(details.firstName && details.lastName && details.email && details.birthDate && details.workLocation && details.grossAnnualSalary && details.workload && details.salaryFile && (details.cvFile || details.linkedinUrl.trim()));
 
     return (
       <div className="mt-2 border-t border-gray-100">
@@ -368,6 +370,10 @@ export default function CartPage() {
               <div>
                 <label className="block text-xs font-semibold text-[#111827] mb-1">Bruttojahreslohn *</label>
                 <input value={details.grossAnnualSalary} onChange={(event) => updateSalaryDetails(serviceType, { grossAnnualSalary: event.target.value })} placeholder="z.B. CHF 85'000" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#204878] focus:border-transparent transition" />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-[#111827] mb-1">Pensum *</label>
+                <input value={details.workload} onChange={(event) => updateSalaryDetails(serviceType, { workload: event.target.value })} placeholder="z.B. 100%" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#204878] focus:border-transparent transition" />
               </div>
             </div>
             <div>
@@ -613,6 +619,7 @@ export default function CartPage() {
           birthDate: details.birthDate,
           workLocation: details.workLocation,
           grossAnnualSalary: details.grossAnnualSalary,
+          workload: details.workload,
           fringeBenefits: details.fringeBenefits,
           linkedinUrl: normalizeLinkedInUrl(details.linkedinUrl),
           remarks: details.remarks,

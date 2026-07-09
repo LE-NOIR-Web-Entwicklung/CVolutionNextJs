@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Download } from 'lucide-react';
+import { Download, FileText, Loader2 } from 'lucide-react';
 import { CVDesignSelector, CVDesign } from './CVDesignSelector';
 // import { PDFDownloadLink } from '@react-pdf/renderer';
 import { CVPdfDocument } from './pdf/CVPdfDocument';
-import dynamic from 'next/dynamic';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/hooks/use-toast';
 
 
 interface CVExportModalProps {
@@ -24,6 +25,7 @@ export const CVExportModal: React.FC<CVExportModalProps> = ({
 }) => {
   const [selectedDesign, setSelectedDesign] = useState<CVDesign>('design1');
   const [loading, setLoading] = useState(false);
+  const [wordLoading, setWordLoading] = useState(false);
 
 
   const handleExport = async () => {
@@ -51,6 +53,49 @@ export const CVExportModal: React.FC<CVExportModalProps> = ({
     setLoading(false);
   };
 
+  const handleWordExport = async () => {
+    setWordLoading(true);
+    try {
+      const { data } = await supabase.auth.getSession();
+      const token = data.session?.access_token;
+
+      if (!token) {
+        throw new Error('Bitte melden Sie sich erneut an.');
+      }
+
+      const response = await fetch('/api/cv/docx', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        // Word-Export nutzt dasselbe gewaehlte Design wie der PDF-Export
+        body: JSON.stringify({ design: selectedDesign }),
+      });
+
+      if (!response.ok) {
+        const result = await response.json().catch(() => null);
+        throw new Error(result?.error || 'Das Word-Dokument konnte nicht erstellt werden.');
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'Lebenslauf.docx';
+      a.click();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      toast({
+        title: 'Word-Export fehlgeschlagen',
+        description: error instanceof Error ? error.message : 'Bitte versuchen Sie es erneut.',
+        variant: 'destructive',
+      });
+    } finally {
+      setWordLoading(false);
+    }
+  };
+
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -58,20 +103,28 @@ export const CVExportModal: React.FC<CVExportModalProps> = ({
         <DialogHeader>
           <DialogTitle className="text-lg sm:text-xl font-bold text-[#204878] mb-1">CV Exportieren</DialogTitle>
           <DialogDescription className="text-sm sm:text-base text-black">
-            Wählen Sie ein Design und exportieren Sie Ihren Lebenslauf als PDF.
+            Wählen Sie ein Design und exportieren Sie Ihren Lebenslauf als PDF oder Word-Datei.
           </DialogDescription>
         </DialogHeader>
         <div className="bg-blue-50 rounded-xl sm:rounded-2xl p-3 sm:p-6 lg:p-8 my-4 sm:my-6 flex justify-center overflow-x-auto">
           <CVDesignSelector selected={selectedDesign} onSelect={setSelectedDesign} />
         </div>
-       <DialogFooter className="flex-col sm:flex-row gap-2 sm:gap-0">
+       <DialogFooter className="flex-col sm:flex-row gap-2 sm:gap-2">
           <Button
             onClick={handleExport}
-            disabled={loading}
+            disabled={loading || wordLoading}
             className="w-full sm:w-auto bg-[#204878] hover:bg-[#4c6c93] text-white font-bold rounded-lg py-2.5 sm:py-3 transition duration-200 px-4 sm:px-6 text-sm sm:text-base"
           >
             <Download className="h-4 w-4 mr-2" />
             {loading ? 'Exportiere...' : 'Als PDF exportieren'}
+          </Button>
+          <Button
+            onClick={handleWordExport}
+            disabled={loading || wordLoading}
+            className="w-full sm:w-auto bg-[#204878] hover:bg-[#4c6c93] text-white font-bold rounded-lg py-2.5 sm:py-3 transition duration-200 px-4 sm:px-6 text-sm sm:text-base"
+          >
+            {wordLoading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <FileText className="h-4 w-4 mr-2" />}
+            {wordLoading ? 'Exportiere...' : 'Als Word exportieren'}
           </Button>
           <Button onClick={onClose} className="w-full sm:w-auto bg-gray-200 hover:bg-gray-300 text-black font-bold rounded-lg py-2.5 sm:py-3 transition duration-200 px-4 sm:px-6 text-sm sm:text-base">
             Abbrechen

@@ -75,7 +75,9 @@ export async function sendOrderEmails(order: Order) {
       order.fringe_benefits || undefined,
       order.linkedin_url || undefined,
       getCustomerRemarks(order),
-      order.coupon_code || null
+      order.coupon_code || null,
+      undefined,
+      order.workload || undefined
     ),
     sendConfirmationEmail(order.email, order.service_label),
   ]);
