@@ -38,15 +38,16 @@
     ]
   },
   "include": [
-    "next-env.d.ts",
+    ".next/types/**/*.ts",
     "global.d.ts",
-    "next.config.ts",
     "lib/**/*.ts",
+    "next-env.d.ts",
+    "next.config.ts",
     "pages/**/*.ts",
     "pages/**/*.tsx",
     "src/**/*.ts",
     "src/**/*.tsx",
-    ".next/types/**/*.ts"
+    ".next.nosync/types/**/*.ts"
   ],
   "exclude": [
     "node_modules",
