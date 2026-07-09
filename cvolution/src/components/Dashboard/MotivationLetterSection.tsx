@@ -2,7 +2,6 @@ import React, { useMemo, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -19,6 +18,7 @@ import {
   Clipboard,
   Download,
   FileText,
+  Link2,
   Loader2,
   Sparkles,
 } from "lucide-react";
@@ -31,9 +31,7 @@ type MotivationForm = {
   companyCity: string;
   recipient: string;
   jobAd: string;
-  motivation: string;
-  achievements: string;
-  tone: "professionell" | "warm" | "direkt" | "selbstbewusst";
+  jobAdUrl: string;
   language: "de-CH" | "de" | "en" | "fr";
 };
 
@@ -50,9 +48,7 @@ const initialForm: MotivationForm = {
   companyCity: "",
   recipient: "",
   jobAd: "",
-  motivation: "",
-  achievements: "",
-  tone: "professionell",
+  jobAdUrl: "",
   language: "de-CH",
 };
 
@@ -66,6 +62,56 @@ function slugify(value: string) {
     .slice(0, 64);
 }
 
+function isSubjectLine(line: string) {
+  return /^(betreff|subject|objet)\b/i.test(line) || /^bewerbung\s/i.test(line);
+}
+
+// Formatierte Vorschau: Betreff fett, Bulletpoints eingerueckt, saubere Absaetze
+const LetterPreview: React.FC<{ letter: string }> = ({ letter }) => {
+  const blocks = letter
+    .split(/\n{2,}/)
+    .map((block) => block.trim())
+    .filter(Boolean);
+
+  return (
+    <div className="space-y-4 text-sm leading-6 text-slate-900">
+      {blocks.map((block, blockIdx) => {
+        const lines = block.split("\n").map((line) => line.trim()).filter(Boolean);
+        const allBullets = lines.length > 0 && lines.every((line) => /^[-–•*]\s+/.test(line));
+
+        if (allBullets) {
+          return (
+            <ul key={blockIdx} className="list-disc space-y-1 pl-5">
+              {lines.map((line, idx) => (
+                <li key={idx}>{line.replace(/^[-–•*]\s+/, "")}</li>
+              ))}
+            </ul>
+          );
+        }
+
+        if (lines.length === 1 && isSubjectLine(lines[0])) {
+          return (
+            <p key={blockIdx} className="font-bold">
+              {lines[0]}
+            </p>
+          );
+        }
+
+        return (
+          <p key={blockIdx}>
+            {lines.map((line, idx) => (
+              <React.Fragment key={idx}>
+                {line}
+                {idx < lines.length - 1 && <br />}
+              </React.Fragment>
+            ))}
+          </p>
+        );
+      })}
+    </div>
+  );
+};
+
 export const MotivationLetterSection: React.FC<MotivationLetterSectionProps> = ({
   hasSelfServiceAccess,
   onRequirePayment,
@@ -78,15 +124,8 @@ export const MotivationLetterSection: React.FC<MotivationLetterSectionProps> = (
   const [isDownloading, setIsDownloading] = useState(false);
 
   const canGenerate = useMemo(() => {
-    return Boolean(
-      form.jobTitle.trim() &&
-      form.company.trim() &&
-      form.companyStreet.trim() &&
-      form.companyPostalCode.trim() &&
-      form.companyCity.trim() &&
-      form.jobAd.trim()
-    );
-  }, [form.company, form.companyCity, form.companyPostalCode, form.companyStreet, form.jobAd, form.jobTitle]);
+    return Boolean(form.jobAd.trim() || form.jobAdUrl.trim());
+  }, [form.jobAd, form.jobAdUrl]);
 
   const updateField = <K extends keyof MotivationForm>(key: K, value: MotivationForm[K]) => {
     setForm((current) => ({ ...current, [key]: value }));
@@ -102,7 +141,7 @@ export const MotivationLetterSection: React.FC<MotivationLetterSectionProps> = (
     }
 
     if (!canGenerate) {
-      setError("Bitte Stelle, Unternehmen, Adresse, PLZ, Ort und Stellenanzeige ausfüllen.");
+      setError("Bitte fügen Sie die Stellenanzeige ein oder geben Sie den Link zum Inserat an.");
       return;
     }
 
@@ -231,143 +270,45 @@ export const MotivationLetterSection: React.FC<MotivationLetterSectionProps> = (
       <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-[0_1rem_3rem_rgba(15,37,65,0.06)] sm:p-6">
         <div className="flex flex-col gap-4 border-b border-slate-100 pb-5 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <div className="flex flex-wrap items-center gap-2">
-              <h2 className="text-2xl font-bold tracking-tight text-slate-950">
-                AI Motivationsschreiben
-              </h2>
-              <Badge className="rounded-md border-[#204878]/15 bg-[#204878]/10 text-[#204878] hover:bg-[#204878]/10">
-                Claude AI
-              </Badge>
-            </div>
+            <h2 className="text-2xl font-bold tracking-tight text-slate-950">
+              AI Motivationsschreiben
+            </h2>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
-              CV-Daten im Self-Service pflegen, Stellenanzeige ergänzen und daraus ein passendes
-              Motivationsschreiben als Word-Datei herunterladen.
+              Stellenanzeige einfügen oder Link zum Inserat angeben. Unternehmen, Adresse und
+              Ansprechperson werden automatisch aus dem Inserat oder der Website erkannt. Das
+              fertige Schreiben laden Sie als Word-Datei herunter.
             </p>
           </div>
         </div>
 
         <form onSubmit={handleGenerate} className="mt-6 grid gap-5 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] lg:items-stretch">
           <div className="space-y-4">
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <label htmlFor="jobTitle" className="text-sm font-semibold text-slate-900">
-                  Stelle *
-                </label>
+            <div className="space-y-2">
+              <label htmlFor="jobAdUrl" className="text-sm font-semibold text-slate-900">
+                Link zum Inserat
+              </label>
+              <div className="relative">
+                <Link2 className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                 <Input
-                  id="jobTitle"
-                  value={form.jobTitle}
-                  onChange={(event) => updateField("jobTitle", event.target.value)}
-                  placeholder="HR Business Partner"
-                  className="border-slate-200 bg-white text-slate-950 focus-visible:ring-[#204878]/20"
-                  maxLength={140}
+                  id="jobAdUrl"
+                  value={form.jobAdUrl}
+                  onChange={(event) => updateField("jobAdUrl", event.target.value)}
+                  placeholder="https://..."
+                  className="border-slate-200 bg-white pl-9 text-slate-950 focus-visible:ring-[#204878]/20"
+                  maxLength={500}
+                  type="url"
+                  inputMode="url"
                 />
               </div>
-              <div className="space-y-2">
-                <label htmlFor="company" className="text-sm font-semibold text-slate-900">
-                  Unternehmen *
-                </label>
-                <Input
-                  id="company"
-                  value={form.company}
-                  onChange={(event) => updateField("company", event.target.value)}
-                  placeholder="Muster AG"
-                  className="border-slate-200 bg-white text-slate-950 focus-visible:ring-[#204878]/20"
-                  maxLength={140}
-                />
-              </div>
-            </div>
-
-            <div className="grid gap-4 sm:grid-cols-[minmax(0,1.4fr)_minmax(0,0.6fr)_minmax(0,1fr)]">
-              <div className="space-y-2">
-                <label htmlFor="companyStreet" className="text-sm font-semibold text-slate-900">
-                  Adresse *
-                </label>
-                <Input
-                  id="companyStreet"
-                  value={form.companyStreet}
-                  onChange={(event) => updateField("companyStreet", event.target.value)}
-                  placeholder="Musterstrasse 1"
-                  className="border-slate-200 bg-white text-slate-950 focus-visible:ring-[#204878]/20"
-                  maxLength={160}
-                />
-              </div>
-              <div className="space-y-2">
-                <label htmlFor="companyPostalCode" className="text-sm font-semibold text-slate-900">
-                  PLZ *
-                </label>
-                <Input
-                  id="companyPostalCode"
-                  value={form.companyPostalCode}
-                  onChange={(event) => updateField("companyPostalCode", event.target.value)}
-                  placeholder="8000"
-                  className="border-slate-200 bg-white text-slate-950 focus-visible:ring-[#204878]/20"
-                  maxLength={16}
-                />
-              </div>
-              <div className="space-y-2">
-                <label htmlFor="companyCity" className="text-sm font-semibold text-slate-900">
-                  Ort *
-                </label>
-                <Input
-                  id="companyCity"
-                  value={form.companyCity}
-                  onChange={(event) => updateField("companyCity", event.target.value)}
-                  placeholder="Zürich"
-                  className="border-slate-200 bg-white text-slate-950 focus-visible:ring-[#204878]/20"
-                  maxLength={80}
-                />
-              </div>
-            </div>
-
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <label htmlFor="recipient" className="text-sm font-semibold text-slate-900">
-                  Ansprechperson
-                </label>
-                <Input
-                  id="recipient"
-                  value={form.recipient}
-                  onChange={(event) => updateField("recipient", event.target.value)}
-                  placeholder="Frau Meier"
-                  className="border-slate-200 bg-white text-slate-950 focus-visible:ring-[#204878]/20"
-                  maxLength={180}
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold text-slate-900">Ton</label>
-                  <Select value={form.tone} onValueChange={(value) => updateField("tone", value as MotivationForm["tone"])}>
-                    <SelectTrigger className="border-slate-200 bg-white text-slate-950">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="bg-white text-slate-950">
-                      <SelectItem value="professionell">Professionell</SelectItem>
-                      <SelectItem value="warm">Warm</SelectItem>
-                      <SelectItem value="direkt">Direkt</SelectItem>
-                      <SelectItem value="selbstbewusst">Selbstbewusst</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold text-slate-900">Sprache</label>
-                  <Select value={form.language} onValueChange={(value) => updateField("language", value as MotivationForm["language"])}>
-                    <SelectTrigger className="border-slate-200 bg-white text-slate-950">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="bg-white text-slate-950">
-                      <SelectItem value="de-CH">Deutsch CH</SelectItem>
-                      <SelectItem value="de">Deutsch</SelectItem>
-                      <SelectItem value="en">Englisch</SelectItem>
-                      <SelectItem value="fr">Französisch</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
+              <p className="text-xs leading-5 text-slate-500">
+                Der obere Teil des Schreibens wird aus dem Inserat oder der Website erkannt. Ohne
+                Angaben wird das Impressum verwendet.
+              </p>
             </div>
 
             <div className="space-y-2">
               <label htmlFor="jobAd" className="text-sm font-semibold text-slate-900">
-                Stellenanzeige *
+                Stellenanzeige {form.jobAdUrl.trim() ? "(optional)" : "*"}
               </label>
               <Textarea
                 id="jobAd"
@@ -379,33 +320,111 @@ export const MotivationLetterSection: React.FC<MotivationLetterSectionProps> = (
               />
             </div>
 
-            <div className="space-y-2">
-              <label htmlFor="motivation" className="text-sm font-semibold text-slate-900">
-                Motivation
-              </label>
-              <Textarea
-                id="motivation"
-                value={form.motivation}
-                onChange={(event) => updateField("motivation", event.target.value)}
-                placeholder="Warum diese Stelle?"
-                className="min-h-24 resize-y border-slate-200 bg-white text-slate-950 focus-visible:ring-[#204878]/20"
-                maxLength={2500}
-              />
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <label htmlFor="jobTitle" className="text-sm font-semibold text-slate-900">
+                  Stelle (optional)
+                </label>
+                <Input
+                  id="jobTitle"
+                  value={form.jobTitle}
+                  onChange={(event) => updateField("jobTitle", event.target.value)}
+                  placeholder="Wird aus dem Inserat erkannt"
+                  className="border-slate-200 bg-white text-slate-950 focus-visible:ring-[#204878]/20"
+                  maxLength={140}
+                />
+              </div>
+              <div className="space-y-2">
+                <label htmlFor="company" className="text-sm font-semibold text-slate-900">
+                  Unternehmen (optional)
+                </label>
+                <Input
+                  id="company"
+                  value={form.company}
+                  onChange={(event) => updateField("company", event.target.value)}
+                  placeholder="Wird aus dem Inserat erkannt"
+                  className="border-slate-200 bg-white text-slate-950 focus-visible:ring-[#204878]/20"
+                  maxLength={140}
+                />
+              </div>
             </div>
 
-            <div className="space-y-2">
-              <label htmlFor="achievements" className="text-sm font-semibold text-slate-900">
-                Argumente oder Erfolge
-              </label>
-              <Textarea
-                id="achievements"
-                value={form.achievements}
-                onChange={(event) => updateField("achievements", event.target.value)}
-                placeholder="Relevante Projekte, Resultate oder Stärken"
-                className="min-h-24 resize-y border-slate-200 bg-white text-slate-950 focus-visible:ring-[#204878]/20"
-                maxLength={2500}
-              />
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <label htmlFor="recipient" className="text-sm font-semibold text-slate-900">
+                  Ansprechperson (optional)
+                </label>
+                <Input
+                  id="recipient"
+                  value={form.recipient}
+                  onChange={(event) => updateField("recipient", event.target.value)}
+                  placeholder="Wird aus dem Inserat erkannt"
+                  className="border-slate-200 bg-white text-slate-950 focus-visible:ring-[#204878]/20"
+                  maxLength={180}
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-slate-900">Sprache</label>
+                <Select value={form.language} onValueChange={(value) => updateField("language", value as MotivationForm["language"])}>
+                  <SelectTrigger className="border-slate-200 bg-white text-slate-950">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white text-slate-950">
+                    <SelectItem value="de-CH">Deutsch CH</SelectItem>
+                    <SelectItem value="de">Deutsch</SelectItem>
+                    <SelectItem value="en">Englisch</SelectItem>
+                    <SelectItem value="fr">Französisch</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
+
+            <details className="rounded-lg border border-slate-200 bg-slate-50/60 px-4 py-3">
+              <summary className="cursor-pointer select-none text-sm font-semibold text-slate-700">
+                Empfängeradresse manuell überschreiben (optional)
+              </summary>
+              <div className="mt-3 grid gap-4 sm:grid-cols-[minmax(0,1.4fr)_minmax(0,0.6fr)_minmax(0,1fr)]">
+                <div className="space-y-2">
+                  <label htmlFor="companyStreet" className="text-sm font-semibold text-slate-900">
+                    Adresse
+                  </label>
+                  <Input
+                    id="companyStreet"
+                    value={form.companyStreet}
+                    onChange={(event) => updateField("companyStreet", event.target.value)}
+                    placeholder="Musterstrasse 1"
+                    className="border-slate-200 bg-white text-slate-950 focus-visible:ring-[#204878]/20"
+                    maxLength={160}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label htmlFor="companyPostalCode" className="text-sm font-semibold text-slate-900">
+                    PLZ
+                  </label>
+                  <Input
+                    id="companyPostalCode"
+                    value={form.companyPostalCode}
+                    onChange={(event) => updateField("companyPostalCode", event.target.value)}
+                    placeholder="8000"
+                    className="border-slate-200 bg-white text-slate-950 focus-visible:ring-[#204878]/20"
+                    maxLength={16}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label htmlFor="companyCity" className="text-sm font-semibold text-slate-900">
+                    Ort
+                  </label>
+                  <Input
+                    id="companyCity"
+                    value={form.companyCity}
+                    onChange={(event) => updateField("companyCity", event.target.value)}
+                    placeholder="Zürich"
+                    className="border-slate-200 bg-white text-slate-950 focus-visible:ring-[#204878]/20"
+                    maxLength={80}
+                  />
+                </div>
+              </div>
+            </details>
 
             {error && (
               <Alert variant="destructive" className="border-red-200 bg-red-50 text-red-700">
@@ -466,7 +485,7 @@ export const MotivationLetterSection: React.FC<MotivationLetterSectionProps> = (
                     className="border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
                   >
                     {isDownloading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-                    DOCX
+                    Word
                   </Button>
                 </div>
               </div>
@@ -478,9 +497,7 @@ export const MotivationLetterSection: React.FC<MotivationLetterSectionProps> = (
                     <p className="font-medium text-slate-700">Einen Moment! Wir machen aus Gedanken gerade Bewerbungsmaterial....</p>
                   </div>
                 ) : letter ? (
-                  <pre className="whitespace-pre-wrap break-words font-sans text-sm leading-7 text-slate-900">
-                    {letter}
-                  </pre>
+                  <LetterPreview letter={letter} />
                 ) : (
                   <div className="flex h-full flex-col items-center justify-center text-center text-slate-500">
                     <FileText className="mb-4 h-10 w-10 text-slate-300" />

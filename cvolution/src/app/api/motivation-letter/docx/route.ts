@@ -17,6 +17,10 @@ type DocxRequest = {
   company?: string;
 };
 
+const FONT = "Arial";
+const FONT_SIZE = 22; // 11pt
+const LINE_SPACING = 276; // 1.15-facher Zeilenabstand
+
 function jsonError(message: string, status: number) {
   return NextResponse.json({ error: message }, { status });
 }
@@ -30,8 +34,9 @@ function normalizeSwissMotivationLetter(value: string) {
   return value
     .replace(/ß/g, "ss")
     .replace(/ẞ/g, "SS")
-    .replace(/\s*[–—―]\s*/g, ", ")
-    .replace(/\s+-\s+/g, ", ")
+    .replace(/[ \t]*[–—―][ \t]*/g, ", ")
+    // Spaced hyphens nur innerhalb einer Zeile ersetzen, Bulletpoints ("- ") am Zeilenanfang bleiben erhalten
+    .replace(/(\S)[ \t]+-[ \t]+/g, "$1, ")
     .replace(/,{2,}/g, ",")
     .replace(/[ \t]{2,}/g, " ")
     .replace(/,\s*([.!?])/g, "$1")
@@ -49,31 +54,143 @@ function isSelfServiceIncluded(profile: any) {
   return Boolean(isWithinPaidPeriod && (profile?.paid || hasSubscriptionStatus));
 }
 
-function createLetterParagraphs(letter: string) {
-  return letter.split("\n").map((line) => {
-    if (!line.trim()) {
-      return new Paragraph({
-        children: [new TextRun({ text: "", font: "Arial", size: 22 })],
-        spacing: { after: 120 },
+function isSubjectLine(line: string) {
+  return /^(betreff|subject|objet)\b/i.test(line) || /^bewerbung\s/i.test(line);
+}
+
+function isSalutationLine(line: string) {
+  return /^(sehr geehrte|liebe[rs]?\s|guten tag|dear\s|madame|monsieur|mesdames)/i.test(line);
+}
+
+function isClosingLine(line: string) {
+  return /^(freundliche gr(ü|ue)sse|mit freundlichen gr(ü|ue)ssen|beste gr(ü|ue)sse|kind regards|best regards|meilleures salutations|cordialement)/i.test(line);
+}
+
+function isBulletLine(line: string) {
+  return /^[-–•*]\s+/.test(line);
+}
+
+function stripBullet(line: string) {
+  return line.replace(/^[-–•*]\s+/, "").trim();
+}
+
+// Saubere Briefformatierung:
+// - Adressbloecke mit engem Zeilenabstand
+// - Betreff fett mit Abstand davor/danach
+// - Echte Word-Bulletpoints
+// - Konsistente Absatzabstaende
+function createLetterParagraphs(letter: string): Paragraph[] {
+  const paragraphs: Paragraph[] = [];
+  const blocks = letter
+    .split(/\n{2,}/)
+    .map((block) => block.trim())
+    .filter(Boolean);
+
+  blocks.forEach((block, blockIdx) => {
+    const lines = block
+      .split("\n")
+      .map((line) => line.trim())
+      .filter(Boolean);
+
+    const isLastBlock = blockIdx === blocks.length - 1;
+    const allBullets = lines.length > 0 && lines.every(isBulletLine);
+
+    // Bullet-Block: echte Word-Aufzaehlung
+    if (allBullets) {
+      lines.forEach((line, lineIdx) => {
+        paragraphs.push(
+          new Paragraph({
+            children: [new TextRun({ text: stripBullet(line), font: FONT, size: FONT_SIZE })],
+            bullet: { level: 0 },
+            spacing: {
+              after: lineIdx === lines.length - 1 ? 240 : 60,
+              line: LINE_SPACING,
+            },
+            alignment: AlignmentType.LEFT,
+          })
+        );
       });
+      return;
     }
 
-    const trimmedLine = line.trim();
-    const isSubjectLine = /^(betreff|subject|objet)\b/i.test(trimmedLine);
+    // Betreffzeile: fett mit groesserem Abstand
+    if (lines.length === 1 && isSubjectLine(lines[0])) {
+      paragraphs.push(
+        new Paragraph({
+          children: [new TextRun({ text: lines[0], font: FONT, size: FONT_SIZE, bold: true })],
+          spacing: { before: 160, after: 320, line: LINE_SPACING },
+          alignment: AlignmentType.LEFT,
+        })
+      );
+      return;
+    }
 
-    return new Paragraph({
-      children: [
-        new TextRun({
-          text: trimmedLine,
-          font: "Arial",
-          size: 22,
-          bold: isSubjectLine,
-        }),
-      ],
-      spacing: { after: isSubjectLine ? 300 : 180 },
-      alignment: AlignmentType.LEFT,
-    });
+    // Anrede
+    if (lines.length === 1 && isSalutationLine(lines[0])) {
+      paragraphs.push(
+        new Paragraph({
+          children: [new TextRun({ text: lines[0], font: FONT, size: FONT_SIZE })],
+          spacing: { after: 240, line: LINE_SPACING },
+          alignment: AlignmentType.LEFT,
+        })
+      );
+      return;
+    }
+
+    // Grussformel: Abstand vor der Unterschrift
+    if (isClosingLine(lines[0])) {
+      lines.forEach((line, lineIdx) => {
+        paragraphs.push(
+          new Paragraph({
+            children: [new TextRun({ text: line, font: FONT, size: FONT_SIZE })],
+            spacing: {
+              before: lineIdx === 0 ? 160 : 0,
+              after: lineIdx === 0 ? 480 : 60,
+              line: LINE_SPACING,
+            },
+            alignment: AlignmentType.LEFT,
+          })
+        );
+      });
+      return;
+    }
+
+    // Mehrzeilige Bloecke (Absender-/Empfaengerblock): enger Zeilenabstand
+    if (lines.length > 1) {
+      lines.forEach((line, lineIdx) => {
+        const bulletLine = isBulletLine(line);
+        paragraphs.push(
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: bulletLine ? stripBullet(line) : line,
+                font: FONT,
+                size: FONT_SIZE,
+              }),
+            ],
+            ...(bulletLine ? { bullet: { level: 0 } } : {}),
+            spacing: {
+              after: lineIdx === lines.length - 1 ? 240 : 20,
+              line: LINE_SPACING,
+            },
+            alignment: AlignmentType.LEFT,
+          })
+        );
+      });
+      return;
+    }
+
+    // Normaler Textabsatz
+    paragraphs.push(
+      new Paragraph({
+        children: [new TextRun({ text: lines[0], font: FONT, size: FONT_SIZE })],
+        spacing: { after: isLastBlock ? 0 : 240, line: LINE_SPACING },
+        alignment: AlignmentType.LEFT,
+      })
+    );
   });
+
+  return paragraphs;
 }
 
 function slugify(value: string) {
@@ -128,6 +245,13 @@ export async function POST(request: NextRequest) {
     creator: "CVolution",
     title: "Motivationsschreiben",
     description: `Motivationsschreiben fuer ${jobTitle || "Bewerbung"}${company ? ` bei ${company}` : ""}`,
+    styles: {
+      default: {
+        document: {
+          run: { font: FONT, size: FONT_SIZE },
+        },
+      },
+    },
     sections: [
       {
         properties: {

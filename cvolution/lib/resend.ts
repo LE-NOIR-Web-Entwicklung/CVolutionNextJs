@@ -26,11 +26,12 @@ export const sendEmail = async (
     linkedinUrl?: string,
     remarks?: string,
     couponCode?: string | null,
-    phone?: string
+    phone?: string,
+    workload?: string
 ) => {
     // Build additional fields HTML for PDF service
     let additionalFieldsHtml = '';
-    if (firstName || lastName || birthDate || workLocation || grossAnnualSalary || fringeBenefits || linkedinUrl || remarks) {
+    if (firstName || lastName || birthDate || workLocation || grossAnnualSalary || workload || fringeBenefits || linkedinUrl || remarks) {
         const detailsTitle = grossAnnualSalary || birthDate || workLocation ? "Lohnanalyse Details:" : "Bestelldetails:";
         additionalFieldsHtml = `
             <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid #e5e7eb;">
@@ -40,6 +41,7 @@ export const sendEmail = async (
                 ${birthDate ? `<p style='color: #333; font-size: 1.1rem;'><strong>Geburtsdatum:</strong> ${birthDate}</p>` : ""}
                 ${workLocation ? `<p style='color: #333; font-size: 1.1rem;'><strong>Arbeitsort:</strong> ${workLocation}</p>` : ""}
                 ${grossAnnualSalary ? `<p style='color: #333; font-size: 1.1rem;'><strong>Bruttojahreslohn:</strong> ${grossAnnualSalary}</p>` : ""}
+                ${workload ? `<p style='color: #333; font-size: 1.1rem;'><strong>Pensum:</strong> ${workload}</p>` : ""}
                 ${fringeBenefits ? `<p style='color: #333; font-size: 1.1rem;'><strong>Fringe & Benefits:</strong> ${fringeBenefits}</p>` : ""}
                 ${linkedinUrl ? `<p style='color: #333; font-size: 1.1rem;'><strong>LinkedIn:</strong> <a href="${linkedinUrl}" style="color: #204878;">${linkedinUrl}</a></p>` : ""}
                 ${remarks ? `<p style='color: #333; font-size: 1.1rem;'><strong>Bemerkungen:</strong> ${remarks}</p>` : ""}
@@ -213,6 +215,7 @@ type CartOrderEmailItem = {
     birth_date?: string | null;
     work_location?: string | null;
     gross_annual_salary?: string | null;
+    workload?: string | null;
     fringe_benefits?: string | null;
     linkedin_url?: string | null;
     remarks?: string | null;
@@ -568,6 +571,7 @@ export const sendCartInfoEmail = async (orders: CartOrderEmailItem[]) => {
             ${order.birth_date ? `<p style="color: #333; font-size: 1rem;"><strong>Geburtsdatum:</strong> ${escapeHtml(order.birth_date)}</p>` : ""}
             ${order.work_location ? `<p style="color: #333; font-size: 1rem;"><strong>Arbeitsort:</strong> ${escapeHtml(order.work_location)}</p>` : ""}
             ${order.gross_annual_salary ? `<p style="color: #333; font-size: 1rem;"><strong>Bruttojahreslohn:</strong> ${escapeHtml(order.gross_annual_salary)}</p>` : ""}
+            ${order.workload ? `<p style="color: #333; font-size: 1rem;"><strong>Pensum:</strong> ${escapeHtml(order.workload)}</p>` : ""}
             ${order.fringe_benefits ? `<p style="color: #333; font-size: 1rem;"><strong>Fringe & Benefits:</strong> ${escapeHtml(order.fringe_benefits)}</p>` : ""}
             ${order.linkedin_url ? `<p style="color: #333; font-size: 1rem;"><strong>LinkedIn:</strong> <a href="${escapeHtml(order.linkedin_url)}" style="color:#204878;">${escapeHtml(order.linkedin_url)}</a></p>` : ""}
             ${cleanRemarks ? `<p style="color: #333; font-size: 1rem;"><strong>Bemerkungen:</strong><br/>${escapeHtml(cleanRemarks).replace(/\n/g, "<br/>")}</p>` : ""}

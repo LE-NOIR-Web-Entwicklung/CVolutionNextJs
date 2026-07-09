@@ -1,5 +1,14 @@
-import React from "react";
-import { Document, Page, Text, View, StyleSheet, Image } from "@react-pdf/renderer";
+import React from 'react';
+import { Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/renderer';
+import {
+  buildContactRows,
+  extractBullets,
+  formatDate,
+  formatDriverLicense,
+  getMaxBullets,
+  prepareLanguages,
+  splitSkills,
+} from './cvPdfShared';
 
 interface CVPdfDesign3Props {
   user: any;
@@ -10,167 +19,149 @@ interface CVPdfDesign3Props {
   languages: any[];
 }
 
+// Design 3 (Klassisch): tabellarischer Lebenslauf mit Datumsspalte.
+// Umsetzung Review-Feedback:
+// - Darstellung komplett ueberarbeitet (saubere Spalten, keine Ueberlappungen)
+// - Taetigkeiten immer als Bulletpoints (aktuellste Stelle mehr, aeltere weniger)
+// - Titel, Firma und Arbeitsort bleiben zusammen auf einer Seite (wrap={false})
+// - Leere Felder werden komplett weggelassen
+// - Kompakte Abstaende, damit der CV wenn moeglich auf eine Seite passt
 const styles = StyleSheet.create({
   page: {
-    paddingTop: 24,
-    paddingHorizontal: 40,
-    paddingBottom: 32,
-    backgroundColor: "#FFFFFF",
-    color: "#000000",
-    fontFamily: "Helvetica",
-    fontSize: 11,
-    lineHeight: 1.35,
+    fontSize: 10,
+    fontFamily: 'Helvetica',
+    paddingTop: 30,
+    paddingBottom: 34,
+    paddingLeft: 52,
+    paddingRight: 52,
+    color: '#000000',
+    lineHeight: 1.3,
   },
   topTitle: {
-    fontSize: 12,
-    fontWeight: "bold",
-    borderBottom: "1 solid #000",
-    paddingTop: 6,
+    fontSize: 15,
+    fontWeight: 'bold',
+    borderBottom: '1.5 solid #000000',
+    paddingBottom: 4,
     marginBottom: 12,
   },
   headerRow: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    gap: 16,
-    marginBottom: 10,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 12,
   },
-  contact: {
-    flexGrow: 1,
+  contactBlock: {
+    flex: 1,
+    paddingRight: 16,
   },
   contactRow: {
-    flexDirection: "row",
-    marginBottom: 6,
+    flexDirection: 'row',
+    marginBottom: 2,
   },
-  label: {
+  contactLabel: {
     width: 90,
-    fontWeight: "normal",
+    fontSize: 9.5,
   },
-  value: {
-    flexGrow: 1,
-  },
-  nameRow: {
-    flexDirection: "row",
-    marginBottom: 8,
+  contactValue: {
+    flex: 1,
+    fontSize: 9.5,
   },
   nameValue: {
-    flexGrow: 1,
-    fontSize: 12,
+    flex: 1,
+    fontSize: 11,
+    fontWeight: 'bold',
   },
   photo: {
-    width: 150,
-    height: 150,
-    border: "2 solid #000",
-    objectFit: "cover",
+    width: 92,
+    height: 110,
+    objectFit: 'cover',
+    border: '1 solid #000000',
   },
   sectionTitle: {
-    fontSize: 12,
-    fontWeight: "bold",
-    marginTop: 5,
+    fontSize: 11.5,
+    fontWeight: 'bold',
+    marginTop: 12,
     marginBottom: 6,
-    borderBottom: "2 solid #000",
-    paddingBottom: 3,
+    borderBottom: '1.5 solid #000000',
+    paddingBottom: 2,
   },
-  sectionTitleFirst: {
-    fontSize: 12,
-    fontWeight: "bold",
-    marginTop: -5,
-    marginBottom: 6,
-    borderBottom: "2 solid #000",
-    paddingBottom: 3,
-  },
-  expRow: {
-    flexDirection: "row",
-    marginTop: 8,
-    marginBottom: 6,
-  },
-  expDate: {
-    width: 130,
-    fontWeight: "bold",
-    flexShrink: 0,
-  },
-  expDateSub: {
-    width: 130,
-    flexShrink: 0,
-  },
-  expBody: {
-    flex: 1,
-    maxWidth: 400,
-  },
-  expTitle: {
-    fontWeight: "bold",
-  },
-  bullet: {
-    fontSize: 10,
-    marginBottom: 2,
-  },
-  descriptionList: {
-    marginLeft: 14,
-    display: 'flex',
-    flexDirection: 'column',
-  },
-  descriptionListItem: {
-    display: 'flex',
+  itemRow: {
     flexDirection: 'row',
-    width: '100%',
-    marginBottom: 0,
+    marginBottom: 8,
   },
-  descriptionBullet: {
-    width: 12,
-    fontSize: 10,
+  itemDate: {
+    width: 105,
+    fontSize: 9.5,
+    flexShrink: 0,
   },
-  descriptionText: {
-    fontSize: 10,
+  itemBody: {
     flex: 1,
   },
-  eduRow: {
-    flexDirection: "row",
-    marginTop: 6,
+  itemTitle: {
+    fontSize: 10,
+    fontWeight: 'bold',
+  },
+  itemMeta: {
+    fontSize: 9.5,
+    color: '#333333',
     marginBottom: 2,
   },
-  eduBody: {
-    flex: 1,
-    maxWidth: 400,
+  bulletRow: {
+    flexDirection: 'row',
+    marginLeft: 8,
+    marginBottom: 1.5,
   },
-  skillsGrid: {
-    marginTop: 10,
+  bulletPoint: {
+    width: 10,
+    fontSize: 9.5,
+  },
+  bulletText: {
+    flex: 1,
+    fontSize: 9.5,
   },
   skillRow: {
-    flexDirection: "row",
-    marginBottom: 6,
+    flexDirection: 'row',
+    marginBottom: 4,
   },
   skillLabel: {
-    width: 120,
-    fontWeight: "bold",
+    width: 105,
+    fontSize: 9.5,
+    fontWeight: 'bold',
+    flexShrink: 0,
   },
-  skillValue: {
-    flexDirection: "row",
-    gap: 20,
+  skillContent: {
+    flex: 1,
+  },
+  languageRow: {
+    flexDirection: 'row',
+    marginBottom: 1.5,
+  },
+  languageName: {
+    width: 100,
+    fontSize: 9.5,
+  },
+  languageLevel: {
+    flex: 1,
+    fontSize: 9.5,
   },
 });
 
-const formatRange = (start: string, end?: string, isCurrent?: boolean) => {
-  const right = isCurrent ? "heute" : end ?? "";
-  return `${start} – ${right}`;
+const formatRange = (startDate?: string | null, endDate?: string | null, isCurrent?: boolean) => {
+  const start = formatDate(startDate ?? "");
+  const end = isCurrent ? 'heute' : formatDate(endDate ?? "");
+  if (!start && !end) return '';
+  return `${start} - ${end}`;
 };
 
-function formatDate(dateString: string) {
-    if (!dateString) return "";
-    const d = new Date(dateString);
-    if (isNaN(d.getTime())) return dateString;
-    const day = String(d.getDate()).padStart(2, "0");
-    const month = String(d.getMonth() + 1).padStart(2, "0");
-    const year = d.getFullYear();
-    return `${month}.${year}`;
-  }
-  function formatBirthDate(dateString: string) {
-    if (!dateString) return "";
-    const d = new Date(dateString);
-    if (isNaN(d.getTime())) return dateString;
-    const day = String(d.getDate()).padStart(2, "0");
-    const month = String(d.getMonth() + 1).padStart(2, "0");
-    const year = d.getFullYear();
-    return `${day}.${month}.${year}`;
-  }
+const Bullets = ({ items }: { items: string[] }) => (
+  <View>
+    {items.map((text, idx) => (
+      <View key={idx} style={styles.bulletRow}>
+        <Text style={styles.bulletPoint}>•</Text>
+        <Text style={styles.bulletText}>{text}</Text>
+      </View>
+    ))}
+  </View>
+);
 
 export const CVPdfDesign3: React.FC<CVPdfDesign3Props> = ({
   user,
@@ -180,628 +171,136 @@ export const CVPdfDesign3: React.FC<CVPdfDesign3Props> = ({
   skills,
   languages,
 }) => {
-  // Split experiences so that no experience is split between pages
-  // Calculate available space and ensure complete experiences fit on each page
-  const FIRST_PAGE_AVAILABLE_HEIGHT = 680; // Conservative estimate for space after header
-  const CONTINUATION_PAGE_HEIGHT = 700; // Full page height for continuation pages
-  const EDUCATION_SKILLS_ESTIMATE = 250; // Estimated space needed for education and skills sections
-
-  let experiencesFirstPage: any[] = [];
-  let experiencesPages: any[][] = []; // Array of arrays, each containing experiences for one page
-  let showEducationSkillsOnFirstPage = false;
-  let showEducationOnLastExpPage = false;
-  let showSkillsOnSeparatePage = false;
-
-  const estimateExpHeight = (exp: any) => {
-    const titleHeight = 20; // Job title with margin
-    const companyLocationHeight = 20; // Company, location, dates with margin
-    const descriptionLines = exp.description ? exp.description.split(/\r?\n/).length : 0;
-    const descriptionHeight = descriptionLines * 15; // Each line approximately 15pt including line height
-    const spacing = 20; // Margin between experiences
-    return titleHeight + companyLocationHeight + descriptionHeight + spacing;
-  };
-
-  let currentPageHeight = 0;
-  for (const exp of experiences) {
-    const totalExpHeight = estimateExpHeight(exp);
-
-    if (experiencesFirstPage.length === 0) {
-      // First experience always goes on first page
-      experiencesFirstPage.push(exp);
-      currentPageHeight += totalExpHeight;
-    } else if (currentPageHeight + totalExpHeight <= FIRST_PAGE_AVAILABLE_HEIGHT) {
-      // Fits on first page
-      experiencesFirstPage.push(exp);
-      currentPageHeight += totalExpHeight;
-    } else {
-      // Doesn't fit on first page
-      break;
-    }
-  }
-
-  // Check if education and skills fit on first page
-  if (currentPageHeight + EDUCATION_SKILLS_ESTIMATE <= FIRST_PAGE_AVAILABLE_HEIGHT && experiencesFirstPage.length === experiences.length) {
-    showEducationSkillsOnFirstPage = true;
-  }
-
-  // Now distribute remaining experiences across continuation pages
-  const remainingExps = experiences.slice(experiencesFirstPage.length);
-  let currentContinuationPage: any[] = [];
-  let continuationPageHeight = 0;
-
-  for (const exp of remainingExps) {
-    const totalExpHeight = estimateExpHeight(exp);
-
-    if (currentContinuationPage.length === 0) {
-      // First experience on a new continuation page
-      currentContinuationPage.push(exp);
-      continuationPageHeight = totalExpHeight;
-    } else if (continuationPageHeight + totalExpHeight <= CONTINUATION_PAGE_HEIGHT) {
-      // Fits on current continuation page
-      currentContinuationPage.push(exp);
-      continuationPageHeight += totalExpHeight;
-    } else {
-      // Doesn't fit, start a new page
-      experiencesPages.push(currentContinuationPage);
-      currentContinuationPage = [exp];
-      continuationPageHeight = totalExpHeight;
-    }
-  }
-
-  // Don't forget to add the last page if it has experiences
-  if (currentContinuationPage.length > 0) {
-    experiencesPages.push(currentContinuationPage);
-    // Check if education and skills fit on the last experience page
-    if (continuationPageHeight + EDUCATION_SKILLS_ESTIMATE <= CONTINUATION_PAGE_HEIGHT) {
-      showEducationOnLastExpPage = true;
-    } else {
-      // Education fits but skills need separate page
-      showEducationOnLastExpPage = true;
-      showSkillsOnSeparatePage = true;
-    }
-  }
+  const contactRows = buildContactRows(user, profile);
+  const preparedLanguages = prepareLanguages(languages);
+  const { abilities, driverLicenses } = splitSkills(skills);
+  const hasKnowledgeSection = preparedLanguages.length > 0 || abilities.length > 0 || driverLicenses.length > 0;
 
   return (
     <Document>
-      <Page size="A4" style={styles.page}>
+      <Page size="A4" style={styles.page} wrap>
         {/* Titel */}
-        <Text style={styles.topTitle}>Lebenslauf / Profil</Text>
+        <Text style={styles.topTitle}>Lebenslauf</Text>
 
-        {/* Header mit Kontaktdaten + Foto */}
+        {/* Header: Kontaktdaten links, Foto rechts, nur vorhandene Felder */}
         <View style={styles.headerRow}>
-          <View style={styles.contact}>
-            <View style={styles.nameRow}>
-              <Text style={styles.label}>Name</Text>
-              <Text style={styles.nameValue}>{profile?.full_name || ""}</Text>
-            </View>
-            <View style={styles.contactRow}>
-              <Text style={styles.label}>Adresse</Text>
-              <Text style={styles.value}>
-                {(profile?.address_line1 || "") + (profile?.address_line1 && profile?.address_line2 ? "\n" : "") + (profile?.address_line2 || profile?.location || "")}
-              </Text>
-            </View>
-            <View style={styles.contactRow}>
-              <Text style={styles.label}>Tel.</Text>
-              <Text style={styles.value}>{profile?.phone || ""}</Text>
-            </View>
-            <View style={styles.contactRow}>
-              <Text style={styles.label}>E-Mail</Text>
-              <Text style={styles.value}>{user?.email || ""}</Text>
-            </View>
-            <View style={styles.contactRow}>
-              <Text style={styles.label}>Geburtsdatum</Text>
-              <Text style={styles.value}>{formatBirthDate(profile?.birthdate) || '-'}</Text>
-            </View>
-            <View style={styles.contactRow}>
-              <Text style={styles.label}>Zivilstand</Text>
-              <Text style={styles.value}>{profile?.civil_status || ""}</Text>
-            </View>
-            <View style={styles.contactRow}>
-              <Text style={styles.label}>Heimatort</Text>
-              <Text style={styles.value}>{profile?.place_of_origin || ""}</Text>
-            </View>
+          <View style={styles.contactBlock}>
+            {profile?.full_name ? (
+              <View style={styles.contactRow}>
+                <Text style={styles.contactLabel}>Name</Text>
+                <Text style={styles.nameValue}>{profile.full_name}</Text>
+              </View>
+            ) : null}
+            {contactRows.map((row) => (
+              <View key={row.label} style={styles.contactRow}>
+                <Text style={styles.contactLabel}>{row.label}</Text>
+                <Text style={styles.contactValue}>{row.value}</Text>
+              </View>
+            ))}
           </View>
-
           {profile?.profile_picture_url ? (
-            <Image
-              src={profile.profile_picture_url}
-              style={{
-                width: 120,
-                height: 140,
-                objectFit: 'cover',
-                marginLeft: 16,
-                border: '10 solid #000000',
-              }}
-            />
-          ) : (
-            <View style={{ width: 120, height: 140, backgroundColor: 'lightgray', justifyContent: 'center', alignItems: 'center', marginLeft: 16, border: '10 solid #000000' }}>
-              <Text style={{ color: '#888', fontSize: 18 }}>Foto</Text>
-            </View>
-          )}
+            <Image src={profile.profile_picture_url} style={styles.photo} />
+          ) : null}
         </View>
 
         {/* Berufliche Erfahrung */}
-        <Text style={styles.sectionTitleFirst}>Berufliche Erfahrung</Text>
-        {Array.isArray(experiencesFirstPage)
-          ? experiencesFirstPage.map((exp) => (
-              <View key={exp.id ?? Math.random()} style={styles.expRow}>
-                <Text style={styles.expDate}>
-                  {formatRange(
-                    exp.start_date ? formatDate(exp.start_date) : "",
-                    exp.end_date ? formatDate(exp.end_date) : "",
-                    exp.is_current
-                  )}
-                </Text>
-                <View style={styles.expBody}>
-                  <Text>
-                    <Text style={styles.expTitle}>{exp.job_title || ""}</Text>
-                    <Text style={styles.expTitle}>, {exp.company || ""}</Text>
-                    <Text style={styles.expTitle}>, {exp.location || ""} </Text>
-                  </Text>
-                  {exp.description ? (
-                    <View style={styles.descriptionList}>
-                      {exp.description.split(/\r?\n/).filter((line: string) => line.trim()).map((line: string, idx: number) => {
-                        const bulletMatch = line.match(/^[\s]*(•|\-|\*)/);
-                        const hasBullet = !!bulletMatch;
-                        const cleanLine = hasBullet ? line.replace(/^[\s]*(•|\-|\*)[\s]*/, '') : line;
+        {experiences.length > 0 && (
+          <View>
+            <Text style={styles.sectionTitle}>Berufliche Erfahrung</Text>
+            {experiences.map((exp, idx) => {
+              const bullets = extractBullets(exp.description, getMaxBullets(idx));
+              const meta = [exp.company, exp.location].filter(Boolean).join(', ');
 
-                        return (
-                          <View key={idx} style={styles.descriptionListItem}>
-                            <Text style={styles.descriptionBullet}>
-                              {hasBullet ? bulletMatch[1] : ''}
-                            </Text>
-                            <Text style={styles.descriptionText}>{cleanLine}</Text>
-                          </View>
-                        );
-                      })}
-                    </View>
-                  ) : null}
+              return (
+                <View key={exp.id ?? idx} style={styles.itemRow} wrap={false}>
+                  <Text style={styles.itemDate}>
+                    {formatRange(exp.start_date, exp.end_date, exp.is_current)}
+                  </Text>
+                  <View style={styles.itemBody}>
+                    <Text style={styles.itemTitle}>{exp.job_title || ''}</Text>
+                    {meta ? <Text style={styles.itemMeta}>{meta}</Text> : null}
+                    {bullets.length > 0 && <Bullets items={bullets} />}
+                  </View>
                 </View>
-              </View>
-            ))
-          : []}
+              );
+            })}
+          </View>
+        )}
 
-        {/* Show education and skills on first page if there's space */}
-        {showEducationSkillsOnFirstPage && (
-          <>
-            <View wrap={false}>
-              <Text style={styles.sectionTitle}>Aus- & Weiterbildungen</Text>
-              {education?.map((edu) => (
-                <View key={String(edu.id)} style={styles.eduRow}>
-                  <Text style={styles.expDateSub}>
-                    {formatDate(edu.start_date)} - {edu.is_current ? "heute" : formatDate(edu.end_date)}
+        {/* Aus- & Weiterbildungen */}
+        {education.length > 0 && (
+          <View>
+            <Text style={styles.sectionTitle}>Aus- &amp; Weiterbildungen</Text>
+            {education.map((edu, idx) => {
+              const meta = [edu.institution, edu.place].filter(Boolean).join(', ');
+              const bullets = extractBullets(edu.description, 3);
+
+              return (
+                <View key={edu.id ?? idx} style={styles.itemRow} wrap={false}>
+                  <Text style={styles.itemDate}>
+                    {formatRange(edu.start_date, edu.end_date, edu.is_current)}
                   </Text>
-                  <View style={styles.eduBody}>
-                    <Text>
-                      {`${edu.degree}, ${edu.institution}, ${edu.place}`}
+                  <View style={styles.itemBody}>
+                    <Text style={styles.itemTitle}>
+                      {[edu.degree, edu.field_of_study].filter(Boolean).join(', ')}
                     </Text>
+                    {meta ? <Text style={styles.itemMeta}>{meta}</Text> : null}
+                    {bullets.length > 0 && <Bullets items={bullets} />}
                   </View>
                 </View>
-              ))}
-            </View>
+              );
+            })}
+          </View>
+        )}
 
-            <View wrap={false}>
-              <Text style={styles.sectionTitle}>Kenntnisse & Fähigkeiten</Text>
-              <View style={{ marginTop: 10 }}>
-                <View style={{ flexDirection: 'row', marginBottom: 6, alignItems: 'flex-start' }}>
-                  <Text style={{ width: 120, fontWeight: 'bold' }}>Fremdsprachen</Text>
-                  <View style={{ flexDirection: 'row', flexGrow: 1 }}>
-                    <View style={{ width: 100 }}>
-                      {Array.isArray(languages) && languages.length > 0 ? (
-                        languages.map((lang) => (
-                          <Text key={lang.id ?? Math.random()}>{lang.language_name?.split(' ')[0] || lang.language_name}</Text>
-                        ))
-                      ) : (
-                        <Text>-</Text>
-                      )}
+        {/* Kenntnisse & Faehigkeiten: leere Bereiche werden weggelassen */}
+        {hasKnowledgeSection && (
+          <View wrap={false}>
+            <Text style={styles.sectionTitle}>Kenntnisse &amp; Fähigkeiten</Text>
+
+            {preparedLanguages.length > 0 && (
+              <View style={styles.skillRow}>
+                <Text style={styles.skillLabel}>Sprachen</Text>
+                <View style={styles.skillContent}>
+                  {preparedLanguages.map((lang) => (
+                    <View key={lang.id} style={styles.languageRow}>
+                      <Text style={styles.languageName}>{lang.name}</Text>
+                      <Text style={styles.languageLevel}>{lang.level}</Text>
                     </View>
-                    <View style={{ width: 100 }}>
-                      {Array.isArray(languages) && languages.length > 0 ? (
-                        languages.map((lang) => {
-                          let prof = (lang.proficiency || '').replace(/\s+/g, ' ').trim();
-                          if (prof === 'beginner') prof = 'C1';
-                          else if (prof === 'intermediate') prof = 'C2';
-                          else if (prof === 'advanced') prof = 'B2';
-                          else if (prof === 'expert') prof = 'Experte';
-                          else if (prof === 'native') prof = 'Muttersprache';
-                          const displayProf = prof?.split(' ')[0] || prof;
-                          return <Text key={lang.id ?? Math.random()}>{displayProf}</Text>;
-                        })
-                      ) : (
-                        <Text>-</Text>
-                      )}
-                    </View>
-                  </View>
-                </View>
-                <View style={{ flexDirection: 'row', marginBottom: 6, alignItems: 'flex-start' }}>
-                  <Text style={{ width: 120, fontWeight: 'bold' }}>Fähigkeiten</Text>
-                  <View style={{ flexGrow: 1 }}>
-                    {(() => {
-                      const otherSkills = Array.isArray(skills)
-                        ? skills.filter((s) => s.skill_name && (!s.category || s.category.toLowerCase() !== 'führerschein'))
-                        : [];
-
-                      if (otherSkills.length === 0) {
-                        return <Text>-</Text>;
-                      }
-
-                      return otherSkills.map((s) => (
-                        <Text key={s.id ?? Math.random()} style={{ marginBottom: 2 }}>• {s.skill_name}</Text>
-                      ));
-                    })()}
-                  </View>
-                </View>
-                <View style={{ flexDirection: 'row', marginBottom: 6, alignItems: 'flex-start' }}>
-                  <Text style={{ width: 120, fontWeight: 'bold' }}>Führerschein</Text>
-                  <View style={{ flexGrow: 1 }}>
-                    {(() => {
-                      const driverLicenses = Array.isArray(skills)
-                        ? skills.filter((s) => s.skill_name && s.category && s.category.toLowerCase() === 'führerschein')
-                        : [];
-
-                      if (driverLicenses.length === 0) {
-                        return <Text>-</Text>;
-                      }
-
-                      return driverLicenses.map((s) => {
-                        const displayName = s.skill_name
-                          .replace(/Führerschein Kategorie /gi, '')
-                          .replace(/Führerschein/gi, '')
-                          .trim();
-
-                        return (
-                          <Text key={s.id ?? Math.random()} style={{ marginBottom: 2 }}>
-                            Kategorie {displayName || s.skill_name}
-                          </Text>
-                        );
-                      });
-                    })()}
-                  </View>
+                  ))}
                 </View>
               </View>
-            </View>
-          </>
+            )}
+
+            {abilities.length > 0 && (
+              <View style={styles.skillRow}>
+                <Text style={styles.skillLabel}>Fähigkeiten</Text>
+                <View style={styles.skillContent}>
+                  {abilities.map((s, idx) => (
+                    <View key={s.id ?? idx} style={styles.bulletRow}>
+                      <Text style={styles.bulletPoint}>•</Text>
+                      <Text style={styles.bulletText}>{s.skill_name}</Text>
+                    </View>
+                  ))}
+                </View>
+              </View>
+            )}
+
+            {driverLicenses.length > 0 && (
+              <View style={styles.skillRow}>
+                <Text style={styles.skillLabel}>Führerschein</Text>
+                <View style={styles.skillContent}>
+                  {driverLicenses.map((s, idx) => (
+                    <Text key={s.id ?? idx} style={{ fontSize: 9.5, marginBottom: 1.5 }}>
+                      {formatDriverLicense(s)}
+                    </Text>
+                  ))}
+                </View>
+              </View>
+            )}
+          </View>
         )}
       </Page>
-
-      {/* Additional pages for extra experiences - multiple experiences per page */}
-      {experiencesPages.length > 0 ? (
-        experiencesPages.map((pageExps: any[], pageIdx: number) => {
-          const isLastExperiencePage = pageIdx === experiencesPages.length - 1;
-
-          return (
-            <Page key={`page-${pageIdx}`} style={styles.page}>
-              {pageExps.map((exp: any) => (
-                <View key={exp.id ?? Math.random()} style={styles.expRow}>
-                  <Text style={styles.expDate}>
-                    {formatRange(
-                      exp.start_date ? formatDate(exp.start_date) : "",
-                      exp.end_date ? formatDate(exp.end_date) : "",
-                      exp.is_current
-                    )}
-                  </Text>
-                  <View style={styles.expBody}>
-                    <Text>
-                      <Text style={styles.expTitle}>{exp.job_title || ""}</Text>
-                      <Text style={styles.expTitle}>, {exp.company || ""}</Text>
-                      <Text style={styles.expTitle}>, {exp.location || ""} </Text>
-                    </Text>
-                    {exp.description ? (
-                      <View style={styles.descriptionList}>
-                        {exp.description.split(/\r?\n/).filter((line: string) => line.trim()).map((line: string, idx: number) => {
-                          const bulletMatch = line.match(/^[\s]*(•|\-|\*)/);
-                          const hasBullet = !!bulletMatch;
-                          const cleanLine = hasBullet ? line.replace(/^[\s]*(•|\-|\*)[\s]*/, '') : line;
-
-                          return (
-                            <View key={idx} style={styles.descriptionListItem}>
-                              <Text style={styles.descriptionBullet}>
-                                {hasBullet ? bulletMatch[1] : ''}
-                              </Text>
-                              <Text style={styles.descriptionText}>{cleanLine}</Text>
-                            </View>
-                          );
-                        })}
-                      </View>
-                    ) : null}
-                  </View>
-                </View>
-              ))}
-
-              {/* Add education and skills on the last experience page if there's space */}
-              {isLastExperiencePage && showEducationOnLastExpPage && (
-                <>
-                  <View wrap={false}>
-                    <Text style={styles.sectionTitle}>Aus- & Weiterbildungen</Text>
-                    {education?.map((edu) => (
-                      <View key={String(edu.id)} style={styles.eduRow}>
-                        <Text style={styles.expDateSub}>
-                          {formatDate(edu.start_date)} - {edu.is_current ? "heute" : formatDate(edu.end_date)}
-                        </Text>
-                        <View style={styles.eduBody}>
-                          <Text>
-                            {`${edu.degree}, ${edu.institution}, ${edu.place}`}
-                          </Text>
-                        </View>
-                      </View>
-                    ))}
-                  </View>
-
-                  {!showSkillsOnSeparatePage && (
-                    <View wrap={false}>
-                      <Text style={styles.sectionTitle}>Kenntnisse & Fähigkeiten</Text>
-                    <View style={{ marginTop: 10 }}>
-                      <View style={{ flexDirection: 'row', marginBottom: 6, alignItems: 'flex-start' }}>
-                        <Text style={{ width: 120, fontWeight: 'bold' }}>Fremdsprachen</Text>
-                        <View style={{ flexDirection: 'row', flexGrow: 1 }}>
-                          <View style={{ width: 100 }}>
-                            {Array.isArray(languages) && languages.length > 0 ? (
-                              languages.map((lang) => (
-                                <Text key={lang.id ?? Math.random()}>{lang.language_name?.split(' ')[0] || lang.language_name}</Text>
-                              ))
-                            ) : (
-                              <Text>-</Text>
-                            )}
-                          </View>
-                          <View style={{ width: 100 }}>
-                            {Array.isArray(languages) && languages.length > 0 ? (
-                              languages.map((lang) => {
-                                let prof = (lang.proficiency || '').replace(/\s+/g, ' ').trim();
-                                if (prof === 'beginner') prof = 'C1';
-                                else if (prof === 'intermediate') prof = 'C2';
-                                else if (prof === 'advanced') prof = 'B2';
-                                else if (prof === 'expert') prof = 'Experte';
-                                else if (prof === 'native') prof = 'Muttersprache';
-                                const displayProf = prof?.split(' ')[0] || prof;
-                                return <Text key={lang.id ?? Math.random()}>{displayProf}</Text>;
-                              })
-                            ) : (
-                              <Text>-</Text>
-                            )}
-                          </View>
-                        </View>
-                      </View>
-                      <View style={{ flexDirection: 'row', marginBottom: 6, alignItems: 'flex-start' }}>
-                        <Text style={{ width: 120, fontWeight: 'bold' }}>Fähigkeiten</Text>
-                        <View style={{ flexGrow: 1 }}>
-                          {(() => {
-                            const otherSkills = Array.isArray(skills)
-                              ? skills.filter((s) => s.skill_name && (!s.category || s.category.toLowerCase() !== 'führerschein'))
-                              : [];
-
-                            if (otherSkills.length === 0) {
-                              return <Text>-</Text>;
-                            }
-
-                            return otherSkills.map((s) => (
-                              <Text key={s.id ?? Math.random()} style={{ marginBottom: 2 }}>• {s.skill_name}</Text>
-                            ));
-                          })()}
-                        </View>
-                      </View>
-                      <View style={{ flexDirection: 'row', marginBottom: 6, alignItems: 'flex-start' }}>
-                        <Text style={{ width: 120, fontWeight: 'bold' }}>Führerschein</Text>
-                        <View style={{ flexGrow: 1 }}>
-                          {(() => {
-                            const driverLicenses = Array.isArray(skills)
-                              ? skills.filter((s) => s.skill_name && s.category && s.category.toLowerCase() === 'führerschein')
-                              : [];
-
-                            if (driverLicenses.length === 0) {
-                              return <Text>-</Text>;
-                            }
-
-                            return driverLicenses.map((s) => {
-                              const displayName = s.skill_name
-                                .replace(/Führerschein Kategorie /gi, '')
-                                .replace(/Führerschein/gi, '')
-                                .trim();
-
-                              return (
-                                <Text key={s.id ?? Math.random()} style={{ marginBottom: 2 }}>
-                                  Kategorie {displayName || s.skill_name}
-                                </Text>
-                              );
-                            });
-                          })()}
-                        </View>
-                      </View>
-                    </View>
-                    </View>
-                  )}
-                </>
-              )}
-            </Page>
-          );
-        })
-      ) : null}
-
-      {/* Separate page for skills if needed */}
-      {showSkillsOnSeparatePage && (
-        <Page size="A4" style={styles.page}>
-          <View wrap={false}>
-            <Text style={styles.sectionTitle}>Kenntnisse & Fähigkeiten</Text>
-            <View style={{ marginTop: 10 }}>
-              <View style={{ flexDirection: 'row', marginBottom: 6, alignItems: 'flex-start' }}>
-                <Text style={{ width: 120, fontWeight: 'bold' }}>Fremdsprachen</Text>
-                <View style={{ flexDirection: 'row', flexGrow: 1 }}>
-                  <View style={{ width: 100 }}>
-                    {Array.isArray(languages) && languages.length > 0 ? (
-                      languages.map((lang) => (
-                        <Text key={lang.id ?? Math.random()}>{lang.language_name?.split(' ')[0] || lang.language_name}</Text>
-                      ))
-                    ) : (
-                      <Text>-</Text>
-                    )}
-                  </View>
-                  <View style={{ width: 100 }}>
-                    {Array.isArray(languages) && languages.length > 0 ? (
-                      languages.map((lang) => {
-                        let prof = (lang.proficiency || '').replace(/\s+/g, ' ').trim();
-                        if (prof === 'beginner') prof = 'C1';
-                        else if (prof === 'intermediate') prof = 'C2';
-                        else if (prof === 'advanced') prof = 'B2';
-                        else if (prof === 'expert') prof = 'Experte';
-                        else if (prof === 'native') prof = 'Muttersprache';
-                        const displayProf = prof?.split(' ')[0] || prof;
-                        return <Text key={lang.id ?? Math.random()}>{displayProf}</Text>;
-                      })
-                    ) : (
-                      <Text>-</Text>
-                    )}
-                  </View>
-                </View>
-              </View>
-              <View style={{ flexDirection: 'row', marginBottom: 6, alignItems: 'flex-start' }}>
-                <Text style={{ width: 120, fontWeight: 'bold' }}>Fähigkeiten</Text>
-                <View style={{ flexGrow: 1 }}>
-                  {(() => {
-                    const otherSkills = Array.isArray(skills)
-                      ? skills.filter((s) => s.skill_name && (!s.category || s.category.toLowerCase() !== 'führerschein'))
-                      : [];
-
-                    if (otherSkills.length === 0) {
-                      return <Text>-</Text>;
-                    }
-
-                    return otherSkills.map((s) => (
-                      <Text key={s.id ?? Math.random()} style={{ marginBottom: 2 }}>• {s.skill_name}</Text>
-                    ));
-                  })()}
-                </View>
-              </View>
-              <View style={{ flexDirection: 'row', marginBottom: 6, alignItems: 'flex-start' }}>
-                <Text style={{ width: 120, fontWeight: 'bold' }}>Führerschein</Text>
-                <View style={{ flexGrow: 1 }}>
-                  {(() => {
-                    const driverLicenses = Array.isArray(skills)
-                      ? skills.filter((s) => s.skill_name && s.category && s.category.toLowerCase() === 'führerschein')
-                      : [];
-
-                    if (driverLicenses.length === 0) {
-                      return <Text>-</Text>;
-                    }
-
-                    return driverLicenses.map((s) => {
-                      const displayName = s.skill_name
-                        .replace(/Führerschein Kategorie /gi, '')
-                        .replace(/Führerschein/gi, '')
-                        .trim();
-
-                      return (
-                        <Text key={s.id ?? Math.random()} style={{ marginBottom: 2 }}>
-                          Kategorie {displayName || s.skill_name}
-                        </Text>
-                      );
-                    });
-                  })()}
-                </View>
-              </View>
-            </View>
-          </View>
-        </Page>
-      )}
-
-      {/* If no additional experience pages and not shown on first page, create a separate education and skills page */}
-      {experiencesPages.length === 0 && !showEducationSkillsOnFirstPage && (
-        <Page size="A4" style={styles.page}>
-        <Text style={styles.sectionTitle}>Aus- & Weiterbildungen</Text>
-        {education?.map((edu) => (
-          <View key={String(edu.id)} style={styles.eduRow}>
-            <Text style={styles.expDateSub}>
-              {formatDate(edu.start_date)} - {edu.is_current ? "heute" : formatDate(edu.end_date)}
-            </Text>
-            <View style={styles.eduBody}>
-              <Text>
-                {`${edu.degree}, ${edu.institution}, ${edu.place}`}
-              </Text>
-            </View>
-          </View>
-        ))}
-
-        {/* Kenntnisse & Fähigkeiten */}
-        <Text style={styles.sectionTitle}>Kenntnisse & Fähigkeiten</Text>
-        <View style={{ marginTop: 10 }}>
-          <View style={{ flexDirection: 'row', marginBottom: 6, alignItems: 'flex-start'}}>
-            <Text style={{ width: 120, fontWeight: 'bold' }}>Fremdsprachen</Text>
-            <View style={{ flexDirection: 'row', flexGrow: 1 }}>
-              <View style={{ width: 100, marginLeft: 13 }}>
-                {Array.isArray(languages) && languages.length > 0 ? (
-                  languages.map((lang) => (
-                    <Text key={lang.id ?? Math.random()}>{lang.language_name?.split(' ')[0] || lang.language_name}</Text>
-                  ))
-                ) : (
-                  <Text>-</Text>
-                )}
-              </View>
-              <View style={{ width: 100, marginLeft: 13 }}>
-                {Array.isArray(languages) && languages.length > 0 ? (
-                  languages.map((lang) => {
-                    let prof = (lang.proficiency || '').replace(/\s+/g, ' ').trim();
-                    if (prof === 'beginner') prof = 'C1';
-                    else if (prof === 'intermediate') prof = 'C2';
-                    else if (prof === 'advanced') prof = 'B2';
-                    else if (prof === 'expert') prof = 'Experte';
-                    else if (prof === 'native') prof = 'Muttersprache';
-                    // Take only first part before space
-                    const displayProf = prof?.split(' ')[0] || prof;
-                    return <Text key={lang.id ?? Math.random()}>{displayProf}</Text>;
-                  })
-                ) : (
-                  <Text>-</Text>
-                )}
-              </View>
-            </View>
-          </View>
-          <View style={{ flexDirection: 'row', marginBottom: 6, alignItems: 'flex-start' }}>
-            <Text style={{ width: 120, fontWeight: 'bold' }}>Fähigkeiten</Text>
-            <View style={{ flexGrow: 1, marginLeft: 13 }}>
-              {(() => {
-                const otherSkills = Array.isArray(skills)
-                  ? skills.filter((s) => s.skill_name && (!s.category || s.category.toLowerCase() !== 'führerschein'))
-                  : [];
-
-                if (otherSkills.length === 0) {
-                  return <Text>-</Text>;
-                }
-
-                return otherSkills.map((s) => (
-                  <Text key={s.id ?? Math.random()} style={{ marginBottom: 2 }}>• {s.skill_name}</Text>
-                ));
-              })()}
-            </View>
-          </View>
-          <View style={{ flexDirection: 'row', marginBottom: 6, alignItems: 'flex-start'}}>
-            <Text style={{ width: 120, fontWeight: 'bold' }}>Führerschein</Text>
-            <View style={{ flexGrow: 1, marginLeft: 13 }}>
-              {(() => {
-                const driverLicenses = Array.isArray(skills)
-                  ? skills.filter((s) => s.skill_name && s.category && s.category.toLowerCase() === 'führerschein')
-                  : [];
-
-                if (driverLicenses.length === 0) {
-                  return <Text>-</Text>;
-                }
-
-                return driverLicenses.map((s) => {
-                  // Remove "Führerschein Kategorie " from the name and trim
-                  const displayName = s.skill_name
-                    .replace(/Führerschein Kategorie /gi, '')
-                    .replace(/Führerschein/gi, '')
-                    .trim();
-
-                  return (
-                    <Text key={s.id ?? Math.random()} style={{ marginBottom: 2 }}>
-                      Kategorie {displayName || s.skill_name}
-                    </Text>
-                  );
-                });
-              })()}
-            </View>
-          </View>
-        </View>
-      </Page>
-      )}
     </Document>
   );
 };

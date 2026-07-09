@@ -28,6 +28,7 @@ type CheckoutItemInput = {
   birthDate?: unknown;
   workLocation?: unknown;
   grossAnnualSalary?: unknown;
+  workload?: unknown;
   fringeBenefits?: unknown;
   linkedinUrl?: unknown;
   salaryFileBase64?: unknown;
@@ -143,6 +144,7 @@ export async function POST(request: NextRequest) {
         birthDate: getText(item.birthDate),
         workLocation: getText(item.workLocation),
         grossAnnualSalary: getText(item.grossAnnualSalary),
+        workload: getText(item.workload),
         fringeBenefits: getText(item.fringeBenefits),
         linkedinUrl,
         salaryFileBase64: getText(item.salaryFileBase64),
@@ -183,6 +185,7 @@ export async function POST(request: NextRequest) {
           birth_date: item.birthDate,
           work_location: item.workLocation,
           gross_annual_salary: item.grossAnnualSalary,
+          workload: item.workload,
           fringe_benefits: item.fringeBenefits,
           linkedin_url: item.linkedinUrl,
           remarks: [
