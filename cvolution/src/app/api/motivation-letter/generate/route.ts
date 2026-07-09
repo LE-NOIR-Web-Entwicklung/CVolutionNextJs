@@ -4,6 +4,10 @@ import { supabaseAdmin } from "../../../../../lib/supabase-server";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+// Vercel bricht Serverless Functions standardmaessig nach 10-15s ab. Die
+// AI-Generierung braucht inkl. Inserat-/Impressum-Abruf bis zu ~50s.
+// 60s ist das Maximum, das auf allen Vercel-Plaenen (inkl. Hobby) erlaubt ist.
+export const maxDuration = 60;
 
 const DEFAULT_ANTHROPIC_MODEL = "claude-sonnet-4-20250514";
 
@@ -64,6 +68,11 @@ const allowedLanguages = new Set(["de-CH", "de", "en", "fr"]);
 const RETRYABLE_ANTHROPIC_STATUSES = new Set([408, 409, 429, 500, 502, 503, 529]);
 const MAX_ANTHROPIC_ATTEMPTS = 3;
 const MAX_RETRY_AFTER_MS = 2500;
+// Gesamtbudget fuer alle Anthropic-Versuche inkl. Retries. Muss zusammen mit
+// den URL-Abrufen (max ~8s) und Overhead sicher unter maxDuration (60s) bleiben.
+const ANTHROPIC_TOTAL_BUDGET_MS = 46000;
+const ANTHROPIC_MIN_ATTEMPT_MS = 8000;
+const ANTHROPIC_ATTEMPT_TIMEOUT_MS = 45000;
 
 const FETCH_TIMEOUT_MS = 8000;
 const MAX_FETCH_BYTES = 800_000;
@@ -144,13 +153,17 @@ function getAnthropicUserMessage(status: number, errorType?: string) {
   return "Motivationsschreiben konnte nicht erstellt werden.";
 }
 
-function postAnthropicMessages(apiKey: string, payload: unknown): Promise<AnthropicHttpResponse> {
+function postAnthropicMessages(
+  apiKey: string,
+  payload: unknown,
+  timeoutMs: number = ANTHROPIC_ATTEMPT_TIMEOUT_MS
+): Promise<AnthropicHttpResponse> {
   const body = JSON.stringify(payload);
   const url = new URL("https://api.anthropic.com/v1/messages");
   const options: RequestOptions = {
     method: "POST",
     family: 4,
-    timeout: 45000,
+    timeout: timeoutMs,
     headers: {
       "content-type": "application/json",
       "content-length": Buffer.byteLength(body).toString(),
@@ -202,10 +215,18 @@ function postAnthropicMessages(apiKey: string, payload: unknown): Promise<Anthro
 
 async function callAnthropicMessages(apiKey: string, payload: unknown) {
   let lastError: unknown = null;
+  const deadline = Date.now() + ANTHROPIC_TOTAL_BUDGET_MS;
 
   for (let attempt = 0; attempt < MAX_ANTHROPIC_ATTEMPTS; attempt += 1) {
+    const remainingMs = deadline - Date.now();
+    if (remainingMs < ANTHROPIC_MIN_ATTEMPT_MS) break;
+
     try {
-      const response = await postAnthropicMessages(apiKey, payload);
+      const response = await postAnthropicMessages(
+        apiKey,
+        payload,
+        Math.min(ANTHROPIC_ATTEMPT_TIMEOUT_MS, remainingMs)
+      );
 
       if (
         response.ok ||
@@ -226,7 +247,7 @@ async function callAnthropicMessages(apiKey: string, payload: unknown) {
     }
   }
 
-  throw lastError;
+  throw lastError ?? new Error("Anthropic request budget exceeded");
 }
 
 // ---------------------------------------------------------------------------

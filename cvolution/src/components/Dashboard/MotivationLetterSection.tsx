@@ -176,6 +176,12 @@ export const MotivationLetterSection: React.FC<MotivationLetterSectionProps> = (
       }
 
       if (!response.ok) {
+        // 504/502 vom Hosting liefern HTML statt JSON -> result ist null.
+        if (!result && (response.status === 504 || response.status === 502 || response.status === 503)) {
+          throw new Error(
+            "Die Erstellung hat zu lange gedauert und wurde abgebrochen. Bitte versuchen Sie es erneut. Tipp: Stellenanzeige als Text einfügen statt nur den Link anzugeben."
+          );
+        }
         throw new Error(result?.error || "Motivationsschreiben konnte nicht erstellt werden.");
       }
 
