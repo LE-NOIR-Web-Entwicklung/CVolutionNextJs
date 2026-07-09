@@ -66,8 +66,11 @@ export const CVExportModal: React.FC<CVExportModalProps> = ({
       const response = await fetch('/api/cv/docx', {
         method: 'POST',
         headers: {
+          'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
+        // Word-Export nutzt dasselbe gewaehlte Design wie der PDF-Export
+        body: JSON.stringify({ design: selectedDesign }),
       });
 
       if (!response.ok) {

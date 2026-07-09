@@ -1,18 +1,27 @@
 import { NextRequest, NextResponse } from "next/server";
 import {
-  AlignmentType,
   BorderStyle,
   Document,
+  ImageRun,
   Packer,
+  PageBorderDisplay,
+  PageBorderOffsetFrom,
+  PageBorderZOrder,
   Paragraph,
+  Table,
+  TableCell,
+  TableLayoutType,
+  TableRow,
   TextRun,
+  WidthType,
 } from "docx";
 import { supabaseAdmin } from "../../../../../lib/supabase-server";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-// CV-Export als Word-Datei (Review-Feedback: "Export soll auch im Word möglich sein.")
+// CV-Export als Word-Datei. Die drei Designs entsprechen 1:1 den PDF-Designs
+// (CVPdfDocument / CVPdfDesign2 / CVPdfDesign3).
 
 function jsonError(message: string, status: number) {
   return NextResponse.json({ error: message }, { status });
@@ -122,32 +131,398 @@ function slugify(value: string) {
 
 const FONT = "Arial";
 
-function sectionHeading(text: string) {
+// ---------------------------------------------------------------------------
+// Design-Themes: entsprechen exakt den Farben/Groessen der PDF-Designs
+// (Masse: PDF-Punkte -> Word-Halbpunkte fuer Schrift, Twips (pt*20) fuer Layout)
+// ---------------------------------------------------------------------------
+
+type CvDesign = "design1" | "design2" | "design3";
+
+type Theme = {
+  name: string;
+  headline: string;
+  meta: string;
+  section: string;
+  sectionBorder: string;
+  sectionBorderSize: number; // Achtel-Punkte
+  photoBorder: string;
+};
+
+const THEMES: Record<CvDesign, Theme> = {
+  // Design 1: blaue Seitenbalken + blaue Akzente (ACCENT #005B82)
+  design1: {
+    name: "005B82",
+    headline: "555555",
+    meta: "444444",
+    section: "005B82",
+    sectionBorder: "005B82",
+    sectionBorderSize: 8,
+    photoBorder: "D0D0D0",
+  },
+  // Design 2 (Zeitlos): neutrale Farben, graue Trennlinien
+  design2: {
+    name: "252525",
+    headline: "666666",
+    meta: "666666",
+    section: "252525",
+    sectionBorder: "CFCFCF",
+    sectionBorderSize: 8,
+    photoBorder: "CFCFCF",
+  },
+  // Design 3 (Klassisch): schwarz, kraeftige Linien
+  design3: {
+    name: "000000",
+    headline: "333333",
+    meta: "333333",
+    section: "000000",
+    sectionBorder: "000000",
+    sectionBorderSize: 12,
+    photoBorder: "000000",
+  },
+};
+
+// Seitenraender je Design (PDF-Padding * 20)
+const PAGE = {
+  design1: { top: 560, bottom: 640, left: 1160, right: 1160, content: 11906 - 2 * 1160 },
+  design2: { top: 600, bottom: 680, left: 1120, right: 1120, content: 11906 - 2 * 1120 },
+  design3: { top: 600, bottom: 680, left: 1040, right: 1040, content: 11906 - 2 * 1040 },
+};
+
+const NO_BORDER = { style: BorderStyle.NONE, size: 0, color: "FFFFFF" } as const;
+const CELL_NO_BORDERS = { top: NO_BORDER, bottom: NO_BORDER, left: NO_BORDER, right: NO_BORDER };
+const TABLE_NO_BORDERS = {
+  top: NO_BORDER,
+  bottom: NO_BORDER,
+  left: NO_BORDER,
+  right: NO_BORDER,
+  insideHorizontal: NO_BORDER,
+  insideVertical: NO_BORDER,
+};
+const NO_CELL_MARGINS = { top: 0, bottom: 0, left: 0, right: 0 };
+
+// Foto: 92x110pt im PDF -> Pixel bei 96dpi
+const PHOTO_W_PX = 123;
+const PHOTO_H_PX = 147;
+const PHOTO_CELL_W = 92 * 20 + 80;
+
+type Photo = { data: Buffer; type: "jpg" | "png" };
+
+async function fetchProfilePhoto(url?: string | null): Promise<Photo | null> {
+  if (!url || !/^https:\/\//i.test(url)) return null;
+  try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 5000);
+    const res = await fetch(url, { signal: controller.signal });
+    clearTimeout(timer);
+    if (!res.ok) return null;
+    const buf = Buffer.from(await res.arrayBuffer());
+    if (buf.length < 8 || buf.length > 8 * 1024 * 1024) return null;
+    if (buf[0] === 0xff && buf[1] === 0xd8) return { data: buf, type: "jpg" };
+    if (buf[0] === 0x89 && buf[1] === 0x50) return { data: buf, type: "png" };
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+function photoParagraph(photo: Photo, theme: Theme) {
   return new Paragraph({
-    children: [new TextRun({ text, font: FONT, size: 24, bold: true, color: "204878" })],
-    spacing: { before: 280, after: 120 },
+    children: [
+      new ImageRun({
+        type: photo.type,
+        data: photo.data,
+        transformation: { width: PHOTO_W_PX, height: PHOTO_H_PX },
+      }),
+    ],
     border: {
-      bottom: { style: BorderStyle.SINGLE, size: 6, color: "204878", space: 2 },
+      top: { style: BorderStyle.SINGLE, size: 4, color: theme.photoBorder },
+      bottom: { style: BorderStyle.SINGLE, size: 4, color: theme.photoBorder },
+      left: { style: BorderStyle.SINGLE, size: 4, color: theme.photoBorder },
+      right: { style: BorderStyle.SINGLE, size: 4, color: theme.photoBorder },
     },
   });
 }
 
-function labelValueParagraph(label: string, value: string) {
+function run(text: string, opts: { size?: number; bold?: boolean; color?: string } = {}) {
+  return new TextRun({ text, font: FONT, size: opts.size ?? 19, bold: opts.bold, color: opts.color });
+}
+
+function sectionTitle(text: string, theme: Theme, opts: { first?: boolean; size?: number } = {}) {
   return new Paragraph({
-    children: [
-      new TextRun({ text: `${label}: `, font: FONT, size: 21, bold: true }),
-      new TextRun({ text: value, font: FONT, size: 21 }),
-    ],
-    spacing: { after: 40 },
+    children: [run(text, { size: opts.size ?? 24, bold: true, color: theme.section })],
+    spacing: { before: opts.first ? 0 : 240, after: 100 },
+    keepNext: true,
+    border: {
+      bottom: { style: BorderStyle.SINGLE, size: theme.sectionBorderSize, color: theme.sectionBorder, space: 2 },
+    },
   });
 }
 
-function bulletParagraph(text: string) {
+function bulletParagraph(text: string, opts: { last?: boolean } = {}) {
   return new Paragraph({
-    children: [new TextRun({ text, font: FONT, size: 21 })],
+    children: [run(text)],
     bullet: { level: 0 },
-    spacing: { after: 40 },
+    spacing: { after: opts.last ? 0 : 30 },
   });
+}
+
+// Borderless Layout-Tabelle mit fixen Spalten (ersetzt die Flex-Rows des PDFs)
+function layoutTable(rows: TableRow[], columnWidths: number[], totalWidth: number) {
+  return new Table({
+    rows,
+    columnWidths,
+    width: { size: totalWidth, type: WidthType.DXA },
+    borders: TABLE_NO_BORDERS,
+    layout: TableLayoutType.FIXED,
+  });
+}
+
+function layoutCell(children: (Paragraph | Table)[], width: number, opts: { vAlign?: "center" | "top" | "bottom" } = {}) {
+  return new TableCell({
+    children,
+    width: { size: width, type: WidthType.DXA },
+    borders: CELL_NO_BORDERS,
+    margins: NO_CELL_MARGINS,
+    verticalAlign: opts.vAlign,
+  });
+}
+
+// Kontaktzeilen als Label/Wert-Tabelle (PDF: contactLabel width 80/90pt)
+function contactTable(
+  rows: Array<{ label: string; value: string; bold?: boolean; valueSize?: number }>,
+  labelWidth: number,
+  totalWidth: number,
+  theme: Theme,
+  labelColor?: string
+) {
+  return layoutTable(
+    rows.map(
+      (row, idx) =>
+        new TableRow({
+          children: [
+            layoutCell(
+              [
+                new Paragraph({
+                  children: [run(`${row.label}`, { color: labelColor })],
+                  spacing: { after: idx === rows.length - 1 ? 0 : 40 },
+                }),
+              ],
+              labelWidth
+            ),
+            layoutCell(
+              [
+                new Paragraph({
+                  children: [run(row.value, { bold: row.bold, size: row.valueSize })],
+                  spacing: { after: idx === rows.length - 1 ? 0 : 40 },
+                }),
+              ],
+              totalWidth - labelWidth
+            ),
+          ],
+        })
+    ),
+    [labelWidth, totalWidth - labelWidth],
+    totalWidth
+  );
+}
+
+// Berufserfahrung/Ausbildung fuer Design 1+2 (Titel fett, Meta grau, Bullets)
+function experienceParagraphs(
+  items: any[],
+  theme: Theme,
+  kind: "experience" | "education"
+): Paragraph[] {
+  const paragraphs: Paragraph[] = [];
+
+  items.forEach((item: any, idx: number) => {
+    const title =
+      kind === "experience"
+        ? item.job_title || ""
+        : [item.degree, item.field_of_study].filter(Boolean).join(", ");
+    const metaParts = [
+      kind === "experience"
+        ? [item.company, item.location].filter(Boolean).join(", ")
+        : [item.institution, item.place].filter(Boolean).join(", "),
+      `${formatDate(item.start_date)} - ${item.is_current ? "heute" : formatDate(item.end_date)}`,
+    ].filter(Boolean);
+    const bullets = extractBullets(item.description, kind === "experience" ? getMaxBullets(idx) : 3);
+
+    paragraphs.push(
+      new Paragraph({
+        children: [run(title, { size: 21, bold: true })],
+        spacing: { before: idx === 0 ? 0 : 160, after: 20 },
+        keepNext: true,
+        keepLines: true,
+      })
+    );
+    if (metaParts.length > 0) {
+      paragraphs.push(
+        new Paragraph({
+          children: [run(metaParts.join(" | "), { color: theme.meta })],
+          spacing: { after: bullets.length > 0 ? 60 : 0 },
+          keepNext: bullets.length > 0,
+          keepLines: true,
+        })
+      );
+    }
+    bullets.forEach((bullet, bulletIdx) => {
+      paragraphs.push(bulletParagraph(bullet, { last: bulletIdx === bullets.length - 1 }));
+    });
+  });
+
+  return paragraphs;
+}
+
+// Design 3: tabellarische Darstellung mit Datumsspalte (PDF itemDate width 105pt)
+function itemsTableDesign3(items: any[], theme: Theme, kind: "experience" | "education", totalWidth: number) {
+  const dateWidth = 2100;
+
+  const rows = items.map((item: any, idx: number) => {
+    const title =
+      kind === "experience"
+        ? item.job_title || ""
+        : [item.degree, item.field_of_study].filter(Boolean).join(", ");
+    const meta =
+      kind === "experience"
+        ? [item.company, item.location].filter(Boolean).join(", ")
+        : [item.institution, item.place].filter(Boolean).join(", ");
+    const range = `${formatDate(item.start_date)} - ${item.is_current ? "heute" : formatDate(item.end_date)}`;
+    const bullets = extractBullets(item.description, kind === "experience" ? getMaxBullets(idx) : 3);
+    const isLast = idx === items.length - 1;
+    // Abstand zwischen Eintraegen (PDF: marginBottom 8pt)
+    const gapAfter = isLast ? 0 : 160;
+    const hasBullets = bullets.length > 0;
+
+    const body: Paragraph[] = [
+      new Paragraph({
+        children: [run(title, { size: 20, bold: true })],
+        spacing: { after: meta || hasBullets ? 20 : gapAfter },
+        keepNext: Boolean(meta) || hasBullets,
+        keepLines: true,
+      }),
+    ];
+    if (meta) {
+      body.push(
+        new Paragraph({
+          children: [run(meta, { color: theme.meta })],
+          spacing: { after: hasBullets ? 40 : gapAfter },
+          keepNext: hasBullets,
+          keepLines: true,
+        })
+      );
+    }
+    bullets.forEach((bullet, bulletIdx) => {
+      body.push(
+        new Paragraph({
+          children: [run(bullet)],
+          bullet: { level: 0 },
+          spacing: { after: bulletIdx === bullets.length - 1 ? gapAfter : 30 },
+        })
+      );
+    });
+
+    return new TableRow({
+      cantSplit: true,
+      children: [
+        layoutCell(
+          [new Paragraph({ children: [run(range)], spacing: { after: gapAfter } })],
+          dateWidth
+        ),
+        layoutCell(body, totalWidth - dateWidth),
+      ],
+    });
+  });
+
+  return layoutTable(rows, [dateWidth, totalWidth - dateWidth], totalWidth);
+}
+
+// Kenntnisse & Faehigkeiten: Label-Spalte (110/105pt) + Inhalt, wie im PDF
+function knowledgeTable(
+  theme: Theme,
+  totalWidth: number,
+  labelWidth: number,
+  preparedLanguages: Array<{ name: string; level: string }>,
+  abilities: any[],
+  driverLicenses: any[]
+) {
+  const contentWidth = totalWidth - labelWidth;
+  const rows: TableRow[] = [];
+
+  if (preparedLanguages.length > 0) {
+    const langNameWidth = 2000;
+    rows.push(
+      new TableRow({
+        children: [
+          layoutCell([new Paragraph({ children: [run("Sprachen", { bold: true })], spacing: { after: 80 } })], labelWidth),
+          layoutCell(
+            [
+              layoutTable(
+                preparedLanguages.map(
+                  (lang, idx) =>
+                    new TableRow({
+                      children: [
+                        layoutCell(
+                          [new Paragraph({ children: [run(lang.name)], spacing: { after: idx === preparedLanguages.length - 1 ? 80 : 30 } })],
+                          langNameWidth
+                        ),
+                        layoutCell(
+                          [new Paragraph({ children: [run(lang.level)], spacing: { after: idx === preparedLanguages.length - 1 ? 80 : 30 } })],
+                          contentWidth - langNameWidth
+                        ),
+                      ],
+                    })
+                ),
+                [langNameWidth, contentWidth - langNameWidth],
+                contentWidth
+              ),
+            ],
+            contentWidth
+          ),
+        ],
+      })
+    );
+  }
+
+  if (abilities.length > 0) {
+    rows.push(
+      new TableRow({
+        children: [
+          layoutCell([new Paragraph({ children: [run("Fähigkeiten", { bold: true })], spacing: { after: 80 } })], labelWidth),
+          layoutCell(
+            abilities.map((skill: any, idx: number) =>
+              bulletParagraph(skill.skill_name, { last: idx === abilities.length - 1 })
+            ),
+            contentWidth
+          ),
+        ],
+      })
+    );
+  }
+
+  if (driverLicenses.length > 0) {
+    rows.push(
+      new TableRow({
+        children: [
+          layoutCell([new Paragraph({ children: [run("Führerschein", { bold: true })] })], labelWidth),
+          layoutCell(
+            driverLicenses.map((license: any, idx: number) => {
+              const displayName = String(license.skill_name)
+                .replace(/Führerschein Kategorie /gi, "")
+                .replace(/Führerschein/gi, "")
+                .trim();
+              return new Paragraph({
+                children: [run(`Kategorie ${displayName || license.skill_name}`)],
+                spacing: { after: idx === driverLicenses.length - 1 ? 0 : 30 },
+              });
+            }),
+            contentWidth
+          ),
+        ],
+      })
+    );
+  }
+
+  return layoutTable(rows, [labelWidth, totalWidth - labelWidth], totalWidth);
 }
 
 export async function POST(request: NextRequest) {
@@ -164,6 +539,11 @@ export async function POST(request: NextRequest) {
   if (userError || !user) {
     return jsonError("Unauthorized", 401);
   }
+
+  const body = (await request.json().catch(() => ({}))) as { design?: string };
+  const design: CvDesign = body?.design === "design2" ? "design2" : body?.design === "design3" ? "design3" : "design1";
+  const theme = THEMES[design];
+  const page = PAGE[design];
 
   const [profileResult, experiencesResult, educationResult, skillsResult, languagesResult] = await Promise.all([
     supabaseAdmin.from("profiles").select("*").eq("user_id", user.id).single(),
@@ -186,28 +566,13 @@ export async function POST(request: NextRequest) {
   const abilities = skills.filter((s: any) => !s.category || s.category.toLowerCase() !== "führerschein");
   const driverLicenses = skills.filter((s: any) => s.category && s.category.toLowerCase() === "führerschein");
 
-  const children: Paragraph[] = [];
+  const preparedLanguages = languages.map((lang: any) => ({
+    name: String(lang.language_name).split(" ")[0] || lang.language_name,
+    level: mapLanguageLevel(lang.proficiency),
+  }));
 
-  // Name + Headline
-  if (profile.full_name) {
-    children.push(
-      new Paragraph({
-        children: [new TextRun({ text: profile.full_name, font: FONT, size: 40, bold: true, color: "204878" })],
-        spacing: { after: 60 },
-      })
-    );
-  }
-  if (profile.headline) {
-    children.push(
-      new Paragraph({
-        children: [new TextRun({ text: profile.headline, font: FONT, size: 24, color: "555555" })],
-        spacing: { after: 160 },
-      })
-    );
-  }
-
-  // Kontaktdaten: leere Felder werden komplett weggelassen
-  const contactRows: Array<[string, string | null | undefined]> = [
+  // Kontaktdaten: leere Felder werden komplett weggelassen (wie im PDF)
+  const contactRowsRaw: Array<[string, string | null | undefined]> = [
     ["Standort", profile.location],
     ["Telefon", profile.phone],
     ["E-Mail", user.email],
@@ -215,129 +580,151 @@ export async function POST(request: NextRequest) {
     ["Zivilstand", profile.civil_status],
     ["Heimatort", profile.place_of_origin],
   ];
-  const presentContactRows = contactRows.filter(([, value]) => typeof value === "string" && value.trim());
+  const contactRows = contactRowsRaw
+    .filter(([, value]) => typeof value === "string" && value.trim())
+    .map(([label, value]) => ({ label, value: (value as string).trim() }));
 
-  if (presentContactRows.length > 0) {
-    children.push(sectionHeading("Kontaktdaten"));
-    for (const [label, value] of presentContactRows) {
-      children.push(labelValueParagraph(label, (value as string).trim()));
-    }
-  }
+  const photo = await fetchProfilePhoto(profile.profile_picture_url);
+  const hasKnowledge = preparedLanguages.length > 0 || abilities.length > 0 || driverLicenses.length > 0;
 
-  // Berufserfahrung
-  if (experiences.length > 0) {
-    children.push(sectionHeading("Berufserfahrung"));
-    experiences.forEach((exp: any, idx: number) => {
-      const meta = [
-        [exp.company, exp.location].filter(Boolean).join(", "),
-        `${formatDate(exp.start_date)} - ${exp.is_current ? "heute" : formatDate(exp.end_date)}`,
-      ]
-        .filter(Boolean)
-        .join(" | ");
+  const children: (Paragraph | Table)[] = [];
 
+  if (design === "design3") {
+    // --- Design 3 (Klassisch): "Lebenslauf"-Titel, Kontakt+Foto, Datumsspalte ---
+    children.push(
+      new Paragraph({
+        children: [run("Lebenslauf", { size: 30, bold: true })],
+        spacing: { after: 240 },
+        border: { bottom: { style: BorderStyle.SINGLE, size: 12, color: "000000", space: 4 } },
+      })
+    );
+
+    const headerRows = [
+      ...(profile.full_name ? [{ label: "Name", value: profile.full_name, bold: true, valueSize: 22 }] : []),
+      ...contactRows,
+    ];
+    if (headerRows.length > 0 || photo) {
+      const contactWidth = page.content - (photo ? PHOTO_CELL_W : 0);
+      const headerCells = [
+        layoutCell(
+          headerRows.length > 0 ? [contactTable(headerRows, 1800, contactWidth - 320, theme)] : [new Paragraph({ children: [] })],
+          contactWidth
+        ),
+      ];
+      if (photo) {
+        headerCells.push(layoutCell([photoParagraph(photo, theme)], PHOTO_CELL_W));
+      }
       children.push(
-        new Paragraph({
-          children: [new TextRun({ text: exp.job_title || "", font: FONT, size: 22, bold: true })],
-          spacing: { before: idx === 0 ? 0 : 160, after: 20 },
-          keepNext: true,
-        })
+        layoutTable(
+          [new TableRow({ children: headerCells })],
+          photo ? [contactWidth, PHOTO_CELL_W] : [page.content],
+          page.content
+        )
       );
-      if (meta) {
-        children.push(
-          new Paragraph({
-            children: [new TextRun({ text: meta, font: FONT, size: 21, color: "555555" })],
-            spacing: { after: 60 },
-            keepNext: true,
-          })
-        );
-      }
-      for (const bullet of extractBullets(exp.description, getMaxBullets(idx))) {
-        children.push(bulletParagraph(bullet));
-      }
+    }
+
+    if (experiences.length > 0) {
+      children.push(sectionTitle("Berufliche Erfahrung", theme, { size: 23 }));
+      children.push(itemsTableDesign3(experiences, theme, "experience", page.content));
+    }
+    if (education.length > 0) {
+      children.push(sectionTitle("Aus- & Weiterbildungen", theme, { size: 23 }));
+      children.push(itemsTableDesign3(education, theme, "education", page.content));
+    }
+    if (hasKnowledge) {
+      children.push(sectionTitle("Kenntnisse & Fähigkeiten", theme, { size: 23 }));
+      children.push(knowledgeTable(theme, page.content, 2100, preparedLanguages, abilities, driverLicenses));
+    }
+  } else {
+    // --- Design 1 (Foto links) / Design 2 (Name links, Foto rechts) ---
+    const namePara = new Paragraph({
+      children: [run(profile.full_name || "", { size: 44, bold: true, color: theme.name })],
+      spacing: { after: profile.headline ? 60 : 0 },
     });
-  }
-
-  // Aus- & Weiterbildungen
-  if (education.length > 0) {
-    children.push(sectionHeading("Aus- & Weiterbildungen"));
-    education.forEach((edu: any, idx: number) => {
-      const title = [edu.degree, edu.field_of_study].filter(Boolean).join(", ");
-      const meta = [
-        [edu.institution, edu.place].filter(Boolean).join(", "),
-        `${formatDate(edu.start_date)} - ${edu.is_current ? "heute" : formatDate(edu.end_date)}`,
-      ]
-        .filter(Boolean)
-        .join(" | ");
-
-      children.push(
-        new Paragraph({
-          children: [new TextRun({ text: title, font: FONT, size: 22, bold: true })],
-          spacing: { before: idx === 0 ? 0 : 160, after: 20 },
-          keepNext: true,
+    const headlinePara = profile.headline
+      ? new Paragraph({
+          children: [run(profile.headline, { size: 24, color: theme.headline })],
+          spacing: { after: 0 },
         })
-      );
-      if (meta) {
-        children.push(
-          new Paragraph({
-            children: [new TextRun({ text: meta, font: FONT, size: 21, color: "555555" })],
-            spacing: { after: 60 },
-            keepNext: true,
-          })
-        );
-      }
-      for (const bullet of extractBullets(edu.description, 3)) {
-        children.push(bulletParagraph(bullet));
-      }
-    });
-  }
+      : null;
+    const nameBlock = [namePara, ...(headlinePara ? [headlinePara] : [])];
 
-  // Kenntnisse & Faehigkeiten: nur vorhandene Bereiche
-  if (languages.length > 0 || abilities.length > 0 || driverLicenses.length > 0) {
-    children.push(sectionHeading("Kenntnisse & Fähigkeiten"));
+    if (photo) {
+      const textWidth = page.content - PHOTO_CELL_W;
+      // Design 1: Foto links, Name rechts (PDF headerText marginLeft 14pt -> Einzug)
+      const nameBlockIndented =
+        design === "design1"
+          ? [
+              new Paragraph({
+                children: [run(profile.full_name || "", { size: 44, bold: true, color: theme.name })],
+                spacing: { after: profile.headline ? 60 : 0 },
+                indent: { left: 280 },
+              }),
+              ...(profile.headline
+                ? [
+                    new Paragraph({
+                      children: [run(profile.headline, { size: 24, color: theme.headline })],
+                      indent: { left: 280 },
+                    }),
+                  ]
+                : []),
+            ]
+          : nameBlock;
 
-    if (languages.length > 0) {
+      const cells =
+        design === "design1"
+          ? [
+              layoutCell([photoParagraph(photo, theme)], PHOTO_CELL_W, { vAlign: "center" }),
+              layoutCell(nameBlockIndented, textWidth, { vAlign: "center" }),
+            ]
+          : [
+              layoutCell(nameBlockIndented, textWidth, { vAlign: "center" }),
+              layoutCell([photoParagraph(photo, theme)], PHOTO_CELL_W, { vAlign: "center" }),
+            ];
       children.push(
-        new Paragraph({
-          children: [new TextRun({ text: "Sprachen", font: FONT, size: 21, bold: true })],
-          spacing: { after: 40 },
-          keepNext: true,
-        })
+        layoutTable(
+          [new TableRow({ children: cells })],
+          design === "design1" ? [PHOTO_CELL_W, textWidth] : [textWidth, PHOTO_CELL_W],
+          page.content
+        )
       );
-      for (const lang of languages) {
-        const name = String(lang.language_name).split(" ")[0] || lang.language_name;
-        const level = mapLanguageLevel(lang.proficiency);
-        children.push(bulletParagraph(level ? `${name}: ${level}` : name));
-      }
+    } else {
+      children.push(...nameBlock);
     }
 
-    if (abilities.length > 0) {
+    // Design 2: graue Trennlinie unter dem Header (PDF: borderBottom #cfcfcf)
+    if (design === "design2") {
       children.push(
         new Paragraph({
-          children: [new TextRun({ text: "Fähigkeiten", font: FONT, size: 21, bold: true })],
-          spacing: { before: 120, after: 40 },
-          keepNext: true,
+          children: [],
+          spacing: { before: 120, after: 160 },
+          border: { bottom: { style: BorderStyle.SINGLE, size: 6, color: "CFCFCF", space: 1 } },
         })
       );
-      for (const skill of abilities) {
-        children.push(bulletParagraph(skill.skill_name));
-      }
+    } else {
+      children.push(new Paragraph({ children: [], spacing: { after: 120 } }));
     }
 
-    if (driverLicenses.length > 0) {
+    if (contactRows.length > 0) {
+      children.push(sectionTitle("Kontaktdaten", theme, { first: true }));
       children.push(
-        new Paragraph({
-          children: [new TextRun({ text: "Führerschein", font: FONT, size: 21, bold: true })],
-          spacing: { before: 120, after: 40 },
-          keepNext: true,
-        })
+        contactTable(contactRows, 1600, page.content, theme, design === "design2" ? theme.meta : undefined)
       );
-      for (const license of driverLicenses) {
-        const displayName = String(license.skill_name)
-          .replace(/Führerschein Kategorie /gi, "")
-          .replace(/Führerschein/gi, "")
-          .trim();
-        children.push(bulletParagraph(`Kategorie ${displayName || license.skill_name}`));
-      }
+    }
+
+    if (experiences.length > 0) {
+      children.push(sectionTitle("Berufserfahrung", theme));
+      children.push(...experienceParagraphs(experiences, theme, "experience"));
+    }
+
+    if (education.length > 0) {
+      children.push(sectionTitle("Aus- & Weiterbildungen", theme));
+      children.push(...experienceParagraphs(education, theme, "education"));
+    }
+
+    if (hasKnowledge) {
+      children.push(sectionTitle("Kenntnisse & Fähigkeiten", theme));
+      children.push(knowledgeTable(theme, page.content, 2200, preparedLanguages, abilities, driverLicenses));
     }
   }
 
@@ -345,11 +732,30 @@ export async function POST(request: NextRequest) {
     creator: "CVolution",
     title: "Lebenslauf",
     description: `Lebenslauf ${profile.full_name || ""}`.trim(),
+    styles: {
+      default: {
+        document: { run: { font: FONT, size: 19 } },
+      },
+    },
     sections: [
       {
         properties: {
           page: {
-            margin: { top: 1080, right: 1080, bottom: 1080, left: 1080 },
+            margin: { top: page.top, right: page.right, bottom: page.bottom, left: page.left },
+            // Design 1: blaue Seitenbalken links+rechts auf jeder Seite
+            ...(design === "design1"
+              ? {
+                  borders: {
+                    pageBorders: {
+                      display: PageBorderDisplay.ALL_PAGES,
+                      offsetFrom: PageBorderOffsetFrom.PAGE,
+                      zOrder: PageBorderZOrder.FRONT,
+                    },
+                    pageBorderLeft: { style: BorderStyle.SINGLE, size: 96, color: "005B82", space: 0 },
+                    pageBorderRight: { style: BorderStyle.SINGLE, size: 96, color: "005B82", space: 0 },
+                  },
+                }
+              : {}),
           },
         },
         children,
