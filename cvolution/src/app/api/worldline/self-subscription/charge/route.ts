@@ -33,7 +33,14 @@ function authorizeRecurringRequest(request: NextRequest) {
 
 function isDue(periodEnd: string | null | undefined, now = new Date()) {
   if (!periodEnd) return true;
-  return new Date(periodEnd).getTime() <= now.getTime();
+  const periodEndDate = new Date(periodEnd);
+  return (
+    new Date(
+      periodEndDate.getFullYear(),
+      periodEndDate.getMonth(),
+      periodEndDate.getDate()
+    ).getTime() <= new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime()
+  );
 }
 
 async function markOrderFailed(orderId: string, transactionId?: string | null, paymentStatus?: string | null) {
