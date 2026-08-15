@@ -1,9 +1,13 @@
 import type { BlogPost } from "./blog-types";
+import { getSupabasePublishableKey, getSupabaseUrl } from "./supabase-env";
 
-const SUPABASE_URL = "https://umvuqbeuzjqmmudkvscy.supabase.co";
-const SUPABASE_PUBLISHABLE_KEY =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVtdnVxYmV1empxbW11ZGt2c2N5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI0MDA4MTEsImV4cCI6MjA1Nzk3NjgxMX0.Wqd9khQ_YuEpl1fFTuK6NVXv2JECmROLfHRDA7KoNpg";
+const SUPABASE_URL = getSupabaseUrl();
+const SUPABASE_PUBLISHABLE_KEY = getSupabasePublishableKey();
 const BLOG_QUERY_TIMEOUT_MS = 5000;
+
+if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
+  console.warn("Public blog ENV fehlt: NEXT_PUBLIC_SUPABASE_URL + NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY (oder Legacy ANON). Blog API kann fehlschlagen.");
+}
 
 async function fetchBlogRows(path: string) {
   const controller = new AbortController();

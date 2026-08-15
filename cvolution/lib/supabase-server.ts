@@ -1,13 +1,8 @@
 import { createClient } from '@supabase/supabase-js';
+import { getSupabaseSecretKey, getSupabaseUrl, hasSupabaseServerEnv } from '@/lib/supabase-env';
 
-const supabaseUrl = "https://umvuqbeuzjqmmudkvscy.supabase.co";
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-if (!supabaseServiceKey && process.env.NODE_ENV !== "production") {
-  console.warn("SUPABASE_SERVICE_ROLE_KEY is not set. Server-side Supabase API calls will fail until it is configured.");
+if (!hasSupabaseServerEnv() && process.env.NODE_ENV !== "production") {
+  console.warn("Supabase Server ENV fehlt: NEXT_PUBLIC_SUPABASE_URL + SUPABASE_SECRET_KEY (oder Legacy Fallbacks).");
 }
 
-export const supabaseAdmin = createClient(
-  supabaseUrl,
-  supabaseServiceKey || "missing-supabase-service-role-key"
-);
+export const supabaseAdmin = createClient(getSupabaseUrl(), getSupabaseSecretKey());
