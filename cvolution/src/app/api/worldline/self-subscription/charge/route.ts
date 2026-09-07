@@ -11,6 +11,8 @@ import {
   SAFERPAY_SELF_SUBSCRIPTION,
 } from "@/lib/saferpay";
 
+export const maxDuration = 300;
+
 type ChargeResult = {
   userId: string;
   success: boolean;
