@@ -1,7 +1,7 @@
 "use client";
 
 import { AuthProvider } from "@/contexts/AuthContext";
-import { Dashboard } from "@/pages/Dashboard";
+import { Dashboard } from "@/screens/Dashboard";
 
 export default function DashboardPage() {
   return (
