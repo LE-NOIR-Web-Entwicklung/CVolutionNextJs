@@ -22,12 +22,14 @@ type ChargeResult = {
 };
 
 function authorizeRecurringRequest(request: NextRequest) {
-  const expectedSecret = process.env.SAFERPAY_RECURRING_SECRET || process.env.CRON_SECRET;
+  const expectedSecrets = [process.env.SAFERPAY_RECURRING_SECRET, process.env.CRON_SECRET].filter(
+    (secret): secret is string => Boolean(secret)
+  );
   const providedSecret = request.headers.get("x-recurring-secret");
   const authorization = request.headers.get("authorization");
-  return Boolean(
-    expectedSecret &&
-      (providedSecret === expectedSecret || authorization === `Bearer ${expectedSecret}`)
+  return expectedSecrets.some(
+    (expectedSecret) =>
+      providedSecret === expectedSecret || authorization === `Bearer ${expectedSecret}`
   );
 }
 
