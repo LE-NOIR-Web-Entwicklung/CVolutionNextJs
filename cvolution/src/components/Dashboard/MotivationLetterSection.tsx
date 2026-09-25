@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 
 type MotivationForm = {
+  applicationType: "job-ad" | "spontaneous";
   jobTitle: string;
   company: string;
   companyStreet: string;
@@ -41,6 +42,7 @@ type MotivationLetterSectionProps = {
 };
 
 const initialForm: MotivationForm = {
+  applicationType: "job-ad",
   jobTitle: "",
   company: "",
   companyStreet: "",
@@ -63,7 +65,7 @@ function slugify(value: string) {
 }
 
 function isSubjectLine(line: string) {
-  return /^(betreff|subject|objet)\b/i.test(line) || /^bewerbung\s/i.test(line);
+  return /^(betreff|subject|objet)\b/i.test(line) || /^(bewerbung|spontanbewerbung|initiativbewerbung)\s/i.test(line);
 }
 
 // Formatierte Vorschau: Betreff fett, Bulletpoints eingerueckt, saubere Absaetze
@@ -74,7 +76,7 @@ const LetterPreview: React.FC<{ letter: string }> = ({ letter }) => {
     .filter(Boolean);
 
   return (
-    <div className="space-y-4 text-sm leading-6 text-slate-900">
+    <div className="space-y-2 text-sm leading-6 text-slate-900">
       {blocks.map((block, blockIdx) => {
         const lines = block.split("\n").map((line) => line.trim()).filter(Boolean);
         const allBullets = lines.length > 0 && lines.every((line) => /^[-–•*]\s+/.test(line));
@@ -122,12 +124,19 @@ export const MotivationLetterSection: React.FC<MotivationLetterSectionProps> = (
   const [error, setError] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
+  const formRevision = useRef(0);
 
   const canGenerate = useMemo(() => {
+    if (form.applicationType === "spontaneous") {
+      return Boolean(form.company.trim() && form.jobTitle.trim());
+    }
     return Boolean(form.jobAd.trim() || form.jobAdUrl.trim());
-  }, [form.jobAd, form.jobAdUrl]);
+  }, [form.applicationType, form.company, form.jobAd, form.jobAdUrl, form.jobTitle]);
 
   const updateField = <K extends keyof MotivationForm>(key: K, value: MotivationForm[K]) => {
+    formRevision.current += 1;
+    setLetter("");
+    setError("");
     setForm((current) => ({ ...current, [key]: value }));
   };
 
@@ -141,7 +150,11 @@ export const MotivationLetterSection: React.FC<MotivationLetterSectionProps> = (
     }
 
     if (!canGenerate) {
-      setError("Bitte fügen Sie die Stellenanzeige ein oder geben Sie den Link zum Inserat an.");
+      setError(
+        form.applicationType === "spontaneous"
+          ? "Bitte geben Sie Unternehmen und gewünschte Stelle an."
+          : "Bitte fügen Sie die Stellenanzeige ein oder geben Sie den Link zum Inserat an."
+      );
       return;
     }
 
@@ -150,6 +163,8 @@ export const MotivationLetterSection: React.FC<MotivationLetterSectionProps> = (
       return;
     }
 
+    setLetter("");
+    const requestRevision = formRevision.current;
     setIsGenerating(true);
     try {
       const { data } = await supabase.auth.getSession();
@@ -165,13 +180,18 @@ export const MotivationLetterSection: React.FC<MotivationLetterSectionProps> = (
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(form),
+        body: JSON.stringify({
+          ...form,
+          ...(form.applicationType === "spontaneous" ? { jobAd: "", jobAdUrl: "" } : {}),
+        }),
       });
 
       const result = await response.json().catch(() => null);
 
       if (response.status === 402) {
-        onRequirePayment();
+        if (requestRevision === formRevision.current) {
+          onRequirePayment();
+        }
         throw new Error(result?.error || "Dieses Feature ist im aktiven Self-Service-Abo enthalten.");
       }
 
@@ -185,13 +205,17 @@ export const MotivationLetterSection: React.FC<MotivationLetterSectionProps> = (
         throw new Error(result?.error || "Motivationsschreiben konnte nicht erstellt werden.");
       }
 
-      setLetter(result.letter || "");
-      toast({
-        title: "Motivationsschreiben erstellt",
-        description: "Der Entwurf ist bereit.",
-      });
+      if (requestRevision === formRevision.current) {
+        setLetter(result.letter || "");
+        toast({
+          title: "Motivationsschreiben erstellt",
+          description: "Der Entwurf ist bereit.",
+        });
+      }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Motivationsschreiben konnte nicht erstellt werden.");
+      if (requestRevision === formRevision.current) {
+        setError(err instanceof Error ? err.message : "Motivationsschreiben konnte nicht erstellt werden.");
+      }
     } finally {
       setIsGenerating(false);
     }
@@ -280,9 +304,9 @@ export const MotivationLetterSection: React.FC<MotivationLetterSectionProps> = (
               AI Motivationsschreiben
             </h2>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
-              Stellenanzeige einfügen oder Link zum Inserat angeben. Unternehmen, Adresse und
-              Ansprechperson werden automatisch aus dem Inserat oder der Website erkannt. Das
-              fertige Schreiben laden Sie als Word-Datei herunter.
+              {form.applicationType === "spontaneous"
+                ? "Erstellen Sie eine Initiativbewerbung für das gewünschte Unternehmen und die passende Stelle. Das fertige Schreiben laden Sie als Word-Datei herunter."
+                : "Stellenanzeige einfügen oder Link zum Inserat angeben. Unternehmen, Adresse und Ansprechperson werden automatisch aus dem Inserat oder der Website erkannt. Das fertige Schreiben laden Sie als Word-Datei herunter."}
             </p>
           </div>
         </div>
@@ -290,65 +314,94 @@ export const MotivationLetterSection: React.FC<MotivationLetterSectionProps> = (
         <form onSubmit={handleGenerate} className="mt-6 grid gap-5 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] lg:items-stretch">
           <div className="space-y-4">
             <div className="space-y-2">
-              <label htmlFor="jobAdUrl" className="text-sm font-semibold text-slate-900">
-                Link zum Inserat
+              <label htmlFor="applicationType" className="text-sm font-semibold text-slate-900">
+                Art der Bewerbung
               </label>
-              <div className="relative">
-                <Link2 className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                <Input
-                  id="jobAdUrl"
-                  value={form.jobAdUrl}
-                  onChange={(event) => updateField("jobAdUrl", event.target.value)}
-                  placeholder="https://..."
-                  className="border-slate-200 bg-white pl-9 text-slate-950 focus-visible:ring-[#204878]/20"
-                  maxLength={500}
-                  type="url"
-                  inputMode="url"
-                />
-              </div>
+              <Select
+                value={form.applicationType}
+                onValueChange={(value) => updateField("applicationType", value as MotivationForm["applicationType"])}
+              >
+                <SelectTrigger id="applicationType" className="border-slate-200 bg-white text-slate-950">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-white text-slate-950">
+                  <SelectItem value="job-ad">Bewerbung auf eine Stelle</SelectItem>
+                  <SelectItem value="spontaneous">Spontanbewerbung</SelectItem>
+                </SelectContent>
+              </Select>
               <p className="text-xs leading-5 text-slate-500">
-                Der obere Teil des Schreibens wird aus dem Inserat oder der Website erkannt. Ohne
-                Angaben wird das Impressum verwendet.
+                {form.applicationType === "spontaneous"
+                  ? "Das Schreiben wird als Initiativbewerbung ohne Stelleninserat erstellt."
+                  : "Fügen Sie ein Inserat ein oder geben Sie den Link dazu an."}
               </p>
             </div>
 
-            <div className="space-y-2">
-              <label htmlFor="jobAd" className="text-sm font-semibold text-slate-900">
-                Stellenanzeige {form.jobAdUrl.trim() ? "(optional)" : "*"}
-              </label>
-              <Textarea
-                id="jobAd"
-                value={form.jobAd}
-                onChange={(event) => updateField("jobAd", event.target.value)}
-                placeholder="Stelleninserat hier einfügen"
-                className="min-h-44 resize-y border-slate-200 bg-white text-slate-950 focus-visible:ring-[#204878]/20"
-                maxLength={9000}
-              />
-            </div>
+            {form.applicationType === "job-ad" && (
+              <>
+                <div className="space-y-2">
+                  <label htmlFor="jobAdUrl" className="text-sm font-semibold text-slate-900">
+                    Link zum Inserat
+                  </label>
+                  <div className="relative">
+                    <Link2 className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                    <Input
+                      id="jobAdUrl"
+                      value={form.jobAdUrl}
+                      onChange={(event) => updateField("jobAdUrl", event.target.value)}
+                      placeholder="https://..."
+                      className="border-slate-200 bg-white pl-9 text-slate-950 focus-visible:ring-[#204878]/20"
+                      maxLength={500}
+                      type="url"
+                      inputMode="url"
+                    />
+                  </div>
+                  <p className="text-xs leading-5 text-slate-500">
+                    Der obere Teil des Schreibens wird aus dem Inserat oder der Website erkannt. Ohne
+                    Angaben wird das Impressum verwendet.
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <label htmlFor="jobAd" className="text-sm font-semibold text-slate-900">
+                    Stellenanzeige {form.jobAdUrl.trim() ? "(optional)" : "*"}
+                  </label>
+                  <Textarea
+                    id="jobAd"
+                    value={form.jobAd}
+                    onChange={(event) => updateField("jobAd", event.target.value)}
+                    placeholder="Stelleninserat hier einfügen"
+                    className="min-h-44 resize-y border-slate-200 bg-white text-slate-950 focus-visible:ring-[#204878]/20"
+                    maxLength={9000}
+                  />
+                </div>
+              </>
+            )}
 
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <label htmlFor="jobTitle" className="text-sm font-semibold text-slate-900">
-                  Stelle (optional)
+                  Stelle {form.applicationType === "spontaneous" ? "*" : "(optional)"}
                 </label>
                 <Input
                   id="jobTitle"
                   value={form.jobTitle}
                   onChange={(event) => updateField("jobTitle", event.target.value)}
-                  placeholder="Wird aus dem Inserat erkannt"
+                  placeholder={form.applicationType === "spontaneous" ? "Gewünschte Position" : "Wird aus dem Inserat erkannt"}
+                  required={form.applicationType === "spontaneous"}
                   className="border-slate-200 bg-white text-slate-950 focus-visible:ring-[#204878]/20"
                   maxLength={140}
                 />
               </div>
               <div className="space-y-2">
                 <label htmlFor="company" className="text-sm font-semibold text-slate-900">
-                  Unternehmen (optional)
+                  Unternehmen {form.applicationType === "spontaneous" ? "*" : "(optional)"}
                 </label>
                 <Input
                   id="company"
                   value={form.company}
                   onChange={(event) => updateField("company", event.target.value)}
-                  placeholder="Wird aus dem Inserat erkannt"
+                  placeholder={form.applicationType === "spontaneous" ? "Unternehmen, bei dem Sie sich bewerben" : "Wird aus dem Inserat erkannt"}
+                  required={form.applicationType === "spontaneous"}
                   className="border-slate-200 bg-white text-slate-950 focus-visible:ring-[#204878]/20"
                   maxLength={140}
                 />
@@ -439,6 +492,16 @@ export const MotivationLetterSection: React.FC<MotivationLetterSectionProps> = (
               </Alert>
             )}
 
+            <p className="text-xs leading-5 text-slate-500">
+              Für den Entwurf werden Angaben aus Ihrem Lebenslauf und Ihre Kontaktdaten an Anthropic
+              (Claude) übermittelt. {form.applicationType === "job-ad"
+                ? "Auch der eingegebene Inserattext oder abrufbare Inhalte des Inserat-Links und möglicher Kontakt- oder Impressumsseiten werden verarbeitet."
+                : "Auch Ihre Angaben zur gewünschten Stelle und zum Unternehmen werden verarbeitet."}{" "}
+              Bitte prüfen Sie alle Tatsachenbehauptungen vor der Verwendung. Allgemeine Hinweise
+              finden Sie in der{" "}
+              <a href="/data" className="underline hover:text-slate-700">Datenschutzerklärung</a>.
+            </p>
+
             <div className="flex flex-col gap-3 sm:flex-row">
               <Button
                 type="submit"
@@ -452,6 +515,7 @@ export const MotivationLetterSection: React.FC<MotivationLetterSectionProps> = (
                 type="button"
                 variant="outline"
                 onClick={() => {
+                  formRevision.current += 1;
                   setForm(initialForm);
                   setLetter("");
                   setError("");
@@ -496,7 +560,7 @@ export const MotivationLetterSection: React.FC<MotivationLetterSectionProps> = (
                 </div>
               </div>
 
-              <div className="min-h-0 flex-1 overflow-y-auto rounded-lg border border-slate-200 bg-white p-5 text-sm leading-7 text-slate-800 shadow-sm">
+              <div className="min-h-0 flex-1 overflow-y-auto rounded-lg border border-slate-200 bg-white p-5 text-sm leading-6 text-slate-800 shadow-sm">
                 {isGenerating ? (
                   <div className="flex h-full flex-col items-center justify-center text-center text-slate-500">
                     <Loader2 className="mb-4 h-8 w-8 animate-spin text-[#204878]" />

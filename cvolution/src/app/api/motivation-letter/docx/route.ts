@@ -7,6 +7,7 @@ import {
   TextRun,
 } from "docx";
 import { supabaseAdmin } from "../../../../../lib/supabase-server";
+import { checkMotivationLetter } from "../../../../lib/motivation-letter-policy";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -19,7 +20,7 @@ type DocxRequest = {
 
 const FONT = "Arial";
 const FONT_SIZE = 22; // 11pt
-const LINE_SPACING = 276; // 1.15-facher Zeilenabstand
+const LINE_SPACING = 240; // Einfacher Zeilenabstand
 
 function jsonError(message: string, status: number) {
   return NextResponse.json({ error: message }, { status });
@@ -57,7 +58,7 @@ function isSelfServiceIncluded(profile: any) {
 }
 
 function isSubjectLine(line: string) {
-  return /^(betreff|subject|objet)\b/i.test(line) || /^bewerbung\s/i.test(line);
+  return /^(betreff|subject|objet)\b/i.test(line) || /^(bewerbung|spontanbewerbung|initiativbewerbung)\s/i.test(line);
 }
 
 function isSalutationLine(line: string) {
@@ -78,9 +79,9 @@ function stripBullet(line: string) {
 
 // Saubere Briefformatierung:
 // - Adressbloecke mit engem Zeilenabstand
-// - Betreff fett mit Abstand davor/danach
+// - Betreff fett
 // - Echte Word-Bulletpoints
-// - Konsistente Absatzabstaende
+// - Einfacher Zeilenabstand und sichtbare Blocktrennung
 function createLetterParagraphs(letter: string): Paragraph[] {
   const paragraphs: Paragraph[] = [];
   const blocks = letter
@@ -89,23 +90,33 @@ function createLetterParagraphs(letter: string): Paragraph[] {
     .filter(Boolean);
 
   blocks.forEach((block, blockIdx) => {
+    // A blank paragraph keeps separate letter blocks readable without adding
+    // Word paragraph spacing.
+    if (blockIdx > 0) {
+      paragraphs.push(
+        new Paragraph({
+          spacing: { before: 0, after: 0, line: LINE_SPACING },
+        })
+      );
+    }
+
     const lines = block
       .split("\n")
       .map((line) => line.trim())
       .filter(Boolean);
 
-    const isLastBlock = blockIdx === blocks.length - 1;
     const allBullets = lines.length > 0 && lines.every(isBulletLine);
 
     // Bullet-Block: echte Word-Aufzaehlung
     if (allBullets) {
-      lines.forEach((line, lineIdx) => {
+      lines.forEach((line) => {
         paragraphs.push(
           new Paragraph({
             children: [new TextRun({ text: stripBullet(line), font: FONT, size: FONT_SIZE })],
             bullet: { level: 0 },
             spacing: {
-              after: lineIdx === lines.length - 1 ? 240 : 60,
+              before: 0,
+              after: 0,
               line: LINE_SPACING,
             },
             alignment: AlignmentType.LEFT,
@@ -120,7 +131,7 @@ function createLetterParagraphs(letter: string): Paragraph[] {
       paragraphs.push(
         new Paragraph({
           children: [new TextRun({ text: lines[0], font: FONT, size: FONT_SIZE, bold: true })],
-          spacing: { before: 160, after: 320, line: LINE_SPACING },
+          spacing: { before: 0, after: 0, line: LINE_SPACING },
           alignment: AlignmentType.LEFT,
         })
       );
@@ -132,7 +143,7 @@ function createLetterParagraphs(letter: string): Paragraph[] {
       paragraphs.push(
         new Paragraph({
           children: [new TextRun({ text: lines[0], font: FONT, size: FONT_SIZE })],
-          spacing: { after: 240, line: LINE_SPACING },
+          spacing: { before: 0, after: 0, line: LINE_SPACING },
           alignment: AlignmentType.LEFT,
         })
       );
@@ -141,13 +152,13 @@ function createLetterParagraphs(letter: string): Paragraph[] {
 
     // Grussformel: Abstand vor der Unterschrift
     if (isClosingLine(lines[0])) {
-      lines.forEach((line, lineIdx) => {
+      lines.forEach((line) => {
         paragraphs.push(
           new Paragraph({
             children: [new TextRun({ text: line, font: FONT, size: FONT_SIZE })],
             spacing: {
-              before: lineIdx === 0 ? 160 : 0,
-              after: lineIdx === 0 ? 480 : 60,
+              before: 0,
+              after: 0,
               line: LINE_SPACING,
             },
             alignment: AlignmentType.LEFT,
@@ -159,7 +170,7 @@ function createLetterParagraphs(letter: string): Paragraph[] {
 
     // Mehrzeilige Bloecke (Absender-/Empfaengerblock): enger Zeilenabstand
     if (lines.length > 1) {
-      lines.forEach((line, lineIdx) => {
+      lines.forEach((line) => {
         const bulletLine = isBulletLine(line);
         paragraphs.push(
           new Paragraph({
@@ -172,7 +183,8 @@ function createLetterParagraphs(letter: string): Paragraph[] {
             ],
             ...(bulletLine ? { bullet: { level: 0 } } : {}),
             spacing: {
-              after: lineIdx === lines.length - 1 ? 240 : 20,
+              before: 0,
+              after: 0,
               line: LINE_SPACING,
             },
             alignment: AlignmentType.LEFT,
@@ -186,7 +198,7 @@ function createLetterParagraphs(letter: string): Paragraph[] {
     paragraphs.push(
       new Paragraph({
         children: [new TextRun({ text: lines[0], font: FONT, size: FONT_SIZE })],
-        spacing: { after: isLastBlock ? 0 : 240, line: LINE_SPACING },
+        spacing: { before: 0, after: 0, line: LINE_SPACING },
         alignment: AlignmentType.LEFT,
       })
     );
@@ -235,12 +247,17 @@ export async function POST(request: NextRequest) {
     return jsonError("Ungültige Anfrage.", 400);
   }
 
-  const letter = normalizeSwissMotivationLetter(cleanText(body.letter, 12000));
+  const letter = normalizeSwissMotivationLetter(cleanText(body.letter, Number.MAX_SAFE_INTEGER));
   const jobTitle = cleanText(body.jobTitle, 140);
   const company = cleanText(body.company, 140);
 
   if (!letter) {
     return jsonError("Kein Motivationsschreiben zum Exportieren vorhanden.", 400);
+  }
+
+  const letterCheck = checkMotivationLetter(letter);
+  if (!letterCheck.valid) {
+    return jsonError(letterCheck.reason || "Das Motivationsschreiben überschreitet die erlaubten Grenzen.", 422);
   }
 
   const docxDocument = new Document({
@@ -258,11 +275,15 @@ export async function POST(request: NextRequest) {
       {
         properties: {
           page: {
+            size: {
+              width: 11906,
+              height: 16838,
+            },
             margin: {
-              top: 1440,
-              right: 1440,
-              bottom: 1440,
-              left: 1440,
+              top: 1134,
+              right: 1134,
+              bottom: 1134,
+              left: 1134,
             },
           },
         },

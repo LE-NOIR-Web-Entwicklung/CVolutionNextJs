@@ -16,6 +16,7 @@ import {
   WidthType,
 } from "docx";
 import { supabaseAdmin } from "../../../../../lib/supabase-server";
+import { fetchSafeExternal } from "../../../../lib/safe-external-fetch";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -43,6 +44,12 @@ function formatDate(dateString?: string | null) {
   if (isNaN(d.getTime())) return dateString;
   const month = String(d.getMonth() + 1).padStart(2, "0");
   return `${month}.${d.getFullYear()}`;
+}
+
+function formatPeriod(startDate?: string | null, endDate?: string | null, isCurrent?: boolean) {
+  const start = formatDate(startDate);
+  const end = isCurrent ? "heute" : formatDate(endDate);
+  return [start, end].filter(Boolean).join(" - ");
 }
 
 function formatBirthDate(dateString?: string | null) {
@@ -183,7 +190,7 @@ const THEMES: Record<CvDesign, Theme> = {
 
 // Seitenraender je Design (PDF-Padding * 20)
 const PAGE = {
-  design1: { top: 560, bottom: 640, left: 1160, right: 1160, content: 11906 - 2 * 1160 },
+  design1: { top: 440, bottom: 520, left: 1160, right: 1160, content: 11906 - 2 * 1160 },
   design2: { top: 600, bottom: 680, left: 1120, right: 1120, content: 11906 - 2 * 1120 },
   design3: { top: 600, bottom: 680, left: 1040, right: 1040, content: 11906 - 2 * 1040 },
 };
@@ -210,28 +217,22 @@ type Photo = { data: Buffer; type: "jpg" | "png" };
 async function fetchProfilePhoto(url?: string | null): Promise<Photo | null> {
   if (!url || !/^https:\/\//i.test(url)) return null;
   try {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 5000);
-    const res = await fetch(url, { signal: controller.signal });
-    clearTimeout(timer);
-    if (!res.ok) return null;
-    const raw = Buffer.from(await res.arrayBuffer());
+    const res = await fetchSafeExternal(url, { maxBytes: 8 * 1024 * 1024, timeoutMs: 5000, httpsOnly: true });
+    if (!res || res.status < 200 || res.status >= 300) return null;
+    const raw = res.body;
     if (raw.length < 8 || raw.length > 8 * 1024 * 1024) return null;
 
     // Wie objectFit "cover" im PDF: zentriert auf 92:110 zuschneiden,
     // damit das Foto in Word nicht verzerrt wird.
     try {
       const sharp = (await import("sharp")).default;
-      const cropped = await sharp(raw)
+      const cropped = await sharp(raw, { limitInputPixels: 20_000_000 })
         .rotate() // EXIF-Orientierung korrigieren
         .resize(PHOTO_W_PX * 3, PHOTO_H_PX * 3, { fit: "cover", position: "centre" })
         .jpeg({ quality: 88 })
         .toBuffer();
       return { data: cropped, type: "jpg" };
     } catch {
-      // Fallback ohne sharp: Originalbild unveraendert einbetten
-      if (raw[0] === 0xff && raw[1] === 0xd8) return { data: raw, type: "jpg" };
-      if (raw[0] === 0x89 && raw[1] === 0x50) return { data: raw, type: "png" };
       return null;
     }
   } catch {
@@ -261,10 +262,10 @@ function run(text: string, opts: { size?: number; bold?: boolean; color?: string
   return new TextRun({ text, font: FONT, size: opts.size ?? 19, bold: opts.bold, color: opts.color });
 }
 
-function sectionTitle(text: string, theme: Theme, opts: { first?: boolean; size?: number } = {}) {
+function sectionTitle(text: string, theme: Theme, opts: { first?: boolean; size?: number; compact?: boolean } = {}) {
   return new Paragraph({
     children: [run(text, { size: opts.size ?? 24, bold: true, color: theme.section })],
-    spacing: { before: opts.first ? 0 : 240, after: 100 },
+    spacing: { before: opts.first ? 0 : opts.compact ? 180 : 240, after: opts.compact ? 80 : 100 },
     keepNext: true,
     border: {
       bottom: { style: BorderStyle.SINGLE, size: theme.sectionBorderSize, color: theme.sectionBorder, space: 2 },
@@ -272,11 +273,12 @@ function sectionTitle(text: string, theme: Theme, opts: { first?: boolean; size?
   });
 }
 
-function bulletParagraph(text: string, opts: { last?: boolean } = {}) {
+function bulletParagraph(text: string, opts: { last?: boolean; compact?: boolean } = {}) {
   return new Paragraph({
     children: [run(text)],
     bullet: { level: 0 },
-    spacing: { after: opts.last ? 0 : 30 },
+    indent: { left: 400, hanging: 200 },
+    spacing: { after: opts.last ? 0 : 30, ...(opts.compact ? { line: 220 } : {}) },
   });
 }
 
@@ -344,7 +346,8 @@ function contactTable(
 function experienceParagraphs(
   items: any[],
   theme: Theme,
-  kind: "experience" | "education"
+  kind: "experience" | "education",
+  compact = false
 ): Paragraph[] {
   const paragraphs: Paragraph[] = [];
 
@@ -353,18 +356,19 @@ function experienceParagraphs(
       kind === "experience"
         ? item.job_title || ""
         : [item.degree, item.field_of_study].filter(Boolean).join(", ");
+    const period = formatPeriod(item.start_date, item.end_date, item.is_current);
     const metaParts = [
       kind === "experience"
         ? [item.company, item.location].filter(Boolean).join(", ")
         : [item.institution, item.place].filter(Boolean).join(", "),
-      `${formatDate(item.start_date)} - ${item.is_current ? "heute" : formatDate(item.end_date)}`,
+      period,
     ].filter(Boolean);
     const bullets = extractBullets(item.description, kind === "experience" ? getMaxBullets(idx) : 3);
 
     paragraphs.push(
       new Paragraph({
         children: [run(title, { size: 21, bold: true })],
-        spacing: { before: idx === 0 ? 0 : 160, after: 20 },
+        spacing: { before: idx === 0 ? 0 : compact ? 100 : 160, after: 20 },
         keepNext: true,
         keepLines: true,
       })
@@ -380,7 +384,7 @@ function experienceParagraphs(
       );
     }
     bullets.forEach((bullet, bulletIdx) => {
-      paragraphs.push(bulletParagraph(bullet, { last: bulletIdx === bullets.length - 1 }));
+      paragraphs.push(bulletParagraph(bullet, { last: bulletIdx === bullets.length - 1, compact }));
     });
   });
 
@@ -400,7 +404,7 @@ function itemsTableDesign3(items: any[], theme: Theme, kind: "experience" | "edu
       kind === "experience"
         ? [item.company, item.location].filter(Boolean).join(", ")
         : [item.institution, item.place].filter(Boolean).join(", ");
-    const range = `${formatDate(item.start_date)} - ${item.is_current ? "heute" : formatDate(item.end_date)}`;
+    const range = formatPeriod(item.start_date, item.end_date, item.is_current);
     const bullets = extractBullets(item.description, kind === "experience" ? getMaxBullets(idx) : 3);
     const isLast = idx === items.length - 1;
     // Abstand zwischen Eintraegen (PDF: marginBottom 8pt)
@@ -716,28 +720,28 @@ export async function POST(request: NextRequest) {
         })
       );
     } else {
-      children.push(new Paragraph({ children: [], spacing: { after: 120 } }));
+      children.push(new Paragraph({ children: [], spacing: { after: 160 } }));
     }
 
     if (contactRows.length > 0) {
-      children.push(sectionTitle("Kontaktdaten", theme, { first: true }));
+      children.push(sectionTitle("Kontaktdaten", theme, { first: true, compact: design === "design1" }));
       children.push(
         contactTable(contactRows, 1600, page.content, theme, design === "design2" ? theme.meta : undefined)
       );
     }
 
     if (experiences.length > 0) {
-      children.push(sectionTitle("Berufserfahrung", theme));
-      children.push(...experienceParagraphs(experiences, theme, "experience"));
+      children.push(sectionTitle("Berufserfahrung", theme, { compact: design === "design1" }));
+      children.push(...experienceParagraphs(experiences, theme, "experience", design === "design1"));
     }
 
     if (education.length > 0) {
-      children.push(sectionTitle("Aus- & Weiterbildungen", theme));
-      children.push(...experienceParagraphs(education, theme, "education"));
+      children.push(sectionTitle("Aus- & Weiterbildungen", theme, { compact: design === "design1" }));
+      children.push(...experienceParagraphs(education, theme, "education", design === "design1"));
     }
 
     if (hasKnowledge) {
-      children.push(sectionTitle("Kenntnisse & Fähigkeiten", theme));
+      children.push(sectionTitle("Kenntnisse & Fähigkeiten", theme, { compact: design === "design1" }));
       children.push(knowledgeTable(theme, page.content, 2200, preparedLanguages, abilities, driverLicenses));
     }
   }
@@ -755,6 +759,7 @@ export async function POST(request: NextRequest) {
       {
         properties: {
           page: {
+            size: { width: 11906, height: 16838 },
             margin: { top: page.top, right: page.right, bottom: page.bottom, left: page.left },
             // Design 1: blaue Seitenbalken links+rechts auf jeder Seite
             ...(design === "design1"

@@ -34,8 +34,8 @@ const styles = StyleSheet.create({
   page: {
     fontSize: 10,
     fontFamily: 'Helvetica',
-    paddingTop: 28,
-    paddingBottom: 32,
+    paddingTop: 22,
+    paddingBottom: 26,
     paddingLeft: 58,
     paddingRight: 58,
     color: '#1a1a1a',
@@ -58,7 +58,7 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: 'row',
-    marginBottom: 12,
+    marginBottom: 8,
   },
   photo: {
     width: 92,
@@ -84,8 +84,8 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 12,
     fontWeight: 'bold',
-    marginTop: 12,
-    marginBottom: 5,
+    marginTop: 9,
+    marginBottom: 4,
     color: ACCENT,
     borderBottom: `1 solid ${ACCENT}`,
     paddingBottom: 2,
@@ -103,7 +103,7 @@ const styles = StyleSheet.create({
     fontSize: 9.5,
   },
   expItem: {
-    marginBottom: 8,
+    marginBottom: 5,
   },
   expTitle: {
     fontSize: 10.5,
