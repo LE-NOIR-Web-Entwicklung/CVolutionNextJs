@@ -83,14 +83,14 @@ export function BlogPostExplorer({ posts }: BlogPostExplorerProps) {
           {featured && (
             <Link
               href={`/blog/${featured.slug}`}
-              className="group grid overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl lg:grid-cols-[1.1fr_0.9fr]"
+              className="group grid overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl"
             >
-              <div className="relative aspect-video bg-slate-200">
+              <div className="relative aspect-video min-w-0 overflow-hidden bg-slate-200">
                 {getCoverImageUrl(featured) ? (
                   <img
                     src={getCoverImageUrl(featured)}
                     alt={featured.title}
-                    className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
+                    className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
                   />
                 ) : (
                   <div className="flex h-full items-center justify-center bg-[#204878] text-white">
@@ -98,7 +98,7 @@ export function BlogPostExplorer({ posts }: BlogPostExplorerProps) {
                   </div>
                 )}
               </div>
-              <article className="flex flex-col justify-between p-7 lg:p-10">
+              <article className="flex min-w-0 flex-col justify-between wrap-anywhere p-7 lg:p-10">
                 <div>
                   <div className="mb-5 flex flex-wrap items-center gap-3 text-sm text-slate-500">
                     <span className="inline-flex items-center gap-2">
