@@ -46,7 +46,7 @@ export function ApplicationDateInput({ id, label, value, onChange, disabled }: P
         </PopoverTrigger>
         <PopoverContent aria-label={`Datum auswählen: ${label}`} align="start" className="z-[10000] w-auto border-slate-200 bg-white p-3 text-slate-950" onCloseAutoFocus={(event) => { event.preventDefault(); inputRef.current?.focus(); }}>
           <DayPicker
-            mode="single" locale={de} selected={selected} defaultMonth={selected} autoFocus
+            mode="single" locale={de} selected={selected} defaultMonth={selected} autoFocus fixedWeeks
             style={{ '--rdp-accent-color': '#204878', '--rdp-accent-background-color': '#EEF4FA' } as React.CSSProperties}
             onSelect={(date) => { onChange(date ? applicationDateToIso(date) : null); setOpen(false); }}
           />

@@ -334,6 +334,7 @@ test('date fields use Swiss formatting, validate input and retain calendar selec
   await manager.getByRole('button').filter({ hasText: 'Projektleitung' }).click();
   assert.equal(await manager.getByLabel('Versendet am', { exact: true }).inputValue(), '03.11.2026');
   await manager.getByLabel('Nächste Aktion am', { exact: true }).fill('');
+  await page.waitForFunction(() => document.getElementById('application-next-date')?.value === '', undefined, { timeout: 3000 });
   assert.equal(await manager.getByLabel('Nächste Aktion am', { exact: true }).inputValue(), '');
   await manager.getByRole('status').filter({ hasText: 'Ungespeicherte Änderungen' }).waitFor();
   const cleared = page.waitForResponse((response) => response.url().includes('/api/applications/') && response.request().method() === 'PUT');
@@ -346,6 +347,40 @@ test('date fields use Swiss formatting, validate input and retain calendar selec
   assert.ok(bounds.x >= 0 && bounds.x + bounds.width <= 375);
   await page.keyboard.press('Escape');
   assert.deepEqual(state.errors, []);
+});
+
+test('calendar month navigation keeps its height, placement and page scroll stable', options, async (t) => {
+  const { page, manager } = await fixture(t);
+  await create(manager);
+  await manager.getByLabel('Nächste Aktion am', { exact: true }).fill('23.02.2027');
+  const trigger = manager.getByRole('button', { name: 'Kalender: Nächste Aktion am', exact: true });
+  const calendar = page.getByRole('dialog', { name: 'Datum auswählen: Nächste Aktion am', exact: true });
+  await trigger.click();
+  const measured = await calendar.boundingBox();
+  await page.keyboard.press('Escape');
+  // Place the field where February fits below it but a taller month would flip above it.
+  const button = await trigger.boundingBox();
+  await page.evaluate(({ height, buttonHeight }) => {
+    const field = document.getElementById('application-next-date');
+    window.scrollBy(0, field.getBoundingClientRect().top - (innerHeight - height - buttonHeight - 16));
+  }, { height: measured.height, buttonHeight: button.height });
+  await trigger.click();
+  const initial = await calendar.boundingBox();
+  const initialSide = await calendar.getAttribute('data-side');
+  const initialScroll = await page.evaluate(() => scrollY);
+  for (const [direction, caption] of [
+    ['Next', 'März 2027'], ['Next', 'April 2027'], ['Next', 'Mai 2027'],
+    ['Previous', 'April 2027'], ['Previous', 'März 2027'], ['Previous', 'Februar 2027'],
+  ]) {
+    await calendar.getByRole('button', { name: new RegExp(`Go to the ${direction} Month`, 'i') }).click();
+    await calendar.getByText(caption, { exact: true }).waitFor();
+    await page.waitForFunction((side) => document.querySelector('[role="dialog"][data-side]')?.getAttribute('data-side') === side, initialSide, { timeout: 1500 });
+    const bounds = await calendar.boundingBox();
+    assert.ok(Math.abs(bounds.height - initial.height) <= 1, `Calendar height changed in ${caption}`);
+    assert.ok(Math.abs(bounds.y - initial.y) <= 1, `Calendar moved in ${caption}`);
+    assert.ok(Math.abs((await page.evaluate(() => scrollY)) - initialScroll) <= 1, `Page scrolled in ${caption}`);
+  }
+  await page.keyboard.press('Escape');
 });
 
 test('responsive layouts, labels, focus and document ids remain usable', options, async (t) => {
