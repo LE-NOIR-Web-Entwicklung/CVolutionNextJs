@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { LogOut, Settings } from 'lucide-react';
+import { dashboardPath, legacyDashboardHashArea, parseDashboardPath, type DashboardArea } from '@/lib/dashboard-routes';
 import { toast } from '@/hooks/use-toast';
 import ProfileSection from '@/components/Dashboard/ProfileSection';
 import ExperienceSection from '@/components/Dashboard/ExperienceSection';
@@ -20,9 +21,17 @@ import { CVExportButton } from '@/components/CVExport/CVExportButton';
 import { CVExportModal } from '@/components/CVExport/CVExportModal';
 import { PaymentModal } from '@/components/ui/PaymentModal';
 
+const areaTabClass = '-mb-px h-11 min-w-0 rounded-none border-b-2 border-transparent !bg-transparent px-2 text-sm font-medium !text-slate-500 !shadow-none transition-colors hover:!text-slate-900 data-[state=active]:border-[#204878] data-[state=active]:!text-[#204878] sm:px-1';
+
 export const Dashboard: React.FC = () => {
   const { user, signOut } = useAuth();
   const router = useRouter();
+  const pathname = usePathname() || '/dashboard';
+  const route = parseDashboardPath(pathname) || { area: 'cv' as DashboardArea, applicationId: null };
+  const activeArea = route.area;
+  // Returning to the tab reopens the application that was open before.
+  const applicationsPath = useRef(dashboardPath('applications'));
+  if (activeArea === 'applications') applicationsPath.current = pathname;
   const [cvModalOpen, setCVModalOpen] = useState(false);
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
   const [isRenewal, setIsRenewal] = useState(false);
@@ -31,7 +40,6 @@ export const Dashboard: React.FC = () => {
   const [educationData, setEducationData] = useState<any[]>([]);
   const [skillsData, setSkillsData] = useState<any[]>([]);
   const [languagesData, setLanguagesData] = useState<any[]>([]);
-  const [activeArea, setActiveArea] = useState('cv');
   const [motivationDraft, setMotivationDraft] = useState<MotivationDraft>(() => ({ form: emptyMotivationForm(), letter: '' }));
   const [incomingApplication, setIncomingApplication] = useState<Application | null>(null);
   const [applicationDirty, setApplicationDirty] = useState(false);
@@ -44,9 +52,17 @@ export const Dashboard: React.FC = () => {
   const educationSectionRef = React.useRef<{ saveEducation: () => void }>(null);
   const skillsAndLanguagesSectionRef = React.useRef<{ saveSkillsAndLanguages: () => void }>(null);
 
+  // Next.js keeps usePathname in sync with the History API, so the dashboard
+  // stays mounted (drafts included) while the URL follows the open area.
+  const navigate = useCallback((path: string, { replace = false } = {}) => {
+    if (path === window.location.pathname) return;
+    if (replace) window.history.replaceState(null, '', path);
+    else window.history.pushState(null, '', path);
+  }, []);
+
   useEffect(() => {
-    const area = window.location.hash.slice(1);
-    if (['cv', 'motivation', 'applications', 'settings'].includes(area)) setActiveArea(area);
+    const area = legacyDashboardHashArea(window.location.hash);
+    if (area && window.location.pathname === '/dashboard') window.history.replaceState(null, '', dashboardPath(area));
   }, []);
 
   useEffect(() => {
@@ -183,6 +199,14 @@ export const Dashboard: React.FC = () => {
     (profileData.paid || ['active', 'canceled'].includes(profileData.subscription_status))
   );
 
+  // Only access that will not renew by itself needs a reminder before it ends.
+  const accessEndsSoon = Boolean(
+    hasSelfServiceAccess &&
+    !hasActiveSubscription &&
+    paidPeriodEnd &&
+    new Date(paidPeriodEnd).getTime() - Date.now() <= 7 * 24 * 60 * 60 * 1000
+  );
+
   const formatSubscriptionDate = (value: string | null | undefined) => {
     if (!value) return '';
     return new Intl.DateTimeFormat('de-CH', {
@@ -263,13 +287,17 @@ export const Dashboard: React.FC = () => {
     }
   };
 
-  const handleAreaChange = (newArea: string) => {
-    if (activeArea === 'cv' && newArea !== 'cv') {
+  const handleAreaChange = (newArea: string, path?: string) => {
+    const area = newArea as DashboardArea;
+    if (activeArea === 'cv' && area !== 'cv') {
       saveActiveCvSection();
     }
-    setActiveArea(newArea);
-    window.history.replaceState(null, '', `#${newArea}`);
+    navigate(path || (area === 'applications' ? applicationsPath.current : dashboardPath(area)));
   };
+
+  const navigateApplication = useCallback((applicationId: string | null, options?: { replace?: boolean }) => {
+    navigate(dashboardPath('applications', applicationId), options);
+  }, [navigate]);
 
   const saveMotivationDraft = async (draft: MotivationDraft) => {
     if (!hasSelfServiceAccess) {
@@ -280,7 +308,7 @@ export const Dashboard: React.FC = () => {
     const application = await saveApplication({ ...emptyApplication(), company: draft.form.company, job_title: draft.form.jobTitle, motivation_form: draft.form, motivation_letter: draft.letter }, null);
     setIncomingApplication(application);
     setMotivationDraft({ form: emptyMotivationForm(), letter: '' });
-    handleAreaChange('applications');
+    handleAreaChange('applications', dashboardPath('applications'));
     return application.id;
   };
 
@@ -316,22 +344,22 @@ export const Dashboard: React.FC = () => {
       </header>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
-        <Tabs value={activeArea} onValueChange={handleAreaChange} className="space-y-4 sm:space-y-6">
-          <TabsList className="!grid h-auto w-full grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_3rem] gap-2 bg-transparent p-0">
-            <TabsTrigger value="cv" className="h-12 min-w-0 rounded-lg border border-slate-200 !bg-white px-2 text-xs font-semibold !text-gray-600 shadow-sm data-[state=active]:!bg-[#204878] data-[state=active]:!text-white data-[state=active]:!shadow-md sm:text-sm">
+        <Tabs value={activeArea} onValueChange={(area) => handleAreaChange(area)} className="space-y-4 sm:space-y-6">
+          <TabsList className="!flex h-auto w-full items-stretch justify-start gap-1 rounded-none border-b border-slate-200 !bg-transparent p-0 sm:gap-4">
+            <TabsTrigger value="cv" className={areaTabClass}>
               <span className="hidden sm:inline">CV Self-Service</span><span className="sm:hidden">Lebenslauf</span>
             </TabsTrigger>
-            <TabsTrigger value="motivation" className="h-12 min-w-0 rounded-lg border border-slate-200 !bg-white px-2 text-xs font-semibold !text-gray-600 shadow-sm data-[state=active]:!bg-[#204878] data-[state=active]:!text-white data-[state=active]:!shadow-md sm:text-sm">
+            <TabsTrigger value="motivation" className={areaTabClass}>
               <span className="hidden sm:inline">AI Motivationsschreiben</span><span className="sm:hidden">AI-Schreiben</span>
             </TabsTrigger>
-            <TabsTrigger value="applications" className="h-12 min-w-0 rounded-lg border border-slate-200 !bg-white px-2 text-xs font-semibold !text-gray-600 shadow-sm data-[state=active]:!bg-[#204878] data-[state=active]:!text-white data-[state=active]:!shadow-md sm:text-sm">
+            <TabsTrigger value="applications" className={areaTabClass}>
               Bewerbungen
             </TabsTrigger>
             <TabsTrigger
               value="settings"
               aria-label="Einstellungen"
               title="Einstellungen"
-              className="ml-auto h-12 w-12 shrink-0 rounded-md border border-slate-200 !bg-white px-0 !text-gray-600 shadow-sm data-[state=active]:!bg-[#204878] data-[state=active]:!text-white data-[state=active]:!shadow-md"
+              className={`ml-auto w-10 shrink-0 !px-0 ${areaTabClass}`}
             >
               <Settings className="h-4 w-4" />
             </TabsTrigger>
@@ -361,16 +389,13 @@ export const Dashboard: React.FC = () => {
             <LinkedInExtractor />
           </TabsContent> */}
 
-          {(hasActiveSubscription || hasCanceledSubscription) && (
-            <div className="inline-flex max-w-full flex-wrap items-center gap-x-2 gap-y-1 rounded-md border border-slate-200/70 bg-white/50 px-3 py-1.5 text-xs text-slate-500 shadow-none">
-              <span className="font-medium text-slate-600">
-                {hasCanceledSubscription ? 'Abo gekündigt' : 'Abo aktiv'}
-              </span>
-              <span>
-                bis {formatSubscriptionDate(profileData?.subscription_current_period_end)}
-                {hasCanceledSubscription ? ' · keine weiteren Abbuchungen' : ' (Automatische Verlängerung)'}
-              </span>
-            </div>
+          {accessEndsSoon && (
+            <p role="status" className="text-xs text-amber-800">
+              Ihr Self-Service-Zugang endet am {formatSubscriptionDate(paidPeriodEnd)}.{' '}
+              <button type="button" onClick={openSelfServicePayment} className="font-semibold underline underline-offset-2 hover:text-amber-950">
+                Abo verlängern
+              </button>
+            </p>
           )}
 
           <TabsContent value="cv" className="mt-0">
@@ -431,6 +456,8 @@ export const Dashboard: React.FC = () => {
               onExportCv={handleExportClick}
               incomingApplication={incomingApplication?.user_id === user?.id ? incomingApplication : null}
               onDirtyChange={setApplicationDirty}
+              routeApplicationId={activeArea === 'applications' ? route.applicationId : undefined}
+              onRouteChange={navigateApplication}
             />
           </TabsContent>
 
@@ -448,8 +475,8 @@ export const Dashboard: React.FC = () => {
                       {hasCanceledSubscription ? 'Abo gekündigt' : 'Monatsabo'}
                     </p>
                     <p className="text-xs text-slate-600 mt-1">
-                      {profileData?.subscription_current_period_end
-                        ? `Zugriff bis ${formatSubscriptionDate(profileData.subscription_current_period_end)}`
+                      {hasSelfServiceAccess && paidPeriodEnd
+                        ? `${hasActiveSubscription ? 'Aktiv bis' : 'Zugriff bis'} ${formatSubscriptionDate(paidPeriodEnd)}${hasActiveSubscription ? ' · verlängert sich automatisch' : hasCanceledSubscription ? ' · keine weiteren Abbuchungen' : ''}`
                         : 'Kein aktives Abo gefunden'}
                     </p>
                   </div>

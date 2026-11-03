@@ -305,8 +305,62 @@ test('internal site navigation warns before discarding unsaved application input
   page.once('dialog', async (dialog) => { warned = true; await dialog.dismiss(); });
   await page.getByRole('link', { name: 'Home', exact: true }).first().click();
   assert.ok(warned, 'Leaving through the site navigation must confirm unsaved changes');
-  assert.equal(new URL(page.url()).pathname, '/dashboard');
+  assert.equal(new URL(page.url()).pathname, '/dashboard/bewerbungen/neu');
   assert.equal(await manager.getByLabel('Unternehmen *', { exact: true }).inputValue(), 'Muster AG');
+});
+
+test('detail views have their own URL, follow browser history and survive a reload', options, async (t) => {
+  const { page, manager, state } = await fixture(t);
+  assert.equal(new URL(page.url()).pathname, '/dashboard/bewerbungen');
+  await create(manager);
+  assert.equal(new URL(page.url()).pathname, '/dashboard/bewerbungen/neu');
+  await manager.getByRole('button', { name: 'Bewerbung speichern', exact: true }).first().click();
+  await manager.getByLabel('Bewerbungen durchsuchen').waitFor();
+  assert.equal(new URL(page.url()).pathname, '/dashboard/bewerbungen');
+  const detail = `/dashboard/bewerbungen/${state.records[0].id}`;
+  await manager.getByRole('button').filter({ hasText: 'Projektleitung' }).click();
+  await manager.getByLabel('Unternehmen *', { exact: true }).waitFor();
+  assert.equal(new URL(page.url()).pathname, detail);
+  assert.equal(await manager.getByRole('group', { name: 'Bewerbungen filtern' }).count(), 0, 'The overview is hidden in the detail view');
+  await page.goBack();
+  await manager.getByLabel('Bewerbungen durchsuchen').waitFor();
+  await page.goForward();
+  await manager.getByLabel('Unternehmen *', { exact: true }).waitFor();
+  await page.reload();
+  await manager.getByLabel('Unternehmen *', { exact: true }).waitFor();
+  assert.equal(await manager.getByLabel('Unternehmen *', { exact: true }).inputValue(), 'Muster AG');
+  await page.getByRole('tab', { name: 'CV Self-Service', exact: true }).click();
+  assert.equal(new URL(page.url()).pathname, '/dashboard');
+  await page.getByRole('tab', { name: 'Bewerbungen', exact: true }).click();
+  assert.equal(new URL(page.url()).pathname, detail, 'Returning to the tab keeps the open application');
+  await manager.getByRole('button', { name: 'Übersicht', exact: true }).click();
+  await manager.getByLabel('Bewerbungen durchsuchen').waitFor();
+  assert.equal(new URL(page.url()).pathname, '/dashboard/bewerbungen');
+  await page.goto(`${baseUrl}/dashboard/bewerbungen/${randomUUID()}`);
+  await manager.getByRole('alert').filter({ hasText: 'Diese Bewerbung wurde nicht gefunden.' }).waitFor();
+  assert.equal(new URL(page.url()).pathname, '/dashboard/bewerbungen');
+  assert.equal((await page.goto(`${baseUrl}/dashboard/unbekannt`)).status(), 404);
+  assert.deepEqual(state.errors, []);
+});
+
+test('filter chips count and filter open and due applications', options, async (t) => {
+  const { page, manager, state } = await fixture(t);
+  const base = { status: 'sent', applied_at: null, deadline: null, next_action: '', notes: '', motivation_letter: '', user_id: owner, created_at: '2026-11-01T00:00:00Z', updated_at: '2026-11-01T00:00:00Z' };
+  const row = (id, job, patch) => ({ ...base, id, company: 'Filter AG', job_title: job, next_action_at: null, motivation_form: { applicationType: 'reactive', jobTitle: job, company: 'Filter AG', companyStreet: '', companyPostalCode: '', companyCity: '', recipient: '', jobAd: '', jobAdUrl: '', language: 'de-CH' }, ...patch });
+  state.records = [row(randomUUID(), 'Fällige Stelle', { next_action_at: '2020-01-01' }), row(randomUUID(), 'Offene Stelle', {}), row(randomUUID(), 'Abgesagte Stelle', { status: 'rejected' })];
+  await manager.getByRole('button', { name: 'Bewerbungen aktualisieren' }).click();
+  await manager.getByRole('button', { name: 'Alle (3)', exact: true }).waitFor();
+  await manager.getByRole('button', { name: 'Offen (2)', exact: true }).click();
+  assert.equal(await manager.getByRole('listitem').count(), 2);
+  await manager.getByRole('button', { name: 'Fällig (1)', exact: true }).click();
+  assert.equal(await manager.getByRole('listitem').count(), 1);
+  await manager.getByRole('listitem').filter({ hasText: 'Fällige Stelle' }).waitFor();
+  await manager.getByLabel('Bewerbungen durchsuchen').fill('Offene');
+  await manager.getByRole('heading', { name: 'Keine passenden Bewerbungen' }).waitFor();
+  await manager.getByRole('button', { name: 'Filter zurücksetzen', exact: true }).click();
+  assert.equal(await manager.getByRole('listitem').count(), 3);
+  assert.equal(await manager.getByRole('button', { name: 'Alle (3)', exact: true }).getAttribute('aria-pressed'), 'true');
+  assert.deepEqual(state.errors, []);
 });
 
 test('date fields use Swiss formatting, validate input and retain calendar selection', options, async (t) => {

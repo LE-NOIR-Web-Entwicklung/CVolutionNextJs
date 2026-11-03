@@ -139,10 +139,17 @@ export function isActionDue(application: ApplicationInput, today = todayInZurich
   return isApplicationOpen(application) && Boolean(application.next_action_at && application.next_action_at <= today);
 }
 
-export function filterApplications(applications: Application[], search: string, status: ApplicationStatus | 'all'): Application[] {
+export type ApplicationView = 'all' | 'open' | 'due';
+
+export function matchesApplicationView(application: ApplicationInput, view: ApplicationView, today = todayInZurich()): boolean {
+  return view === 'all' || (view === 'open' ? isApplicationOpen(application) : isActionDue(application, today));
+}
+
+export function filterApplications(applications: Application[], search: string, status: ApplicationStatus | 'all', view: ApplicationView = 'all', today = todayInZurich()): Application[] {
   const query = search.trim().toLocaleLowerCase('de-CH');
   return applications.filter((application) =>
     (status === 'all' || application.status === status) &&
+    matchesApplicationView(application, view, today) &&
     `${application.company} ${application.job_title}`.toLocaleLowerCase('de-CH').includes(query)
   ).sort((a, b) => {
     const group = Number(isApplicationOpen(b)) - Number(isApplicationOpen(a));

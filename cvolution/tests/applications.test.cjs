@@ -116,6 +116,10 @@ test('search, status and next-action sorting work with overdue and closed applic
   assert.equal(domain().isActionDue(rows[0], '2026-11-03'), false);
   assert.equal(domain().isActionDue(rows[2], '2026-11-03'), false);
   assert.equal(domain().isActionDue({ ...rows[0], next_action_at: null }, '2026-11-03'), false);
+  assert.deepEqual(domain().filterApplications(rows, '', 'all', 'open', '2026-11-03').map((row) => row.id), ['b', 'a']);
+  assert.deepEqual(domain().filterApplications(rows, '', 'all', 'due', '2026-11-03').map((row) => row.id), ['b']);
+  assert.deepEqual(domain().filterApplications(rows, 'andere', 'all', 'due', '2026-11-03').map((row) => row.id), ['b']);
+  assert.deepEqual(domain().filterApplications(rows, '', 'sent', 'due', '2026-11-03').map((row) => row.id), []);
 });
 
 test('date-only reminders use Zurich midnight and extracting input drops record metadata', (t) => {

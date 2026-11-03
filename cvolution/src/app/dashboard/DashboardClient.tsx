@@ -3,7 +3,7 @@
 import { AuthProvider } from "@/contexts/AuthContext";
 import { Dashboard } from "@/screens/Dashboard";
 
-export default function DashboardPage() {
+export default function DashboardClient() {
   return (
     <AuthProvider>
       <Dashboard />

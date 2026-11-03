@@ -7,8 +7,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/hooks/use-toast';
-import { APPLICATION_STATUSES, applicationInput, emptyApplication, filterApplications, isActionDue, isApplicationOpen, type Application, type ApplicationInput, type ApplicationStatus, type MotivationDraft } from '@/lib/applications';
+import { APPLICATION_STATUSES, applicationInput, emptyApplication, filterApplications, isActionDue, matchesApplicationView, todayInZurich, type Application, type ApplicationInput, type ApplicationStatus, type ApplicationView, type MotivationDraft } from '@/lib/applications';
 import { ApplicationRequestError, deleteApplication, downloadApplications, extractApplication, loadApplications, saveApplication } from '@/lib/applications-client';
+import { NEW_APPLICATION_ROUTE } from '@/lib/dashboard-routes';
 import { MotivationLetterSection } from './MotivationLetterSection';
 import { ApplicationDateInput } from './ApplicationDateInput';
 
@@ -18,7 +19,12 @@ type Props = {
   onExportCv: () => void;
   incomingApplication: Application | null;
   onDirtyChange: (dirty: boolean) => void;
+  // Application id (or "neu") from the URL; undefined while another area is open.
+  routeApplicationId?: string | null;
+  onRouteChange: (applicationId: string | null, options?: { replace?: boolean }) => void;
 };
+
+const VIEWS: Array<[ApplicationView, string]> = [['all', 'Alle'], ['open', 'Offen'], ['due', 'Fällig']];
 
 const primaryButton = 'bg-[#204878] text-white hover:bg-[#1a3a66]';
 const outlineButton = 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50';
@@ -40,7 +46,7 @@ function StatusOptions({ all = false }: { all?: boolean }) {
   return <>{all && <option value="all">Alle Status</option>}{Object.entries(APPLICATION_STATUSES).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</>;
 }
 
-export function ApplicationsSection({ hasSelfServiceAccess, onRequirePayment, onExportCv, incomingApplication, onDirtyChange }: Props) {
+export function ApplicationsSection({ hasSelfServiceAccess, onRequirePayment, onExportCv, incomingApplication, onDirtyChange, routeApplicationId, onRouteChange }: Props) {
   const { user } = useAuth();
   const [applications, setApplications] = useState<Application[]>([]);
   const [loading, setLoading] = useState(true);
@@ -48,6 +54,7 @@ export function ApplicationsSection({ hasSelfServiceAccess, onRequirePayment, on
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState<ApplicationStatus | 'all'>('all');
+  const [view, setView] = useState<ApplicationView>('all');
   const [saved, setSaved] = useState<Application | null>(null);
   const [draft, setDraft] = useState<ApplicationInput | null>(null);
   const [saving, setSaving] = useState(false);
@@ -56,9 +63,15 @@ export function ApplicationsSection({ hasSelfServiceAccess, onRequirePayment, on
   const [exporting, setExporting] = useState(false);
   const detailHeading = useRef<HTMLHeadingElement>(null);
   const listHeading = useRef<HTMLHeadingElement>(null);
+  // Route this component requested and is waiting for; other route changes come from Back/Forward or deep links.
+  const pendingRoute = useRef<string | null | undefined>(undefined);
+  const openedFromList = useRef(false);
   const busy = saving || working || extracting;
   const dirty = Boolean(draft && JSON.stringify(draft) !== JSON.stringify(saved ? applicationInput(saved) : emptyApplication()));
-  const visible = useMemo(() => filterApplications(applications, search, status), [applications, search, status]);
+  const currentRouteId = draft ? saved?.id ?? NEW_APPLICATION_ROUTE : null;
+  const today = todayInZurich();
+  const visible = useMemo(() => filterApplications(applications, search, status, view, today), [applications, search, status, view, today]);
+  const viewCounts = useMemo(() => Object.fromEntries(VIEWS.map(([value]) => [value, applications.filter((application) => matchesApplicationView(application, value, today)).length])) as Record<ApplicationView, number>, [applications, today]);
 
   const refresh = useCallback(async (signal?: AbortSignal) => {
     if (!user) { setLoading(false); return; }
@@ -87,7 +100,9 @@ export function ApplicationsSection({ hasSelfServiceAccess, onRequirePayment, on
       setDraft(null);
       setSearch('');
       setStatus('all');
+      setView('all');
       setError('');
+      openedFromList.current = false;
       requestAnimationFrame(() => listHeading.current?.focus());
     }
   }, [incomingApplication]);
@@ -96,21 +111,64 @@ export function ApplicationsSection({ hasSelfServiceAccess, onRequirePayment, on
     onDirtyChange(dirty || busy);
   }, [dirty, busy, onDirtyChange]);
 
-  function open(application: Application | null) {
-    if (busy || (dirty && !window.confirm('Ungespeicherte Änderungen verwerfen?'))) return;
-    if (!application && !hasSelfServiceAccess) { onRequirePayment(); return; }
+  function navigateTo(applicationId: string | null, replace = false) {
+    pendingRoute.current = applicationId;
+    onRouteChange(applicationId, { replace });
+  }
+
+  function show(application: Application | null) {
     setSaved(application);
     setDraft(application ? applicationInput(application) : emptyApplication());
     setError('');
     requestAnimationFrame(() => detailHeading.current?.focus());
   }
 
-  function back() {
-    if (busy || (dirty && !window.confirm('Ungespeicherte Änderungen verwerfen?'))) return;
+  function close() {
     setDraft(null);
     setSaved(null);
-    setError('');
     requestAnimationFrame(() => listHeading.current?.focus());
+  }
+
+  // Follow Back/Forward and deep links once the list is loaded.
+  useEffect(() => {
+    if (routeApplicationId === undefined || loading) return;
+    if (pendingRoute.current !== undefined) {
+      if (pendingRoute.current === routeApplicationId) pendingRoute.current = undefined;
+      return;
+    }
+    if (routeApplicationId === currentRouteId) return;
+    openedFromList.current = false;
+    if (busy || (dirty && !window.confirm('Ungespeicherte Änderungen verwerfen?'))) { navigateTo(currentRouteId); return; }
+    if (routeApplicationId === null) { close(); setError(''); return; }
+    if (routeApplicationId === NEW_APPLICATION_ROUTE) { show(null); return; }
+    if (loadError) { close(); return; }
+    const application = applications.find((row) => row.id === routeApplicationId);
+    if (application) { show(application); return; }
+    close();
+    setError('Diese Bewerbung wurde nicht gefunden. Sie wurde möglicherweise gelöscht.');
+    navigateTo(null, true);
+    // show/close/navigateTo only read the state listed here.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [routeApplicationId, currentRouteId, loading, loadError, applications, busy, dirty]);
+
+  function open(application: Application | null) {
+    if (busy || (dirty && !window.confirm('Ungespeicherte Änderungen verwerfen?'))) return;
+    if (!application && !hasSelfServiceAccess) { onRequirePayment(); return; }
+    openedFromList.current = !draft;
+    show(application);
+    navigateTo(application?.id ?? NEW_APPLICATION_ROUTE);
+  }
+
+  function back() {
+    if (busy || (dirty && !window.confirm('Ungespeicherte Änderungen verwerfen?'))) return;
+    close();
+    setError('');
+    if (openedFromList.current) {
+      // The list is the previous history entry, so Back and this button end in the same place.
+      openedFromList.current = false;
+      pendingRoute.current = null;
+      window.history.back();
+    } else navigateTo(null);
   }
 
   function update<K extends keyof ApplicationInput>(key: K, value: ApplicationInput[K]) {
@@ -143,6 +201,9 @@ export function ApplicationsSection({ hasSelfServiceAccess, onRequirePayment, on
         setWorking(false);
         setSearch('');
         setStatus('all');
+        setView('all');
+        openedFromList.current = false;
+        navigateTo(null, true);
         requestAnimationFrame(() => listHeading.current?.focus());
       }
       return application;
@@ -191,10 +252,10 @@ export function ApplicationsSection({ hasSelfServiceAccess, onRequirePayment, on
     try {
       await deleteApplication(saved.id);
       setApplications((current) => current.filter((row) => row.id !== saved.id));
-      setDraft(null);
-      setSaved(null);
+      close();
+      openedFromList.current = false;
+      navigateTo(null, true);
       toast({ title: 'Bewerbung gelöscht' });
-      requestAnimationFrame(() => listHeading.current?.focus());
     } catch (err) { setError(err instanceof Error ? err.message : 'Löschen fehlgeschlagen.'); }
     finally { setSaving(false); }
   }
@@ -226,29 +287,6 @@ export function ApplicationsSection({ hasSelfServiceAccess, onRequirePayment, on
 
   return (
     <div className="space-y-5">
-      <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-          <div>
-            <p className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-[#204878]"><BriefcaseBusiness className="h-4 w-4" /> Ihre Stellensuche</p>
-            <h2 ref={listHeading} tabIndex={-1} className="text-2xl font-bold text-slate-950">Bewerbungen</h2>
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">Stellen sammeln, Schreiben vorbereiten und nächste Schritte im Blick behalten.</p>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <Button type="button" variant="outline" onClick={exportAll} disabled={exporting || loading} className={outlineButton}>
-              {exporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />} Daten exportieren
-            </Button>
-            <Button type="button" onClick={() => open(null)} disabled={busy} className={primaryButton}><Plus className="h-4 w-4" /> Bewerbung erfassen</Button>
-          </div>
-        </div>
-        <div className="mt-5 grid grid-cols-3 gap-2 border-t border-slate-100 pt-5 sm:gap-4" aria-label="Bewerbungsübersicht">
-          {[
-            ['Bewerbungen', applications.length],
-            ['Offene Bewerbungen', applications.filter(isApplicationOpen).length],
-            ['Schritte fällig', applications.filter((application) => isActionDue(application)).length],
-          ].map(([label, count]) => <div key={label} className="rounded-lg bg-slate-50 p-3 sm:p-4"><p className="text-xl font-semibold text-[#204878]">{loading ? '–' : count}</p><p className="mt-1 text-xs text-slate-600">{label}</p></div>)}
-        </div>
-      </section>
-
       {error && <Alert variant="destructive" className="border-red-200 bg-red-50 text-red-700"><AlertDescription>{error}</AlertDescription></Alert>}
 
       {!hasSelfServiceAccess && <Alert className="border-blue-200 bg-blue-50 text-slate-700"><AlertDescription>
@@ -306,20 +344,40 @@ export function ApplicationsSection({ hasSelfServiceAccess, onRequirePayment, on
           />
         </>
       ) : (
-        <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm sm:p-6" aria-busy={loading}>
-          <div className="flex flex-col gap-3 sm:flex-row">
+        <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-6" aria-busy={loading}>
+          <div className="flex items-center justify-between gap-3">
+            <h2 ref={listHeading} tabIndex={-1} className="text-xl font-semibold text-slate-950">Bewerbungen</h2>
+            <div className="flex shrink-0 gap-2">
+              <Button type="button" variant="outline" onClick={exportAll} disabled={exporting || loading} aria-label="Daten exportieren" title="Daten exportieren" className={outlineButton}>
+                {exporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}<span className="hidden sm:inline">Daten exportieren</span>
+              </Button>
+              <Button type="button" onClick={() => open(null)} disabled={busy} className={primaryButton}><Plus className="h-4 w-4" /> Bewerbung erfassen</Button>
+            </div>
+          </div>
+          <div role="group" aria-label="Bewerbungen filtern" className="mt-4 flex flex-wrap gap-2">
+            {VIEWS.map(([value, label]) => {
+              const active = view === value;
+              const count = viewCounts[value];
+              return (
+                <button key={value} type="button" aria-pressed={active} aria-label={`${label} (${loading ? 'wird geladen' : count})`} onClick={() => setView(value)} className={`inline-flex h-8 items-center gap-1.5 rounded-full border px-3 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#204878] focus-visible:ring-offset-1 ${active ? 'border-[#204878] bg-[#204878] text-white' : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'}`}>
+                  {label}<span className={`tabular-nums ${active ? 'text-white/80' : value === 'due' && count ? 'font-semibold text-amber-700' : 'text-slate-500'}`}>{loading ? '–' : count}</span>
+                </button>
+              );
+            })}
+          </div>
+          <div className="mt-3 flex flex-col gap-2 sm:flex-row">
             <div className="relative flex-1"><Search className="pointer-events-none absolute left-3 top-3 h-4 w-4 text-slate-400" /><Input aria-label="Bewerbungen durchsuchen" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Unternehmen oder Stelle suchen" className="bg-white pl-9 text-slate-950" /></div>
             <select aria-label="Nach Status filtern" value={status} onChange={(event) => setStatus(event.target.value as ApplicationStatus | 'all')} className={`${selectClass} sm:max-w-56`}><StatusOptions all /></select>
             <Button type="button" variant="outline" onClick={() => void refresh()} disabled={loading} aria-label="Bewerbungen aktualisieren" className={outlineButton}><RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} /></Button>
           </div>
           {loadError && <Alert variant="destructive" className="mt-5 border-red-200 bg-red-50 text-red-700"><AlertDescription>{loadError} <button type="button" onClick={() => void refresh()} className="font-semibold underline">Erneut versuchen</button></AlertDescription></Alert>}
           {loading ? <p role="status" className="py-12 text-center text-sm text-slate-500">Bewerbungen werden geladen …</p> : !loadError && !visible.length ? (
-            <div className="py-12 text-center"><BriefcaseBusiness className="mx-auto mb-4 h-9 w-9 text-slate-300" /><h3 className="font-semibold text-slate-900">{applications.length ? 'Keine passenden Bewerbungen' : 'Ihre erste Bewerbung beginnt hier'}</h3><p className="mx-auto mt-2 max-w-md text-sm text-slate-500">{applications.length ? 'Passen Sie die Suche oder den Statusfilter an.' : 'Erfassen Sie eine Stelle und behalten Sie Schreiben, Termine und Rückmeldungen zusammen.'}</p>{!applications.length && <Button type="button" onClick={() => open(null)} className={`mt-5 ${primaryButton}`}><Plus className="h-4 w-4" /> Erste Bewerbung erfassen</Button>}</div>
+            <div className="py-12 text-center"><BriefcaseBusiness className="mx-auto mb-4 h-9 w-9 text-slate-300" /><h3 className="font-semibold text-slate-900">{applications.length ? 'Keine passenden Bewerbungen' : 'Ihre erste Bewerbung beginnt hier'}</h3><p className="mx-auto mt-2 max-w-md text-sm text-slate-500">{applications.length ? 'Passen Sie die Suche oder den Filter an.' : 'Erfassen Sie eine Stelle und behalten Sie Schreiben, Termine und Rückmeldungen zusammen.'}</p>{applications.length ? <Button type="button" variant="outline" onClick={() => { setSearch(''); setStatus('all'); setView('all'); }} className={`mt-5 ${outlineButton}`}>Filter zurücksetzen</Button> : <Button type="button" onClick={() => open(null)} className={`mt-5 ${primaryButton}`}><Plus className="h-4 w-4" /> Erste Bewerbung erfassen</Button>}</div>
           ) : (
-            <ul className="mt-5 divide-y divide-slate-100">
+            <ul className="mt-3 divide-y divide-slate-100">
               {visible.map((application) => (
                 <li key={application.id}>
-                  <button type="button" onClick={() => open(application)} className="group flex w-full flex-col gap-3 rounded-lg px-3 py-5 text-left transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#204878] sm:flex-row sm:items-center sm:justify-between">
+                  <button type="button" onClick={() => open(application)} className="group flex w-full flex-col gap-3 rounded-lg px-3 py-4 text-left transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#204878] sm:flex-row sm:items-center sm:justify-between">
                     <div className="min-w-0"><p className="break-words font-semibold text-slate-950">{application.job_title}</p><p className="mt-1 break-words text-sm text-slate-600">{application.company}</p><Badge variant="outline" className={`mt-2 ${statusStyles[application.status]}`}>{APPLICATION_STATUSES[application.status]}</Badge></div>
                     <div className="flex items-center justify-between gap-5 sm:w-72 sm:shrink-0"><div className="min-w-0"><p className={`flex items-center gap-1.5 text-xs ${isActionDue(application) ? 'font-semibold text-amber-700' : 'text-slate-500'}`}><CalendarClock className="h-3.5 w-3.5 shrink-0" />{application.next_action_at ? `${isActionDue(application) ? 'Fällig · ' : ''}${dateLabel(application.next_action_at)}` : 'Kein Datum festgelegt'}</p><p className="mt-1 break-words text-sm text-slate-700">{application.next_action || 'Nächsten Schritt festlegen'}</p>{application.deadline && <p className="mt-1 text-xs text-slate-500">Bewerbungsfrist: {dateLabel(application.deadline)}</p>}</div><ArrowRight className="h-4 w-4 shrink-0 text-slate-400 group-hover:text-[#204878]" /></div>
                   </button>
