@@ -4,11 +4,11 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Edit, Trash2, Save, X, Info } from 'lucide-react';
+import { BriefcaseBusiness, Save, X, Info } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { CvAddButton, CvEmpty, CvFormSurface, CvItemActions, CvLoading, CvPanel, cvCheckbox, cvField, cvFormActions, cvLabel, cvPrimary, cvSecondary } from './cv-ui';
 
 interface Experience {
   id: string;
@@ -213,44 +213,44 @@ function formatMonthYear(dateStr?: string | null) {
         className="space-y-4"
       >
         <input type="hidden" name="id" value={experience?.id || ''} />
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <div>
-            <label className="text-sm font-medium text-black">Berufsbezeichnung *</label>
+            <label className={cvLabel}>Berufsbezeichnung *</label>
             <Input
               name="job_title"
               defaultValue={experience?.job_title || ''}
               placeholder="Softwareentwickler"
               required
-              className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+              className={cvField}
             />
           </div>
           <div>
-            <label className="text-sm font-medium text-black">Unternehmen *</label>
+            <label className={cvLabel}>Unternehmen *</label>
             <Input
               name="company"
               defaultValue={experience?.company || ''}
               placeholder="Firmenname"
               required
-              className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+              className={cvField}
             />
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <div>
-            <label className="text-sm font-medium text-black">Standort</label>
+            <label className={cvLabel}>Standort</label>
             <Input
               name="location"
               defaultValue={experience?.location || ''}
               placeholder="Stadt, Land"
-              className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+              className={cvField}
             />
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <div>
-            <label className="text-sm font-medium text-black">Startdatum</label>
+            <label className={cvLabel}>Startdatum</label>
             <Input
               name="start_date"
               type="text"
@@ -261,11 +261,11 @@ function formatMonthYear(dateStr?: string | null) {
                   ? experience.start_date.slice(5, 7) + '.' + experience.start_date.slice(0, 4)
                   : ''
               }
-              className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+              className={cvField}
             />
           </div>
           <div>
-            <label className="text-sm font-medium text-black">Enddatum</label>
+            <label className={cvLabel}>Enddatum</label>
             <Input
               name="end_date"
               type="text"
@@ -277,35 +277,33 @@ function formatMonthYear(dateStr?: string | null) {
                   : ''
               }
               disabled={experience?.is_current || false}
-              className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+              className={cvField}
             />
           </div>
         </div>
 
-        <div className="flex items-center space-x-2 mt-2">
+        <div className="flex items-center gap-2">
           <input
             type="checkbox"
             name="is_current"
             id="is_current"
             defaultChecked={experience?.is_current || false}
-            className="w-5 h-5 text-[#204878] border-gray-300 mr-4 rounded focus:ring-[#204878]"
+            className={cvCheckbox}
           />
-          <label htmlFor="is_current" className="text-sm text-black select-none cursor-pointer">
+          <label htmlFor="is_current" className="cursor-pointer select-none text-sm text-slate-700">
             Ich arbeite hier noch
           </label>
         </div>
 
         <div>
-          <div className="flex items-center gap-2 mb-1">
-            <label className="text-sm font-medium text-black">Beschreibung</label>
-          </div>
+          <label className={cvLabel}>Beschreibung</label>
           <Textarea
             name="description"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder={"• Durchführen von administrativen Aufgaben"}
             rows={4}
-            className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+            className={cvField}
             onKeyDown={async e => {
               const textarea = e.target as HTMLTextAreaElement;
               const value = textarea.value;
@@ -448,9 +446,9 @@ function formatMonthYear(dateStr?: string | null) {
           />
         </div>
 
-        <div className="flex space-x-3">
-          <Button type="submit" className="w-full bg-[#204878] hover:bg-[#4c6c93] text-white font-bold rounded-lg py-3 transition duration-200">
-            <Save className="h-4 w-4 mr-2" />
+        <div className={cvFormActions}>
+          <Button type="submit" className={cvPrimary}>
+            <Save className="h-4 w-4" />
             Speichern
           </Button>
           <Button
@@ -459,9 +457,9 @@ function formatMonthYear(dateStr?: string | null) {
               setEditingId(null);
               setIsAdding(false);
             }}
-            className="w-full bg-gray-200 hover:bg-gray-300 text-black font-bold rounded-lg py-3 transition duration-200"
+            className={cvSecondary}
           >
-            <X className="h-4 w-4 mr-2" />
+            <X className="h-4 w-4" />
             Abbrechen
           </Button>
         </div>
@@ -469,99 +467,70 @@ function formatMonthYear(dateStr?: string | null) {
     );
   };
 
-  if (isLoading) {
-    return (
-      <Card>
-        <CardContent className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-        </CardContent>
-      </Card>
-    );
-  }
+  if (isLoading) return <CvLoading />;
+
+  const period = (experience: Experience) =>
+    `${formatMonthYear(experience.start_date)} – ${experience.is_current || !experience.end_date ? 'heute' : formatMonthYear(experience.end_date)}`;
 
   return (
-    <div className="space-y-6">
-      <div className="bg-white p-6 rounded-lg shadow-lg mb-8">
-        <CardHeader>
-          <div className="flex justify-between items-center">
-            <div>
-              <CardTitle className="text-xl font-bold text-black mb-1">Berufserfahrung</CardTitle>
-              <CardDescription className="text-black">Ihre bisherigen beruflichen Stationen</CardDescription>
-            </div>
-            <Button onClick={() => setIsAdding(true)} className="bg-[#204878] hover:bg-[#4c6c93] text-white font-bold rounded-lg px-4 py-2">
-              <Plus className="h-4 w-4" />
-            </Button>
-          </div>
-        </CardHeader>
-      </div>
-
-      {isAdding && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-black">Neue Erfahrung hinzufügen</CardTitle>
-          </CardHeader>
-          <CardContent>
+    <CvPanel
+      title="Berufserfahrung"
+      description="Ihre bisherigen beruflichen Stationen, die neueste zuerst."
+      action={<CvAddButton label="Berufserfahrung hinzufügen" onClick={() => { setEditingId(null); setIsAdding(true); }} disabled={isAdding} />}
+    >
+      <div className="space-y-4">
+        {isAdding && (
+          <CvFormSurface title="Neue Berufserfahrung">
             <ExperienceForm />
-          </CardContent>
-        </Card>
-      )}
+          </CvFormSurface>
+        )}
 
-      {experiences.map((experience) => (
-        <Card key={experience.id}>
-          <CardContent className="pt-6">
-            {editingId === experience.id ? (
-              <ExperienceForm experience={experience} />
-            ) : (
-              <div className="space-y-4">
-                <div className="flex justify-between items-start">
-                  <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-black">{experience.job_title}</h3>
-                    <p className="text-black">{experience.company}</p>
-                    <p className="text-sm text-black">
-                      {formatMonthYear(experience.start_date)} -
-                      {experience.is_current
-                        ? ' Aktuell'
-                        : experience.end_date
-                          ? ` ${formatMonthYear(experience.end_date)}`
-                          : ' Aktuell'}
-                    </p>
-
-                    {experience.location && (
-                      <p className="text-sm text-black">{experience.location}</p>
-                    )}
+        {experiences.length > 0 && (
+          <ol className="divide-y divide-slate-100">
+            {experiences.map((experience) => (
+              <li key={experience.id} className="py-4 first:pt-0 last:pb-0">
+                {editingId === experience.id ? (
+                  <CvFormSurface title="Berufserfahrung bearbeiten">
+                    <ExperienceForm experience={experience} />
+                  </CvFormSurface>
+                ) : (
+                  <div className="flex gap-3 sm:gap-4">
+                    <span aria-hidden="true" className="mt-0.5 hidden h-9 w-9 shrink-0 items-center justify-center rounded-md bg-[#EEF4FA] text-[#204878] sm:flex">
+                      <BriefcaseBusiness className="h-4 w-4" />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <h3 className="break-words font-semibold text-slate-950">{experience.job_title}</h3>
+                          <p className="mt-0.5 break-words text-sm text-slate-700">
+                            {experience.company}
+                            {experience.location && <span className="text-slate-500"> · {experience.location}</span>}
+                          </p>
+                          <p className="mt-1 flex flex-wrap items-center gap-2 text-xs text-slate-500">
+                            <span className="tabular-nums">{period(experience)}</span>
+                            {(experience.is_current || !experience.end_date) && (
+                              <span className="rounded-full bg-emerald-50 px-2 py-0.5 font-medium text-emerald-700">Aktuell</span>
+                            )}
+                          </p>
+                        </div>
+                        <CvItemActions label={experience.job_title} onEdit={() => { setIsAdding(false); setEditingId(experience.id); }} onDelete={() => handleDelete(experience.id)} />
+                      </div>
+                      {experience.description && (
+                        <p className="mt-3 whitespace-pre-wrap break-words text-sm leading-6 text-slate-700">{experience.description}</p>
+                      )}
+                    </div>
                   </div>
-                  <div className="flex space-x-2">
-                    <Button
-                      onClick={() => setEditingId(experience.id)}
-                      className="bg-[#204878] hover:bg-[#4c6c93] text-white font-bold rounded-lg px-3 py-2"
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      onClick={() => handleDelete(experience.id)}
-                      className="bg-[#204878] hover:bg-[#4c6c93] text-white font-bold rounded-lg px-3 py-2"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-                {experience.description && (
-                  <p className="text-black whitespace-pre-wrap">{experience.description}</p>
                 )}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      ))}
+              </li>
+            ))}
+          </ol>
+        )}
 
-      {experiences.length === 0 && !isAdding && (
-        <Card>
-          <CardContent className="text-center py-12">
-            <p className="text-black">Noch keine Berufserfahrung hinzugefügt.</p>
-          </CardContent>
-        </Card>
-      )}
-    </div>
+        {experiences.length === 0 && !isAdding && (
+          <CvEmpty icon={BriefcaseBusiness} text="Noch keine Berufserfahrung erfasst." actionLabel="Erste Station hinzufügen" onAction={() => setIsAdding(true)} />
+        )}
+      </div>
+    </CvPanel>
   );
 });
 export default ExperienceSection;

@@ -3,12 +3,11 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import { Plus, Edit, Trash2, Save, X } from 'lucide-react';
+import { Car, Languages, Pencil, Save, Sparkles, X } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { CvAddButton, CvEmpty, CvFormSurface, CvItemActions, CvPanel, cvField, cvFormActions, cvLabel, cvPrimary, cvSecondary } from './cv-ui';
 
 // Skill type
 interface Skill {
@@ -211,38 +210,38 @@ const SkillsAndLanguagesSection = React.forwardRef<{ saveSkillsAndLanguages: () 
         onSubmit={(e) => handleSaveLanguage(e, language?.id)}
         className="space-y-4"
       >
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <div>
-            <label className="text-sm font-medium text-black">Sprache *</label>
+            <label className={cvLabel}>Sprache *</label>
             <Input
               name="language_name"
               defaultValue={language?.language_name || ''}
               placeholder="Deutsch, Englisch, Spanisch, etc."
               required
-              className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+              className={cvField}
             />
           </div>
           <div>
-            <label className="text-sm font-medium text-black">Niveau *</label>
+            <label className={cvLabel}>Niveau *</label>
             <Select name="proficiency" defaultValue={language?.proficiency || 'B2'}>
-              <SelectTrigger className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
-                <SelectValue className="text-black" />
+              <SelectTrigger className={cvField}>
+                <SelectValue />
               </SelectTrigger>
-              <SelectContent className="z-50 bg-white border border-gray-200 shadow-lg text-black">
-                <SelectItem value="A1" className="text-black hover:bg-blue-50">A1 – Anfänger</SelectItem>
-                <SelectItem value="A2" className="text-black hover:bg-blue-50">A2 – Grundlegende Kenntnisse</SelectItem>
-                <SelectItem value="B1" className="text-black hover:bg-blue-50">B1 – Fortgeschrittene Sprachverwendung</SelectItem>
-                <SelectItem value="B2" className="text-black hover:bg-blue-50">B2 – Selbstständige Sprachverwendung</SelectItem>
-                <SelectItem value="C1" className="text-black hover:bg-blue-50">C1 – Fachkundige Sprachkenntnisse</SelectItem>
-                <SelectItem value="C2" className="text-black hover:bg-blue-50">C2 – Annähernd muttersprachliche Kenntnisse</SelectItem>
-                <SelectItem value="Muttersprache" className="text-black hover:bg-blue-50">Muttersprache</SelectItem>
+              <SelectContent className="z-50 border-slate-200 bg-white text-slate-950 shadow-lg">
+                <SelectItem value="A1">A1 – Anfänger</SelectItem>
+                <SelectItem value="A2">A2 – Grundlegende Kenntnisse</SelectItem>
+                <SelectItem value="B1">B1 – Fortgeschrittene Sprachverwendung</SelectItem>
+                <SelectItem value="B2">B2 – Selbstständige Sprachverwendung</SelectItem>
+                <SelectItem value="C1">C1 – Fachkundige Sprachkenntnisse</SelectItem>
+                <SelectItem value="C2">C2 – Annähernd muttersprachliche Kenntnisse</SelectItem>
+                <SelectItem value="Muttersprache">Muttersprache</SelectItem>
               </SelectContent>
             </Select>
           </div>
         </div>
-        <div className="flex space-x-3">
-          <Button type="submit" className="w-full bg-[#204878] hover:bg-[#4c6c93] text-white font-bold rounded-lg py-3 transition duration-200">
-            <Save className="h-4 w-4 mr-2" />
+        <div className={cvFormActions}>
+          <Button type="submit" className={cvPrimary}>
+            <Save className="h-4 w-4" />
             Speichern
           </Button>
           <Button
@@ -251,9 +250,9 @@ const SkillsAndLanguagesSection = React.forwardRef<{ saveSkillsAndLanguages: () 
               setLanguagesEditingId(null);
               setIsAddingLanguage(false);
             }}
-            className="w-full bg-gray-200 hover:bg-gray-300 text-black font-bold rounded-lg py-3 transition duration-200"
+            className={cvSecondary}
           >
-            <X className="h-4 w-4 mr-2" />
+            <X className="h-4 w-4" />
             Abbrechen
           </Button>
         </div>
@@ -279,18 +278,18 @@ const SkillsAndLanguagesSection = React.forwardRef<{ saveSkillsAndLanguages: () 
         className="space-y-4"
       >
         <div>
-          <label className="text-sm font-medium text-black">Fähigkeit *</label>
+          <label className={cvLabel}>Fähigkeit *</label>
           <Input
             name="skill_name"
             defaultValue={skill?.skill_name || ''}
             placeholder="SAP, MS Office, Instandhaltung, Bauführung..."
             required
-            className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+            className={cvField}
           />
         </div>
-        <div className="flex space-x-3">
-          <Button type="submit" className="w-full bg-[#204878] hover:bg-[#4c6c93] text-white font-bold rounded-lg py-3 transition duration-200">
-            <Save className="h-4 w-4 mr-2" />
+        <div className={cvFormActions}>
+          <Button type="submit" className={cvPrimary}>
+            <Save className="h-4 w-4" />
             Speichern
           </Button>
           <Button
@@ -299,9 +298,9 @@ const SkillsAndLanguagesSection = React.forwardRef<{ saveSkillsAndLanguages: () 
               setSkillsEditingId(null);
               setIsAddingSkill(false);
             }}
-            className="w-full bg-gray-200 hover:bg-gray-300 text-black font-bold rounded-lg py-3 transition duration-200"
+            className={cvSecondary}
           >
-            <X className="h-4 w-4 mr-2" />
+            <X className="h-4 w-4" />
             Abbrechen
           </Button>
         </div>
@@ -436,23 +435,24 @@ const SkillsAndLanguagesSection = React.forwardRef<{ saveSkillsAndLanguages: () 
         className="space-y-4"
       >
         <div>
-          <label className="text-sm font-medium text-black">Kategorie *</label>
+          <label className={cvLabel}>Kategorie *</label>
           <Select name="category" defaultValue={existingCategory}>
-            <SelectTrigger className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
-              <SelectValue className="text-black" />
+            <SelectTrigger className={cvField}>
+              <SelectValue />
             </SelectTrigger>
-            <SelectContent className="z-50 bg-white border border-gray-200 shadow-lg text-black max-h-[300px] overflow-y-auto">
+            <SelectContent className="z-50 border-slate-200 bg-white text-slate-950 shadow-lg max-h-[300px] overflow-y-auto">
               {driverLicenseCategories.map((cat) => (
-                <SelectItem key={cat} value={cat} className="text-black hover:bg-blue-50">
+                <SelectItem key={cat} value={cat}>
                   Kategorie {cat}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
         </div>
-        <div className="flex space-x-3">
-          <Button type="submit" className="w-full bg-[#204878] hover:bg-[#4c6c93] text-white font-bold rounded-lg py-3 transition duration-200">
-            <Save className="h-4 w-4 mr-2" />
+        <div className={cvFormActions}>
+          <Button type="submit" className={cvPrimary}>
+            <Save className="h-4 w-4" />
+            Speichern
           </Button>
           <Button
             type="button"
@@ -460,9 +460,10 @@ const SkillsAndLanguagesSection = React.forwardRef<{ saveSkillsAndLanguages: () 
               setDriverLicenseEditingId(null);
               setIsAddingDriverLicense(false);
             }}
-            className="w-full bg-gray-200 hover:bg-gray-300 text-black font-bold rounded-lg py-3 transition duration-200"
+            className={cvSecondary}
           >
-            <X className="h-4 w-4 mr-2" />
+            <X className="h-4 w-4" />
+            Abbrechen
           </Button>
         </div>
       </form>
@@ -525,216 +526,130 @@ const SkillsAndLanguagesSection = React.forwardRef<{ saveSkillsAndLanguages: () 
     return acc;
   }, {} as Record<string, Skill[]>);
 
+  const chipClass = 'inline-flex max-w-full items-center gap-0.5 rounded-full border border-slate-200 bg-slate-50 py-1 pl-3 pr-1 text-sm text-slate-800';
+  const chipButton = 'rounded-full p-1 text-slate-400 transition-colors hover:bg-white hover:text-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#204878]';
+
+  const chipActions = (label: string, onEdit: () => void, onDelete: () => void) => (
+    <>
+      <button type="button" onClick={onEdit} aria-label={`${label} bearbeiten`} title="Bearbeiten" className={chipButton}><Pencil className="h-3.5 w-3.5" /></button>
+      <button type="button" onClick={onDelete} aria-label={`${label} löschen`} title="Löschen" className={`${chipButton} hover:text-red-700`}><X className="h-3.5 w-3.5" /></button>
+    </>
+  );
+
   return (
-    <div className="space-y-12">
-      {/* Sprachen Section */}
-      <section>
-        <div className="bg-white p-6 rounded-lg shadow-lg mb-8">
-          <CardHeader>
-            <div className="flex justify-between items-center">
-              <div>
-                <CardTitle className="text-xl font-bold text-black mb-1">Sprachen</CardTitle>
-                <CardDescription className="text-black">Ihre Sprachkenntnisse und Kompetenzen</CardDescription>
-              </div>
-              <Button onClick={() => setIsAddingLanguage(true)} className="bg-[#204878] hover:bg-[#4c6c93] text-white font-bold rounded-lg px-4 py-2">
-                <Plus className="h-4 w-4" />
-              </Button>
-            </div>
-          </CardHeader>
-        </div>
-        {isAddingLanguage && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-black">Neue Sprache hinzufügen</CardTitle>
-            </CardHeader>
-            <CardContent>
+    <div className="space-y-4 sm:space-y-6">
+      <CvPanel
+        title="Sprachen"
+        description="Sprachkenntnisse mit Niveau nach europäischem Referenzrahmen."
+        action={<CvAddButton label="Sprache hinzufügen" onClick={() => { setLanguagesEditingId(null); setIsAddingLanguage(true); }} disabled={isAddingLanguage} />}
+      >
+        <div className="space-y-4">
+          {isAddingLanguage && (
+            <CvFormSurface title="Neue Sprache">
               <LanguageForm />
-            </CardContent>
-          </Card>
-        )}
-        {languages.map((language) => (
-          <Card key={language.id}>
-            <CardContent className="pt-6">
-              {languagesEditingId === language.id ? (
-                <LanguageForm language={language} />
-              ) : (
-                <div className="flex justify-between items-start">
-                  <div className="flex-1">
-                    <h4 className="font-semibold text-black">{language.language_name}</h4>
-                    <Badge className="text-xs text-black bg-gray-200">
-                      {getLanguageProficiencyLabel(language.proficiency)}
-                    </Badge>
-                  </div>
-                  <div className="flex space-x-1">
-                    <Button
-                      onClick={() => setLanguagesEditingId(language.id)}
-                      className="bg-[#204878] hover:bg-[#4c6c93] text-white font-bold rounded-lg px-3 py-2"
-                    >
-                      <Edit className="h-3 w-3" />
-                    </Button>
-                    <Button
-                      onClick={() => handleDeleteLanguage(language.id)}
-                      className="bg-[#204878] hover:bg-[#4c6c93] text-white font-bold rounded-lg px-3 py-2"
-                    >
-                      <Trash2 className="h-3 w-3" />
-                    </Button>
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        ))}
-        {languages.length === 0 && !isAddingLanguage && (
-          <Card>
-            <CardContent className="text-center py-12">
-              <p className="text-black mb-4">Noch keine Sprachen hinzugefügt.</p>
-            </CardContent>
-          </Card>
-        )}
-      </section>
-
-      {/* Fähigkeiten Section */}
-      <section>
-        <div className="bg-white p-6 rounded-lg shadow-lg mb-8">
-          <CardHeader>
-            <div className="flex justify-between items-center">
-              <div>
-                <CardTitle className="text-xl font-bold text-black mb-1">Fähigkeiten</CardTitle>
-                <CardDescription className="text-black">Ihre beruflichen Fähigkeiten und Kompetenzen</CardDescription>
-              </div>
-              <Button onClick={() => setIsAddingSkill(true)} className="bg-[#204878] hover:bg-[#4c6c93] text-white font-bold rounded-lg px-4 py-2">
-                <Plus className="h-4 w-4" />
-              </Button>
-            </div>
-          </CardHeader>
+            </CvFormSurface>
+          )}
+          {languages.length > 0 && (
+            <ul className="divide-y divide-slate-100">
+              {languages.map((language) => (
+                <li key={language.id} className="py-3 first:pt-0 last:pb-0">
+                  {languagesEditingId === language.id ? (
+                    <CvFormSurface title="Sprache bearbeiten">
+                      <LanguageForm language={language} />
+                    </CvFormSurface>
+                  ) : (
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
+                        <h3 className="font-medium text-slate-950">{language.language_name}</h3>
+                        <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${language.proficiency === 'Muttersprache' ? 'bg-[#204878] text-white' : 'bg-[#EEF4FA] text-[#204878]'}`}>
+                          {getLanguageProficiencyLabel(language.proficiency)}
+                        </span>
+                      </div>
+                      <CvItemActions label={language.language_name} onEdit={() => { setIsAddingLanguage(false); setLanguagesEditingId(language.id); }} onDelete={() => handleDeleteLanguage(language.id)} />
+                    </div>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
+          {languages.length === 0 && !isAddingLanguage && (
+            <CvEmpty icon={Languages} text="Noch keine Sprachen erfasst." actionLabel="Erste Sprache hinzufügen" onAction={() => setIsAddingLanguage(true)} />
+          )}
         </div>
-        {isAddingSkill && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-black">Neue Fähigkeit hinzufügen</CardTitle>
-            </CardHeader>
-            <CardContent>
+      </CvPanel>
+
+      <CvPanel
+        title="Fähigkeiten"
+        description="Fachkenntnisse, Tools und Methoden."
+        action={<CvAddButton label="Fähigkeit hinzufügen" onClick={() => { setSkillsEditingId(null); setIsAddingSkill(true); }} disabled={isAddingSkill} />}
+      >
+        <div className="space-y-4">
+          {isAddingSkill && (
+            <CvFormSurface title="Neue Fähigkeit">
               <SkillForm />
-            </CardContent>
-          </Card>
-        )}
-        {Object.entries(groupedSkills).map(([category, categorySkills]) => (
-          <Card key={category}>
-            <CardHeader>
-              <CardTitle className="text-lg text-black">{category}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {categorySkills.map((skill) => (
-                  <div key={skill.id} className="border rounded-lg p-4 space-y-2">
-                    {skillsEditingId === skill.id ? (
+            </CvFormSurface>
+          )}
+          {Object.entries(groupedSkills).map(([category, categorySkills]) => (
+            <div key={category}>
+              {Object.keys(groupedSkills).length > 1 && <h3 className="mb-2 text-xs font-medium text-slate-500">{category}</h3>}
+              <ul className="flex flex-wrap gap-2">
+                {categorySkills.map((skill) => skillsEditingId === skill.id ? (
+                  <li key={skill.id} className="basis-full">
+                    <CvFormSurface title="Fähigkeit bearbeiten">
                       <SkillForm skill={skill} />
-                    ) : (
-                      <>
-                        <div className="flex justify-between items-start">
-                          <div className="flex-1">
-                            <h4 className="font-semibold text-black">{skill.skill_name}</h4>
-                          </div>
-                          <div className="flex space-x-1">
-                            <Button
-                              onClick={() => setSkillsEditingId(skill.id)}
-                              className="bg-[#204878] hover:bg-[#4c6c93] text-white font-bold rounded-lg px-3 py-2"
-                            >
-                              <Edit className="h-3 w-3" />
-                            </Button>
-                            <Button
-                              onClick={() => handleDeleteSkill(skill.id)}
-                              className="bg-[#204878] hover:bg-[#4c6c93] text-white font-bold rounded-lg px-3 py-2"
-                            >
-                              <Trash2 className="h-3 w-3" />
-                            </Button>
-                          </div>
-                        </div>
-                      </>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-        {skills.length === 0 && !isAddingSkill && (
-          <Card>
-            <CardContent className="text-center py-12">
-              <p className="text-black mb-4">Noch keine Fähigkeiten hinzugefügt.</p>
-            </CardContent>
-          </Card>
-        )}
-      </section>
-
-
-      {/* Führerschein Section */}
-      <section>
-        <div className="bg-white p-6 rounded-lg shadow-lg mb-8">
-          <CardHeader>
-            <div className="flex justify-between items-center">
-              <div>
-                <CardTitle className="text-xl font-bold text-black mb-1">Führerschein</CardTitle>
-                <CardDescription className="text-black">Ihre Führerscheinkategorien</CardDescription>
-              </div>
-              <Button onClick={() => setIsAddingDriverLicense(true)} className="bg-[#204878] hover:bg-[#4c6c93] text-white font-bold rounded-lg px-4 py-2">
-                <Plus className="h-4 w-4" />
-              </Button>
-            </div>
-          </CardHeader>
-        </div>
-        {isAddingDriverLicense && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-black">Neuen Führerschein hinzufügen</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <DriverLicenseForm />
-            </CardContent>
-          </Card>
-        )}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {driverLicenses.map((license) => (
-            <Card key={license.id}>
-              <CardContent className="pt-6">
-                {driverLicenseEditingId === license.id ? (
-                  <DriverLicenseForm license={license} />
+                    </CvFormSurface>
+                  </li>
                 ) : (
-                  <div className="flex flex-col items-center space-y-3">
-                    <div className="text-center flex-1">
-                      <h4 className="font-bold text-2xl text-black">
-                        {license.skill_name.replace('Führerschein Kategorie ', '')}
-                      </h4>
-                      <p className="text-xs text-gray-600 mt-1">Kategorie</p>
-                    </div>
-                    <div className="flex space-x-1 w-full">
-                      <Button
-                        onClick={() => setDriverLicenseEditingId(license.id)}
-                        className="flex-1 bg-[#204878] hover:bg-[#4c6c93] text-white font-bold rounded-lg px-3 py-2"
-                      >
-                        <Edit className="h-3 w-3" />
-                      </Button>
-                      <Button
-                        onClick={() => handleDeleteDriverLicense(license.id)}
-                        className="flex-1 bg-[#204878] hover:bg-[#4c6c93] text-white font-bold rounded-lg px-3 py-2"
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+                  <li key={skill.id} className={chipClass}>
+                    <span className="truncate">{skill.skill_name}</span>
+                    {chipActions(skill.skill_name, () => { setIsAddingSkill(false); setSkillsEditingId(skill.id); }, () => handleDeleteSkill(skill.id))}
+                  </li>
+                ))}
+              </ul>
+            </div>
           ))}
+          {skills.length === 0 && !isAddingSkill && (
+            <CvEmpty icon={Sparkles} text="Noch keine Fähigkeiten erfasst." actionLabel="Erste Fähigkeit hinzufügen" onAction={() => setIsAddingSkill(true)} />
+          )}
         </div>
-        {driverLicenses.length === 0 && !isAddingDriverLicense && (
-          <Card>
-            <CardContent className="text-center py-12">
-              <p className="text-black mb-4">Noch keine Führerscheinkategorien hinzugefügt.</p>
-            </CardContent>
-          </Card>
-        )}
-      </section>
+      </CvPanel>
+
+      <CvPanel
+        title="Führerschein"
+        description="Kategorien, die im Lebenslauf erscheinen."
+        action={<CvAddButton label="Führerschein hinzufügen" onClick={() => { setDriverLicenseEditingId(null); setIsAddingDriverLicense(true); }} disabled={isAddingDriverLicense} />}
+      >
+        <div className="space-y-4">
+          {isAddingDriverLicense && (
+            <CvFormSurface title="Neue Kategorie">
+              <DriverLicenseForm />
+            </CvFormSurface>
+          )}
+          {driverLicenses.length > 0 && (
+            <ul className="flex flex-wrap gap-2">
+              {driverLicenses.map((license) => {
+                const category = license.skill_name.replace('Führerschein Kategorie ', '');
+                return driverLicenseEditingId === license.id ? (
+                  <li key={license.id} className="basis-full">
+                    <CvFormSurface title="Kategorie bearbeiten">
+                      <DriverLicenseForm license={license} />
+                    </CvFormSurface>
+                  </li>
+                ) : (
+                  <li key={license.id} className={chipClass}>
+                    <Car className="mr-1 h-3.5 w-3.5 text-slate-500" />
+                    <span>Kategorie <strong className="font-semibold">{category}</strong></span>
+                    {chipActions(`Kategorie ${category}`, () => { setIsAddingDriverLicense(false); setDriverLicenseEditingId(license.id); }, () => handleDeleteDriverLicense(license.id))}
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+          {driverLicenses.length === 0 && !isAddingDriverLicense && (
+            <CvEmpty icon={Car} text="Noch keine Führerscheinkategorie erfasst." />
+          )}
+        </div>
+      </CvPanel>
     </div>
   );
 });

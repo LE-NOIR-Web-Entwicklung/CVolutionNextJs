@@ -9,7 +9,7 @@ interface CVExportButtonProps {
 export const CVExportButton: React.FC<CVExportButtonProps> = ({ onExport }) => (
   <Button
     variant="outline"
-    className="bg-[#204878] text-white hover:bg-[#4c6c93] font-bold rounded-lg py-2 px-4 flex items-center gap-2"
+    className="flex h-9 items-center justify-center gap-2 border-[#204878] bg-[#204878] px-3 text-white hover:bg-[#1a3a66] hover:text-white"
     onClick={onExport}
   >
     <Download className="h-4 w-4" />
