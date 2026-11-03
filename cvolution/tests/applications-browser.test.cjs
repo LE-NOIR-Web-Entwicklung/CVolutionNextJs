@@ -9,10 +9,11 @@ const options = { skip: !baseUrl, timeout: 60000 };
 
 async function fixture(t) {
   assert.ok(['localhost', '127.0.0.1'].includes(new URL(baseUrl).hostname), 'Only an isolated local server is allowed');
-  const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
-  const browser = await chromium.launch({ executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE || undefined, headless: true });
+  const { chromium, webkit } = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
+  const browserType = process.env.APPLICATIONS_BROWSER_ENGINE === 'webkit' ? webkit : chromium;
+  const browser = await browserType.launch({ executablePath: process.env.PLAYWRIGHT_BROWSER_EXECUTABLE || process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE || undefined, headless: true });
   t.after(() => browser.close());
-  const context = await browser.newContext({ viewport: { width: 1440, height: 1000 }, acceptDownloads: true });
+  const context = await browser.newContext({ viewport: { width: 1440, height: 1000 }, locale: 'en-US', acceptDownloads: true });
   const state = { records: [], paid: true, failSave: false, failLoad: false, failExtract: false, words: [], generations: [], extractions: [], errors: [] };
   const user = { id: owner, email: 'fixture@example.test', aud: 'authenticated', role: 'authenticated', app_metadata: {}, user_metadata: {}, created_at: '2026-01-01T00:00:00Z' };
   const token = `${Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64url')}.${Buffer.from(JSON.stringify({ sub: owner, exp: 4102444800, aud: 'authenticated', role: 'authenticated' })).toString('base64url')}.fixture`;
@@ -114,7 +115,7 @@ test('first successful save returns to the overview while later edits stay open'
 test('application journey saves separate letters, survives refresh and reuses the CV export', options, async (t) => {
   const { page, manager, state } = await fixture(t);
   await create(manager);
-  await manager.getByLabel('Nächste Aktion am').fill('2026-11-02');
+  await manager.getByLabel('Nächste Aktion am', { exact: true }).fill('02.11.2026');
   await manager.getByLabel('Nächster Schritt', { exact: true }).fill('Nachfassen');
   await manager.getByRole('button', { name: 'Erstellen', exact: true }).click();
   await manager.getByLabel('Bewerbungen durchsuchen').waitFor();
@@ -238,7 +239,7 @@ test('advert link extraction fills a reviewable draft and preserves notes', opti
   await manager.getByRole('button', { name: 'Mit KI auslesen', exact: true }).click();
   await page.waitForFunction(() => document.getElementById('application-company')?.value === 'Import AG');
   assert.equal(await manager.getByLabel('Stellenbezeichnung *', { exact: true }).inputValue(), 'Teamleitung');
-  assert.equal(await manager.getByLabel('Bewerbungsfrist', { exact: true }).inputValue(), '2026-12-15');
+  assert.equal(await manager.getByLabel('Bewerbungsfrist', { exact: true }).inputValue(), '15.12.2026');
   assert.equal(await manager.getByLabel('Ansprechperson (optional)', { exact: true }).inputValue(), 'Frau Beispiel');
   assert.equal(await manager.getByLabel('Notizen', { exact: true }).inputValue(), 'Eigene Notizen bleiben erhalten');
   assert.equal(state.records.length, 0, 'Import must not save before review');
@@ -306,6 +307,45 @@ test('internal site navigation warns before discarding unsaved application input
   assert.ok(warned, 'Leaving through the site navigation must confirm unsaved changes');
   assert.equal(new URL(page.url()).pathname, '/dashboard');
   assert.equal(await manager.getByLabel('Unternehmen *', { exact: true }).inputValue(), 'Muster AG');
+});
+
+test('date fields use Swiss formatting, validate input and retain calendar selection', options, async (t) => {
+  const { page, manager, state } = await fixture(t);
+  await create(manager);
+  await manager.getByLabel('Versendet am', { exact: true }).fill('03.11.2026');
+  await manager.getByLabel('Bewerbungsfrist', { exact: true }).fill('30112026');
+  await manager.getByLabel('Nächste Aktion am', { exact: true }).fill('17.11.2026');
+  assert.equal(await manager.getByLabel('Bewerbungsfrist', { exact: true }).inputValue(), '30.11.2026');
+  await manager.getByRole('button', { name: 'Kalender: Nächste Aktion am', exact: true }).click();
+  const calendar = page.getByRole('dialog', { name: 'Datum auswählen: Nächste Aktion am', exact: true });
+  await calendar.getByRole('button', { name: /18\. November 2026/ }).click();
+  assert.equal(await manager.getByLabel('Nächste Aktion am', { exact: true }).inputValue(), '18.11.2026');
+  await manager.getByLabel('Bewerbungsfrist', { exact: true }).fill('31.11.2026');
+  assert.equal(await manager.getByLabel('Bewerbungsfrist', { exact: true }).evaluate((input) => input.checkValidity()), false);
+  await manager.getByRole('button', { name: 'Bewerbung speichern', exact: true }).first().click();
+  assert.equal(state.records.length, 0);
+  await manager.getByLabel('Bewerbungsfrist', { exact: true }).fill('30.11.2026');
+  await manager.getByRole('button', { name: 'Bewerbung speichern', exact: true }).first().click();
+  await manager.getByLabel('Bewerbungen durchsuchen').waitFor();
+  assert.equal(state.records[0].applied_at, '2026-11-03');
+  assert.equal(state.records[0].deadline, '2026-11-30');
+  assert.equal(state.records[0].next_action_at, '2026-11-18');
+  await page.reload();
+  await manager.getByRole('button').filter({ hasText: 'Projektleitung' }).click();
+  assert.equal(await manager.getByLabel('Versendet am', { exact: true }).inputValue(), '03.11.2026');
+  await manager.getByLabel('Nächste Aktion am', { exact: true }).fill('');
+  assert.equal(await manager.getByLabel('Nächste Aktion am', { exact: true }).inputValue(), '');
+  await manager.getByRole('status').filter({ hasText: 'Ungespeicherte Änderungen' }).waitFor();
+  const cleared = page.waitForResponse((response) => response.url().includes('/api/applications/') && response.request().method() === 'PUT');
+  await save(manager);
+  await cleared;
+  assert.equal(state.records[0].next_action_at, null);
+  await page.setViewportSize({ width: 375, height: 900 });
+  await manager.getByRole('button', { name: 'Kalender: Bewerbungsfrist', exact: true }).click();
+  const bounds = await page.getByRole('dialog', { name: 'Datum auswählen: Bewerbungsfrist', exact: true }).boundingBox();
+  assert.ok(bounds.x >= 0 && bounds.x + bounds.width <= 375);
+  await page.keyboard.press('Escape');
+  assert.deepEqual(state.errors, []);
 });
 
 test('responsive layouts, labels, focus and document ids remain usable', options, async (t) => {

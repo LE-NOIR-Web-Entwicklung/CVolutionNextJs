@@ -49,6 +49,8 @@ These tests make no live AI calls. They verify the submitted prompts; final mode
 
 The dashboard's **Bewerbungen** area stores one private record per application: company, role, advert/form input, contact, status, application date, deadline, next action, notes and editable motivation letter. Search and status filters apply to company/role; open applications are ordered by next-action date. Due dates use Europe/Zurich. Next-action dates are displayed in the dashboard; no email or calendar notifications are sent.
 
+**Versendet am**, **Bewerbungsfrist** and **Nächste Aktion am** display and accept `TT.MM.JJJJ` independently of browser language. Eight digits such as `17112026` are also accepted and formatted as `17.11.2026`. Each field retains a German calendar picker. Invalid or incomplete dates prevent form submission; empty fields clear optional dates. Stored and API dates remain ISO `YYYY-MM-DD`, including dates imported from an advert. No database migration is needed for this display change.
+
 Letters generated inside an application are saved automatically. Manual changes are saved with **Bewerbung speichern**. The first successful save of a new application returns to the overview; later edits stay open, and failed saves retain the draft. Confirmation protects unsaved edits when switching records, following site links, signing out or reloading/closing the browser tab. The separate motivation tool keeps its existing independent Word download; its save action transfers a draft to the manager and requires company and role. Switching dashboard tabs preserves drafts in memory. Only saved applications survive a page reload.
 
 Creating or editing applications and importing advert data with AI requires an active Self-Service subscription. Cancellation preserves access until the paid period ends. After expiry, saved applications remain readable, deletable and exportable as JSON or Word; editing is disabled. New AI generation and CV exports retain the existing subscription checks. The saved-letter Word endpoint accepts an `applicationId`, verifies ownership and reads the saved text on the server; client-provided letter content cannot override that record. CV exports use the current central profile, without storing a historical copy of a submitted CV.
@@ -78,6 +80,7 @@ Run from this directory with Node 22+. Database tests require local `initdb`, `p
 
 ```bash
 node --test tests/applications.test.cjs tests/applications-client.test.cjs tests/application-extraction.test.cjs
+node --test tests/application-dates.test.cjs
 node --test tests/applications-db.test.cjs
 CV_EXPORT_RENDER_WORD=1 node --test tests/cv-export.test.cjs tests/motivation-letter.test.cjs
 npx tsc --noEmit --incremental false
@@ -91,6 +94,10 @@ APPLICATIONS_BROWSER_URL=http://127.0.0.1:3107 node --test tests/applications-br
 ```
 
 If Playwright is supplied by a shared runtime, set `PLAYWRIGHT_MODULE` to that module and optionally `PLAYWRIGHT_CHROMIUM_EXECUTABLE` to its Chromium executable. All Supabase, application and AI requests in these browser tests are intercepted with synthetic fixtures. Non-local server URLs are rejected. They test UI behavior, while the route and PostgreSQL tests separately verify the server and RLS boundaries. They do not verify the hosted Supabase configuration, live authentication or live AI output. No visual regression baseline or full screen-reader audit is supplied.
+
+The date-field browser case uses an English browser locale to verify that the Swiss display is explicit. Run it with Safari's WebKit engine using `APPLICATIONS_BROWSER_ENGINE=webkit` and `--test-name-pattern='date fields use Swiss'`; install a WebKit build matching the Playwright runtime first. `PLAYWRIGHT_BROWSER_EXECUTABLE` can select a supplied executable. Date-conversion unit tests cover calendar validity, leap years, incomplete input and round trips in Europe/Zurich, America/Los_Angeles and Pacific/Kiritimati.
+
+Date-format verification: all 4 date unit tests, all 11 Chromium browser journeys and the date journey on WebKit passed, as did production build, type checking, focused ESLint and diff checks. Date-conversion helpers have 100% line/branch/function coverage. Calendar selection, invalid-date rejection, clearing, reload persistence, imported ISO dates and mobile calendar bounds are covered; project dependencies are unchanged.
 
 TDD evidence on 3 November 2026: the first application tests failed on the absent application module/routes; the saved-letter export tests initially returned 402 instead of 200/404. A separate browser regression reproduced the advert-only Word download failing before the integration was corrected. For the subscription/import extension, creating without access initially returned 201 instead of 402 and the rate-limit reproducer returned 200 instead of 429. These now pass. The application logic/API/client/extraction tests measure 99.13% line, 95.92% branch and 100% function coverage; these numbers exclude React UI code. Browser checks cover create/edit/reload, separate letters, filters, failed saves/loads, stale updates, confirmed deletion, standalone transfer/download, read-only access after expiry, denied writes when access expires during editing, advert import/replacement/manual fallback, CV-modal reuse, labels/focus and overflow at 375/768/1440 px.
 
