@@ -9,6 +9,53 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      applications: {
+        Row: {
+          id: string
+          user_id: string
+          company: string
+          job_title: string
+          status: 'draft' | 'sent' | 'interview' | 'offer' | 'rejected' | 'withdrawn'
+          applied_at: string | null
+          deadline: string | null
+          next_action_at: string | null
+          next_action: string
+          notes: string
+          motivation_form: Json
+          motivation_letter: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          company: string
+          job_title: string
+          status?: 'draft' | 'sent' | 'interview' | 'offer' | 'rejected' | 'withdrawn'
+          applied_at?: string | null
+          deadline?: string | null
+          next_action_at?: string | null
+          next_action?: string
+          notes?: string
+          motivation_form: Json
+          motivation_letter?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          company?: string
+          job_title?: string
+          status?: 'draft' | 'sent' | 'interview' | 'offer' | 'rejected' | 'withdrawn'
+          applied_at?: string | null
+          deadline?: string | null
+          next_action_at?: string | null
+          next_action?: string
+          notes?: string
+          motivation_form?: Json
+          motivation_letter?: string
+        }
+        Relationships: []
+      }
       education: {
         Row: {
           created_at: string

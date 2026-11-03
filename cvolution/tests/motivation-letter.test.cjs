@@ -24,7 +24,7 @@ const profile = {
 const jobUrl = "https://careers.example.com/jobs/teamleitung";
 const description =
   "Sie führen ein regionales Beratungsteam und betreuen Kunden. Erfahrung in Personalführung, Rekrutierung und Budgetplanung ist erforderlich. Sie entwickeln bestehende Kundenbeziehungen weiter und begleiten die Mitarbeitenden im Tagesgeschäft.";
-let pages, requests, payloads, dnsAddress, paid, modelLetter;
+let pages, requests, payloads, dnsAddress, paid, modelLetter, savedApplications;
 
 function responseFor(url) {
   requests.push(url);
@@ -96,6 +96,17 @@ const supabaseStub = {
       }),
     },
     from(name) {
+      if (name === "applications") {
+        const filters = [];
+        const query = {
+          select() { return query; },
+          eq(key, value) { filters.push([key, value]); return query; },
+          async maybeSingle() {
+            return { data: savedApplications.find((row) => filters.every(([key, value]) => row[key] === value)) || null, error: null };
+          },
+        };
+        return query;
+      }
       const data =
         name === "profiles"
           ? {
@@ -187,6 +198,7 @@ const { POST: exportWord } = require(
 );
 
 beforeEach(() => {
+  savedApplications = [];
   pages = new Map();
   requests = [];
   payloads = [];
@@ -194,6 +206,38 @@ beforeEach(() => {
   paid = true;
   modelLetter =
     "Bewerbung als Teamleitung\n\nSehr geehrte Frau Muster\n\nEin individueller Entwurf.\n\nFreundliche Grüsse\nTestperson Muster";
+});
+
+test("saved application letters export after subscription expiry using only the owner's saved text", async () => {
+  paid = false;
+  const id = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
+  savedApplications = [{ id, user_id: "user-1", company: "Gespeichert AG", job_title: "Beratung", motivation_letter: "Betreff\n\nGespeicherter Brief." }];
+  const response = await exportWord(new Request("https://example.test/api/motivation-letter/docx", {
+    method: "POST", headers: { authorization: "Bearer valid", "content-type": "application/json" },
+    body: JSON.stringify({ applicationId: id, letter: "Client text must not override the saved letter" }),
+  }));
+  assert.equal(response.status, 200);
+  assert.match(response.headers.get("Content-Disposition"), /gespeichert-ag/);
+  const zip = await require("jszip").loadAsync(Buffer.from(await response.arrayBuffer()));
+  const xml = await zip.file("word/document.xml").async("string");
+  assert.match(xml, /Gespeicherter Brief/);
+  assert.doesNotMatch(xml, /Client text must not override/);
+  assert.equal(requests.length, 0);
+});
+
+test("saved application exports reject other owners, missing letters and invalid ids", async () => {
+  paid = false;
+  const id = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
+  const download = (applicationId) => exportWord(new Request("https://example.test/api/motivation-letter/docx", {
+    method: "POST", headers: { authorization: "Bearer valid", "content-type": "application/json" }, body: JSON.stringify({ applicationId, letter: "Untrusted" }),
+  }));
+  savedApplications = [{ id, user_id: "other", motivation_letter: "Private" }];
+  assert.equal((await download(id)).status, 404);
+  savedApplications[0].user_id = "user-1";
+  savedApplications[0].motivation_letter = "";
+  assert.equal((await download(id)).status, 400);
+  assert.equal((await download("invalid")).status, 400);
+  assert.equal((await download(null)).status, 400);
 });
 after(() => {
   Module._load = originalLoad;

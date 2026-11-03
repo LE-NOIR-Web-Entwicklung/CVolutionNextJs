@@ -1,4 +1,5 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useId, useMemo, useState } from "react";
+import { emptyMotivationForm, type MotivationDraft, type MotivationForm } from "@/lib/applications";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -23,35 +24,16 @@ import {
   Sparkles,
 } from "lucide-react";
 
-type MotivationForm = {
-  applicationType: "reactive" | "spontaneous";
-  jobTitle: string;
-  company: string;
-  companyStreet: string;
-  companyPostalCode: string;
-  companyCity: string;
-  recipient: string;
-  jobAd: string;
-  jobAdUrl: string;
-  language: "de-CH" | "de" | "en" | "fr";
-};
-
 type MotivationLetterSectionProps = {
   hasSelfServiceAccess: boolean;
   onRequirePayment: () => void;
-};
-
-const initialForm: MotivationForm = {
-  applicationType: "reactive",
-  jobTitle: "",
-  company: "",
-  companyStreet: "",
-  companyPostalCode: "",
-  companyCity: "",
-  recipient: "",
-  jobAd: "",
-  jobAdUrl: "",
-  language: "de-CH",
+  draft?: MotivationDraft;
+  onDraftChange?: (draft: MotivationDraft) => void;
+  onSaveDraft?: (draft: MotivationDraft) => Promise<string>;
+  applicationId?: string;
+  autoSaveDraft?: boolean;
+  disabled?: boolean;
+  onBusyChange?: (busy: boolean) => void;
 };
 
 function slugify(value: string) {
@@ -117,13 +99,27 @@ const LetterPreview: React.FC<{ letter: string }> = ({ letter }) => {
 export const MotivationLetterSection: React.FC<MotivationLetterSectionProps> = ({
   hasSelfServiceAccess,
   onRequirePayment,
+  draft,
+  onDraftChange,
+  onSaveDraft,
+  applicationId,
+  autoSaveDraft = false,
+  disabled = false,
+  onBusyChange,
 }) => {
   const { user } = useAuth();
-  const [form, setForm] = useState<MotivationForm>(initialForm);
-  const [letter, setLetter] = useState("");
+  const fieldId = useId();
+  const [localDraft, setLocalDraft] = useState<MotivationDraft>(() => ({ form: emptyMotivationForm(), letter: "" }));
+  const { form, letter } = draft || localDraft;
+  const changeDraft = onDraftChange || setLocalDraft;
   const [error, setError] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [isSavingDraft, setIsSavingDraft] = useState(false);
+
+  useEffect(() => {
+    onBusyChange?.(isGenerating || isDownloading || isSavingDraft);
+  }, [isGenerating, isDownloading, isSavingDraft, onBusyChange]);
 
   const canGenerate = useMemo(() => {
     if (form.applicationType === "spontaneous") {
@@ -133,7 +129,7 @@ export const MotivationLetterSection: React.FC<MotivationLetterSectionProps> = (
   }, [form.applicationType, form.jobAd, form.jobAdUrl, form.jobTitle, form.company]);
 
   const updateField = <K extends keyof MotivationForm>(key: K, value: MotivationForm[K]) => {
-    setForm((current) => ({ ...current, [key]: value }));
+    changeDraft({ form: { ...form, [key]: value }, letter });
   };
 
   const handleGenerate = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -158,7 +154,6 @@ export const MotivationLetterSection: React.FC<MotivationLetterSectionProps> = (
     }
 
     setIsGenerating(true);
-    setLetter("");
     try {
       const { data } = await supabase.auth.getSession();
       const token = data.session?.access_token;
@@ -193,7 +188,9 @@ export const MotivationLetterSection: React.FC<MotivationLetterSectionProps> = (
         throw new Error(result?.error || "Motivationsschreiben konnte nicht erstellt werden.");
       }
 
-      setLetter(result.letter || "");
+      const generated = { form, letter: result.letter || "" };
+      changeDraft(generated);
+      if (autoSaveDraft && onSaveDraft) await onSaveDraft(generated);
       toast({
         title: "Motivationsschreiben erstellt",
         description: "Der Entwurf ist bereit.",
@@ -235,6 +232,7 @@ export const MotivationLetterSection: React.FC<MotivationLetterSectionProps> = (
         throw new Error("Bitte melden Sie sich erneut an.");
       }
 
+      const savedId = autoSaveDraft && onSaveDraft ? await onSaveDraft({ form, letter }) : applicationId;
       const fileName = `motivationsschreiben-${slugify(form.company || form.jobTitle || "cvolution")}.docx`;
 
       const response = await fetch("/api/motivation-letter/docx", {
@@ -244,6 +242,7 @@ export const MotivationLetterSection: React.FC<MotivationLetterSectionProps> = (
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
+          ...(savedId ? { applicationId: savedId } : {}),
           letter,
           jobTitle: form.jobTitle,
           company: form.company,
@@ -279,6 +278,20 @@ export const MotivationLetterSection: React.FC<MotivationLetterSectionProps> = (
     }
   };
 
+  const handleSaveDraft = async () => {
+    if (!onSaveDraft) return;
+    setError("");
+    setIsSavingDraft(true);
+    try {
+      await onSaveDraft({ form, letter });
+      toast({ title: "Bewerbung gespeichert", description: "Sie finden den Entwurf unter Bewerbungen." });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Die Bewerbung konnte nicht gespeichert werden.");
+    } finally {
+      setIsSavingDraft(false);
+    }
+  };
+
   return (
     <div className="space-y-5">
       <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-[0_1rem_3rem_rgba(15,37,65,0.06)] sm:p-6">
@@ -295,17 +308,17 @@ export const MotivationLetterSection: React.FC<MotivationLetterSectionProps> = (
         </div>
 
         <form onSubmit={handleGenerate} className="mt-6 grid gap-5 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] lg:items-stretch">
+          <fieldset disabled={disabled || isGenerating || isSavingDraft} className="contents">
           <div className="space-y-4">
             <div className="space-y-2">
-              <label htmlFor="applicationType" className="text-sm font-semibold text-slate-900">
+              <label htmlFor={`${fieldId}-applicationType`} className="text-sm font-semibold text-slate-900">
                 Art der Bewerbung
               </label>
               <Select value={form.applicationType} disabled={isGenerating} onValueChange={(value) => {
-                updateField("applicationType", value as MotivationForm["applicationType"]);
-                setLetter("");
+                changeDraft({ form: { ...form, applicationType: value as MotivationForm["applicationType"] }, letter: "" });
                 setError("");
               }}>
-                <SelectTrigger id="applicationType" className="border-slate-200 bg-white text-slate-950">
+                <SelectTrigger id={`${fieldId}-applicationType`} className="border-slate-200 bg-white text-slate-950">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="bg-white text-slate-950">
@@ -321,13 +334,13 @@ export const MotivationLetterSection: React.FC<MotivationLetterSectionProps> = (
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="jobAdUrl" className="text-sm font-semibold text-slate-900">
+              <label htmlFor={`${fieldId}-jobAdUrl`} className="text-sm font-semibold text-slate-900">
                 {form.applicationType === "spontaneous" ? "Unternehmenswebsite (optional)" : "Link zum Inserat"}
               </label>
               <div className="relative">
                 <Link2 className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                 <Input
-                  id="jobAdUrl"
+                  id={`${fieldId}-jobAdUrl`}
                   value={form.jobAdUrl}
                   onChange={(event) => updateField("jobAdUrl", event.target.value)}
                   placeholder="https://..."
@@ -344,11 +357,11 @@ export const MotivationLetterSection: React.FC<MotivationLetterSectionProps> = (
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="jobAd" className="text-sm font-semibold text-slate-900">
+              <label htmlFor={`${fieldId}-jobAd`} className="text-sm font-semibold text-slate-900">
                 {form.applicationType === "spontaneous" ? "Unternehmensinformationen / eigene Hinweise (optional)" : `Stellenanzeige ${form.jobAdUrl.trim() ? "(optional)" : "*"}`}
               </label>
               <Textarea
-                id="jobAd"
+                id={`${fieldId}-jobAd`}
                 value={form.jobAd}
                 onChange={(event) => updateField("jobAd", event.target.value)}
                 placeholder={form.applicationType === "spontaneous" ? "Was interessiert Sie an diesem Unternehmen? Welchen Beitrag möchten Sie leisten?" : "Stelleninserat hier einfügen"}
@@ -359,11 +372,11 @@ export const MotivationLetterSection: React.FC<MotivationLetterSectionProps> = (
 
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <label htmlFor="jobTitle" className="text-sm font-semibold text-slate-900">
+                <label htmlFor={`${fieldId}-jobTitle`} className="text-sm font-semibold text-slate-900">
                   {form.applicationType === "spontaneous" ? "Gewünschte Funktion *" : "Stelle (optional)"}
                 </label>
                 <Input
-                  id="jobTitle"
+                  id={`${fieldId}-jobTitle`}
                   value={form.jobTitle}
                   onChange={(event) => updateField("jobTitle", event.target.value)}
                   placeholder={form.applicationType === "spontaneous" ? "Zum Beispiel Teamleitung Beratung" : "Wird aus dem Inserat erkannt"}
@@ -372,11 +385,11 @@ export const MotivationLetterSection: React.FC<MotivationLetterSectionProps> = (
                 />
               </div>
               <div className="space-y-2">
-                <label htmlFor="company" className="text-sm font-semibold text-slate-900">
+                <label htmlFor={`${fieldId}-company`} className="text-sm font-semibold text-slate-900">
                   Unternehmen {form.applicationType === "spontaneous" && !form.jobAdUrl.trim() ? "*" : "(optional)"}
                 </label>
                 <Input
-                  id="company"
+                  id={`${fieldId}-company`}
                   value={form.company}
                   onChange={(event) => updateField("company", event.target.value)}
                   placeholder={form.applicationType === "spontaneous" ? "Ihr Zielunternehmen" : "Wird aus dem Inserat erkannt"}
@@ -388,11 +401,11 @@ export const MotivationLetterSection: React.FC<MotivationLetterSectionProps> = (
 
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <label htmlFor="recipient" className="text-sm font-semibold text-slate-900">
+                <label htmlFor={`${fieldId}-recipient`} className="text-sm font-semibold text-slate-900">
                   Ansprechperson (optional)
                 </label>
                 <Input
-                  id="recipient"
+                  id={`${fieldId}-recipient`}
                   value={form.recipient}
                   onChange={(event) => updateField("recipient", event.target.value)}
                   placeholder="Falls bekannt, Name eingeben"
@@ -401,9 +414,9 @@ export const MotivationLetterSection: React.FC<MotivationLetterSectionProps> = (
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-semibold text-slate-900">Sprache</label>
+                <label htmlFor={`${fieldId}-language`} className="text-sm font-semibold text-slate-900">Sprache</label>
                 <Select value={form.language} onValueChange={(value) => updateField("language", value as MotivationForm["language"])}>
-                  <SelectTrigger className="border-slate-200 bg-white text-slate-950">
+                  <SelectTrigger id={`${fieldId}-language`} className="border-slate-200 bg-white text-slate-950">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="bg-white text-slate-950">
@@ -422,11 +435,11 @@ export const MotivationLetterSection: React.FC<MotivationLetterSectionProps> = (
               </summary>
               <div className="mt-3 grid gap-4 sm:grid-cols-[minmax(0,1.4fr)_minmax(0,0.6fr)_minmax(0,1fr)]">
                 <div className="space-y-2">
-                  <label htmlFor="companyStreet" className="text-sm font-semibold text-slate-900">
+                  <label htmlFor={`${fieldId}-companyStreet`} className="text-sm font-semibold text-slate-900">
                     Adresse
                   </label>
                   <Input
-                    id="companyStreet"
+                    id={`${fieldId}-companyStreet`}
                     value={form.companyStreet}
                     onChange={(event) => updateField("companyStreet", event.target.value)}
                     placeholder="Musterstrasse 1"
@@ -435,11 +448,11 @@ export const MotivationLetterSection: React.FC<MotivationLetterSectionProps> = (
                   />
                 </div>
                 <div className="space-y-2">
-                  <label htmlFor="companyPostalCode" className="text-sm font-semibold text-slate-900">
+                  <label htmlFor={`${fieldId}-companyPostalCode`} className="text-sm font-semibold text-slate-900">
                     PLZ
                   </label>
                   <Input
-                    id="companyPostalCode"
+                    id={`${fieldId}-companyPostalCode`}
                     value={form.companyPostalCode}
                     onChange={(event) => updateField("companyPostalCode", event.target.value)}
                     placeholder="8000"
@@ -448,11 +461,11 @@ export const MotivationLetterSection: React.FC<MotivationLetterSectionProps> = (
                   />
                 </div>
                 <div className="space-y-2">
-                  <label htmlFor="companyCity" className="text-sm font-semibold text-slate-900">
+                  <label htmlFor={`${fieldId}-companyCity`} className="text-sm font-semibold text-slate-900">
                     Ort
                   </label>
                   <Input
-                    id="companyCity"
+                    id={`${fieldId}-companyCity`}
                     value={form.companyCity}
                     onChange={(event) => updateField("companyCity", event.target.value)}
                     placeholder="Zürich"
@@ -470,7 +483,7 @@ export const MotivationLetterSection: React.FC<MotivationLetterSectionProps> = (
               </Alert>
             )}
 
-            <div className="flex flex-col gap-3 sm:flex-row">
+            <div className="flex flex-col flex-wrap gap-3 sm:flex-row">
               <Button
                 type="submit"
                 disabled={isGenerating}
@@ -483,14 +496,19 @@ export const MotivationLetterSection: React.FC<MotivationLetterSectionProps> = (
                 type="button"
                 variant="outline"
                 onClick={() => {
-                  setForm(initialForm);
-                  setLetter("");
+                  changeDraft({ form: emptyMotivationForm(), letter: "" });
                   setError("");
                 }}
                 className="min-h-11 border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
               >
                 Zurücksetzen
               </Button>
+              {onSaveDraft && (
+                <Button type="button" variant="outline" onClick={handleSaveDraft} disabled={isDownloading} className="min-h-11 border-slate-200 bg-white text-slate-700 hover:bg-slate-50">
+                  {isSavingDraft ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4" />}
+                  Bewerbung speichern
+                </Button>
+              )}
             </div>
           </div>
 
@@ -534,7 +552,14 @@ export const MotivationLetterSection: React.FC<MotivationLetterSectionProps> = (
                     <p className="font-medium text-slate-700">Einen Moment! Wir machen aus Gedanken gerade Bewerbungsmaterial....</p>
                   </div>
                 ) : letter ? (
-                  <LetterPreview letter={letter} />
+                  <div className="space-y-4">
+                    <label htmlFor={`${fieldId}-letter`} className="block text-xs font-semibold text-slate-600">Schreiben bearbeiten</label>
+                    <Textarea id={`${fieldId}-letter`} value={letter} onChange={(event) => changeDraft({ form, letter: event.target.value })} maxLength={12000} className="min-h-80 border-slate-200 bg-white text-slate-950" />
+                    <details>
+                      <summary className="cursor-pointer text-xs font-semibold text-slate-600">Formatierte Vorschau</summary>
+                      <div className="mt-4"><LetterPreview letter={letter} /></div>
+                    </details>
+                  </div>
                 ) : (
                   <div className="flex h-full flex-col items-center justify-center text-center text-slate-500">
                     <FileText className="mb-4 h-10 w-10 text-slate-300" />
@@ -544,6 +569,7 @@ export const MotivationLetterSection: React.FC<MotivationLetterSectionProps> = (
               </div>
             </aside>
           </div>
+          </fieldset>
         </form>
       </div>
     </div>

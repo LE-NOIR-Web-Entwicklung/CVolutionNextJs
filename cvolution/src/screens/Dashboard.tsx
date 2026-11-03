@@ -12,6 +12,9 @@ import ExperienceSection from '@/components/Dashboard/ExperienceSection';
 import EducationSection from '@/components/Dashboard/EducationSection';
 import SkillsAndLanguagesSection from '@/components/Dashboard/SkillsAndLanguagesSection';
 import { MotivationLetterSection } from '@/components/Dashboard/MotivationLetterSection';
+import { ApplicationsSection } from '@/components/Dashboard/ApplicationsSection';
+import { emptyApplication, emptyMotivationForm, type Application, type MotivationDraft } from '@/lib/applications';
+import { saveApplication } from '@/lib/applications-client';
 import { CVImportButton } from '@/components/Dashboard/CVImportButton';
 import { CVExportButton } from '@/components/CVExport/CVExportButton';
 import { CVExportModal } from '@/components/CVExport/CVExportModal';
@@ -29,6 +32,10 @@ export const Dashboard: React.FC = () => {
   const [skillsData, setSkillsData] = useState<any[]>([]);
   const [languagesData, setLanguagesData] = useState<any[]>([]);
   const [activeArea, setActiveArea] = useState('cv');
+  const [motivationDraft, setMotivationDraft] = useState<MotivationDraft>(() => ({ form: emptyMotivationForm(), letter: '' }));
+  const [incomingApplication, setIncomingApplication] = useState<Application | null>(null);
+  const [applicationDirty, setApplicationDirty] = useState(false);
+  const motivationDirty = JSON.stringify(motivationDraft) !== JSON.stringify({ form: emptyMotivationForm(), letter: '' });
   const [activeTab, setActiveTab] = useState('profile');
   const [cvImportVersion, setCvImportVersion] = useState(0);
   const [cancelingSubscription, setCancelingSubscription] = useState(false);
@@ -36,6 +43,40 @@ export const Dashboard: React.FC = () => {
   const experienceSectionRef = React.useRef<{ saveExperiences: () => void }>(null);
   const educationSectionRef = React.useRef<{ saveEducation: () => void }>(null);
   const skillsAndLanguagesSectionRef = React.useRef<{ saveSkillsAndLanguages: () => void }>(null);
+
+  useEffect(() => {
+    const area = window.location.hash.slice(1);
+    if (['cv', 'motivation', 'applications', 'settings'].includes(area)) setActiveArea(area);
+  }, []);
+
+  useEffect(() => {
+    setMotivationDraft({ form: emptyMotivationForm(), letter: '' });
+    setIncomingApplication(null);
+    setApplicationDirty(false);
+  }, [user?.id]);
+
+  useEffect(() => {
+    if (!motivationDirty && !applicationDirty) return;
+    const preventUnload = (event: BeforeUnloadEvent) => { event.preventDefault(); event.returnValue = ''; };
+    const confirmNavigation = (event: MouseEvent) => {
+      if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      const link = event.target instanceof Element ? event.target.closest('a') : null;
+      if (!link || link.hasAttribute('download') || (link.target && link.target !== '_self')) return;
+      const destination = new URL(link.href, window.location.href);
+      if (!['http:', 'https:'].includes(destination.protocol)) return;
+      if (destination.origin === window.location.origin && destination.pathname === window.location.pathname && destination.search === window.location.search) return;
+      if (!window.confirm('Ungespeicherte Änderungen verwerfen und diese Seite verlassen?')) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+    };
+    window.addEventListener('beforeunload', preventUnload);
+    document.addEventListener('click', confirmNavigation, true);
+    return () => {
+      window.removeEventListener('beforeunload', preventUnload);
+      document.removeEventListener('click', confirmNavigation, true);
+    };
+  }, [motivationDirty, applicationDirty]);
 
   // Fetch all data for export
   useEffect(() => {
@@ -91,6 +132,7 @@ export const Dashboard: React.FC = () => {
   }, [user, cvModalOpen, cvImportVersion]);
 
   const handleSignOut = async () => {
+    if ((applicationDirty || motivationDirty) && !window.confirm('Ungespeicherte Änderungen verwerfen und abmelden?')) return;
     await signOut();
     toast({
       title: 'Abgemeldet',
@@ -226,6 +268,16 @@ export const Dashboard: React.FC = () => {
       saveActiveCvSection();
     }
     setActiveArea(newArea);
+    window.history.replaceState(null, '', `#${newArea}`);
+  };
+
+  const saveMotivationDraft = async (draft: MotivationDraft) => {
+    if (applicationDirty) throw new Error('Bitte speichern oder schliessen Sie zuerst die offene Bewerbung im Bereich Bewerbungen.');
+    const application = await saveApplication({ ...emptyApplication(), company: draft.form.company, job_title: draft.form.jobTitle, motivation_form: draft.form, motivation_letter: draft.letter }, null);
+    setIncomingApplication(application);
+    setMotivationDraft({ form: emptyMotivationForm(), letter: '' });
+    handleAreaChange('applications');
+    return application.id;
   };
 
   // Detect tab change and trigger save when leaving CV tabs
@@ -261,12 +313,15 @@ export const Dashboard: React.FC = () => {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
         <Tabs value={activeArea} onValueChange={handleAreaChange} className="space-y-4 sm:space-y-6">
-          <TabsList className="flex h-auto w-full items-center justify-start gap-2 bg-transparent p-0">
-            <TabsTrigger value="cv" className="h-12 min-w-0 flex-1 rounded-lg border border-slate-200 !bg-white text-xs font-semibold !text-gray-600 shadow-sm data-[state=active]:!bg-[#204878] data-[state=active]:!text-white data-[state=active]:!shadow-md sm:w-72 sm:flex-none sm:text-sm">
-              CV Self-Service
+          <TabsList className="!grid h-auto w-full grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_3rem] gap-2 bg-transparent p-0">
+            <TabsTrigger value="cv" className="h-12 min-w-0 rounded-lg border border-slate-200 !bg-white px-2 text-xs font-semibold !text-gray-600 shadow-sm data-[state=active]:!bg-[#204878] data-[state=active]:!text-white data-[state=active]:!shadow-md sm:text-sm">
+              <span className="hidden sm:inline">CV Self-Service</span><span className="sm:hidden">Lebenslauf</span>
             </TabsTrigger>
-            <TabsTrigger value="motivation" className="h-12 min-w-0 flex-1 rounded-lg border border-slate-200 !bg-white text-xs font-semibold !text-gray-600 shadow-sm data-[state=active]:!bg-[#204878] data-[state=active]:!text-white data-[state=active]:!shadow-md sm:w-72 sm:flex-none sm:text-sm">
-              AI Motivationsschreiben
+            <TabsTrigger value="motivation" className="h-12 min-w-0 rounded-lg border border-slate-200 !bg-white px-2 text-xs font-semibold !text-gray-600 shadow-sm data-[state=active]:!bg-[#204878] data-[state=active]:!text-white data-[state=active]:!shadow-md sm:text-sm">
+              <span className="hidden sm:inline">AI Motivationsschreiben</span><span className="sm:hidden">AI-Schreiben</span>
+            </TabsTrigger>
+            <TabsTrigger value="applications" className="h-12 min-w-0 rounded-lg border border-slate-200 !bg-white px-2 text-xs font-semibold !text-gray-600 shadow-sm data-[state=active]:!bg-[#204878] data-[state=active]:!text-white data-[state=active]:!shadow-md sm:text-sm">
+              Bewerbungen
             </TabsTrigger>
             <TabsTrigger
               value="settings"
@@ -354,10 +409,24 @@ export const Dashboard: React.FC = () => {
             </Tabs>
           </TabsContent>
 
-          <TabsContent value="motivation">
+          <TabsContent value="motivation" forceMount className={activeArea === 'motivation' ? '' : 'hidden'}>
             <MotivationLetterSection
               hasSelfServiceAccess={hasSelfServiceAccess}
               onRequirePayment={openSelfServicePayment}
+              draft={motivationDraft}
+              onDraftChange={setMotivationDraft}
+              onSaveDraft={saveMotivationDraft}
+            />
+          </TabsContent>
+
+          <TabsContent value="applications" forceMount className={activeArea === 'applications' ? '' : 'hidden'}>
+            <ApplicationsSection
+              key={user?.id || 'anonymous'}
+              hasSelfServiceAccess={hasSelfServiceAccess}
+              onRequirePayment={openSelfServicePayment}
+              onExportCv={handleExportClick}
+              incomingApplication={incomingApplication?.user_id === user?.id ? incomingApplication : null}
+              onDirtyChange={setApplicationDirty}
             />
           </TabsContent>
 

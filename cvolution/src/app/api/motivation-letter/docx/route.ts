@@ -8,11 +8,13 @@ import {
   TextRun,
 } from "docx";
 import { supabaseAdmin } from "../../../../../lib/supabase-server";
+import { isApplicationId } from "../../../../lib/applications";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 type DocxRequest = {
+  applicationId?: string;
   letter?: string;
   jobTitle?: string;
   company?: string;
@@ -236,24 +238,34 @@ export async function POST(request: NextRequest) {
     return jsonError("Unauthorized", 401);
   }
 
-  const { data: profile, error: profileError } = await supabaseAdmin
-    .from("profiles")
-    .select("paid,paydate,subscription_current_period_end,subscription_status")
-    .eq("user_id", user.id)
-    .single();
-
-  if (profileError || !profile || !isSelfServiceIncluded(profile)) {
-    return jsonError("Dieses Feature ist im aktiven Self-Service-Abo enthalten.", 402);
-  }
-
   const body = (await request.json().catch(() => null)) as DocxRequest | null;
-  if (!body) {
+  if (!body || typeof body !== "object" || Array.isArray(body)) {
     return jsonError("Ungültige Anfrage.", 400);
   }
 
-  const letter = normalizeSwissMotivationLetter(cleanText(body.letter, 12000));
-  const jobTitle = cleanText(body.jobTitle, 140);
-  const company = cleanText(body.company, 140);
+  let source = body;
+  if (body.applicationId !== undefined) {
+    if (!isApplicationId(body.applicationId)) return jsonError("Ungültige Bewerbung.", 400);
+    const { data: application, error } = await supabaseAdmin.from("applications")
+      .select("company,job_title,motivation_letter").eq("id", body.applicationId).eq("user_id", user.id).maybeSingle();
+    if (error) return jsonError("Die Bewerbung konnte nicht geladen werden.", 500);
+    if (!application) return jsonError("Die Bewerbung wurde nicht gefunden.", 404);
+    source = { company: application.company, jobTitle: application.job_title, letter: application.motivation_letter };
+  } else {
+    const { data: profile, error: profileError } = await supabaseAdmin
+      .from("profiles")
+      .select("paid,paydate,subscription_current_period_end,subscription_status")
+      .eq("user_id", user.id)
+      .single();
+
+    if (profileError || !profile || !isSelfServiceIncluded(profile)) {
+      return jsonError("Dieses Feature ist im aktiven Self-Service-Abo enthalten.", 402);
+    }
+  }
+
+  const letter = normalizeSwissMotivationLetter(cleanText(source.letter, 12000));
+  const jobTitle = cleanText(source.jobTitle, 140);
+  const company = cleanText(source.company, 140);
 
   if (!letter) {
     return jsonError("Kein Motivationsschreiben zum Exportieren vorhanden.", 400);

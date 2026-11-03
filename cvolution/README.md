@@ -41,9 +41,57 @@ Run the mocked generation, source-reading and Word-export regression tests with 
 node --test tests/motivation-letter.test.cjs
 ```
 
-To include actual Word pagination checks, install LibreOffice and Poppler (`soffice` and `pdfinfo` on PATH) and run `CV_EXPORT_RENDER_WORD=1 node --test tests/*.test.cjs`.
+To include actual Word pagination checks, install LibreOffice and Poppler (`soffice` and `pdfinfo` on PATH) and run `CV_EXPORT_RENDER_WORD=1 node --test tests/cv-export.test.cjs tests/motivation-letter.test.cjs`.
 
 These tests make no live AI calls. They verify the submitted prompts; final model output still requires a live generation check.
+
+## Bewerbungsmanager
+
+The dashboard's **Bewerbungen** area stores one private record per application: company, role, advert/form input, contact, status, application date, deadline, next action, notes and editable motivation letter. Search and status filters apply to company/role; open applications are ordered by next-action date. Due dates use Europe/Zurich. Wiedervorlagen are displayed in the dashboard; no email or calendar notifications are sent.
+
+Letters generated inside an application are saved automatically. Manual changes are saved with **Bewerbung speichern**. Confirmation protects unsaved edits when switching records, following site links, signing out or reloading/closing the browser tab. The separate motivation tool keeps its existing independent Word download; its save action transfers a draft to the manager and requires company and role. Switching dashboard tabs preserves drafts in memory. Only saved applications survive a page reload.
+
+Managing, deleting, JSON-exporting and Word-exporting saved applications remains available after subscription expiry. New AI generation and CV exports retain the existing subscription checks. The saved-letter Word endpoint accepts an `applicationId`, verifies ownership and reads the saved text on the server; client-provided letter content cannot override that record. CV exports use the current central profile, without storing a historical copy of a submitted CV.
+
+### Database setup and rollout
+
+Apply `supabase/migrations/20261103_create_applications.sql` to the configured Supabase database **before** deploying the updated dashboard. For an explicitly selected database, an administrator can run:
+
+```bash
+psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/migrations/20261103_create_applications.sql
+```
+
+The server needs the existing `SUPABASE_SERVICE_ROLE_KEY` environment variable. Keep it server-only. No new package, external service or billing configuration is required, and no existing records need backfilling. The migration has not been applied to the hosted database by this change.
+
+The table enforces owner-only RLS, bounded fields and valid form data. API operations additionally verify the bearer token and filter by the authenticated owner. Updates require the saved `updated_at` value; concurrent changes return 409 and preserve local edits. The database sets timestamps and preserves record identity. Deleting an application removes its stored form, notes and letter. Deleting its `auth.users` account cascades to its applications. Subscription expiry does not delete records. Production privacy/retention notices and processor arrangements should cover these additional application records; this implementation is not a legal compliance assessment.
+
+For deployment rollback, restore the previous application version and retain the new table. Dropping the table would delete saved applications; take a backup before any deliberate data removal.
+
+### Verification
+
+Run from this directory with Node 22+. Database tests require local `initdb`, `pg_ctl` and `psql`; they create and remove an isolated cluster under `/tmp` and never connect to a hosted database.
+
+```bash
+node --test tests/applications.test.cjs tests/applications-client.test.cjs
+node --test tests/applications-db.test.cjs
+CV_EXPORT_RENDER_WORD=1 node --test tests/cv-export.test.cjs tests/motivation-letter.test.cjs
+npx tsc --noEmit --incremental false
+npm run build
+```
+
+Browser tests require Playwright and Chromium plus a local server (`npm run start -- --hostname 127.0.0.1 --port 3107` after building):
+
+```bash
+APPLICATIONS_BROWSER_URL=http://127.0.0.1:3107 node --test tests/applications-browser.test.cjs
+```
+
+If Playwright is supplied by a shared runtime, set `PLAYWRIGHT_MODULE` to that module and optionally `PLAYWRIGHT_CHROMIUM_EXECUTABLE` to its Chromium executable. All Supabase, application and AI requests in these browser tests are intercepted with synthetic fixtures. Non-local server URLs are rejected. They test UI behavior, while the route and PostgreSQL tests separately verify the server and RLS boundaries. They do not verify the hosted Supabase configuration, live authentication or live AI output. No visual regression baseline or full screen-reader audit is supplied.
+
+TDD evidence on 3 November 2026: the first application tests failed on the absent application module/routes; the saved-letter export tests initially returned 402 instead of 200/404. A separate browser regression reproduced the advert-only Word download failing before the integration was corrected. The passing application logic/API/client tests measure 99.68% line, 95.09% branch and 100% function coverage; these numbers exclude React UI code. Browser checks cover create/edit/reload, separate letters, filters, failed saves/loads, stale updates, confirmed deletion, standalone transfer/download, expired subscriptions, CV-modal reuse, labels/focus and overflow at 375/768/1440 px.
+
+Final verification: 62 logic/client/CV/letter tests, 6 PostgreSQL tests and 6 browser journeys passed (74 total, no skips in these runs). Production build, explicit TypeScript check, focused ESLint and `git diff --check` passed. The changed self-service landing page retains one pre-existing Next.js `<img>` lint warning. A browser test also reproduced and then verified the fix for losing unsaved application input through the site's navigation. Encoding and line endings of existing files were preserved. Implementation, security, data-lifecycle and regression reviews were performed as separate local passes without subagents.
+
+Security release limitation: `npm audit --omit=dev --audit-level=high` reported 17 existing dependency findings (2 critical, 10 high, 1 moderate, 4 low), including critical findings in Next.js and jsPDF. Package manifests and lockfiles are unchanged by this feature. Dependency remediation and hosted rollout remain separate release requirements; a successful feature test is not a production security clearance.
 
 ## Learn More
 
