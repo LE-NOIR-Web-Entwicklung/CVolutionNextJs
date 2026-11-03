@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ArrowLeft, ArrowRight, BriefcaseBusiness, CalendarClock, Download, FileText, Loader2, Plus, RefreshCw, Search, Sparkles, Trash2 } from 'lucide-react';
+import { ArrowLeft, ArrowRight, BriefcaseBusiness, CalendarClock, Download, ExternalLink, FileText, Loader2, Plus, RefreshCw, Save, Search, Sparkles, Trash2, UserRound } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
@@ -7,9 +7,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/hooks/use-toast';
-import { APPLICATION_STATUSES, applicationInput, emptyApplication, filterApplications, isActionDue, matchesApplicationView, todayInZurich, type Application, type ApplicationInput, type ApplicationStatus, type ApplicationView, type MotivationDraft } from '@/lib/applications';
+import { APPLICATION_STATUSES, NEXT_STEP_SUGGESTIONS, applicationInput, emptyApplication, filterApplications, isActionDue, matchesApplicationView, todayInZurich, withApplicationStatus, withAppliedAt, type Application, type ApplicationInput, type ApplicationStatus, type ApplicationView, type MotivationDraft } from '@/lib/applications';
 import { ApplicationRequestError, deleteApplication, downloadApplications, extractApplication, loadApplications, saveApplication } from '@/lib/applications-client';
 import { NEW_APPLICATION_ROUTE } from '@/lib/dashboard-routes';
+import { downloadMotivationLetterDocx, MotivationLetterRequestError } from '@/lib/motivation-letter-client';
+import { DetailCard, SaveState, StatusStepper } from './ApplicationDetailParts';
 import { MotivationLetterSection } from './MotivationLetterSection';
 import { ApplicationDateInput } from './ApplicationDateInput';
 
@@ -28,6 +30,7 @@ const VIEWS: Array<[ApplicationView, string]> = [['all', 'Alle'], ['open', 'Offe
 
 const primaryButton = 'bg-[#204878] text-white hover:bg-[#1a3a66]';
 const outlineButton = 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50';
+const fieldLabel = 'text-sm font-medium text-slate-900';
 const selectClass = 'h-10 w-full rounded-md border border-slate-200 bg-white px-3 text-sm text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#204878]';
 const statusStyles: Record<ApplicationStatus, string> = {
   draft: 'border-slate-200 bg-slate-50 text-slate-600',
@@ -37,6 +40,10 @@ const statusStyles: Record<ApplicationStatus, string> = {
   rejected: 'border-rose-200 bg-rose-50 text-rose-800',
   withdrawn: 'border-slate-200 bg-slate-50 text-slate-600',
 };
+
+function advertHost(url: string) {
+  try { return new URL(url.trim()).hostname.replace(/^www\./, ''); } catch { return url.trim(); }
+}
 
 function dateLabel(value: string | null) {
   return value ? new Intl.DateTimeFormat('de-CH', { timeZone: 'UTC', day: '2-digit', month: '2-digit', year: 'numeric' }).format(new Date(`${value}T12:00:00Z`)) : '';
@@ -61,15 +68,23 @@ export function ApplicationsSection({ hasSelfServiceAccess, onRequirePayment, on
   const [working, setWorking] = useState(false);
   const [extracting, setExtracting] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [downloading, setDownloading] = useState(false);
+  const [saveFailed, setSaveFailed] = useState(false);
+  const [justImported, setJustImported] = useState(false);
+  const [editingUrl, setEditingUrl] = useState(false);
   const detailHeading = useRef<HTMLHeadingElement>(null);
   const listHeading = useRef<HTMLHeadingElement>(null);
   // Route this component requested and is waiting for; other route changes come from Back/Forward or deep links.
   const pendingRoute = useRef<string | null | undefined>(undefined);
   const openedFromList = useRef(false);
-  const busy = saving || working || extracting;
+  const busy = saving || working || extracting || downloading;
   const dirty = Boolean(draft && JSON.stringify(draft) !== JSON.stringify(saved ? applicationInput(saved) : emptyApplication()));
   const currentRouteId = draft ? saved?.id ?? NEW_APPLICATION_ROUTE : null;
   const today = todayInZurich();
+  const letterWords = draft?.motivation_letter.trim() ? draft.motivation_letter.trim().split(/\s+/).length : 0;
+  // A known advert collapses to a one-line summary; editing the link opens the import form again.
+  const importSummary = draft && !editingUrl && draft.motivation_form.jobAdUrl.trim() &&
+    (justImported || saved?.motivation_form.jobAdUrl === draft.motivation_form.jobAdUrl) ? advertHost(draft.motivation_form.jobAdUrl) : '';
   const visible = useMemo(() => filterApplications(applications, search, status, view, today), [applications, search, status, view, today]);
   const viewCounts = useMemo(() => Object.fromEntries(VIEWS.map(([value]) => [value, applications.filter((application) => matchesApplicationView(application, value, today)).length])) as Record<ApplicationView, number>, [applications, today]);
 
@@ -117,6 +132,9 @@ export function ApplicationsSection({ hasSelfServiceAccess, onRequirePayment, on
   }
 
   function show(application: Application | null) {
+    setJustImported(false);
+    setEditingUrl(false);
+    setSaveFailed(false);
     setSaved(application);
     setDraft(application ? applicationInput(application) : emptyApplication());
     setError('');
@@ -191,6 +209,7 @@ export function ApplicationsSection({ hasSelfServiceAccess, onRequirePayment, on
     }
     if (saved && JSON.stringify(next) === JSON.stringify(applicationInput(saved))) return saved;
     setSaving(true);
+    setSaveFailed(false);
     setError('');
     try {
       const application = await saveApplication(next, saved);
@@ -208,6 +227,7 @@ export function ApplicationsSection({ hasSelfServiceAccess, onRequirePayment, on
       }
       return application;
     } catch (err) {
+      setSaveFailed(true);
       if (err instanceof ApplicationRequestError && err.status === 402) onRequirePayment();
       throw err;
     } finally { setSaving(false); }
@@ -223,11 +243,36 @@ export function ApplicationsSection({ hasSelfServiceAccess, onRequirePayment, on
     try {
       const extraction = await extractApplication(draft.motivation_form.jobAdUrl);
       setDraft((current) => current ? { ...current, ...extraction, motivation_form: { ...extraction.motivation_form, language: current.motivation_form.language } } : current);
+      setJustImported(true);
+      setEditingUrl(false);
       toast({ title: 'Stellenangaben übernommen', description: 'Bitte prüfen und ergänzen Sie die KI-Angaben vor dem Speichern.' });
     } catch (err) {
       if (err instanceof ApplicationRequestError && err.status === 402) onRequirePayment();
       setError(err instanceof Error ? err.message : 'Das Inserat konnte nicht ausgelesen werden.');
     } finally { setExtracting(false); }
+  }
+
+  function changeStatus(status: ApplicationStatus) {
+    setDraft((current) => current && withApplicationStatus(current, status));
+  }
+
+  function scrollToLetter() {
+    const section = document.getElementById('application-letter');
+    section?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    section?.querySelector<HTMLTextAreaElement>('textarea')?.focus({ preventScroll: true });
+  }
+
+  async function downloadLetter() {
+    if (!draft?.motivation_letter.trim() || busy) return;
+    setDownloading(true);
+    setError('');
+    try {
+      const application = hasSelfServiceAccess && (dirty || !saved) ? await persist(draft) : saved;
+      await downloadMotivationLetterDocx({ applicationId: application?.id, letter: draft.motivation_letter, jobTitle: draft.job_title, company: draft.company });
+    } catch (err) {
+      if (err instanceof MotivationLetterRequestError && err.status === 402) onRequirePayment();
+      setError(err instanceof Error ? err.message : 'Das DOCX konnte nicht erstellt werden.');
+    } finally { setDownloading(false); }
   }
 
   async function saveDetails(event: React.FormEvent) {
@@ -295,54 +340,140 @@ export function ApplicationsSection({ hasSelfServiceAccess, onRequirePayment, on
       </AlertDescription></Alert>}
 
       {draft ? (
-        <>
-          <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-4">
-              <Button type="button" variant="outline" onClick={back} disabled={busy} className={outlineButton}><ArrowLeft className="h-4 w-4" /> Übersicht</Button>
-              <p role="status" className={`text-xs ${dirty ? 'text-amber-700' : 'text-slate-500'}`}>{saving ? 'Wird gespeichert …' : dirty ? 'Ungespeicherte Änderungen' : saved ? 'Alle Änderungen gespeichert' : 'Neue Bewerbung'}</p>
+        <div className="space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+            <Button type="button" variant="ghost" onClick={back} disabled={busy} className="-ml-2 h-9 px-2 text-slate-600 hover:bg-slate-100 hover:text-slate-950"><ArrowLeft className="h-4 w-4" /> Übersicht</Button>
+            <div className="flex flex-wrap items-center gap-3">
+              <SaveState saving={saving} failed={saveFailed} dirty={dirty} isNew={!saved} />
+              <Button type="submit" form="application-details" disabled={busy || !hasSelfServiceAccess} className={primaryButton}>{saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />} Bewerbung speichern</Button>
             </div>
-            <h2 ref={detailHeading} tabIndex={-1} className="mt-5 break-words text-xl font-semibold text-slate-950">{saved ? `${saved.job_title} · ${saved.company}` : 'Neue Bewerbung erfassen'}</h2>
-            <div className="mt-5 rounded-lg border border-blue-100 bg-blue-50/50 p-4">
-              <label htmlFor="application-job-url" className="text-sm font-semibold text-slate-900">Link zum Stelleninserat</label>
-              <div className="mt-2 flex flex-col gap-2 sm:flex-row">
-                <Input id="application-job-url" type="url" inputMode="url" maxLength={500} value={draft.motivation_form.jobAdUrl} onChange={(event) => update('motivation_form', { ...draft.motivation_form, jobAdUrl: event.target.value })} disabled={busy || !hasSelfServiceAccess} placeholder="https://..." className="min-w-0 flex-1 bg-white text-slate-950" />
-                <Button type="button" onClick={importJobAd} disabled={busy || !hasSelfServiceAccess || !draft.motivation_form.jobAdUrl.trim()} className={primaryButton}>{extracting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}{extracting ? 'Wird ausgelesen …' : 'Mit KI auslesen'}</Button>
-              </div>
-              <p className="mt-2 text-xs leading-5 text-slate-600">Die KI übernimmt erkennbare Stellenangaben in den Entwurf. Bitte prüfen und ergänzen Sie die Angaben vor dem Speichern. Geschützte Inserate können Sie manuell erfassen.</p>
-            </div>
-            <form id="application-details" onSubmit={saveDetails} className="mt-5">
-              <fieldset disabled={busy || !hasSelfServiceAccess} className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2"><label htmlFor="application-company" className="text-sm font-semibold text-slate-900">Unternehmen *</label><Input id="application-company" value={draft.company} onChange={(event) => update('company', event.target.value)} required maxLength={140} className="bg-white text-slate-950" /></div>
-                <div className="space-y-2"><label htmlFor="application-job" className="text-sm font-semibold text-slate-900">Stellenbezeichnung *</label><Input id="application-job" value={draft.job_title} onChange={(event) => update('job_title', event.target.value)} required maxLength={140} className="bg-white text-slate-950" /></div>
-                <div className="space-y-2"><label htmlFor="application-status" className="text-sm font-semibold text-slate-900">Status</label><select id="application-status" value={draft.status} onChange={(event) => update('status', event.target.value as ApplicationStatus)} className={selectClass}><StatusOptions /></select></div>
-                <div className="space-y-2"><label htmlFor="application-applied" className="text-sm font-semibold text-slate-900">Versendet am</label><ApplicationDateInput id="application-applied" label="Versendet am" value={draft.applied_at} onChange={(value) => update('applied_at', value)} disabled={busy || !hasSelfServiceAccess} /></div>
-                <div className="space-y-2"><label htmlFor="application-deadline" className="text-sm font-semibold text-slate-900">Bewerbungsfrist</label><ApplicationDateInput id="application-deadline" label="Bewerbungsfrist" value={draft.deadline} onChange={(value) => update('deadline', value)} disabled={busy || !hasSelfServiceAccess} /></div>
-                <div className="space-y-2"><label htmlFor="application-next-date" className="text-sm font-semibold text-slate-900">Nächste Aktion am</label><ApplicationDateInput id="application-next-date" label="Nächste Aktion am" value={draft.next_action_at} onChange={(value) => update('next_action_at', value)} disabled={busy || !hasSelfServiceAccess} /></div>
-                <div className="space-y-2 sm:col-span-2"><label htmlFor="application-next" className="text-sm font-semibold text-slate-900">Nächster Schritt</label><Input id="application-next" value={draft.next_action} onChange={(event) => update('next_action', event.target.value)} maxLength={240} placeholder="Zum Beispiel nachfragen oder Gespräch vorbereiten" className="bg-white text-slate-950" /></div>
-                <div className="space-y-2 sm:col-span-2"><label htmlFor="application-notes" className="text-sm font-semibold text-slate-900">Notizen</label><Textarea id="application-notes" value={draft.notes} onChange={(event) => update('notes', event.target.value)} maxLength={5000} className="min-h-28 bg-white text-slate-950" /></div>
-                <div className="flex flex-wrap gap-2 sm:col-span-2">
-                  <Button type="submit" className={primaryButton}>{saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4" />} Bewerbung speichern</Button>
-                  <Button type="button" variant="outline" onClick={onExportCv} className={outlineButton}><Download className="h-4 w-4" /> Aktuellen CV exportieren</Button>
-                  {saved && <Button type="button" variant="outline" onClick={reloadSaved} className={outlineButton}><RefreshCw className="h-4 w-4" /> Gespeicherten Stand laden</Button>}
-                </div>
+          </div>
+          <div>
+            <h2 ref={detailHeading} tabIndex={-1} className="break-words text-xl font-semibold text-slate-950 sm:text-2xl">{saved ? saved.job_title : 'Neue Bewerbung erfassen'}</h2>
+            {saved && (
+              <p className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-slate-600">
+                <span className="break-words">{saved.company}</span>
+                <Badge variant="outline" className={statusStyles[saved.status]}>{APPLICATION_STATUSES[saved.status]}</Badge>
+                <span className="text-xs text-slate-500">Zuletzt gespeichert am {dateLabel(saved.updated_at.slice(0, 10))}</span>
+              </p>
+            )}
+          </div>
+
+          <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start">
+            <form id="application-details" onSubmit={saveDetails} className="min-w-0">
+              <fieldset disabled={busy || !hasSelfServiceAccess} className="min-w-0 space-y-4">
+                <DetailCard title="Stelle">
+                  {importSummary ? (
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">
+                      <Sparkles className="h-4 w-4 shrink-0 text-[#204878]" />
+                      <span className="min-w-0 break-all">{justImported ? 'Importiert von' : 'Inserat auf'} <a href={draft.motivation_form.jobAdUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 font-medium text-[#204878] underline-offset-2 hover:underline">{importSummary}<ExternalLink className="h-3 w-3" /></a></span>
+                      <span className="ml-auto flex gap-1">
+                        <Button type="button" variant="ghost" size="sm" onClick={importJobAd} className="h-8 px-2 text-[#204878] hover:bg-[#EEF4FA]">{extracting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}{extracting ? 'Wird ausgelesen …' : 'Erneut auslesen'}</Button>
+                        <Button type="button" variant="ghost" size="sm" onClick={() => setEditingUrl(true)} className="h-8 px-2 text-slate-600 hover:bg-slate-100">Link ändern</Button>
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="rounded-lg border border-blue-100 bg-blue-50/50 p-3 sm:p-4">
+                      <label htmlFor="application-job-url" className="text-sm font-medium text-slate-900">Link zum Stelleninserat</label>
+                      <div className="mt-1.5 flex flex-col gap-2 sm:flex-row">
+                        <Input id="application-job-url" type="url" inputMode="url" maxLength={500} value={draft.motivation_form.jobAdUrl} onChange={(event) => update('motivation_form', { ...draft.motivation_form, jobAdUrl: event.target.value })} placeholder="https://..." className="min-w-0 flex-1 bg-white text-slate-950" />
+                        <Button type="button" onClick={importJobAd} disabled={!draft.motivation_form.jobAdUrl.trim()} className={primaryButton}>{extracting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}{extracting ? 'Wird ausgelesen …' : 'Mit KI auslesen'}</Button>
+                      </div>
+                      <p className="mt-2 text-xs leading-5 text-slate-600">Die KI übernimmt erkennbare Angaben. Bitte vor dem Speichern prüfen. Geschützte Inserate können Sie manuell erfassen.</p>
+                    </div>
+                  )}
+                  <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                    <div className="space-y-1.5"><label htmlFor="application-company" className={fieldLabel}>Unternehmen *</label><Input id="application-company" value={draft.company} onChange={(event) => update('company', event.target.value)} required maxLength={140} className="bg-white text-slate-950" /></div>
+                    <div className="space-y-1.5"><label htmlFor="application-job" className={fieldLabel}>Stellenbezeichnung *</label><Input id="application-job" value={draft.job_title} onChange={(event) => update('job_title', event.target.value)} required maxLength={140} className="bg-white text-slate-950" /></div>
+                  </div>
+                </DetailCard>
+
+                <DetailCard title="Status & Termine">
+                  <StatusStepper value={draft.status} onChange={changeStatus} disabled={busy || !hasSelfServiceAccess} />
+                  <div className="mt-5 grid gap-4 border-t border-slate-100 pt-4 sm:grid-cols-2">
+                    <div className="space-y-1.5"><label htmlFor="application-deadline" className={fieldLabel}>Bewerbungsfrist</label><ApplicationDateInput id="application-deadline" label="Bewerbungsfrist" value={draft.deadline} onChange={(value) => update('deadline', value)} disabled={busy || !hasSelfServiceAccess} /></div>
+                    {draft.status === 'draft' ? (
+                      <div className="flex items-end">
+                        <button type="button" onClick={() => changeStatus('sent')} className="h-10 text-left text-sm text-[#204878] underline-offset-2 hover:underline disabled:cursor-not-allowed disabled:text-slate-400">Bereits versendet? Als versendet markieren</button>
+                      </div>
+                    ) : (
+                      <div className="space-y-1.5"><label htmlFor="application-applied" className={fieldLabel}>Versendet am</label><ApplicationDateInput id="application-applied" label="Versendet am" value={draft.applied_at} onChange={(value) => setDraft((current) => current && withAppliedAt(current, value))} disabled={busy || !hasSelfServiceAccess} /></div>
+                    )}
+                  </div>
+                </DetailCard>
+
+                <DetailCard title="Nächster Schritt" description="Erscheint in der Übersicht und wird hervorgehoben, sobald er fällig ist.">
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                    <label htmlFor="application-next" className="sr-only">Nächster Schritt</label>
+                    <Input id="application-next" value={draft.next_action} onChange={(event) => update('next_action', event.target.value)} maxLength={240} placeholder="Zum Beispiel Unterlagen versenden" className="min-w-0 flex-1 bg-white text-slate-950" />
+                    <span aria-hidden="true" className="text-sm text-slate-500">bis</span>
+                    <label htmlFor="application-next-date" className="sr-only">Nächste Aktion am</label>
+                    <div className="sm:w-44"><ApplicationDateInput id="application-next-date" label="Nächste Aktion am" value={draft.next_action_at} onChange={(value) => update('next_action_at', value)} disabled={busy || !hasSelfServiceAccess} /></div>
+                  </div>
+                  {!draft.next_action && NEXT_STEP_SUGGESTIONS[draft.status].length > 0 && (
+                    <div className="mt-3 flex flex-wrap items-center gap-2">
+                      <span className="text-xs text-slate-500">Vorschläge:</span>
+                      {NEXT_STEP_SUGGESTIONS[draft.status].map((suggestion) => (
+                        <button key={suggestion} type="button" onClick={() => update('next_action', suggestion)} className="rounded-full border border-dashed border-slate-300 px-2.5 py-1 text-xs text-slate-600 transition-colors hover:border-[#204878] hover:text-[#204878] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#204878]">{suggestion}</button>
+                      ))}
+                    </div>
+                  )}
+                </DetailCard>
+
+                <DetailCard title="Notizen">
+                  <label htmlFor="application-notes" className="sr-only">Notizen</label>
+                  <Textarea id="application-notes" value={draft.notes} onChange={(event) => update('notes', event.target.value)} maxLength={5000} placeholder="Gesprächspartner, Eindrücke, offene Fragen …" className="min-h-24 bg-white text-slate-950" />
+                </DetailCard>
               </fieldset>
-              {saved && <div className="mt-4 flex justify-end"><Button type="button" variant="outline" onClick={remove} disabled={busy} className="border-red-200 bg-white text-red-700 hover:bg-red-50"><Trash2 className="h-4 w-4" /> Löschen</Button></div>}
             </form>
-            <p className="mt-4 text-xs leading-5 text-slate-500">Der CV verwendet Ihre aktuellen Profildaten. Eine Kopie des versendeten CV wird hier nicht gespeichert. Termine für nächste Aktionen erscheinen in dieser Übersicht.</p>
-          </section>
-          <MotivationLetterSection
-            hasSelfServiceAccess={hasSelfServiceAccess}
-            onRequirePayment={onRequirePayment}
-            draft={{ form: draft.motivation_form, letter: draft.motivation_letter }}
-            onDraftChange={changeLetter}
-            onSaveDraft={hasSelfServiceAccess ? saveLetter : undefined}
-            applicationId={saved?.id}
-            autoSaveDraft
-            disabled={saving}
-            readOnly={!hasSelfServiceAccess}
-            onBusyChange={setWorking}
-          />
-        </>
+
+            <aside className="min-w-0 space-y-4">
+              <DetailCard title="Unterlagen">
+                <ul className="space-y-2">
+                  <li className="rounded-md border border-slate-200 p-3">
+                    <div className="flex items-start gap-3">
+                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-[#EEF4FA] text-[#204878]"><FileText className="h-4 w-4" /></span>
+                      <div className="min-w-0"><p className="text-sm font-medium text-slate-950">Motivationsschreiben</p><p className="text-xs text-slate-500">{letterWords ? `Entwurf · ${letterWords} Wörter` : 'Noch nicht erstellt'}</p></div>
+                    </div>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <Button type="button" variant="outline" size="sm" onClick={scrollToLetter} className={outlineButton}>{letterWords ? 'Öffnen' : <><Sparkles className="h-3.5 w-3.5" /> Schreiben erstellen</>}</Button>
+                      {letterWords > 0 && <Button type="button" variant="outline" size="sm" onClick={downloadLetter} disabled={busy} className={outlineButton}>{downloading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />} Word herunterladen</Button>}
+                    </div>
+                  </li>
+                  <li className="rounded-md border border-slate-200 p-3">
+                    <div className="flex items-start gap-3">
+                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-slate-100 text-slate-600"><UserRound className="h-4 w-4" /></span>
+                      <div className="min-w-0"><p className="text-sm font-medium text-slate-950">Lebenslauf</p><p className="text-xs text-slate-500">Aus Ihren aktuellen Profildaten</p></div>
+                    </div>
+                    <Button type="button" variant="outline" size="sm" onClick={onExportCv} className={`mt-3 ${outlineButton}`}><Download className="h-3.5 w-3.5" /> Aktuellen CV exportieren</Button>
+                  </li>
+                </ul>
+              </DetailCard>
+              {saved && (
+                <div className="flex flex-wrap gap-2 px-1">
+                  <Button type="button" variant="ghost" size="sm" onClick={reloadSaved} disabled={busy} className="text-slate-600 hover:bg-slate-100"><RefreshCw className="h-3.5 w-3.5" /> Gespeicherten Stand laden</Button>
+                  <Button type="button" variant="ghost" size="sm" onClick={remove} disabled={busy} className="text-red-700 hover:bg-red-50 hover:text-red-800"><Trash2 className="h-3.5 w-3.5" /> Löschen</Button>
+                </div>
+              )}
+            </aside>
+          </div>
+
+          <DetailCard id="application-letter" title="Motivationsschreiben" description="Wird beim Erstellen und Herunterladen an dieser Bewerbung gespeichert.">
+            <MotivationLetterSection
+              embedded
+              hasSelfServiceAccess={hasSelfServiceAccess}
+              onRequirePayment={onRequirePayment}
+              draft={{ form: draft.motivation_form, letter: draft.motivation_letter }}
+              onDraftChange={changeLetter}
+              onSaveDraft={hasSelfServiceAccess ? saveLetter : undefined}
+              applicationId={saved?.id}
+              autoSaveDraft
+              disabled={saving}
+              readOnly={!hasSelfServiceAccess}
+              onBusyChange={setWorking}
+            />
+          </DetailCard>
+        </div>
       ) : (
         <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-6" aria-busy={loading}>
           <div className="flex items-center justify-between gap-3">

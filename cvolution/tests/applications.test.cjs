@@ -252,3 +252,16 @@ test('database failures do not leak details or return success', async () => {
     assert.doesNotMatch(await response.text(), /private database details/);
   }
 });
+
+test('status changes keep the dispatch date consistent', () => {
+  const draft = { status: 'draft', applied_at: null };
+  assert.deepEqual(domain().withApplicationStatus(draft, 'sent', '2026-11-03'), { status: 'sent', applied_at: '2026-11-03' });
+  assert.deepEqual(domain().withApplicationStatus({ status: 'sent', applied_at: '2026-10-01' }, 'interview', '2026-11-03'), { status: 'interview', applied_at: '2026-10-01' });
+  assert.deepEqual(domain().withApplicationStatus(draft, 'interview', '2026-11-03'), { status: 'interview', applied_at: null });
+  assert.deepEqual(domain().withApplicationStatus({ status: 'sent', applied_at: '2026-10-01' }, 'draft'), { status: 'draft', applied_at: null });
+  assert.deepEqual(domain().withAppliedAt(draft, '2026-11-01'), { status: 'sent', applied_at: '2026-11-01' });
+  assert.deepEqual(domain().withAppliedAt(draft, '01.11'), { status: 'draft', applied_at: '01.11' });
+  assert.deepEqual(domain().withAppliedAt({ status: 'interview', applied_at: '2026-10-01' }, null), { status: 'interview', applied_at: null });
+  assert.deepEqual(['draft', 'sent', 'interview', 'offer', 'rejected', 'withdrawn'].map(domain().applicationStepIndex), [0, 1, 2, 3, 3, 3]);
+  assert.deepEqual(domain().NEXT_STEP_SUGGESTIONS.rejected, []);
+});

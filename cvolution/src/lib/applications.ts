@@ -1,8 +1,8 @@
 export const APPLICATION_STATUSES = {
   draft: 'Entwurf',
   sent: 'Versendet',
-  interview: 'Vorstellungsgespräch',
-  offer: 'Angebot',
+  interview: 'Gespräch',
+  offer: 'Zusage',
   rejected: 'Absage',
   withdrawn: 'Zurückgezogen',
 } as const;
@@ -158,3 +158,31 @@ export function filterApplications(applications: Application[], search: string, 
     return next || b.updated_at.localeCompare(a.updated_at);
   });
 }
+
+// Statuses shown as steps; offer and rejected are alternative end states, withdrawn sits apart.
+export const APPLICATION_STEPS: ApplicationStatus[] = ['draft', 'sent', 'interview'];
+export const APPLICATION_END_STATES: ApplicationStatus[] = ['offer', 'rejected'];
+
+export function applicationStepIndex(status: ApplicationStatus): number {
+  return status === 'draft' ? 0 : status === 'sent' ? 1 : status === 'interview' ? 2 : 3;
+}
+
+// "Versendet am" only exists from "Versendet" on: entering it dates the dispatch, leaving it clears the date.
+export function withApplicationStatus<T extends Pick<ApplicationInput, 'status' | 'applied_at'>>(input: T, status: ApplicationStatus, today = todayInZurich()): T {
+  if (status === 'draft') return { ...input, status, applied_at: null };
+  return { ...input, status, applied_at: input.applied_at || (status === 'sent' ? today : null) };
+}
+
+export function withAppliedAt<T extends Pick<ApplicationInput, 'status' | 'applied_at'>>(input: T, appliedAt: string | null): T {
+  const dated = Boolean(appliedAt && /^\d{4}-\d{2}-\d{2}$/.test(appliedAt));
+  return { ...input, applied_at: appliedAt, status: dated && input.status === 'draft' ? 'sent' : input.status };
+}
+
+export const NEXT_STEP_SUGGESTIONS: Record<ApplicationStatus, string[]> = {
+  draft: ['Unterlagen versenden', 'Motivationsschreiben fertigstellen'],
+  sent: ['Telefonisch nachfassen', 'Rückmeldung abwarten'],
+  interview: ['Gespräch vorbereiten', 'Dankes-Mail senden'],
+  offer: ['Vertrag prüfen', 'Zusage geben'],
+  rejected: [],
+  withdrawn: [],
+};

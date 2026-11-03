@@ -121,8 +121,11 @@ test('application journey saves separate letters, survives refresh and reuses th
   await manager.getByLabel('Bewerbungen durchsuchen').waitFor();
   assert.equal(state.records.length, 1);
   await manager.getByRole('button').filter({ hasText: 'Projektleitung' }).click();
+  await manager.getByRole('article').waitFor();
+  await manager.getByRole('button', { name: 'Bearbeiten', exact: true }).click();
   await manager.getByLabel('Schreiben bearbeiten', { exact: true }).fill('Mein bearbeiteter Brief.\n\nZweiter Absatz.');
-  await manager.getByLabel('Status', { exact: true }).selectOption('sent');
+  await manager.getByRole('button', { name: 'Versendet', exact: true }).click();
+  assert.match(await manager.getByLabel('Versendet am', { exact: true }).inputValue(), /^\d{2}\.\d{2}\.\d{4}$/, 'Marking as sent dates the dispatch');
   await save(manager);
   await page.getByRole('tab', { name: 'CV Self-Service', exact: true }).click();
   await page.getByRole('tab', { name: 'Bewerbungen', exact: true }).click();
@@ -132,7 +135,10 @@ test('application journey saves separate letters, survives refresh and reuses th
   await page.getByRole('dialog').getByRole('button', { name: 'Abbrechen' }).click();
   await page.reload();
   await manager.getByRole('button').filter({ hasText: 'Projektleitung' }).click();
+  await manager.getByRole('article').filter({ hasText: 'Zweiter Absatz.' }).waitFor();
+  await manager.getByRole('button', { name: 'Bearbeiten', exact: true }).click();
   assert.equal(await manager.getByLabel('Schreiben bearbeiten', { exact: true }).inputValue(), 'Mein bearbeiteter Brief.\n\nZweiter Absatz.');
+  assert.equal(state.records.find((row) => row.company === 'Muster AG').status, 'sent');
   await manager.getByRole('button', { name: 'Übersicht', exact: true }).click();
   await create(manager, 'Zweite AG', 'Beratung');
   await manager.getByRole('button', { name: 'Erstellen', exact: true }).click();
@@ -193,7 +199,8 @@ test('standalone letters transfer to applications and stored data remains usable
   await tool.getByLabel('Unternehmen (optional)', { exact: true }).fill('Transfer AG');
   await tool.getByLabel(/^Stellenanzeige/).fill('Ein Inserat für die Beratung.');
   await tool.getByRole('button', { name: 'Erstellen', exact: true }).click();
-  await tool.getByLabel('Schreiben bearbeiten', { exact: true }).waitFor();
+  await tool.getByRole('article').filter({ hasText: 'Transfer AG' }).waitFor();
+  await tool.getByRole('button', { name: 'Bearbeiten', exact: true }).click();
   assert.equal(state.records.length, 0);
   await page.getByRole('tab', { name: 'Bewerbungen', exact: true }).click();
   await page.getByRole('tab', { name: 'AI Motivationsschreiben', exact: true }).click();
@@ -208,6 +215,7 @@ test('standalone letters transfer to applications and stored data remains usable
   await page.reload();
   await manager.getByRole('button').filter({ hasText: 'Transfer AG' }).click();
   await manager.getByRole('button', { name: 'Abo aktivieren', exact: true }).waitFor();
+  await manager.getByRole('button', { name: 'Text', exact: true }).click();
   assert.equal(await manager.getByLabel('Gespeichertes Schreiben', { exact: true }).getAttribute('readonly'), '');
   assert.equal(await manager.getByLabel('Unternehmen *', { exact: true }).isDisabled(), true);
   assert.equal(await manager.getByRole('button', { name: 'Mit KI auslesen', exact: true }).isDisabled(), true);
@@ -245,15 +253,17 @@ test('advert link extraction fills a reviewable draft and preserves notes', opti
   assert.equal(state.records.length, 0, 'Import must not save before review');
   await manager.getByRole('button', { name: 'Bewerbung speichern', exact: true }).first().click();
   await manager.getByRole('button').filter({ hasText: 'Teamleitung' }).click();
-  assert.equal(await manager.getByLabel('Link zum Stelleninserat', { exact: true }).inputValue(), 'https://example.test/job');
+  assert.equal(await manager.getByRole('link', { name: 'example.test' }).getAttribute('href'), 'https://example.test/job');
   assert.match(state.records[0].motivation_form.jobAd, /Importierter Inserattext/);
   page.once('dialog', (dialog) => dialog.dismiss());
-  await manager.getByRole('button', { name: 'Mit KI auslesen', exact: true }).click();
+  await manager.getByRole('button', { name: 'Erneut auslesen', exact: true }).click();
   assert.equal(state.extractions.length, 1, 'Rejecting replacement must not call AI');
   page.once('dialog', (dialog) => dialog.accept());
-  await manager.getByRole('button', { name: 'Mit KI auslesen', exact: true }).click();
-  await page.waitForFunction(() => !document.querySelector('#application-job-url')?.disabled);
+  await manager.getByRole('button', { name: 'Erneut auslesen', exact: true }).click();
+  await manager.getByRole('button', { name: 'Erneut auslesen', exact: true }).waitFor();
   assert.equal(state.extractions.length, 2);
+  await manager.getByRole('button', { name: 'Link ändern', exact: true }).click();
+  assert.equal(await manager.getByLabel('Link zum Stelleninserat', { exact: true }).inputValue(), 'https://example.test/job');
   assert.equal(await manager.getByLabel('Notizen', { exact: true }).inputValue(), 'Eigene Notizen bleiben erhalten');
   assert.deepEqual(state.errors, []);
 });
@@ -290,7 +300,7 @@ test('standalone advert-only letters still download without creating an applicat
   const tool = page.getByRole('tabpanel', { name: 'AI Motivationsschreiben', exact: true });
   await tool.getByLabel(/^Stellenanzeige/).fill('Gesucht wird eine Person für die Beratung.');
   await tool.getByRole('button', { name: 'Erstellen', exact: true }).click();
-  await tool.getByLabel('Schreiben bearbeiten', { exact: true }).waitFor();
+  await tool.getByRole('article').waitFor();
   const download = page.waitForEvent('download', { timeout: 5000 });
   await tool.getByRole('button', { name: 'Word', exact: true }).click();
   await download;
@@ -366,6 +376,8 @@ test('filter chips count and filter open and due applications', options, async (
 test('date fields use Swiss formatting, validate input and retain calendar selection', options, async (t) => {
   const { page, manager, state } = await fixture(t);
   await create(manager);
+  assert.equal(await manager.getByLabel('Versendet am', { exact: true }).count(), 0, 'Drafts have no dispatch date');
+  await manager.getByRole('button', { name: 'Bereits versendet? Als versendet markieren', exact: true }).click();
   await manager.getByLabel('Versendet am', { exact: true }).fill('03.11.2026');
   await manager.getByLabel('Bewerbungsfrist', { exact: true }).fill('30112026');
   await manager.getByLabel('Nächste Aktion am', { exact: true }).fill('17.11.2026');
