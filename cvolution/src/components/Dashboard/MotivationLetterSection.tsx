@@ -33,6 +33,7 @@ type MotivationLetterSectionProps = {
   applicationId?: string;
   autoSaveDraft?: boolean;
   disabled?: boolean;
+  readOnly?: boolean;
   onBusyChange?: (busy: boolean) => void;
 };
 
@@ -105,6 +106,7 @@ export const MotivationLetterSection: React.FC<MotivationLetterSectionProps> = (
   applicationId,
   autoSaveDraft = false,
   disabled = false,
+  readOnly = false,
   onBusyChange,
 }) => {
   const { user } = useAuth();
@@ -309,7 +311,7 @@ export const MotivationLetterSection: React.FC<MotivationLetterSectionProps> = (
 
         <form onSubmit={handleGenerate} className="mt-6 grid gap-5 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] lg:items-stretch">
           <fieldset disabled={disabled || isGenerating || isSavingDraft} className="contents">
-          <div className="space-y-4">
+          <fieldset disabled={readOnly} className="space-y-4">
             <div className="space-y-2">
               <label htmlFor={`${fieldId}-applicationType`} className="text-sm font-semibold text-slate-900">
                 Art der Bewerbung
@@ -510,7 +512,7 @@ export const MotivationLetterSection: React.FC<MotivationLetterSectionProps> = (
                 </Button>
               )}
             </div>
-          </div>
+          </fieldset>
 
           <div className="min-h-[28rem] lg:relative lg:min-h-0">
             <aside className="flex h-full min-h-0 flex-col overflow-hidden rounded-lg border border-slate-200 bg-[#F8FAFC] p-4 sm:p-5 lg:absolute lg:inset-0">
@@ -553,8 +555,8 @@ export const MotivationLetterSection: React.FC<MotivationLetterSectionProps> = (
                   </div>
                 ) : letter ? (
                   <div className="space-y-4">
-                    <label htmlFor={`${fieldId}-letter`} className="block text-xs font-semibold text-slate-600">Schreiben bearbeiten</label>
-                    <Textarea id={`${fieldId}-letter`} value={letter} onChange={(event) => changeDraft({ form, letter: event.target.value })} maxLength={12000} className="min-h-80 border-slate-200 bg-white text-slate-950" />
+                    <label htmlFor={`${fieldId}-letter`} className="block text-xs font-semibold text-slate-600">{readOnly ? 'Gespeichertes Schreiben' : 'Schreiben bearbeiten'}</label>
+                    <Textarea id={`${fieldId}-letter`} value={letter} readOnly={readOnly} onChange={(event) => changeDraft({ form, letter: event.target.value })} maxLength={12000} className="min-h-80 border-slate-200 bg-white text-slate-950" />
                     <details>
                       <summary className="cursor-pointer text-xs font-semibold text-slate-600">Formatierte Vorschau</summary>
                       <div className="mt-4"><LetterPreview letter={letter} /></div>

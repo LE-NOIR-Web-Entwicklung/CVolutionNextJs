@@ -44,6 +44,8 @@ export type Application = ApplicationInput & {
   updated_at: string;
 };
 
+export type JobAdExtraction = Pick<ApplicationInput, 'company' | 'job_title' | 'deadline' | 'motivation_form'>;
+
 export function emptyMotivationForm(): MotivationForm {
   return { applicationType: 'reactive', jobTitle: '', company: '', companyStreet: '', companyPostalCode: '', companyCity: '', recipient: '', jobAd: '', jobAdUrl: '', language: 'de-CH' };
 }

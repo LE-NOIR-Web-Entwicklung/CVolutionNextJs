@@ -14,6 +14,18 @@ export async function applicationUser(request: Request) {
   return error ? null : data.user;
 }
 
+class ApplicationSubscriptionRequired extends Error {}
+
+export async function requireApplicationSubscription(userId: string) {
+  const { data: profile, error } = await supabaseAdmin.from('profiles')
+    .select('paid,paydate,subscription_current_period_end,subscription_status').eq('user_id', userId).single();
+  if (error) throw error;
+  const periodEnd = profile?.subscription_current_period_end || profile?.paydate;
+  const active = periodEnd && Date.parse(periodEnd) > Date.now() &&
+    (profile?.paid || ['active', 'canceled'].includes(profile?.subscription_status));
+  if (!active) throw new ApplicationSubscriptionRequired();
+}
+
 export async function applicationBody(request: Request): Promise<Record<string, unknown>> {
   // Bound the stream as well as Content-Length; chunked requests have no trusted length.
   const reader = request.body?.getReader();
@@ -39,6 +51,7 @@ export async function applicationBody(request: Request): Promise<Record<string, 
 class ApplicationBodyTooLarge extends Error {}
 
 export function applicationFailure(error: unknown) {
+  if (error instanceof ApplicationSubscriptionRequired) return applicationJson({ error: 'Der Bewerbungsmanager ist im aktiven Self-Service-Abo enthalten.' }, 402);
   if (error instanceof ApplicationBodyTooLarge) return applicationJson({ error: 'Die Bewerbung ist zu gross.' }, 413);
   if (error instanceof ApplicationInputError) return applicationJson({ error: error.message }, 400);
   return applicationJson({ error: 'Die Bewerbung konnte nicht verarbeitet werden. Bitte versuchen Sie es erneut.' }, 500);

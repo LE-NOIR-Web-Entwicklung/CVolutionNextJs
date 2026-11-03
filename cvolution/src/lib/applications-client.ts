@@ -1,5 +1,9 @@
 import { supabase } from '@/integrations/supabase/client';
-import { type Application, type ApplicationInput, parseApplicationInput } from './applications';
+import { type Application, type ApplicationInput, type JobAdExtraction, parseApplicationInput } from './applications';
+
+export class ApplicationRequestError extends Error {
+  constructor(message: string, public status: number) { super(message); }
+}
 
 async function applicationRequest(path: string, options: RequestInit = {}) {
   const { data } = await supabase.auth.getSession();
@@ -12,7 +16,7 @@ async function applicationRequest(path: string, options: RequestInit = {}) {
   });
   if (response.status === 204) return null;
   const result = await response.json().catch(() => null);
-  if (!response.ok) throw new Error(result?.error || 'Die Bewerbung konnte nicht verarbeitet werden. Bitte versuchen Sie es erneut.');
+  if (!response.ok) throw new ApplicationRequestError(result?.error || 'Die Bewerbung konnte nicht verarbeitet werden. Bitte versuchen Sie es erneut.', response.status);
   return result;
 }
 
@@ -38,6 +42,11 @@ export async function saveApplication(input: ApplicationInput, saved: Applicatio
 
 export async function deleteApplication(id: string): Promise<void> {
   await applicationRequest(`/${id}`, { method: 'DELETE' });
+}
+
+export async function extractApplication(url: string): Promise<JobAdExtraction> {
+  const result = await applicationRequest('/extract', { method: 'POST', body: JSON.stringify({ url }) });
+  return result.extraction;
 }
 
 export function downloadApplications(applications: Application[]) {

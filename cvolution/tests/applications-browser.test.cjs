@@ -13,7 +13,7 @@ async function fixture(t) {
   const browser = await chromium.launch({ executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE || undefined, headless: true });
   t.after(() => browser.close());
   const context = await browser.newContext({ viewport: { width: 1440, height: 1000 }, acceptDownloads: true });
-  const state = { records: [], paid: true, failSave: false, failLoad: false, words: [], generations: [], errors: [] };
+  const state = { records: [], paid: true, failSave: false, failLoad: false, failExtract: false, words: [], generations: [], extractions: [], errors: [] };
   const user = { id: owner, email: 'fixture@example.test', aud: 'authenticated', role: 'authenticated', app_metadata: {}, user_metadata: {}, created_at: '2026-01-01T00:00:00Z' };
   const token = `${Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64url')}.${Buffer.from(JSON.stringify({ sub: owner, exp: 4102444800, aud: 'authenticated', role: 'authenticated' })).toString('base64url')}.fixture`;
   await context.addInitScript(({ token, user }) => {
@@ -28,6 +28,15 @@ async function fixture(t) {
       if (url.pathname.endsWith('/profiles')) return json({ user_id: owner, full_name: 'Testperson Muster', paid: state.paid, subscription_status: state.paid ? 'active' : 'canceled', subscription_provider: 'saferpay', subscription_current_period_end: state.paid ? '2099-01-01' : '2000-01-01' });
       return json([]);
     }
+    if (url.pathname === '/api/applications/extract') {
+      if (!state.paid) return json({ error: 'Abo erforderlich' }, 402);
+      state.extractions.push(req.postDataJSON());
+      if (state.failExtract) return json({ error: 'Das Inserat konnte nicht gelesen werden. Bitte erfassen Sie die Angaben manuell.' }, 422);
+      return json({ extraction: {
+        company: 'Import AG', job_title: 'Teamleitung', deadline: '2026-12-15',
+        motivation_form: { applicationType: 'reactive', jobTitle: 'Teamleitung', company: 'Import AG', companyStreet: 'Musterweg 1', companyPostalCode: '8000', companyCity: 'Zürich', recipient: 'Frau Beispiel', jobAd: 'Importierter Inserattext mit den Aufgaben und Anforderungen.', jobAdUrl: req.postDataJSON().url, language: 'de-CH' },
+      } });
+    }
     if (url.pathname.startsWith('/api/applications')) {
       const id = url.pathname.split('/')[3];
       if (req.method() === 'GET') {
@@ -38,6 +47,7 @@ async function fixture(t) {
         state.records = state.records.filter((row) => row.id !== id);
         return route.fulfill({ status: 204 });
       }
+      if (!state.paid) return json({ error: 'Der Bewerbungsmanager ist im aktiven Self-Service-Abo enthalten.' }, 402);
       if (state.failSave) { state.failSave = false; return json({ error: 'Test: Speichern fehlgeschlagen' }, 500); }
       const { expected_updated_at, ...input } = req.postDataJSON();
       const saved = state.records.find((row) => row.id === id);
@@ -81,14 +91,35 @@ async function save(manager) {
   await manager.getByRole('status').filter({ hasText: 'Alle Änderungen gespeichert' }).waitFor();
 }
 
+test('first successful save returns to the overview while later edits stay open', options, async (t) => {
+  const { page, manager, state } = await fixture(t);
+  await create(manager);
+  state.failSave = true;
+  await manager.getByRole('button', { name: 'Bewerbung speichern', exact: true }).first().click();
+  await manager.getByRole('alert').filter({ hasText: 'Test: Speichern fehlgeschlagen' }).waitFor();
+  assert.equal(await manager.getByLabel('Unternehmen *', { exact: true }).inputValue(), 'Muster AG');
+  await manager.getByRole('button', { name: 'Bewerbung speichern', exact: true }).first().click();
+  await manager.getByLabel('Bewerbungen durchsuchen').waitFor({ timeout: 2000 });
+  assert.equal(state.records.length, 1);
+  assert.equal(await manager.getByLabel('Unternehmen *', { exact: true }).count(), 0);
+  await page.waitForFunction(() => document.activeElement?.tagName === 'H2' && document.activeElement.textContent === 'Bewerbungen');
+  await manager.getByRole('button').filter({ hasText: 'Projektleitung' }).click();
+  await manager.getByLabel('Notizen', { exact: true }).fill('Nachträgliche Änderung');
+  await save(manager);
+  assert.equal(await manager.getByLabel('Notizen', { exact: true }).inputValue(), 'Nachträgliche Änderung');
+  assert.equal(state.records[0].notes, 'Nachträgliche Änderung');
+  assert.deepEqual(state.errors, []);
+});
+
 test('application journey saves separate letters, survives refresh and reuses the CV export', options, async (t) => {
   const { page, manager, state } = await fixture(t);
   await create(manager);
-  await manager.getByLabel('Wiedervorlage am').fill('2026-11-02');
+  await manager.getByLabel('Nächste Aktion am').fill('2026-11-02');
   await manager.getByLabel('Nächster Schritt', { exact: true }).fill('Nachfassen');
   await manager.getByRole('button', { name: 'Erstellen', exact: true }).click();
-  await manager.getByRole('status').filter({ hasText: 'Alle Änderungen gespeichert' }).waitFor();
+  await manager.getByLabel('Bewerbungen durchsuchen').waitFor();
   assert.equal(state.records.length, 1);
+  await manager.getByRole('button').filter({ hasText: 'Projektleitung' }).click();
   await manager.getByLabel('Schreiben bearbeiten', { exact: true }).fill('Mein bearbeiteter Brief.\n\nZweiter Absatz.');
   await manager.getByLabel('Status', { exact: true }).selectOption('sent');
   await save(manager);
@@ -104,11 +135,10 @@ test('application journey saves separate letters, survives refresh and reuses th
   await manager.getByRole('button', { name: 'Übersicht', exact: true }).click();
   await create(manager, 'Zweite AG', 'Beratung');
   await manager.getByRole('button', { name: 'Erstellen', exact: true }).click();
-  await manager.getByRole('status').filter({ hasText: 'Alle Änderungen gespeichert' }).waitFor();
+  await manager.getByLabel('Bewerbungen durchsuchen').waitFor();
   assert.equal(state.records.length, 2);
   assert.match(state.records.find((row) => row.company === 'Muster AG').motivation_letter, /bearbeiteter Brief/);
   assert.match(state.records.find((row) => row.company === 'Zweite AG').motivation_letter, /Zweite AG/);
-  await manager.getByRole('button', { name: 'Übersicht', exact: true }).click();
   await manager.getByLabel('Bewerbungen durchsuchen').fill('mUsTeR');
   assert.equal(await manager.locator('li').count(), 1);
   await manager.getByLabel('Nach Status filtern').selectOption('rejected');
@@ -123,7 +153,9 @@ test('save, load and conflict failures keep input; deletion requires confirmatio
   await manager.getByRole('button', { name: 'Bewerbung speichern', exact: true }).first().click();
   await manager.getByRole('alert').filter({ hasText: 'Test: Speichern fehlgeschlagen' }).waitFor();
   assert.equal(await manager.getByLabel('Unternehmen *', { exact: true }).inputValue(), 'Muster AG');
-  await save(manager);
+  await manager.getByRole('button', { name: 'Bewerbung speichern', exact: true }).first().click();
+  await manager.getByLabel('Bewerbungen durchsuchen').waitFor();
+  await manager.getByRole('button').filter({ hasText: 'Projektleitung' }).click();
   state.records[0].updated_at = '2099-01-01T00:00:00.000Z';
   await manager.getByLabel('Notizen', { exact: true }).fill('Lokale Eingabe bleibt');
   await manager.getByRole('button', { name: 'Bewerbung speichern', exact: true }).first().click();
@@ -166,7 +198,7 @@ test('standalone letters transfer to applications and stored data remains usable
   await page.getByRole('tab', { name: 'AI Motivationsschreiben', exact: true }).click();
   assert.match(await tool.getByLabel('Schreiben bearbeiten', { exact: true }).inputValue(), /Transfer AG/);
   await tool.getByRole('button', { name: 'Bewerbung speichern', exact: true }).click();
-  await manager.getByLabel('Schreiben bearbeiten', { exact: true }).waitFor();
+  await manager.getByLabel('Bewerbungen durchsuchen').waitFor();
   assert.equal(state.records.length, 1);
   await page.getByRole('tab', { name: 'AI Motivationsschreiben', exact: true }).click();
   assert.equal(await tool.getByLabel('Unternehmen (optional)', { exact: true }).inputValue(), '');
@@ -175,18 +207,80 @@ test('standalone letters transfer to applications and stored data remains usable
   await page.reload();
   await manager.getByRole('button').filter({ hasText: 'Transfer AG' }).click();
   await manager.getByRole('button', { name: 'Abo aktivieren', exact: true }).waitFor();
-  await manager.getByLabel('Schreiben bearbeiten', { exact: true }).fill('Auch nach Abo-Ende bearbeitbar.');
+  assert.equal(await manager.getByLabel('Gespeichertes Schreiben', { exact: true }).getAttribute('readonly'), '');
+  assert.equal(await manager.getByLabel('Unternehmen *', { exact: true }).isDisabled(), true);
+  assert.equal(await manager.getByRole('button', { name: 'Mit KI auslesen', exact: true }).isDisabled(), true);
   const download = page.waitForEvent('download');
   await manager.getByRole('button', { name: 'Word', exact: true }).click();
   await download;
   assert.equal(state.words[0].applicationId, state.records[0].id);
-  assert.equal(state.records[0].motivation_letter, 'Auch nach Abo-Ende bearbeitbar.');
+  assert.match(state.records[0].motivation_letter, /Transfer AG/);
   const exportDownload = page.waitForEvent('download');
   await manager.getByRole('button', { name: 'Daten exportieren' }).click();
   const exported = await exportDownload;
   assert.equal(exported.suggestedFilename(), 'cvolution-bewerbungen.json');
   assert.equal(state.generations.length, 1);
+  await manager.getByRole('button', { name: 'Bewerbung erfassen', exact: true }).click();
+  await page.getByRole('dialog').waitFor();
+  await page.keyboard.press('Escape');
+  page.once('dialog', (dialog) => dialog.accept());
+  await manager.getByRole('button', { name: 'Löschen', exact: true }).click();
+  await manager.getByRole('heading', { name: 'Ihre erste Bewerbung beginnt hier' }).waitFor();
+  assert.equal(state.records.length, 0);
   assert.deepEqual(state.errors, []);
+});
+
+test('advert link extraction fills a reviewable draft and preserves notes', options, async (t) => {
+  const { page, manager, state } = await fixture(t);
+  await manager.getByRole('button', { name: 'Bewerbung erfassen', exact: true }).click();
+  await manager.getByLabel('Notizen', { exact: true }).fill('Eigene Notizen bleiben erhalten');
+  await manager.getByLabel('Link zum Stelleninserat', { exact: true }).fill('https://example.test/job');
+  await manager.getByRole('button', { name: 'Mit KI auslesen', exact: true }).click();
+  await page.waitForFunction(() => document.getElementById('application-company')?.value === 'Import AG');
+  assert.equal(await manager.getByLabel('Stellenbezeichnung *', { exact: true }).inputValue(), 'Teamleitung');
+  assert.equal(await manager.getByLabel('Bewerbungsfrist', { exact: true }).inputValue(), '2026-12-15');
+  assert.equal(await manager.getByLabel('Ansprechperson (optional)', { exact: true }).inputValue(), 'Frau Beispiel');
+  assert.equal(await manager.getByLabel('Notizen', { exact: true }).inputValue(), 'Eigene Notizen bleiben erhalten');
+  assert.equal(state.records.length, 0, 'Import must not save before review');
+  await manager.getByRole('button', { name: 'Bewerbung speichern', exact: true }).first().click();
+  await manager.getByRole('button').filter({ hasText: 'Teamleitung' }).click();
+  assert.equal(await manager.getByLabel('Link zum Stelleninserat', { exact: true }).inputValue(), 'https://example.test/job');
+  assert.match(state.records[0].motivation_form.jobAd, /Importierter Inserattext/);
+  page.once('dialog', (dialog) => dialog.dismiss());
+  await manager.getByRole('button', { name: 'Mit KI auslesen', exact: true }).click();
+  assert.equal(state.extractions.length, 1, 'Rejecting replacement must not call AI');
+  page.once('dialog', (dialog) => dialog.accept());
+  await manager.getByRole('button', { name: 'Mit KI auslesen', exact: true }).click();
+  await page.waitForFunction(() => !document.querySelector('#application-job-url')?.disabled);
+  assert.equal(state.extractions.length, 2);
+  assert.equal(await manager.getByLabel('Notizen', { exact: true }).inputValue(), 'Eigene Notizen bleiben erhalten');
+  assert.deepEqual(state.errors, []);
+});
+
+test('failed advert imports keep inputs and permit manual entry', options, async (t) => {
+  const { manager, state } = await fixture(t);
+  await manager.getByRole('button', { name: 'Bewerbung erfassen', exact: true }).click();
+  await manager.getByLabel('Link zum Stelleninserat', { exact: true }).fill('https://example.test/protected');
+  state.failExtract = true;
+  await manager.getByRole('button', { name: 'Mit KI auslesen', exact: true }).click();
+  await manager.getByRole('alert').filter({ hasText: 'Bitte erfassen Sie die Angaben manuell' }).waitFor();
+  assert.equal(await manager.getByLabel('Link zum Stelleninserat', { exact: true }).inputValue(), 'https://example.test/protected');
+  await manager.getByLabel('Unternehmen *', { exact: true }).fill('Manuell AG');
+  await manager.getByLabel('Stellenbezeichnung *', { exact: true }).fill('Beratung');
+  await manager.getByRole('button', { name: 'Bewerbung speichern', exact: true }).first().click();
+  await manager.getByLabel('Bewerbungen durchsuchen').waitFor();
+  assert.equal(state.records[0].company, 'Manuell AG');
+});
+
+test('subscription expiry during editing blocks saving and opens the subscription dialog', options, async (t) => {
+  const { page, manager, state } = await fixture(t);
+  await create(manager);
+  state.paid = false;
+  await manager.getByRole('button', { name: 'Bewerbung speichern', exact: true }).first().click();
+  await page.getByRole('dialog').waitFor();
+  assert.equal(state.records.length, 0);
+  await page.keyboard.press('Escape');
+  assert.equal(await manager.getByLabel('Unternehmen *', { exact: true }).inputValue(), 'Muster AG');
 });
 
 test('standalone advert-only letters still download without creating an application', options, async (t) => {
@@ -217,7 +311,8 @@ test('internal site navigation warns before discarding unsaved application input
 test('responsive layouts, labels, focus and document ids remain usable', options, async (t) => {
   const { page, manager, state } = await fixture(t);
   await create(manager, 'Unternehmen'.repeat(10), 'Projektleitung'.repeat(8));
-  await save(manager);
+  await manager.getByRole('button', { name: 'Bewerbung speichern', exact: true }).first().click();
+  await manager.getByRole('button').filter({ hasText: 'Projektleitung'.repeat(8) }).click();
   for (const width of [375, 768, 1440]) {
     await page.setViewportSize({ width, height: 1000 });
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `Detail overflows at ${width}px`);
@@ -242,6 +337,6 @@ test('responsive layouts, labels, focus and document ids remain usable', options
   await manager.getByRole('heading', { name: 'Neue Bewerbung erfassen' }).waitFor();
   await page.waitForFunction(() => document.activeElement?.tagName === 'H2' && document.activeElement.textContent === 'Neue Bewerbung erfassen');
   await page.keyboard.press('Tab');
-  assert.equal(await page.locator(':focus').getAttribute('id'), 'application-company');
+  assert.equal(await page.locator(':focus').getAttribute('id'), 'application-job-url');
   assert.deepEqual(state.errors, []);
 });

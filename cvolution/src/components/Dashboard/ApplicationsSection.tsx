@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ArrowLeft, ArrowRight, BriefcaseBusiness, CalendarClock, Download, FileText, Loader2, Plus, RefreshCw, Search, Trash2 } from 'lucide-react';
+import { ArrowLeft, ArrowRight, BriefcaseBusiness, CalendarClock, Download, FileText, Loader2, Plus, RefreshCw, Search, Sparkles, Trash2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/hooks/use-toast';
 import { APPLICATION_STATUSES, applicationInput, emptyApplication, filterApplications, isActionDue, isApplicationOpen, type Application, type ApplicationInput, type ApplicationStatus, type MotivationDraft } from '@/lib/applications';
-import { deleteApplication, downloadApplications, loadApplications, saveApplication } from '@/lib/applications-client';
+import { ApplicationRequestError, deleteApplication, downloadApplications, extractApplication, loadApplications, saveApplication } from '@/lib/applications-client';
 import { MotivationLetterSection } from './MotivationLetterSection';
 
 type Props = {
@@ -51,10 +51,11 @@ export function ApplicationsSection({ hasSelfServiceAccess, onRequirePayment, on
   const [draft, setDraft] = useState<ApplicationInput | null>(null);
   const [saving, setSaving] = useState(false);
   const [working, setWorking] = useState(false);
+  const [extracting, setExtracting] = useState(false);
   const [exporting, setExporting] = useState(false);
   const detailHeading = useRef<HTMLHeadingElement>(null);
   const listHeading = useRef<HTMLHeadingElement>(null);
-  const busy = saving || working;
+  const busy = saving || working || extracting;
   const dirty = Boolean(draft && JSON.stringify(draft) !== JSON.stringify(saved ? applicationInput(saved) : emptyApplication()));
   const visible = useMemo(() => filterApplications(applications, search, status), [applications, search, status]);
 
@@ -81,9 +82,12 @@ export function ApplicationsSection({ hasSelfServiceAccess, onRequirePayment, on
   useEffect(() => {
     if (incomingApplication) {
       setApplications((current) => [incomingApplication, ...current.filter((row) => row.id !== incomingApplication.id)]);
-      setSaved(incomingApplication);
-      setDraft(applicationInput(incomingApplication));
+      setSaved(null);
+      setDraft(null);
+      setSearch('');
+      setStatus('all');
       setError('');
+      requestAnimationFrame(() => listHeading.current?.focus());
     }
   }, [incomingApplication]);
 
@@ -93,6 +97,7 @@ export function ApplicationsSection({ hasSelfServiceAccess, onRequirePayment, on
 
   function open(application: Application | null) {
     if (busy || (dirty && !window.confirm('Ungespeicherte Änderungen verwerfen?'))) return;
+    if (!application && !hasSelfServiceAccess) { onRequirePayment(); return; }
     setSaved(application);
     setDraft(application ? applicationInput(application) : emptyApplication());
     setError('');
@@ -121,16 +126,46 @@ export function ApplicationsSection({ hasSelfServiceAccess, onRequirePayment, on
   }
 
   async function persist(next: ApplicationInput): Promise<Application> {
+    if (!hasSelfServiceAccess) {
+      onRequirePayment();
+      throw new Error('Zum Erstellen und Bearbeiten benötigen Sie ein aktives Self-Service-Abo.');
+    }
     if (saved && JSON.stringify(next) === JSON.stringify(applicationInput(saved))) return saved;
     setSaving(true);
     setError('');
     try {
       const application = await saveApplication(next, saved);
-      setSaved(application);
-      setDraft(applicationInput(application));
+      setSaved(saved ? application : null);
+      setDraft(saved ? applicationInput(application) : null);
       setApplications((current) => [application, ...current.filter((row) => row.id !== application.id)]);
+      if (!saved) {
+        setWorking(false);
+        setSearch('');
+        setStatus('all');
+        requestAnimationFrame(() => listHeading.current?.focus());
+      }
       return application;
+    } catch (err) {
+      if (err instanceof ApplicationRequestError && err.status === 402) onRequirePayment();
+      throw err;
     } finally { setSaving(false); }
+  }
+
+  async function importJobAd() {
+    if (!draft || busy) return;
+    if (!hasSelfServiceAccess) { onRequirePayment(); return; }
+    if ((draft.company || draft.job_title || draft.deadline || draft.motivation_form.jobAd) &&
+      !window.confirm('Vorhandene Stellenangaben durch die erkannten Angaben ersetzen? Notizen und Motivationsschreiben bleiben erhalten.')) return;
+    setExtracting(true);
+    setError('');
+    try {
+      const extraction = await extractApplication(draft.motivation_form.jobAdUrl);
+      setDraft((current) => current ? { ...current, ...extraction, motivation_form: { ...extraction.motivation_form, language: current.motivation_form.language } } : current);
+      toast({ title: 'Stellenangaben übernommen', description: 'Bitte prüfen und ergänzen Sie die KI-Angaben vor dem Speichern.' });
+    } catch (err) {
+      if (err instanceof ApplicationRequestError && err.status === 402) onRequirePayment();
+      setError(err instanceof Error ? err.message : 'Das Inserat konnte nicht ausgelesen werden.');
+    } finally { setExtracting(false); }
   }
 
   async function saveDetails(event: React.FormEvent) {
@@ -215,6 +250,11 @@ export function ApplicationsSection({ hasSelfServiceAccess, onRequirePayment, on
 
       {error && <Alert variant="destructive" className="border-red-200 bg-red-50 text-red-700"><AlertDescription>{error}</AlertDescription></Alert>}
 
+      {!hasSelfServiceAccess && <Alert className="border-blue-200 bg-blue-50 text-slate-700"><AlertDescription>
+        <p>Der Bewerbungsmanager inklusive KI-Inseratimport ist Teil des Self-Service-Abos. Gespeicherte Bewerbungen bleiben lesbar, löschbar und exportierbar.</p>
+        <Button type="button" onClick={onRequirePayment} className={`mt-3 ${primaryButton}`}>Self-Service-Abo aktivieren</Button>
+      </AlertDescription></Alert>}
+
       {draft ? (
         <>
           <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
@@ -223,35 +263,44 @@ export function ApplicationsSection({ hasSelfServiceAccess, onRequirePayment, on
               <p role="status" className={`text-xs ${dirty ? 'text-amber-700' : 'text-slate-500'}`}>{saving ? 'Wird gespeichert …' : dirty ? 'Ungespeicherte Änderungen' : saved ? 'Alle Änderungen gespeichert' : 'Neue Bewerbung'}</p>
             </div>
             <h2 ref={detailHeading} tabIndex={-1} className="mt-5 break-words text-xl font-semibold text-slate-950">{saved ? `${saved.job_title} · ${saved.company}` : 'Neue Bewerbung erfassen'}</h2>
+            <div className="mt-5 rounded-lg border border-blue-100 bg-blue-50/50 p-4">
+              <label htmlFor="application-job-url" className="text-sm font-semibold text-slate-900">Link zum Stelleninserat</label>
+              <div className="mt-2 flex flex-col gap-2 sm:flex-row">
+                <Input id="application-job-url" type="url" inputMode="url" maxLength={500} value={draft.motivation_form.jobAdUrl} onChange={(event) => update('motivation_form', { ...draft.motivation_form, jobAdUrl: event.target.value })} disabled={busy || !hasSelfServiceAccess} placeholder="https://..." className="min-w-0 flex-1 bg-white text-slate-950" />
+                <Button type="button" onClick={importJobAd} disabled={busy || !hasSelfServiceAccess || !draft.motivation_form.jobAdUrl.trim()} className={primaryButton}>{extracting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}{extracting ? 'Wird ausgelesen …' : 'Mit KI auslesen'}</Button>
+              </div>
+              <p className="mt-2 text-xs leading-5 text-slate-600">Die KI übernimmt erkennbare Stellenangaben in den Entwurf. Bitte prüfen und ergänzen Sie die Angaben vor dem Speichern. Geschützte Inserate können Sie manuell erfassen.</p>
+            </div>
             <form id="application-details" onSubmit={saveDetails} className="mt-5">
-              <fieldset disabled={busy} className="grid gap-4 sm:grid-cols-2">
+              <fieldset disabled={busy || !hasSelfServiceAccess} className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2"><label htmlFor="application-company" className="text-sm font-semibold text-slate-900">Unternehmen *</label><Input id="application-company" value={draft.company} onChange={(event) => update('company', event.target.value)} required maxLength={140} className="bg-white text-slate-950" /></div>
                 <div className="space-y-2"><label htmlFor="application-job" className="text-sm font-semibold text-slate-900">Stellenbezeichnung *</label><Input id="application-job" value={draft.job_title} onChange={(event) => update('job_title', event.target.value)} required maxLength={140} className="bg-white text-slate-950" /></div>
                 <div className="space-y-2"><label htmlFor="application-status" className="text-sm font-semibold text-slate-900">Status</label><select id="application-status" value={draft.status} onChange={(event) => update('status', event.target.value as ApplicationStatus)} className={selectClass}><StatusOptions /></select></div>
                 <div className="space-y-2"><label htmlFor="application-applied" className="text-sm font-semibold text-slate-900">Versendet am</label><Input id="application-applied" type="date" value={draft.applied_at || ''} onChange={(event) => update('applied_at', event.target.value || null)} className="bg-white text-slate-950" /></div>
                 <div className="space-y-2"><label htmlFor="application-deadline" className="text-sm font-semibold text-slate-900">Bewerbungsfrist</label><Input id="application-deadline" type="date" value={draft.deadline || ''} onChange={(event) => update('deadline', event.target.value || null)} className="bg-white text-slate-950" /></div>
-                <div className="space-y-2"><label htmlFor="application-next-date" className="text-sm font-semibold text-slate-900">Wiedervorlage am</label><Input id="application-next-date" type="date" value={draft.next_action_at || ''} onChange={(event) => update('next_action_at', event.target.value || null)} className="bg-white text-slate-950" /></div>
+                <div className="space-y-2"><label htmlFor="application-next-date" className="text-sm font-semibold text-slate-900">Nächste Aktion am</label><Input id="application-next-date" type="date" value={draft.next_action_at || ''} onChange={(event) => update('next_action_at', event.target.value || null)} className="bg-white text-slate-950" /></div>
                 <div className="space-y-2 sm:col-span-2"><label htmlFor="application-next" className="text-sm font-semibold text-slate-900">Nächster Schritt</label><Input id="application-next" value={draft.next_action} onChange={(event) => update('next_action', event.target.value)} maxLength={240} placeholder="Zum Beispiel nachfragen oder Gespräch vorbereiten" className="bg-white text-slate-950" /></div>
                 <div className="space-y-2 sm:col-span-2"><label htmlFor="application-notes" className="text-sm font-semibold text-slate-900">Notizen</label><Textarea id="application-notes" value={draft.notes} onChange={(event) => update('notes', event.target.value)} maxLength={5000} className="min-h-28 bg-white text-slate-950" /></div>
                 <div className="flex flex-wrap gap-2 sm:col-span-2">
                   <Button type="submit" className={primaryButton}>{saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4" />} Bewerbung speichern</Button>
                   <Button type="button" variant="outline" onClick={onExportCv} className={outlineButton}><Download className="h-4 w-4" /> Aktuellen CV exportieren</Button>
                   {saved && <Button type="button" variant="outline" onClick={reloadSaved} className={outlineButton}><RefreshCw className="h-4 w-4" /> Gespeicherten Stand laden</Button>}
-                  {saved && <Button type="button" variant="outline" onClick={remove} className="border-red-200 bg-white text-red-700 hover:bg-red-50"><Trash2 className="h-4 w-4" /> Löschen</Button>}
                 </div>
               </fieldset>
+              {saved && <div className="mt-4 flex justify-end"><Button type="button" variant="outline" onClick={remove} disabled={busy} className="border-red-200 bg-white text-red-700 hover:bg-red-50"><Trash2 className="h-4 w-4" /> Löschen</Button></div>}
             </form>
-            <p className="mt-4 text-xs leading-5 text-slate-500">Der CV verwendet Ihre aktuellen Profildaten. Eine Kopie des versendeten CV wird hier nicht gespeichert. Wiedervorlagen erscheinen in dieser Übersicht.</p>
+            <p className="mt-4 text-xs leading-5 text-slate-500">Der CV verwendet Ihre aktuellen Profildaten. Eine Kopie des versendeten CV wird hier nicht gespeichert. Termine für nächste Aktionen erscheinen in dieser Übersicht.</p>
           </section>
           <MotivationLetterSection
             hasSelfServiceAccess={hasSelfServiceAccess}
             onRequirePayment={onRequirePayment}
             draft={{ form: draft.motivation_form, letter: draft.motivation_letter }}
             onDraftChange={changeLetter}
-            onSaveDraft={saveLetter}
+            onSaveDraft={hasSelfServiceAccess ? saveLetter : undefined}
             applicationId={saved?.id}
             autoSaveDraft
             disabled={saving}
+            readOnly={!hasSelfServiceAccess}
             onBusyChange={setWorking}
           />
         </>
@@ -271,7 +320,7 @@ export function ApplicationsSection({ hasSelfServiceAccess, onRequirePayment, on
                 <li key={application.id}>
                   <button type="button" onClick={() => open(application)} className="group flex w-full flex-col gap-3 rounded-lg px-3 py-5 text-left transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#204878] sm:flex-row sm:items-center sm:justify-between">
                     <div className="min-w-0"><p className="break-words font-semibold text-slate-950">{application.job_title}</p><p className="mt-1 break-words text-sm text-slate-600">{application.company}</p><Badge variant="outline" className={`mt-2 ${statusStyles[application.status]}`}>{APPLICATION_STATUSES[application.status]}</Badge></div>
-                    <div className="flex items-center justify-between gap-5 sm:w-72 sm:shrink-0"><div className="min-w-0"><p className={`flex items-center gap-1.5 text-xs ${isActionDue(application) ? 'font-semibold text-amber-700' : 'text-slate-500'}`}><CalendarClock className="h-3.5 w-3.5 shrink-0" />{application.next_action_at ? `${isActionDue(application) ? 'Fällig · ' : ''}${dateLabel(application.next_action_at)}` : 'Keine Wiedervorlage'}</p><p className="mt-1 break-words text-sm text-slate-700">{application.next_action || 'Nächsten Schritt festlegen'}</p>{application.deadline && <p className="mt-1 text-xs text-slate-500">Bewerbungsfrist: {dateLabel(application.deadline)}</p>}</div><ArrowRight className="h-4 w-4 shrink-0 text-slate-400 group-hover:text-[#204878]" /></div>
+                    <div className="flex items-center justify-between gap-5 sm:w-72 sm:shrink-0"><div className="min-w-0"><p className={`flex items-center gap-1.5 text-xs ${isActionDue(application) ? 'font-semibold text-amber-700' : 'text-slate-500'}`}><CalendarClock className="h-3.5 w-3.5 shrink-0" />{application.next_action_at ? `${isActionDue(application) ? 'Fällig · ' : ''}${dateLabel(application.next_action_at)}` : 'Kein Datum festgelegt'}</p><p className="mt-1 break-words text-sm text-slate-700">{application.next_action || 'Nächsten Schritt festlegen'}</p>{application.deadline && <p className="mt-1 text-xs text-slate-500">Bewerbungsfrist: {dateLabel(application.deadline)}</p>}</div><ArrowRight className="h-4 w-4 shrink-0 text-slate-400 group-hover:text-[#204878]" /></div>
                   </button>
                 </li>
               ))}
@@ -279,7 +328,7 @@ export function ApplicationsSection({ hasSelfServiceAccess, onRequirePayment, on
           )}
         </section>
       )}
-      <p className="text-xs leading-5 text-slate-500">Ihre gespeicherten Bewerbungen können Sie auch ohne aktives Abo verwalten, löschen und exportieren. Neue KI-Schreiben benötigen ein aktives Self-Service-Abo.</p>
+      <p className="text-xs leading-5 text-slate-500">Der Bewerbungsmanager mit KI-Inseratimport ist im Self-Service-Abo enthalten. Nach Abo-Ende bleiben gespeicherte Bewerbungen lesbar, löschbar und exportierbar.</p>
     </div>
   );
 }

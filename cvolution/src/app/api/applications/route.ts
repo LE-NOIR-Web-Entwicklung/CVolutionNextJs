@@ -1,6 +1,6 @@
 import { supabaseAdmin } from '../../../../lib/supabase-server';
 import { parseApplicationInput, ApplicationInputError } from '../../../lib/applications';
-import { applicationBody, applicationFailure, applicationJson, applicationUser } from '../../../lib/applications-server';
+import { applicationBody, applicationFailure, applicationJson, applicationUser, requireApplicationSubscription } from '../../../lib/applications-server';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -23,6 +23,7 @@ export async function POST(request: Request) {
   try {
     const user = await applicationUser(request);
     if (!user) return applicationJson({ error: 'Bitte melden Sie sich erneut an.' }, 401);
+    await requireApplicationSubscription(user.id);
     const input = parseApplicationInput(await applicationBody(request));
     const { data, error } = await supabaseAdmin.from('applications').insert({ ...input, user_id: user.id }).select('*').single();
     if (error || !data) throw error || new Error('Missing application');

@@ -1,6 +1,6 @@
 import { supabaseAdmin } from '../../../../../lib/supabase-server';
 import { isApplicationId, parseApplicationInput, ApplicationInputError } from '../../../../lib/applications';
-import { applicationBody, applicationFailure, applicationJson, applicationUser } from '../../../../lib/applications-server';
+import { applicationBody, applicationFailure, applicationJson, applicationUser, requireApplicationSubscription } from '../../../../lib/applications-server';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -10,6 +10,7 @@ export async function PUT(request: Request, context: Context) {
   try {
     const user = await applicationUser(request);
     if (!user) return applicationJson({ error: 'Bitte melden Sie sich erneut an.' }, 401);
+    await requireApplicationSubscription(user.id);
     const { id } = await context.params;
     if (!isApplicationId(id)) throw new ApplicationInputError('Ungültige Bewerbung.');
     const { expected_updated_at, ...body } = await applicationBody(request);

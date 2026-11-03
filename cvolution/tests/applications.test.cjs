@@ -11,9 +11,9 @@ const originalTs = Module._extensions['.ts'];
 const owner = '11111111-1111-4111-8111-111111111111';
 const other = '22222222-2222-4222-8222-222222222222';
 const id = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
-let records, databaseError, authError, operations;
+let records, databaseError, authError, operations, profile;
 
-function query() {
+function query(table) {
   let operation = 'select', values, start = 0, end = Infinity;
   const filters = [];
   const builder = {
@@ -29,9 +29,9 @@ function query() {
     then(resolve, reject) { return run().then(resolve, reject); },
   };
   async function run() {
-    operations.push({ operation, filters, values });
+    operations.push({ table, operation, filters, values });
     if (databaseError) return { data: null, error: { message: 'private database details' } };
-    let data = records.filter((row) => filters.every(([key, value]) => row[key] === value));
+    let data = (table === 'profiles' ? [profile] : records).filter((row) => row && filters.every(([key, value]) => row[key] === value));
     if (operation === 'insert') {
       const row = { ...values, id, created_at: '2026-11-03T10:00:00.000Z', updated_at: '2026-11-03T10:00:00.000Z' };
       records.push(row);
@@ -56,7 +56,7 @@ Module._extensions['.ts'] = (module, filename) => {
 Module._load = function(request, parent, isMain) {
   if (request.endsWith('supabase-server')) return { supabaseAdmin: {
     auth: { getUser: async (token) => ({ data: { user: token === 'valid' ? { id: owner } : null }, error: authError }) },
-    from: () => query(),
+    from: (table) => query(table),
   } };
   return originalLoad.call(this, request, parent, isMain);
 };
@@ -69,7 +69,7 @@ const context = (value = id) => ({ params: Promise.resolve({ id: value }) });
 function request(body, token = 'valid', method = 'POST', url = 'https://example.test/api/applications') {
   return new Request(url, { method, headers: { ...(token ? { authorization: `Bearer ${token}` } : {}), 'content-type': 'application/json' }, ...(body === undefined ? {} : { body: typeof body === 'string' ? body : JSON.stringify(body) }) });
 }
-beforeEach(() => { records = []; databaseError = false; authError = null; operations = []; });
+beforeEach(() => { records = []; databaseError = false; authError = null; operations = []; profile = { user_id: owner, paid: true, subscription_current_period_end: '2099-01-01', subscription_status: 'active' }; });
 
 test('application defaults are independent and cover every status', () => {
   const first = domain().emptyApplication();
@@ -137,7 +137,7 @@ test('all endpoints require a verified bearer token', async () => {
   assert.equal(operations.length, 0);
 });
 
-test('creation ignores no ownership fields and works without a paid subscription', async () => {
+test('creation enforces ownership and works with an active subscription', async () => {
   const response = await collection().POST(request(valid()));
   assert.equal(response.status, 201);
   const { application } = await response.json();
@@ -145,6 +145,39 @@ test('creation ignores no ownership fields and works without a paid subscription
   assert.equal(records.length, 1);
   assert.equal((await collection().POST(request({ ...valid(), user_id: other }))).status, 400);
   assert.equal(records.length, 1);
+});
+
+test('creating and updating require an active server-side subscription', async () => {
+  for (const state of [
+    { paid: false, subscription_status: 'inactive' },
+    { subscription_current_period_end: '2000-01-01' },
+    { subscription_current_period_end: null },
+    { subscription_current_period_end: 'invalid' },
+  ]) {
+    profile = { user_id: owner, paid: true, subscription_current_period_end: '2099-01-01', subscription_status: 'active', ...state };
+    assert.equal((await collection().POST(request(valid()))).status, 402);
+    assert.equal((await item().PUT(request({ ...valid(), expected_updated_at: '2026-11-03T10:00:00Z' }, 'valid', 'PUT'), context())).status, 402);
+  }
+  assert.ok(operations.every((operation) => operation.table === 'profiles'));
+  assert.ok(operations.every((operation) => operation.filters.some(([key, value]) => key === 'user_id' && value === owner)));
+  assert.equal(records.length, 0);
+});
+
+test('cancellation preserves access until period end; legacy paid periods remain supported', async () => {
+  profile.paid = false;
+  profile.subscription_status = 'canceled';
+  assert.equal((await collection().POST(request(valid()))).status, 201);
+  profile = { user_id: owner, paid: true, paydate: '2099-01-01' };
+  assert.equal((await collection().POST(request(valid()))).status, 201);
+});
+
+test('expired subscriptions retain access to saved data and deletion', async () => {
+  records = [{ ...valid(), id, user_id: owner }];
+  profile.subscription_current_period_end = '2000-01-01';
+  const response = await collection().GET(request(undefined, 'valid', 'GET'));
+  assert.equal(response.status, 200);
+  assert.equal((await response.json()).applications.length, 1);
+  assert.equal((await item().DELETE(request(undefined, 'valid', 'DELETE'), context())).status, 204);
 });
 
 test('listing returns only the owner data and disables caching', async () => {

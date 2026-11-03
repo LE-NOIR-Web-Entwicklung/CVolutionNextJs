@@ -47,7 +47,7 @@ const features = [
   {
     title: "Bewerbungsmanager",
     label: "Organisation",
-    description: "Stellen, Motivationsschreiben und Rückmeldungen an einem Ort verwalten. Mit Status, Bewerbungsfristen und Wiedervorlagen behalten Sie Ihre nächsten Schritte im Blick.",
+    description: "Inserat-Link einfügen und Stellenangaben mit KI übernehmen. Verwalten Sie Bewerbungen, Schreiben, Status und nächste Aktionen im Self-Service-Abo.",
     eyebrow: "04",
     icon: BriefcaseBusiness,
     className: "lg:col-span-3",
@@ -55,12 +55,12 @@ const features = [
     labelClassName: "text-[#204878]",
     descriptionClassName: "text-[#64748B]",
     iconClassName: "bg-[#EEF4FA] text-[#204878] ring-[#D8E4F0]",
-    details: ["Bewerbungen speichern", "Schreiben pro Stelle", "Status und Wiedervorlagen"],
+    details: ["KI-Inseratimport per Link", "Schreiben pro Stelle", "Status und nächste Aktionen"],
   },
   {
     title: "CHF 13.90",
     label: "pro Monat",
-    description: "Lebenslauf, Designs, Export und KI-Motivationsschreiben im gleichen Abo. Unbegrenzte Änderungen & Unbegrenzte Downloads",
+    description: "Lebenslauf, Designs, Export, KI-Motivationsschreiben und Bewerbungsmanager mit KI-Inseratimport im gleichen Abo. Unbegrenzte Änderungen & Unbegrenzte Downloads",
     eyebrow: "Abo",
     icon: FileDown,
     className: "lg:col-span-4",

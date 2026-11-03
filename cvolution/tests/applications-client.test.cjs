@@ -40,7 +40,16 @@ test('missing sessions stop every client operation before a request is sent', as
   await assert.rejects(client.loadApplications(), /erneut an/);
   await assert.rejects(client.saveApplication(valid(), null), /erneut an/);
   await assert.rejects(client.deleteApplication('id'), /erneut an/);
+  await assert.rejects(client.extractApplication('https://example.test/job'), /erneut an/);
   assert.equal(requests.length, 0);
+});
+
+test('extraction sends the advert URL and preserves subscription errors for the UI', async () => {
+  responses = [json({ extraction: { company: 'Muster AG' } }), json({ error: 'Abo erforderlich' }, 402)];
+  assert.equal((await client.extractApplication('https://example.test/job')).company, 'Muster AG');
+  assert.equal(requests[0].url, '/api/applications/extract');
+  assert.deepEqual(JSON.parse(requests[0].body), { url: 'https://example.test/job' });
+  await assert.rejects(client.extractApplication('https://example.test/job'), (error) => error instanceof client.ApplicationRequestError && error.status === 402);
 });
 
 test('loading combines pages, authenticates requests and forwards cancellation', async () => {

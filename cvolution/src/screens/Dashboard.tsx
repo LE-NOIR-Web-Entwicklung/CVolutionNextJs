@@ -272,6 +272,10 @@ export const Dashboard: React.FC = () => {
   };
 
   const saveMotivationDraft = async (draft: MotivationDraft) => {
+    if (!hasSelfServiceAccess) {
+      openSelfServicePayment();
+      throw new Error('Der Bewerbungsmanager ist im aktiven Self-Service-Abo enthalten.');
+    }
     if (applicationDirty) throw new Error('Bitte speichern oder schliessen Sie zuerst die offene Bewerbung im Bereich Bewerbungen.');
     const application = await saveApplication({ ...emptyApplication(), company: draft.form.company, job_title: draft.form.jobTitle, motivation_form: draft.form, motivation_letter: draft.letter }, null);
     setIncomingApplication(application);

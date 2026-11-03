@@ -86,3 +86,21 @@ test('account deletion cascades to its applications and preserves other accounts
 test('the migration can be rolled back transactionally', () => {
   assert.equal(sql("BEGIN; DROP TABLE public.applications; DROP FUNCTION public.set_applications_updated_at(); DROP FUNCTION public.valid_application_motivation_form(jsonb); ROLLBACK; SELECT count(*) FROM public.applications;"), '0');
 });
+
+test('subscription migration blocks direct writes while keeping owner reads and deletion', () => {
+  sql(`${insert(owner)}; ${insert(other)};`);
+  sql(fs.readFileSync(path.join(__dirname, '../supabase/migrations/20261103_require_subscription_for_application_writes.sql'), 'utf8'));
+  assert.throws(() => sql(asUser(insert(owner))));
+  assert.throws(() => sql(asUser("UPDATE public.applications SET notes = 'bypass'")));
+  assert.equal(sql(asUser('SELECT count(*) FROM public.applications')), '1');
+  assert.equal(sql(asUser('DELETE FROM public.applications RETURNING company')), 'Muster AG');
+  assert.equal(sql('SELECT count(*) FROM public.applications'), '1');
+  sql(`SET ROLE service_role; ${insert(owner)}; UPDATE public.applications SET notes = 'server API';`);
+  assert.equal(sql("SELECT count(*) FROM public.applications WHERE notes = 'server API'"), '2');
+  assert.throws(() => sql(asUser(`SELECT public.claim_application_import('${owner}')`)));
+  assert.throws(() => sql(asUser('SELECT * FROM public.application_import_limits')));
+  assert.equal(sql(`SET ROLE service_role; SELECT public.claim_application_import('${owner}'); SELECT public.claim_application_import('${owner}'); SELECT public.claim_application_import('${other}');`), 't\nf\nt');
+  sql(`UPDATE public.application_import_limits SET requested_at = clock_timestamp() - interval '11 seconds' WHERE user_id = '${owner}';`);
+  assert.equal(sql(`SET ROLE service_role; SELECT public.claim_application_import('${owner}');`), 't');
+  assert.equal(sql(`BEGIN; DELETE FROM auth.users WHERE id = '${owner}'; SELECT count(*) FROM public.application_import_limits WHERE user_id = '${owner}'; ROLLBACK;`), '0');
+});

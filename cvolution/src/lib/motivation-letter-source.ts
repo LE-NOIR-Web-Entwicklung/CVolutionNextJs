@@ -238,6 +238,8 @@ function structuredJobText(html: string) {
       return [
         job.title,
         job.hiringOrganization?.name,
+        job.applicationContact?.name,
+        typeof job.validThrough === "string" ? `Bewerbungsfrist (validThrough): ${job.validThrough}` : "",
         ...locations.flatMap((location: any) => {
           const address = location?.address;
           return address
