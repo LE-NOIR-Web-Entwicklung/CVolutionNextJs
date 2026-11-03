@@ -41,9 +41,69 @@ Run the mocked generation, source-reading and Word-export regression tests with 
 node --test tests/motivation-letter.test.cjs
 ```
 
-To include actual Word pagination checks, install LibreOffice and Poppler (`soffice` and `pdfinfo` on PATH) and run `CV_EXPORT_RENDER_WORD=1 node --test tests/*.test.cjs`.
+To include actual Word pagination checks, install LibreOffice and Poppler (`soffice` and `pdfinfo` on PATH) and run `CV_EXPORT_RENDER_WORD=1 node --test tests/cv-export.test.cjs tests/motivation-letter.test.cjs`.
 
 These tests make no live AI calls. They verify the submitted prompts; final model output still requires a live generation check.
+
+## Bewerbungsmanager
+
+The dashboard's **Bewerbungen** area stores one private record per application: company, role, advert/form input, contact, status, application date, deadline, next action, notes and editable motivation letter. Search and status filters apply to company/role; open applications are ordered by next-action date. Due dates use Europe/Zurich. Next-action dates are displayed in the dashboard; no email or calendar notifications are sent.
+
+**Versendet am**, **Bewerbungsfrist** and **Nächste Aktion am** display and accept `TT.MM.JJJJ` independently of browser language. Eight digits such as `17112026` are also accepted and formatted as `17.11.2026`. Each field retains a German calendar picker with six fixed week rows so month navigation does not resize or reposition the popup. Invalid or incomplete dates prevent form submission; empty fields clear optional dates. Stored and API dates remain ISO `YYYY-MM-DD`, including dates imported from an advert. No database migration is needed for this display change.
+
+Letters generated inside an application are saved automatically. Manual changes are saved with **Bewerbung speichern**. The first successful save of a new application returns to the overview; later edits stay open, and failed saves retain the draft. Confirmation protects unsaved edits when switching records, following site links, signing out or reloading/closing the browser tab. The separate motivation tool keeps its existing independent Word download; its save action transfers a draft to the manager and requires company and role. Switching dashboard tabs preserves drafts in memory. Only saved applications survive a page reload.
+
+Creating or editing applications and importing advert data with AI requires an active Self-Service subscription. Cancellation preserves access until the paid period ends. After expiry, saved applications remain readable, deletable and exportable as JSON or Word; editing is disabled. New AI generation and CV exports retain the existing subscription checks. The saved-letter Word endpoint accepts an `applicationId`, verifies ownership and reads the saved text on the server; client-provided letter content cannot override that record. CV exports use the current central profile, without storing a historical copy of a submitted CV.
+
+**Link zum Stelleninserat → Mit KI auslesen** calls `POST /api/applications/extract` with `{ "url": "https://..." }`. After authentication and subscription verification, the server reads the public advert using the existing bounded, DNS-validated source reader. It sends only the advert content and its URL to the existing Anthropic service, without loading or transmitting the user's CV. A tool schema produces company, role, contact person, address and an explicitly stated deadline; the server validates field types, lengths and dates. Missing facts stay empty. The source text and URL are retained with the draft. The user reviews and saves the result; importing never creates a saved application automatically. Replacing existing job data requires confirmation and preserves notes, letter content and the chosen language. Protected or unavailable adverts can be entered manually. Model output can still contain factual mistakes, so review is necessary.
+
+The import uses the existing `ANTHROPIC_API_KEY` and optional `ANTHROPIC_MODEL` configuration. Website reads are bounded to 8 seconds and AI requests to 30 seconds, with a 64 KiB model-response limit. An atomic database claim permits one import per user every 10 seconds across server instances; repeated requests return 429 with `Retry-After: 10` before any website or AI call. One timestamp per account is retained in `application_import_limits` and cascades on account deletion. Its table and claim function are inaccessible to browser roles; only the service role can claim an import. Structured advert `validThrough` dates and contact names are retained in the source. The extraction protocol uses Anthropic's [tool definitions](https://platform.claude.com/docs/en/agents-and-tools/tool-use/define-tools) with server-side validation.
+
+### Database setup and rollout
+
+For a new installation, apply `supabase/migrations/20261103_create_applications.sql` once. For both new and existing installations, apply `supabase/migrations/20261103_require_subscription_for_application_writes.sql` **before** deploying the updated dashboard. For an explicitly selected database, an administrator can run:
+
+```bash
+psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/migrations/20261103_create_applications.sql
+psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/migrations/20261103_require_subscription_for_application_writes.sql
+```
+
+Omit the first command if the applications table already exists. The server needs the existing `SUPABASE_SERVICE_ROLE_KEY` environment variable. Keep it server-only. No new package, external service or billing configuration is required, and no existing records need backfilling. The migrations have not been applied to the hosted database by this change.
+
+The table enforces owner-only RLS, bounded fields and valid form data. The subscription migration revokes direct INSERT/UPDATE access from authenticated and anonymous users, so creation and editing must use the server API's subscription checks. Owner reads and deletion remain available through RLS. API operations additionally verify the bearer token and filter by the authenticated owner. Updates require the saved `updated_at` value; concurrent changes return 409 and preserve local edits. The database sets timestamps and preserves record identity. Deleting an application removes its stored form, notes and letter. Deleting its `auth.users` account cascades to its applications. Subscription expiry does not delete records. Production privacy/retention notices and processor arrangements should cover these additional application records and the advert extraction; this implementation is not a legal compliance assessment.
+
+For deployment rollback, restore the previous application version and retain the new table. Dropping the table would delete saved applications; take a backup before any deliberate data removal.
+
+### Verification
+
+Run from this directory with Node 22+. Database tests require local `initdb`, `pg_ctl` and `psql`; they create and remove an isolated cluster under `/tmp` and never connect to a hosted database.
+
+```bash
+node --test tests/applications.test.cjs tests/applications-client.test.cjs tests/application-extraction.test.cjs
+node --test tests/application-dates.test.cjs
+node --test tests/applications-db.test.cjs
+CV_EXPORT_RENDER_WORD=1 node --test tests/cv-export.test.cjs tests/motivation-letter.test.cjs
+npx tsc --noEmit --incremental false
+npm run build
+```
+
+Browser tests require Playwright and Chromium plus a local server (`npm run start -- --hostname 127.0.0.1 --port 3107` after building):
+
+```bash
+APPLICATIONS_BROWSER_URL=http://127.0.0.1:3107 node --test tests/applications-browser.test.cjs
+```
+
+If Playwright is supplied by a shared runtime, set `PLAYWRIGHT_MODULE` to that module and optionally `PLAYWRIGHT_CHROMIUM_EXECUTABLE` to its Chromium executable. All Supabase, application and AI requests in these browser tests are intercepted with synthetic fixtures. Non-local server URLs are rejected. They test UI behavior, while the route and PostgreSQL tests separately verify the server and RLS boundaries. They do not verify the hosted Supabase configuration, live authentication or live AI output. No visual regression baseline or full screen-reader audit is supplied.
+
+The date-field browser case uses an English browser locale to verify that the Swiss display is explicit. Run it with Safari's WebKit engine using `APPLICATIONS_BROWSER_ENGINE=webkit` and `--test-name-pattern='date fields use Swiss'`; install a WebKit build matching the Playwright runtime first. `PLAYWRIGHT_BROWSER_EXECUTABLE` can select a supplied executable. Date-conversion unit tests cover calendar validity, leap years, incomplete input and round trips in Europe/Zurich, America/Los_Angeles and Pacific/Kiritimati.
+
+Date-format verification: all 4 date unit tests, all 11 Chromium browser journeys and the date journey on WebKit passed, as did production build, type checking, focused ESLint and diff checks. Date-conversion helpers have 100% line/branch/function coverage. Calendar selection, invalid-date rejection, clearing, reload persistence, imported ISO dates and mobile calendar bounds are covered; project dependencies are unchanged.
+
+TDD evidence on 3 November 2026: the first application tests failed on the absent application module/routes; the saved-letter export tests initially returned 402 instead of 200/404. A separate browser regression reproduced the advert-only Word download failing before the integration was corrected. For the subscription/import extension, creating without access initially returned 201 instead of 402 and the rate-limit reproducer returned 200 instead of 429. These now pass. The application logic/API/client/extraction tests measure 99.13% line, 95.92% branch and 100% function coverage; these numbers exclude React UI code. Browser checks cover create/edit/reload, separate letters, filters, failed saves/loads, stale updates, confirmed deletion, standalone transfer/download, read-only access after expiry, denied writes when access expires during editing, advert import/replacement/manual fallback, CV-modal reuse, labels/focus and overflow at 375/768/1440 px.
+
+Final verification: 34 application/API/client/extraction tests, 43 CV/letter regressions (including actual Word pagination), 7 PostgreSQL tests and 10 browser journeys passed (94 total, no skips in these runs). Production build, explicit TypeScript check, focused ESLint and `git diff --check` passed. The changed self-service landing page retains one pre-existing Next.js `<img>` lint warning. PostgreSQL tests verify the original owner policies, the final write revocation, the privileged import claim, its per-user cooldown and account-deletion cleanup. A browser test also reproduced and then verified the fix for losing unsaved application input through the site's navigation. Encoding and line endings of existing files were preserved. Implementation, security, data-lifecycle, subscription and regression reviews were performed as separate local passes without subagents.
+
+Security release limitation: `npm audit --omit=dev --audit-level=high` reported 17 existing dependency findings (2 critical, 10 high, 1 moderate, 4 low), including critical findings in Next.js and jsPDF. Package manifests and lockfiles are unchanged by this feature. Dependency remediation and hosted rollout remain separate release requirements; a successful feature test is not a production security clearance.
 
 ## Learn More
 

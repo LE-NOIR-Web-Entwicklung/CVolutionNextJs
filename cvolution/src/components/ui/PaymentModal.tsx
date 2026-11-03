@@ -63,7 +63,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ open, onClose, user,
           <DialogDescription className="text-black">
             {isRenewal
               ? 'Ihr Monatsabo ist abgelaufen. Um den Self-Service weiterhin nutzen zu können, erneuern Sie bitte Ihr Abo.'
-              : 'Um Lebenslauf-Export und KI-Motivationsschreiben zu nutzen, schliessen Sie bitte zuerst das Monatsabo ab.'}
+              : 'Um Lebenslauf-Export, KI-Motivationsschreiben und den Bewerbungsmanager inklusive KI-Inseratimport zu nutzen, schliessen Sie bitte zuerst das Monatsabo ab.'}
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>

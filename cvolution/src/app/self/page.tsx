@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowRight, Check, FileDown, FileText, LayoutTemplate, Sparkles } from "lucide-react";
+import { ArrowRight, BriefcaseBusiness, Check, FileDown, FileText, LayoutTemplate, Sparkles } from "lucide-react";
 
 const features = [
   {
@@ -45,12 +45,25 @@ const features = [
     details: ["Klassisch", "Modern", "Zeitlos"],
   },
   {
+    title: "Bewerbungsmanager",
+    label: "Organisation",
+    description: "Inserat-Link einfügen und Stellenangaben mit KI übernehmen. Verwalten Sie Bewerbungen, Schreiben, Status und nächste Aktionen im Self-Service-Abo.",
+    eyebrow: "04",
+    icon: BriefcaseBusiness,
+    className: "lg:col-span-3",
+    tone: "bg-white text-[#111827]",
+    labelClassName: "text-[#204878]",
+    descriptionClassName: "text-[#64748B]",
+    iconClassName: "bg-[#EEF4FA] text-[#204878] ring-[#D8E4F0]",
+    details: ["KI-Inseratimport per Link", "Schreiben pro Stelle", "Status und nächste Aktionen"],
+  },
+  {
     title: "CHF 13.90",
     label: "pro Monat",
-    description: "Lebenslauf, Designs, Export und KI-Motivationsschreiben im gleichen Abo. Unbegrenzte Änderungen & Unbegrenzte Downloads",
+    description: "Lebenslauf, Designs, Export, KI-Motivationsschreiben und Bewerbungsmanager mit KI-Inseratimport im gleichen Abo. Unbegrenzte Änderungen & Unbegrenzte Downloads",
     eyebrow: "Abo",
     icon: FileDown,
-    className: "lg:col-span-3",
+    className: "lg:col-span-4",
     tone: "bg-[#EEF4FA] text-[#111827]",
     labelClassName: "text-[#204878]",
     descriptionClassName: "text-[#475569]",
@@ -81,6 +94,8 @@ const benefits = [
   "Professioneller CV-Export",
   "Word Download für Motivationsschreiben",
   "Anpassung an konkrete Stellenanzeigen",
+  "Bewerbungen und Schreiben zentral verwalten",
+  "Status, Fristen und nächste Schritte im Blick",
   "Unbegrenzt veränderbar",
   "Unbegrenzte Downloads",
   "Sichere Datenspeicherung",
