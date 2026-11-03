@@ -3,6 +3,7 @@ import {
   BorderStyle,
   Document,
   ImageRun,
+  LineRuleType,
   Packer,
   PageBorderDisplay,
   PageBorderOffsetFrom,
@@ -20,7 +21,7 @@ import { supabaseAdmin } from "../../../../../lib/supabase-server";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-// CV-Export als Word-Datei. Die drei Designs entsprechen 1:1 den PDF-Designs
+// CV-Export als Word-Datei. Die drei Designs orientieren sich an den PDF-Designs
 // (CVPdfDocument / CVPdfDesign2 / CVPdfDesign3).
 
 function jsonError(message: string, status: number) {
@@ -132,7 +133,7 @@ function slugify(value: string) {
 const FONT = "Arial";
 
 // ---------------------------------------------------------------------------
-// Design-Themes: entsprechen exakt den Farben/Groessen der PDF-Designs
+// Design-Themes: Farben/Groessen der PDF-Designs
 // (Masse: PDF-Punkte -> Word-Halbpunkte fuer Schrift, Twips (pt*20) fuer Layout)
 // ---------------------------------------------------------------------------
 
@@ -181,11 +182,11 @@ const THEMES: Record<CvDesign, Theme> = {
   },
 };
 
-// Seitenraender je Design (PDF-Padding * 20)
+// Kompakte Seitenraender je Design (Twips)
 const PAGE = {
-  design1: { top: 560, bottom: 640, left: 1160, right: 1160, content: 11906 - 2 * 1160 },
-  design2: { top: 600, bottom: 680, left: 1120, right: 1120, content: 11906 - 2 * 1120 },
-  design3: { top: 600, bottom: 680, left: 1040, right: 1040, content: 11906 - 2 * 1040 },
+  design1: { top: 480, bottom: 480, left: 1160, right: 1160, content: 11906 - 2 * 1160 },
+  design2: { top: 480, bottom: 480, left: 1120, right: 1120, content: 11906 - 2 * 1120 },
+  design3: { top: 480, bottom: 480, left: 1040, right: 1040, content: 11906 - 2 * 1040 },
 };
 
 const NO_BORDER = { style: BorderStyle.NONE, size: 0, color: "FFFFFF" } as const;
@@ -264,7 +265,7 @@ function run(text: string, opts: { size?: number; bold?: boolean; color?: string
 function sectionTitle(text: string, theme: Theme, opts: { first?: boolean; size?: number } = {}) {
   return new Paragraph({
     children: [run(text, { size: opts.size ?? 24, bold: true, color: theme.section })],
-    spacing: { before: opts.first ? 0 : 240, after: 100 },
+    spacing: { before: opts.first ? 0 : 120, after: 60 },
     keepNext: true,
     border: {
       bottom: { style: BorderStyle.SINGLE, size: theme.sectionBorderSize, color: theme.sectionBorder, space: 2 },
@@ -276,7 +277,8 @@ function bulletParagraph(text: string, opts: { last?: boolean } = {}) {
   return new Paragraph({
     children: [run(text)],
     bullet: { level: 0 },
-    spacing: { after: opts.last ? 0 : 30 },
+    indent: { left: 400, hanging: 200 },
+    spacing: { after: opts.last ? 0 : 10 },
   });
 }
 
@@ -293,7 +295,11 @@ function layoutTable(rows: TableRow[], columnWidths: number[], totalWidth: numbe
 
 function layoutCell(children: (Paragraph | Table)[], width: number, opts: { vAlign?: "center" | "top" | "bottom" } = {}) {
   return new TableCell({
-    children,
+    // Word verlangt nach einer verschachtelten Tabelle einen Absatz.
+    // Diesen explizit klein halten, statt eine volle Leerzeile einzufuegen.
+    children: children[children.length - 1] instanceof Table
+      ? [...children, new Paragraph({ spacing: { before: 0, after: 0, line: 20, lineRule: LineRuleType.EXACT } })]
+      : children,
     width: { size: width, type: WidthType.DXA },
     borders: CELL_NO_BORDERS,
     margins: NO_CELL_MARGINS,
@@ -318,7 +324,7 @@ function contactTable(
               [
                 new Paragraph({
                   children: [run(`${row.label}`, { color: labelColor })],
-                  spacing: { after: idx === rows.length - 1 ? 0 : 40 },
+                  spacing: { after: idx === rows.length - 1 ? 0 : 20 },
                 }),
               ],
               labelWidth
@@ -327,7 +333,7 @@ function contactTable(
               [
                 new Paragraph({
                   children: [run(row.value, { bold: row.bold, size: row.valueSize })],
-                  spacing: { after: idx === rows.length - 1 ? 0 : 40 },
+                  spacing: { after: idx === rows.length - 1 ? 0 : 20 },
                 }),
               ],
               totalWidth - labelWidth
@@ -364,7 +370,7 @@ function experienceParagraphs(
     paragraphs.push(
       new Paragraph({
         children: [run(title, { size: 21, bold: true })],
-        spacing: { before: idx === 0 ? 0 : 160, after: 20 },
+        spacing: { before: idx === 0 ? 0 : 80, after: 20 },
         keepNext: true,
         keepLines: true,
       })
@@ -373,7 +379,7 @@ function experienceParagraphs(
       paragraphs.push(
         new Paragraph({
           children: [run(metaParts.join(" | "), { color: theme.meta })],
-          spacing: { after: bullets.length > 0 ? 60 : 0 },
+          spacing: { after: bullets.length > 0 ? 20 : 0 },
           keepNext: bullets.length > 0,
           keepLines: true,
         })
@@ -403,8 +409,8 @@ function itemsTableDesign3(items: any[], theme: Theme, kind: "experience" | "edu
     const range = `${formatDate(item.start_date)} - ${item.is_current ? "heute" : formatDate(item.end_date)}`;
     const bullets = extractBullets(item.description, kind === "experience" ? getMaxBullets(idx) : 3);
     const isLast = idx === items.length - 1;
-    // Abstand zwischen Eintraegen (PDF: marginBottom 8pt)
-    const gapAfter = isLast ? 0 : 160;
+    // Kompakter Abstand zwischen Eintraegen (4pt)
+    const gapAfter = isLast ? 0 : 80;
     const hasBullets = bullets.length > 0;
 
     const body: Paragraph[] = [
@@ -419,7 +425,7 @@ function itemsTableDesign3(items: any[], theme: Theme, kind: "experience" | "edu
       body.push(
         new Paragraph({
           children: [run(meta, { color: theme.meta })],
-          spacing: { after: hasBullets ? 40 : gapAfter },
+          spacing: { after: hasBullets ? 20 : gapAfter },
           keepNext: hasBullets,
           keepLines: true,
         })
@@ -430,7 +436,8 @@ function itemsTableDesign3(items: any[], theme: Theme, kind: "experience" | "edu
         new Paragraph({
           children: [run(bullet)],
           bullet: { level: 0 },
-          spacing: { after: bulletIdx === bullets.length - 1 ? gapAfter : 30 },
+          indent: { left: 360, hanging: 200 },
+          spacing: { after: bulletIdx === bullets.length - 1 ? gapAfter : 10 },
         })
       );
     });
@@ -467,7 +474,7 @@ function knowledgeTable(
     rows.push(
       new TableRow({
         children: [
-          layoutCell([new Paragraph({ children: [run("Sprachen", { bold: true })], spacing: { after: 80 } })], labelWidth),
+          layoutCell([new Paragraph({ children: [run("Sprachen", { bold: true })], spacing: { after: 40 } })], labelWidth),
           layoutCell(
             [
               layoutTable(
@@ -476,11 +483,11 @@ function knowledgeTable(
                     new TableRow({
                       children: [
                         layoutCell(
-                          [new Paragraph({ children: [run(lang.name)], spacing: { after: idx === preparedLanguages.length - 1 ? 80 : 30 } })],
+                          [new Paragraph({ children: [run(lang.name)], spacing: { after: idx === preparedLanguages.length - 1 ? 40 : 10 } })],
                           langNameWidth
                         ),
                         layoutCell(
-                          [new Paragraph({ children: [run(lang.level)], spacing: { after: idx === preparedLanguages.length - 1 ? 80 : 30 } })],
+                          [new Paragraph({ children: [run(lang.level)], spacing: { after: idx === preparedLanguages.length - 1 ? 40 : 10 } })],
                           contentWidth - langNameWidth
                         ),
                       ],
@@ -501,7 +508,7 @@ function knowledgeTable(
     rows.push(
       new TableRow({
         children: [
-          layoutCell([new Paragraph({ children: [run("Fähigkeiten", { bold: true })], spacing: { after: 80 } })], labelWidth),
+          layoutCell([new Paragraph({ children: [run("Fähigkeiten", { bold: true })], spacing: { after: 40 } })], labelWidth),
           layoutCell(
             abilities.map((skill: any, idx: number) =>
               bulletParagraph(skill.skill_name, { last: idx === abilities.length - 1 })
@@ -526,7 +533,7 @@ function knowledgeTable(
                 .trim();
               return new Paragraph({
                 children: [run(`Kategorie ${displayName || license.skill_name}`)],
-                spacing: { after: idx === driverLicenses.length - 1 ? 0 : 30 },
+                spacing: { after: idx === driverLicenses.length - 1 ? 0 : 10 },
               });
             }),
             contentWidth
@@ -608,7 +615,7 @@ export async function POST(request: NextRequest) {
     children.push(
       new Paragraph({
         children: [run("Lebenslauf", { size: 30, bold: true })],
-        spacing: { after: 240 },
+        spacing: { after: 120 },
         border: { bottom: { style: BorderStyle.SINGLE, size: 12, color: "000000", space: 4 } },
       })
     );
@@ -711,12 +718,12 @@ export async function POST(request: NextRequest) {
       children.push(
         new Paragraph({
           children: [],
-          spacing: { before: 120, after: 160 },
+          spacing: { before: 60, after: 80, line: 20, lineRule: LineRuleType.EXACT },
           border: { bottom: { style: BorderStyle.SINGLE, size: 6, color: "CFCFCF", space: 1 } },
         })
       );
     } else {
-      children.push(new Paragraph({ children: [], spacing: { after: 120 } }));
+      children.push(new Paragraph({ children: [], spacing: { after: 120, line: 20, lineRule: LineRuleType.EXACT } }));
     }
 
     if (contactRows.length > 0) {
@@ -748,13 +755,17 @@ export async function POST(request: NextRequest) {
     description: `Lebenslauf ${profile.full_name || ""}`.trim(),
     styles: {
       default: {
-        document: { run: { font: FONT, size: 19 } },
+        document: {
+          run: { font: FONT, size: 19 },
+          paragraph: { spacing: { before: 0, after: 0, line: 240, lineRule: LineRuleType.AUTO } },
+        },
       },
     },
     sections: [
       {
         properties: {
           page: {
+            size: { width: 11906, height: 16838 },
             margin: { top: page.top, right: page.right, bottom: page.bottom, left: page.left },
             // Design 1: blaue Seitenbalken links+rechts auf jeder Seite
             ...(design === "design1"

@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 
 type MotivationForm = {
+  applicationType: "reactive" | "spontaneous";
   jobTitle: string;
   company: string;
   companyStreet: string;
@@ -41,6 +42,7 @@ type MotivationLetterSectionProps = {
 };
 
 const initialForm: MotivationForm = {
+  applicationType: "reactive",
   jobTitle: "",
   company: "",
   companyStreet: "",
@@ -63,7 +65,7 @@ function slugify(value: string) {
 }
 
 function isSubjectLine(line: string) {
-  return /^(betreff|subject|objet)\b/i.test(line) || /^bewerbung\s/i.test(line);
+  return /^(betreff|subject|objet)\b/i.test(line) || /^(bewerbung|initiativbewerbung|spontanbewerbung)\s/i.test(line);
 }
 
 // Formatierte Vorschau: Betreff fett, Bulletpoints eingerueckt, saubere Absaetze
@@ -124,8 +126,11 @@ export const MotivationLetterSection: React.FC<MotivationLetterSectionProps> = (
   const [isDownloading, setIsDownloading] = useState(false);
 
   const canGenerate = useMemo(() => {
+    if (form.applicationType === "spontaneous") {
+      return Boolean(form.jobTitle.trim() && (form.company.trim() || form.jobAdUrl.trim()));
+    }
     return Boolean(form.jobAd.trim() || form.jobAdUrl.trim());
-  }, [form.jobAd, form.jobAdUrl]);
+  }, [form.applicationType, form.jobAd, form.jobAdUrl, form.jobTitle, form.company]);
 
   const updateField = <K extends keyof MotivationForm>(key: K, value: MotivationForm[K]) => {
     setForm((current) => ({ ...current, [key]: value }));
@@ -141,7 +146,9 @@ export const MotivationLetterSection: React.FC<MotivationLetterSectionProps> = (
     }
 
     if (!canGenerate) {
-      setError("Bitte fügen Sie die Stellenanzeige ein oder geben Sie den Link zum Inserat an.");
+      setError(form.applicationType === "spontaneous"
+        ? "Bitte geben Sie die gewünschte Funktion und das Unternehmen oder dessen Website an."
+        : "Bitte fügen Sie die Stellenanzeige ein oder geben Sie den Link zum Inserat an.");
       return;
     }
 
@@ -151,6 +158,7 @@ export const MotivationLetterSection: React.FC<MotivationLetterSectionProps> = (
     }
 
     setIsGenerating(true);
+    setLetter("");
     try {
       const { data } = await supabase.auth.getSession();
       const token = data.session?.access_token;
@@ -280,9 +288,8 @@ export const MotivationLetterSection: React.FC<MotivationLetterSectionProps> = (
               AI Motivationsschreiben
             </h2>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
-              Stellenanzeige einfügen oder Link zum Inserat angeben. Unternehmen, Adresse und
-              Ansprechperson werden automatisch aus dem Inserat oder der Website erkannt. Das
-              fertige Schreiben laden Sie als Word-Datei herunter.
+              Wählen Sie eine Stellenbewerbung oder Spontanbewerbung. Ergänzen Sie ein Inserat,
+              einen Link oder Angaben zum Zielunternehmen. Das fertige Schreiben laden Sie als Word-Datei herunter.
             </p>
           </div>
         </div>
@@ -290,8 +297,32 @@ export const MotivationLetterSection: React.FC<MotivationLetterSectionProps> = (
         <form onSubmit={handleGenerate} className="mt-6 grid gap-5 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] lg:items-stretch">
           <div className="space-y-4">
             <div className="space-y-2">
+              <label htmlFor="applicationType" className="text-sm font-semibold text-slate-900">
+                Art der Bewerbung
+              </label>
+              <Select value={form.applicationType} disabled={isGenerating} onValueChange={(value) => {
+                updateField("applicationType", value as MotivationForm["applicationType"]);
+                setLetter("");
+                setError("");
+              }}>
+                <SelectTrigger id="applicationType" className="border-slate-200 bg-white text-slate-950">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-white text-slate-950">
+                  <SelectItem value="reactive">Bewerbung auf eine Stelle</SelectItem>
+                  <SelectItem value="spontaneous">Spontanbewerbung</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs leading-5 text-slate-500">
+                {form.applicationType === "spontaneous"
+                  ? "Beschreiben Sie Ihre gewünschte Funktion und das Unternehmen. Ein Stelleninserat ist nicht erforderlich."
+                  : "Fügen Sie ein Inserat ein oder geben Sie den Link dazu an."}
+              </p>
+            </div>
+
+            <div className="space-y-2">
               <label htmlFor="jobAdUrl" className="text-sm font-semibold text-slate-900">
-                Link zum Inserat
+                {form.applicationType === "spontaneous" ? "Unternehmenswebsite (optional)" : "Link zum Inserat"}
               </label>
               <div className="relative">
                 <Link2 className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
@@ -307,20 +338,20 @@ export const MotivationLetterSection: React.FC<MotivationLetterSectionProps> = (
                 />
               </div>
               <p className="text-xs leading-5 text-slate-500">
-                Der obere Teil des Schreibens wird aus dem Inserat oder der Website erkannt. Ohne
-                Angaben wird das Impressum verwendet.
+                Empfängerangaben werden aus dem Inserat oder der Unternehmenswebsite übernommen,
+                soweit sie dort verfügbar sind. Sie können die Adresse unten selbst ergänzen.
               </p>
             </div>
 
             <div className="space-y-2">
               <label htmlFor="jobAd" className="text-sm font-semibold text-slate-900">
-                Stellenanzeige {form.jobAdUrl.trim() ? "(optional)" : "*"}
+                {form.applicationType === "spontaneous" ? "Unternehmensinformationen / eigene Hinweise (optional)" : `Stellenanzeige ${form.jobAdUrl.trim() ? "(optional)" : "*"}`}
               </label>
               <Textarea
                 id="jobAd"
                 value={form.jobAd}
                 onChange={(event) => updateField("jobAd", event.target.value)}
-                placeholder="Stelleninserat hier einfügen"
+                placeholder={form.applicationType === "spontaneous" ? "Was interessiert Sie an diesem Unternehmen? Welchen Beitrag möchten Sie leisten?" : "Stelleninserat hier einfügen"}
                 className="min-h-44 resize-y border-slate-200 bg-white text-slate-950 focus-visible:ring-[#204878]/20"
                 maxLength={9000}
               />
@@ -329,26 +360,26 @@ export const MotivationLetterSection: React.FC<MotivationLetterSectionProps> = (
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <label htmlFor="jobTitle" className="text-sm font-semibold text-slate-900">
-                  Stelle (optional)
+                  {form.applicationType === "spontaneous" ? "Gewünschte Funktion *" : "Stelle (optional)"}
                 </label>
                 <Input
                   id="jobTitle"
                   value={form.jobTitle}
                   onChange={(event) => updateField("jobTitle", event.target.value)}
-                  placeholder="Wird aus dem Inserat erkannt"
+                  placeholder={form.applicationType === "spontaneous" ? "Zum Beispiel Teamleitung Beratung" : "Wird aus dem Inserat erkannt"}
                   className="border-slate-200 bg-white text-slate-950 focus-visible:ring-[#204878]/20"
                   maxLength={140}
                 />
               </div>
               <div className="space-y-2">
                 <label htmlFor="company" className="text-sm font-semibold text-slate-900">
-                  Unternehmen (optional)
+                  Unternehmen {form.applicationType === "spontaneous" && !form.jobAdUrl.trim() ? "*" : "(optional)"}
                 </label>
                 <Input
                   id="company"
                   value={form.company}
                   onChange={(event) => updateField("company", event.target.value)}
-                  placeholder="Wird aus dem Inserat erkannt"
+                  placeholder={form.applicationType === "spontaneous" ? "Ihr Zielunternehmen" : "Wird aus dem Inserat erkannt"}
                   className="border-slate-200 bg-white text-slate-950 focus-visible:ring-[#204878]/20"
                   maxLength={140}
                 />
@@ -364,7 +395,7 @@ export const MotivationLetterSection: React.FC<MotivationLetterSectionProps> = (
                   id="recipient"
                   value={form.recipient}
                   onChange={(event) => updateField("recipient", event.target.value)}
-                  placeholder="Wird aus dem Inserat erkannt"
+                  placeholder="Falls bekannt, Name eingeben"
                   className="border-slate-200 bg-white text-slate-950 focus-visible:ring-[#204878]/20"
                   maxLength={180}
                 />

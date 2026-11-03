@@ -30,24 +30,24 @@ const styles = StyleSheet.create({
   page: {
     fontSize: 10,
     fontFamily: 'Helvetica',
-    paddingTop: 30,
-    paddingBottom: 34,
+    paddingTop: 24,
+    paddingBottom: 24,
     paddingLeft: 52,
     paddingRight: 52,
     color: '#000000',
-    lineHeight: 1.3,
+    lineHeight: 1.15,
   },
   topTitle: {
     fontSize: 15,
     fontWeight: 'bold',
     borderBottom: '1.5 solid #000000',
-    paddingBottom: 4,
-    marginBottom: 12,
+    paddingBottom: 2,
+    marginBottom: 6,
   },
   headerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 12,
+    marginBottom: 6,
   },
   contactBlock: {
     flex: 1,
@@ -55,7 +55,7 @@ const styles = StyleSheet.create({
   },
   contactRow: {
     flexDirection: 'row',
-    marginBottom: 2,
+    marginBottom: 1,
   },
   contactLabel: {
     width: 90,
@@ -79,14 +79,14 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 11.5,
     fontWeight: 'bold',
-    marginTop: 12,
-    marginBottom: 6,
+    marginTop: 6,
+    marginBottom: 3,
     borderBottom: '1.5 solid #000000',
     paddingBottom: 2,
   },
   itemRow: {
     flexDirection: 'row',
-    marginBottom: 8,
+    marginBottom: 4,
   },
   itemDate: {
     width: 105,
@@ -103,12 +103,12 @@ const styles = StyleSheet.create({
   itemMeta: {
     fontSize: 9.5,
     color: '#333333',
-    marginBottom: 2,
+    marginBottom: 1,
   },
   bulletRow: {
     flexDirection: 'row',
     marginLeft: 8,
-    marginBottom: 1.5,
+    marginBottom: 0.5,
   },
   bulletPoint: {
     width: 10,
@@ -120,7 +120,7 @@ const styles = StyleSheet.create({
   },
   skillRow: {
     flexDirection: 'row',
-    marginBottom: 4,
+    marginBottom: 2,
   },
   skillLabel: {
     width: 105,
@@ -133,7 +133,7 @@ const styles = StyleSheet.create({
   },
   languageRow: {
     flexDirection: 'row',
-    marginBottom: 1.5,
+    marginBottom: 0.5,
   },
   languageName: {
     width: 100,
@@ -291,7 +291,7 @@ export const CVPdfDesign3: React.FC<CVPdfDesign3Props> = ({
                 <Text style={styles.skillLabel}>Führerschein</Text>
                 <View style={styles.skillContent}>
                   {driverLicenses.map((s, idx) => (
-                    <Text key={s.id ?? idx} style={{ fontSize: 9.5, marginBottom: 1.5 }}>
+                    <Text key={s.id ?? idx} style={{ fontSize: 9.5, marginBottom: 0.5 }}>
                       {formatDriverLicense(s)}
                     </Text>
                   ))}

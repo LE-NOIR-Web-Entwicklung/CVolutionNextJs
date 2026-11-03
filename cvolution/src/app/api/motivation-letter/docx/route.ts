@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import {
   AlignmentType,
   Document,
+  LineRuleType,
   Packer,
   Paragraph,
   TextRun,
@@ -19,7 +20,7 @@ type DocxRequest = {
 
 const FONT = "Arial";
 const FONT_SIZE = 22; // 11pt
-const LINE_SPACING = 276; // 1.15-facher Zeilenabstand
+const LINE_SPACING = 240; // Einfacher Zeilenabstand, kein zusaetzlicher Absatzabstand
 
 function jsonError(message: string, status: number) {
   return NextResponse.json({ error: message }, { status });
@@ -57,7 +58,7 @@ function isSelfServiceIncluded(profile: any) {
 }
 
 function isSubjectLine(line: string) {
-  return /^(betreff|subject|objet)\b/i.test(line) || /^bewerbung\s/i.test(line);
+  return /^(betreff|subject|objet)\b/i.test(line) || /^(bewerbung|initiativbewerbung|spontanbewerbung)\s/i.test(line);
 }
 
 function isSalutationLine(line: string) {
@@ -78,9 +79,9 @@ function stripBullet(line: string) {
 
 // Saubere Briefformatierung:
 // - Adressbloecke mit engem Zeilenabstand
-// - Betreff fett mit Abstand davor/danach
+// - Betreff fett, kurze Trennung zwischen Briefbloecken
 // - Echte Word-Bulletpoints
-// - Konsistente Absatzabstaende
+// - Kein zusaetzlicher Absatzabstand, einfacher Zeilenabstand
 function createLetterParagraphs(letter: string): Paragraph[] {
   const paragraphs: Paragraph[] = [];
   const blocks = letter
@@ -89,24 +90,32 @@ function createLetterParagraphs(letter: string): Paragraph[] {
     .filter(Boolean);
 
   blocks.forEach((block, blockIdx) => {
+    if (blockIdx > 0) {
+      paragraphs.push(new Paragraph({
+        spacing: { before: 0, after: 0, line: 120, lineRule: LineRuleType.EXACT },
+        keepNext: true,
+      }));
+    }
     const lines = block
       .split("\n")
       .map((line) => line.trim())
       .filter(Boolean);
 
-    const isLastBlock = blockIdx === blocks.length - 1;
     const allBullets = lines.length > 0 && lines.every(isBulletLine);
 
     // Bullet-Block: echte Word-Aufzaehlung
     if (allBullets) {
-      lines.forEach((line, lineIdx) => {
+      lines.forEach((line) => {
         paragraphs.push(
           new Paragraph({
             children: [new TextRun({ text: stripBullet(line), font: FONT, size: FONT_SIZE })],
             bullet: { level: 0 },
+            indent: { left: 360, hanging: 180 },
             spacing: {
-              after: lineIdx === lines.length - 1 ? 240 : 60,
+              before: 0,
+              after: 0,
               line: LINE_SPACING,
+              lineRule: LineRuleType.AUTO,
             },
             alignment: AlignmentType.LEFT,
           })
@@ -115,12 +124,13 @@ function createLetterParagraphs(letter: string): Paragraph[] {
       return;
     }
 
-    // Betreffzeile: fett mit groesserem Abstand
+    // Betreffzeile: fett und mit der folgenden Anrede zusammenhalten
     if (lines.length === 1 && isSubjectLine(lines[0])) {
       paragraphs.push(
         new Paragraph({
           children: [new TextRun({ text: lines[0], font: FONT, size: FONT_SIZE, bold: true })],
-          spacing: { before: 160, after: 320, line: LINE_SPACING },
+          spacing: { before: 0, after: 0, line: LINE_SPACING, lineRule: LineRuleType.AUTO },
+          keepNext: true,
           alignment: AlignmentType.LEFT,
         })
       );
@@ -132,24 +142,27 @@ function createLetterParagraphs(letter: string): Paragraph[] {
       paragraphs.push(
         new Paragraph({
           children: [new TextRun({ text: lines[0], font: FONT, size: FONT_SIZE })],
-          spacing: { after: 240, line: LINE_SPACING },
+          spacing: { before: 0, after: 0, line: LINE_SPACING, lineRule: LineRuleType.AUTO },
+          keepNext: true,
           alignment: AlignmentType.LEFT,
         })
       );
       return;
     }
 
-    // Grussformel: Abstand vor der Unterschrift
+    // Grussformel und Name ohne zusaetzliche Leerzeilen zusammenhalten
     if (isClosingLine(lines[0])) {
       lines.forEach((line, lineIdx) => {
         paragraphs.push(
           new Paragraph({
             children: [new TextRun({ text: line, font: FONT, size: FONT_SIZE })],
             spacing: {
-              before: lineIdx === 0 ? 160 : 0,
-              after: lineIdx === 0 ? 480 : 60,
+              before: 0,
+              after: 0,
               line: LINE_SPACING,
+              lineRule: LineRuleType.AUTO,
             },
+            keepNext: lineIdx < lines.length - 1,
             alignment: AlignmentType.LEFT,
           })
         );
@@ -170,11 +183,14 @@ function createLetterParagraphs(letter: string): Paragraph[] {
                 size: FONT_SIZE,
               }),
             ],
-            ...(bulletLine ? { bullet: { level: 0 } } : {}),
+            ...(bulletLine ? { bullet: { level: 0 }, indent: { left: 360, hanging: 180 } } : {}),
             spacing: {
-              after: lineIdx === lines.length - 1 ? 240 : 20,
+              before: 0,
+              after: 0,
               line: LINE_SPACING,
+              lineRule: LineRuleType.AUTO,
             },
+            keepNext: lineIdx < lines.length - 1,
             alignment: AlignmentType.LEFT,
           })
         );
@@ -186,7 +202,7 @@ function createLetterParagraphs(letter: string): Paragraph[] {
     paragraphs.push(
       new Paragraph({
         children: [new TextRun({ text: lines[0], font: FONT, size: FONT_SIZE })],
-        spacing: { after: isLastBlock ? 0 : 240, line: LINE_SPACING },
+        spacing: { before: 0, after: 0, line: LINE_SPACING, lineRule: LineRuleType.AUTO },
         alignment: AlignmentType.LEFT,
       })
     );
@@ -251,6 +267,7 @@ export async function POST(request: NextRequest) {
       default: {
         document: {
           run: { font: FONT, size: FONT_SIZE },
+          paragraph: { spacing: { before: 0, after: 0, line: LINE_SPACING, lineRule: LineRuleType.AUTO } },
         },
       },
     },
@@ -258,11 +275,12 @@ export async function POST(request: NextRequest) {
       {
         properties: {
           page: {
+            size: { width: 11906, height: 16838 },
             margin: {
-              top: 1440,
-              right: 1440,
-              bottom: 1440,
-              left: 1440,
+              top: 1134,
+              right: 1134,
+              bottom: 1134,
+              left: 1134,
             },
           },
         },

@@ -27,6 +27,24 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## Motivation letters
+
+The form supports applications to an advertised role and spontaneous applications, using separate four-paragraph structures. `/api/motivation-letter/generate` accepts `applicationType: "reactive" | "spontaneous"`; omitted values default to `reactive`. Spontaneous applications require a desired role and either the company name or its website. Advertised applications require advert text or an advert URL.
+
+Career changes and missing direct qualifications do not block generation. The prompt requires honest descriptions of transferable experience and forbids invented qualifications. Letters target 180–240 body words. Word exports use A4 with 20 mm margins, 11 pt text, single line spacing and no added paragraph spacing; short separators preserve the letter's blocks.
+
+Public HTTP(S) pages are read with bounded redirects, DNS validation and support for structured `JobPosting` data. Protected, expired or JavaScript-only pages may still require pasted text. No additional scraping service is used.
+
+Run the mocked generation, source-reading and Word-export regression tests with Node 22 or later:
+
+```bash
+node --test tests/motivation-letter.test.cjs
+```
+
+To include actual Word pagination checks, install LibreOffice and Poppler (`soffice` and `pdfinfo` on PATH) and run `CV_EXPORT_RENDER_WORD=1 node --test tests/*.test.cjs`.
+
+These tests make no live AI calls. They verify the submitted prompts; final model output still requires a live generation check.
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:

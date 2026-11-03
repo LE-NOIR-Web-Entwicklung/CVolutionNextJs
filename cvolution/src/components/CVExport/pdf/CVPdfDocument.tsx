@@ -34,8 +34,8 @@ const styles = StyleSheet.create({
   page: {
     fontSize: 10,
     fontFamily: 'Helvetica',
-    paddingTop: 28,
-    paddingBottom: 32,
+    paddingTop: 24,
+    paddingBottom: 24,
     paddingLeft: 58,
     paddingRight: 58,
     color: '#1a1a1a',
@@ -58,7 +58,7 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: 'row',
-    marginBottom: 12,
+    marginBottom: 6,
   },
   photo: {
     width: 92,
@@ -84,15 +84,15 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 12,
     fontWeight: 'bold',
-    marginTop: 12,
-    marginBottom: 5,
+    marginTop: 6,
+    marginBottom: 3,
     color: ACCENT,
     borderBottom: `1 solid ${ACCENT}`,
     paddingBottom: 2,
   },
   contactRow: {
     flexDirection: 'row',
-    marginBottom: 2,
+    marginBottom: 1,
   },
   contactLabel: {
     width: 80,
@@ -103,7 +103,7 @@ const styles = StyleSheet.create({
     fontSize: 9.5,
   },
   expItem: {
-    marginBottom: 8,
+    marginBottom: 4,
   },
   expTitle: {
     fontSize: 10.5,
@@ -113,12 +113,12 @@ const styles = StyleSheet.create({
     fontSize: 9.5,
     color: '#444444',
     marginTop: 1,
-    marginBottom: 3,
+    marginBottom: 1,
   },
   bulletRow: {
     flexDirection: 'row',
     marginLeft: 10,
-    marginBottom: 1.5,
+    marginBottom: 0.5,
   },
   bulletPoint: {
     width: 10,
@@ -130,7 +130,7 @@ const styles = StyleSheet.create({
   },
   skillRow: {
     flexDirection: 'row',
-    marginBottom: 4,
+    marginBottom: 2,
   },
   skillLabel: {
     width: 110,
@@ -142,7 +142,7 @@ const styles = StyleSheet.create({
   },
   languageRow: {
     flexDirection: 'row',
-    marginBottom: 1.5,
+    marginBottom: 0.5,
   },
   languageName: {
     width: 100,
@@ -297,7 +297,7 @@ export const CVPdfDocument: React.FC<CVPdfDocumentProps> = (props) => {
                 <Text style={styles.skillLabel}>Führerschein</Text>
                 <View style={styles.skillContent}>
                   {driverLicenses.map((s, idx) => (
-                    <Text key={s.id ?? idx} style={{ fontSize: 9.5, marginBottom: 1.5 }}>
+                    <Text key={s.id ?? idx} style={{ fontSize: 9.5, marginBottom: 0.5 }}>
                       {formatDriverLicense(s)}
                     </Text>
                   ))}
