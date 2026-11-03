@@ -21,6 +21,7 @@ import { CVExportButton } from '@/components/CVExport/CVExportButton';
 import { CVExportModal } from '@/components/CVExport/CVExportModal';
 import { PaymentModal } from '@/components/ui/PaymentModal';
 
+const cvTabClass = 'h-9 min-w-0 rounded-md !bg-transparent px-3 text-sm font-medium !text-slate-600 !shadow-none transition-colors hover:!text-slate-900 data-[state=active]:!bg-white data-[state=active]:!text-[#204878] data-[state=active]:!shadow-sm';
 const areaTabClass = '-mb-px h-11 min-w-0 rounded-none border-b-2 border-transparent !bg-transparent px-2 text-sm font-medium !text-slate-500 !shadow-none transition-colors hover:!text-slate-900 data-[state=active]:border-[#204878] data-[state=active]:!text-[#204878] sm:px-1';
 
 export const Dashboard: React.FC = () => {
@@ -400,23 +401,21 @@ export const Dashboard: React.FC = () => {
 
           <TabsContent value="cv" className="mt-0">
             <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-4 sm:space-y-6">
-              <div className="rounded-lg border border-slate-200 bg-white p-3 shadow-sm">
-                <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-                  <TabsList className="!grid h-auto w-full grid-cols-2 gap-2 bg-transparent p-0 sm:!flex sm:flex-wrap sm:items-center sm:justify-start">
-                    <TabsTrigger value="profile" className="h-11 min-w-28 rounded-lg border border-slate-200 !bg-white text-sm !text-gray-600 shadow-sm data-[state=active]:!bg-[#204878] data-[state=active]:!text-white data-[state=active]:!shadow-md">Profil</TabsTrigger>
-                    <TabsTrigger value="experience" className="h-11 min-w-28 rounded-lg border border-slate-200 !bg-white text-sm !text-gray-600 shadow-sm data-[state=active]:!bg-[#204878] data-[state=active]:!text-white data-[state=active]:!shadow-md">Erfahrung</TabsTrigger>
-                    <TabsTrigger value="education" className="h-11 min-w-28 rounded-lg border border-slate-200 !bg-white text-sm !text-gray-600 shadow-sm data-[state=active]:!bg-[#204878] data-[state=active]:!text-white data-[state=active]:!shadow-md">Bildung</TabsTrigger>
-                    <TabsTrigger value="skills" className="h-11 min-w-48 rounded-lg border border-slate-200 !bg-white px-4 text-sm !text-gray-600 shadow-sm data-[state=active]:!bg-[#204878] data-[state=active]:!text-white data-[state=active]:!shadow-md">Sprachen & Fähigkeiten</TabsTrigger>
-                  </TabsList>
+              <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                <TabsList aria-label="Lebenslauf-Bereiche" className="!grid h-auto w-full grid-cols-2 gap-1 rounded-lg !bg-slate-100 p-1 sm:!inline-flex sm:w-auto">
+                  <TabsTrigger value="profile" className={cvTabClass}>Profil</TabsTrigger>
+                  <TabsTrigger value="experience" className={cvTabClass}>Erfahrung</TabsTrigger>
+                  <TabsTrigger value="education" className={cvTabClass}>Bildung</TabsTrigger>
+                  <TabsTrigger value="skills" className={cvTabClass}>Sprachen & Fähigkeiten</TabsTrigger>
+                </TabsList>
 
-                  <div className="flex w-full shrink-0 flex-col gap-2 sm:flex-row lg:w-auto">
-                    <CVImportButton
-                      hasSelfServiceAccess={hasSelfServiceAccess}
-                      onRequirePayment={openSelfServicePayment}
-                      onImported={() => setCvImportVersion((current) => current + 1)}
-                    />
-                    <CVExportButton onExport={handleExportClick} />
-                  </div>
+                <div className="flex w-full shrink-0 flex-col gap-2 sm:flex-row lg:w-auto">
+                  <CVImportButton
+                    hasSelfServiceAccess={hasSelfServiceAccess}
+                    onRequirePayment={openSelfServicePayment}
+                    onImported={() => setCvImportVersion((current) => current + 1)}
+                  />
+                  <CVExportButton onExport={handleExportClick} />
                 </div>
               </div>
 

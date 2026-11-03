@@ -4,10 +4,10 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Edit, Trash2, Save, X } from 'lucide-react';
+import { GraduationCap, Save, X } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { CvAddButton, CvEmpty, CvFormSurface, CvItemActions, CvLoading, CvPanel, cvCheckbox, cvField, cvFormActions, cvLabel, cvPrimary, cvSecondary } from './cv-ui';
 
 interface Education {
   id: string;
@@ -180,39 +180,39 @@ function parseMonthYearToDate(str?: string | null) {
         onSubmit={(e) => handleSave(e, education?.id)}
         className="space-y-4"
       >
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <div>
-          <label className="text-sm font-medium text-black">Institution *</label>
+          <label className={cvLabel}>Institution *</label>
           <Input
             name="institution"
             defaultValue={education?.institution || ''}
             placeholder="Universität für Technologie"
             required
-            className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+            className={cvField}
           />
         </div>
         <div>
-          <label className="text-sm font-medium text-black">Abschluss *</label>
+          <label className={cvLabel}>Abschluss *</label>
           <Input
             name="degree"
             defaultValue={education?.degree || ''}
             placeholder="Bachelor of Science"
             required
-            className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+            className={cvField}
           />
         </div>
         <div>
-          <label className="text-sm font-medium text-black">Ort *</label>
+          <label className={cvLabel}>Ort *</label>
           <Input
             name="place"
             defaultValue={education?.place || ''}
             placeholder="Zürich, Schweiz"
             required
-            className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+            className={cvField}
           />
         </div>
         <div>
-          <label className="text-sm font-medium text-black">Startdatum</label>
+          <label className={cvLabel}>Startdatum</label>
           <Input
             name="start_date"
             type="text"
@@ -224,11 +224,11 @@ function parseMonthYearToDate(str?: string | null) {
                 : ''
             }
             disabled={education?.is_current || false}
-            className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+            className={cvField}
           />
         </div>
         <div>
-          <label className="text-sm font-medium text-black">Enddatum</label>
+          <label className={cvLabel}>Enddatum</label>
           <Input
             name="end_date"
             type="text"
@@ -240,25 +240,25 @@ function parseMonthYearToDate(str?: string | null) {
                 : ''
             }
             disabled={education?.is_current || false}
-            className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+            className={cvField}
           />
-          <div className="flex items-center mt-2">
+          <div className="mt-2 flex items-center gap-2">
             <input
               type="checkbox"
               name="is_current"
               id="is_current"
               defaultChecked={education?.is_current}
-              className="w-5 h-5 text-[#204878] border-gray-300 mr-4 rounded focus:ring-[#204878]"
+              className={cvCheckbox}
             />
-            <label htmlFor="is_current" className="text-sm text-black">
+            <label htmlFor="is_current" className="cursor-pointer select-none text-sm text-slate-700">
               Ich studiere hier noch
             </label>
           </div>
         </div>
       </div>
-      <div className="flex space-x-3">
-        <Button type="submit" className="w-full bg-[#204878] hover:bg-[#4c6c93] text-white font-bold rounded-lg py-3 transition duration-200">
-          <Save className="h-4 w-4 mr-2" />
+      <div className={cvFormActions}>
+        <Button type="submit" className={cvPrimary}>
+          <Save className="h-4 w-4" />
           Speichern
         </Button>
         <Button
@@ -267,9 +267,9 @@ function parseMonthYearToDate(str?: string | null) {
             setEditingId(null);
             setIsAdding(false);
           }}
-          className="w-full bg-gray-200 hover:bg-gray-300 text-black font-bold rounded-lg py-3 transition duration-200"
+          className={cvSecondary}
         >
-          <X className="h-4 w-4 mr-2" />
+          <X className="h-4 w-4" />
           Abbrechen
         </Button>
       </div>
@@ -277,99 +277,66 @@ function parseMonthYearToDate(str?: string | null) {
     );
   };
 
-  if (isLoading) {
-    return (
-      <Card>
-        <CardContent className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-        </CardContent>
-      </Card>
-    );
-  }
+  if (isLoading) return <CvLoading />;
+
+  const period = (edu: Education) => edu.start_date
+    ? `${formatMonthYear(edu.start_date)} – ${edu.is_current || !edu.end_date ? 'heute' : formatMonthYear(edu.end_date)}`
+    : '';
 
   return (
-    <div className="space-y-6">
-      <div className="bg-white p-6 rounded-lg shadow-lg mb-8">
-        <CardHeader>
-          <div className="flex justify-between items-center">
-            <div>
-              <CardTitle className="text-xl font-bold text-black mb-1">Bildung</CardTitle>
-              <CardDescription className="text-black">Ihr Bildungshintergrund</CardDescription>
-            </div>
-            <Button onClick={() => setIsAdding(true)} className="bg-[#204878] hover:bg-[#4c6c93] text-white font-bold rounded-lg px-4 py-2">
-              <Plus className="h-4 w-4" />
-            </Button>
-          </div>
-        </CardHeader>
-      </div>
-
-      {isAdding && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-black">Neue Bildung hinzufügen</CardTitle>
-          </CardHeader>
-          <CardContent>
+    <CvPanel
+      title="Bildung"
+      description="Abschlüsse, Ausbildungen und Weiterbildungen."
+      action={<CvAddButton label="Bildung hinzufügen" onClick={() => { setEditingId(null); setIsAdding(true); }} disabled={isAdding} />}
+    >
+      <div className="space-y-4">
+        {isAdding && (
+          <CvFormSurface title="Neue Ausbildung">
             <EducationForm />
-          </CardContent>
-        </Card>
-      )}
+          </CvFormSurface>
+        )}
 
-      {education.map((edu) => (
-        <Card key={edu.id}>
-          <CardContent className="pt-6">
-            {editingId === edu.id ? (
-              <EducationForm education={edu} />
-            ) : (
-              <div className="space-y-4">
-                <div className="flex justify-between items-start">
-                  <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-gray-900">{edu.degree}</h3>
-                    <p className="text-gray-600">{edu.institution}</p>
-                    <p className="text-gray-600">{edu.place}</p>
-                    <div className="flex items-center space-x-2 mt-2">
-                      {edu.start_date && (
-                        <span className="text-sm text-gray-500">
-                          {formatMonthYear(edu.start_date)} -
-                      {edu.is_current
-                        ? ' Aktuell'
-                        : edu.end_date
-                          ? ` ${formatMonthYear(edu.end_date)}`
-                          : ' Aktuell'}
-                        </span>
-                      )}
-                      
+        {education.length > 0 && (
+          <ol className="divide-y divide-slate-100">
+            {education.map((edu) => (
+              <li key={edu.id} className="py-4 first:pt-0 last:pb-0">
+                {editingId === edu.id ? (
+                  <CvFormSurface title="Ausbildung bearbeiten">
+                    <EducationForm education={edu} />
+                  </CvFormSurface>
+                ) : (
+                  <div className="flex gap-3 sm:gap-4">
+                    <span aria-hidden="true" className="mt-0.5 hidden h-9 w-9 shrink-0 items-center justify-center rounded-md bg-[#EEF4FA] text-[#204878] sm:flex">
+                      <GraduationCap className="h-4 w-4" />
+                    </span>
+                    <div className="flex min-w-0 flex-1 items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <h3 className="break-words font-semibold text-slate-950">{edu.degree}</h3>
+                        <p className="mt-0.5 break-words text-sm text-slate-700">
+                          {edu.institution}
+                          {edu.place && <span className="text-slate-500"> · {edu.place}</span>}
+                        </p>
+                        {period(edu) && (
+                          <p className="mt-1 flex flex-wrap items-center gap-2 text-xs text-slate-500">
+                            <span className="tabular-nums">{period(edu)}</span>
+                            {edu.is_current && <span className="rounded-full bg-emerald-50 px-2 py-0.5 font-medium text-emerald-700">Laufend</span>}
+                          </p>
+                        )}
+                      </div>
+                      <CvItemActions label={edu.degree} onEdit={() => { setIsAdding(false); setEditingId(edu.id); }} onDelete={() => handleDelete(edu.id)} />
                     </div>
                   </div>
+                )}
+              </li>
+            ))}
+          </ol>
+        )}
 
-                  <div className="flex space-x-2">
-                    <Button
-                      onClick={() => setEditingId(edu.id)}
-                      className="bg-[#204878] hover:bg-[#4c6c93] text-white font-bold rounded-lg px-3 py-2"
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      onClick={() => handleDelete(edu.id)}
-                      className="bg-[#204878] hover:bg-[#4c6c93] text-white font-bold rounded-lg px-3 py-2"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      ))}
-
-      {education.length === 0 && !isAdding && (
-        <Card>
-          <CardContent className="text-center py-12">
-            <p className="text-gray-500 mb-4">Noch keine Bildung hinzugefügt.</p>
-          </CardContent>
-        </Card>
-      )}
-    </div>
+        {education.length === 0 && !isAdding && (
+          <CvEmpty icon={GraduationCap} text="Noch keine Ausbildung erfasst." actionLabel="Erste Ausbildung hinzufügen" onAction={() => setIsAdding(true)} />
+        )}
+      </div>
+    </CvPanel>
   );
 });
 export default EducationSection;

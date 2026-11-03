@@ -4,10 +4,10 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { Save, Edit, Camera } from 'lucide-react';
+import { Save, Edit, Camera, Loader2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { CvLoading, CvPanel, cvField, cvFormActions, cvLabel, cvPrimary, cvSecondary } from './cv-ui';
 
 interface Profile {
   id: string;
@@ -222,112 +222,80 @@ export const ProfileSection = React.forwardRef<{ saveProfile: () => void }, {}>(
     }
   };
 
-  if (isLoading) {
-    return (
-      <Card>
-        <CardContent className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-        </CardContent>
-      </Card>
-    );
-  }
+  if (isLoading) return <CvLoading />;
+
+  const initials = profile?.full_name?.split(' ').map(n => n[0]).join('') || 'U';
+  const avatar = (
+    <Avatar className="h-28 w-[5.25rem] shrink-0 overflow-hidden rounded-lg border border-slate-200">
+      <AvatarImage
+        src={profile?.profile_picture_url || ''}
+        alt={profile?.full_name || 'Profil'}
+        className="h-28 w-[5.25rem] rounded-lg object-cover"
+      />
+      <AvatarFallback className="flex h-28 w-[5.25rem] items-center justify-center rounded-lg bg-[#EEF4FA] text-lg font-semibold text-[#204878]">
+        {initials}
+      </AvatarFallback>
+    </Avatar>
+  );
 
   if (!isEditing) {
+    const fields: Array<[string, string | null | undefined]> = [
+      ['E-Mail', user?.email],
+      ['Telefon', profile?.phone],
+      ['Adresse', profile?.location],
+      ['Heimatort', profile?.place_of_origin],
+      ['Geburtsdatum', profile?.birthdate
+        ? new Date(profile.birthdate).toLocaleDateString('de-CH', { day: '2-digit', month: '2-digit', year: 'numeric' })
+        : null],
+      ['Zivilstand', profile?.civil_status],
+    ];
     return (
-      <div className="bg-white p-8 rounded-2xl shadow-lg mb-8">
-        <CardHeader className="pb-4 border-b border-gray-100">
-          <div className="flex justify-between items-center">
-            <div>
-              <CardTitle className="text-xl font-bold text-black mb-1">Persönliches Profil</CardTitle>
-              <CardDescription className="text-black">Ihre professionellen Informationen</CardDescription>
-            </div>
-            <Button onClick={() => setIsEditing(true)} className="bg-[#204878] hover:bg-[#4c6c93] text-white font-bold rounded-lg px-4 py-2">
-              <Edit className="h-4 w-4 mr-2" />
-              Bearbeiten
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-4 pt-6">
-          <div className="flex items-center space-x-4 mb-6">
-            <Avatar className="h-32 w-24 border-2 border-blue-200 rounded-lg overflow-hidden">
-              <AvatarImage 
-                src={profile?.profile_picture_url || ''} 
-                alt={profile?.full_name || 'Profil'} 
-                className="object-cover h-32 w-24 rounded-lg"
-              />
-              <AvatarFallback className="text-lg bg-blue-100 text-black h-32 w-24 flex items-center justify-center rounded-lg">
-                {profile?.full_name?.split(' ').map(n => n[0]).join('') || 'U'}
-              </AvatarFallback>
-            </Avatar>
-            <div>
-              <h3 className="text-lg font-bold text-black mb-1">{profile?.full_name || 'Nicht angegeben'}</h3>
-              <p className="text-sm text-gray-600">{profile?.headline || 'Keine Berufsbezeichnung angegeben'}</p>
+      <CvPanel
+        title="Persönliches Profil"
+        description="Diese Angaben stehen im Kopf Ihres Lebenslaufs."
+        action={
+          <Button type="button" onClick={() => setIsEditing(true)} className={`h-9 shrink-0 px-3 ${cvSecondary}`}>
+            <Edit className="h-4 w-4" />
+            Bearbeiten
+          </Button>
+        }
+      >
+        <div className="flex flex-col gap-6 md:flex-row md:items-start">
+          <div className="flex items-center gap-4 md:w-72 md:shrink-0">
+            {avatar}
+            <div className="min-w-0">
+              <h3 className="break-words text-lg font-semibold text-slate-950">{profile?.full_name || 'Name fehlt'}</h3>
+              <p className="mt-0.5 break-words text-sm text-slate-600">{profile?.headline || 'Keine Berufsbezeichnung angegeben'}</p>
             </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="text-sm font-medium text-black">E-Mail</label>
-              <p className="text-black">{user?.email || 'Nicht angegeben'}</p>
-            </div>
-            <div>
-              <label className="text-sm font-medium text-black">Adresse</label>
-              <p className="text-black">{profile?.location || 'Nicht angegeben'}</p>
-            </div>
-            <div>
-              <label className="text-sm font-medium text-black">Heimatort</label>
-              <p className="text-black">{profile?.place_of_origin || 'Nicht angegeben'}</p>
-            </div>
-            <div>
-              <label className="text-sm font-medium text-black">Telefon</label>
-              <p className="text-black">{profile?.phone || 'Nicht angegeben'}</p>
-            </div>
-            <div>
-              <label className="text-sm font-medium text-black">Geburtsdatum</label>
-              <p className="text-black">
-                {profile?.birthdate
-                  ? new Date(profile.birthdate).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })
-                  : 'Nicht angegeben'}
-              </p>
-            </div>
-            <div>
-              <label className="text-sm font-medium text-black">Zivilstand</label>
-              <p className="text-black">{profile?.civil_status || 'Nicht angegeben'}</p>
-            </div>
-          </div>
-        </CardContent>
-      </div>
+          <dl className="grid flex-1 grid-cols-1 gap-x-8 gap-y-4 sm:grid-cols-2 md:border-l md:border-slate-100 md:pl-6">
+            {fields.map(([label, value]) => (
+              <div key={label} className="min-w-0">
+                <dt className="text-xs text-slate-500">{label}</dt>
+                <dd className={`mt-0.5 break-words text-sm ${value ? 'text-slate-950' : 'text-slate-400'}`}>{value || 'Nicht angegeben'}</dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+      </CvPanel>
     );
   }
 
   return (
-    <div className="bg-white p-8 rounded-2xl shadow-lg mb-8">
-      <CardHeader className="pb-4 border-b border-gray-100">
-        <CardTitle className="text-xl font-bold text-black mb-1">Profil bearbeiten</CardTitle>
-        <CardDescription className="text-black">Aktualisieren Sie Ihre professionellen Informationen</CardDescription>
-      </CardHeader>
-      <CardContent className="pt-6">
-        <form ref={formRef} onSubmit={handleSave} className="space-y-6">
-          <div className="flex items-center space-x-4 mb-6">
-            <Avatar className="h-32 w-24 border-2 border-blue-200 rounded-lg overflow-hidden">
-              <AvatarImage 
-                src={profile?.profile_picture_url || ''} 
-                alt={profile?.full_name || 'Profil'} 
-                className="object-cover h-32 w-24 rounded-lg"
-              />
-              <AvatarFallback className="text-lg bg-blue-100 text-black h-32 w-24 flex items-center justify-center rounded-lg">
-                {profile?.full_name?.split(' ').map(n => n[0]).join('') || 'U'}
-              </AvatarFallback>
-            </Avatar>
+    <CvPanel title="Profil bearbeiten" description="Felder mit * werden für den Lebenslauf benötigt.">
+        <form ref={formRef} onSubmit={handleSave} className="space-y-5">
+          <div className="flex items-center gap-4">
+            {avatar}
             <div>
               <label htmlFor="profile-photo" className="cursor-pointer">
-                <Button type="button" asChild className="bg-[#204878] hover:bg-[#4c6c93] text-white font-bold rounded-lg px-4 py-2">
+                <Button type="button" asChild className={`h-9 px-3 ${cvSecondary}`}>
                   <span>
                     {isUploadingPhoto ? (
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600" />
+                      <Loader2 className="h-4 w-4 animate-spin" />
                     ) : (
-                      <Camera className="h-4 w-4 mr-2" />
+                      <Camera className="h-4 w-4" />
                     )}
-                    {isUploadingPhoto ? 'Hochladen...' : 'Foto ändern'}
+                    {isUploadingPhoto ? 'Wird hochgeladen …' : 'Foto ändern'}
                   </span>
                 </Button>
               </label>
@@ -339,17 +307,17 @@ export const ProfileSection = React.forwardRef<{ saveProfile: () => void }, {}>(
                 disabled={isUploadingPhoto}
                 className="hidden"
               />
-              <p className="text-xs text-gray-500 mt-1">Max 10MB, JPG/PNG</p>
+              <p className="mt-1.5 text-xs text-slate-500">JPG oder PNG, höchstens 10 MB</p>
             </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div>
               {!profile?.full_name && (
-                <p className="text-xs text-amber-600 flex items-center gap-1 mb-2">
-                  <span className="font-semibold">⚠️</span> Ihr Name kann nach der Eingabe nicht mehr geändert werden.
+                <p className="mb-2 text-xs text-amber-700">
+                  Ihr Name kann nach der Eingabe nicht mehr geändert werden.
                 </p>
               )}
-              <label htmlFor="full_name" className="text-sm font-medium text-black">
+              <label htmlFor="full_name" className={cvLabel}>
                 Vorname, Nachname *
               </label>
               <Input
@@ -359,14 +327,11 @@ export const ProfileSection = React.forwardRef<{ saveProfile: () => void }, {}>(
                 defaultValue={profile?.full_name || ''}
                 readOnly={!!profile?.full_name}
                 required={!profile?.full_name}
-                className={profile?.full_name
-                  ? "w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black opacity-70 cursor-not-allowed"
-                  : "w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                }
+                className={profile?.full_name ? `${cvField} cursor-not-allowed bg-slate-50 text-slate-500` : cvField}
               />
             </div>
             <div>
-              <label htmlFor="headline" className="text-sm font-medium text-black">
+              <label htmlFor="headline" className={cvLabel}>
                 Aktuelle Berufsbezeichnung *
               </label>
               <Input
@@ -375,11 +340,11 @@ export const ProfileSection = React.forwardRef<{ saveProfile: () => void }, {}>(
                 defaultValue={profile?.headline || ''}
                 placeholder="z.B. Software Engineer | Kaufmännischer Angestellter"
                 required
-                className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                className={cvField}
               />
             </div>
             <div>
-              <label htmlFor="email" className="text-sm font-medium text-black">
+              <label htmlFor="email" className={cvLabel}>
                 E-Mail *
               </label>
               <Input
@@ -390,11 +355,11 @@ export const ProfileSection = React.forwardRef<{ saveProfile: () => void }, {}>(
                 placeholder="max.mustermann@mustermann.ch"
                 required
                 readOnly
-                className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black opacity-70 cursor-not-allowed"
+                className={`${cvField} cursor-not-allowed bg-slate-50 text-slate-500`}
               />
             </div>
             <div>
-              <label htmlFor="location" className="text-sm font-medium text-black">
+              <label htmlFor="location" className={cvLabel}>
                 Adresse *
               </label>
               <Input
@@ -403,11 +368,11 @@ export const ProfileSection = React.forwardRef<{ saveProfile: () => void }, {}>(
                 defaultValue={profile?.location || ''}
                 placeholder="Musterstrasse 1, 5000 Musterstadt"
                 required
-                className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                className={cvField}
               />
             </div>
             <div>
-              <label htmlFor="place_of_origin" className="text-sm font-medium text-black">
+              <label htmlFor="place_of_origin" className={cvLabel}>
                 Heimatort *
               </label>
               <Input
@@ -416,11 +381,11 @@ export const ProfileSection = React.forwardRef<{ saveProfile: () => void }, {}>(
                 defaultValue={profile?.place_of_origin || ''}
                 placeholder="Zürich"
                 required
-                className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                className={cvField}
               />
             </div>
             <div>
-              <label htmlFor="phone" className="text-sm font-medium text-black">
+              <label htmlFor="phone" className={cvLabel}>
                 Telefon *
               </label>
               <Input
@@ -430,11 +395,11 @@ export const ProfileSection = React.forwardRef<{ saveProfile: () => void }, {}>(
                 defaultValue={profile?.phone || ''}
                 placeholder="+41 76 000 00 00"
                 required
-                className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                className={cvField}
               />
             </div>
             <div>
-              <label htmlFor="birthdate" className="text-sm font-medium text-black">
+              <label htmlFor="birthdate" className={cvLabel}>
                 Geburtsdatum *
               </label>
               <Input
@@ -443,11 +408,11 @@ export const ProfileSection = React.forwardRef<{ saveProfile: () => void }, {}>(
                 type="date"
                 defaultValue={profile?.birthdate || ''}
                 required
-                className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                className={cvField}
               />
             </div>
             <div className="relative">
-              <label htmlFor="civil_status" className="text-sm font-medium text-black">
+              <label htmlFor="civil_status" className={cvLabel}>
                 Zivilstand *
               </label>
               <select
@@ -455,7 +420,7 @@ export const ProfileSection = React.forwardRef<{ saveProfile: () => void }, {}>(
                 name="civil_status"
                 defaultValue={profile?.civil_status || ''}
                 required
-                className="w-full appearance-none bg-white border border-blue-200 rounded-lg px-4 py-2 pr-10 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-100 shadow-sm transition duration-150"
+                className="h-10 w-full rounded-md border border-slate-200 bg-white px-3 text-sm text-slate-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#204878]/20"
               >
                 <option value="" disabled>Bitte auswählen</option>
                 <option value="Ledig">Ledig</option>
@@ -463,25 +428,19 @@ export const ProfileSection = React.forwardRef<{ saveProfile: () => void }, {}>(
                 <option value="Geschieden">Geschieden</option>
                 <option value="Verwitwet">Verwitwet</option>
               </select>
-              <span className="pointer-events-none absolute top-8 right-4 flex items-center">
-                <svg className="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-                </svg>
-              </span>
             </div>
           </div>
-          <div className="flex space-x-3">
-            <Button type="submit" disabled={isSaving} className="w-full bg-[#204878] hover:bg-[#4c6c93] text-white font-bold rounded-lg py-3 transition duration-200">
-              <Save className="h-4 w-4 mr-2" />
-              {isSaving ? 'Speichern...' : 'Änderungen speichern'}
+          <div className={cvFormActions}>
+            <Button type="submit" disabled={isSaving} className={cvPrimary}>
+              <Save className="h-4 w-4" />
+              {isSaving ? 'Wird gespeichert …' : 'Änderungen speichern'}
             </Button>
-            <Button type="button" onClick={() => setIsEditing(false)} className="w-full bg-gray-200 hover:bg-gray-300 text-black font-bold rounded-lg py-3 transition duration-200">
+            <Button type="button" onClick={() => setIsEditing(false)} className={cvSecondary}>
               Abbrechen
             </Button>
           </div>
         </form>
-      </CardContent>
-    </div>
+    </CvPanel>
   );
 });
   export default ProfileSection;

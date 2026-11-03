@@ -185,7 +185,7 @@ export const CVImportButton: React.FC<CVImportButtonProps> = ({
         onClick={handleOpenInfo}
         disabled={isImporting}
         title="CV als PDF/DOCX oder LinkedIn-Profil als PDF importieren"
-        className="w-full border-slate-200 bg-white text-slate-700 hover:bg-slate-50 lg:w-auto"
+        className="h-9 w-full border-slate-200 bg-white text-slate-700 hover:bg-slate-50 lg:w-auto"
       >
         {isImporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
         CV / LinkedIn PDF importieren
