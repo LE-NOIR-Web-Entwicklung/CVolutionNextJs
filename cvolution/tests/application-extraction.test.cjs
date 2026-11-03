@@ -11,6 +11,7 @@ const originalLoad = Module._load;
 const originalTs = Module._extensions['.ts'];
 const originalKey = process.env.ANTHROPIC_API_KEY;
 const jobUrl = 'https://careers.example.test/job';
+let modelQueue = [];
 let profile, pages, requests, payloads, dnsAddress, modelStatus, modelBody, modelError, hangModel, importAllowed, importLimitError;
 const extracted = () => ({ company: 'Muster AG', job_title: 'Projektleitung', recipient: 'Frau Beispiel', company_street: 'Musterweg 1', company_postal_code: '8000', company_city: 'Zürich', deadline: '2026-12-15' });
 
@@ -27,7 +28,8 @@ function mockRequest(url, options, callback) {
       if (model) payloads.push(JSON.parse(body));
       if (model && hangModel) return;
       if (model && modelError) { req.destroy(new Error('Private provider failure')); return; }
-      const page = model ? { status: modelStatus, body: typeof modelBody === 'string' ? modelBody : JSON.stringify(modelBody) } : pages.get(address) || { status: 404, body: '' };
+      const reply = model && modelQueue.length ? modelQueue.shift() : modelBody;
+      const page = model ? { status: modelStatus, body: typeof reply === 'string' ? reply : JSON.stringify(reply) } : pages.get(address) || { status: 404, body: '' };
       const response = new PassThrough();
       response.statusCode = page.status;
       response.headers = { 'content-type': 'text/html', ...page.headers };
@@ -70,6 +72,7 @@ after(() => {
 beforeEach(() => {
   profile = { paid: true, subscription_current_period_end: '2099-01-01', subscription_status: 'active' };
   pages = new Map([[jobUrl, { status: 200, body: '<main>Muster AG sucht eine Projektleitung. Frau Beispiel, Musterweg 1, 8000 Zürich. Bewerbungsfrist: 15. Dezember 2026. Sie leiten Beratungsprojekte und koordinieren ein Team.</main>' }]]);
+  modelQueue = [];
   requests = []; payloads = []; dnsAddress = '93.184.216.34'; modelStatus = 200; modelError = false; hangModel = false; importAllowed = true; importLimitError = null;
   modelBody = { stop_reason: 'tool_use', content: [{ type: 'tool_use', name: 'extract_job_ad', input: extracted() }] };
   process.env.ANTHROPIC_API_KEY = 'fixture-key-no-live-requests';
@@ -177,6 +180,32 @@ test('invalid, truncated and overlong AI output is rejected rather than saved', 
   assert.equal((await extract()).status, 502);
   modelBody = 'not JSON';
   assert.equal((await extract()).status, 502);
+});
+
+test('a Sonnet 5.5 refusal is retried once on Haiku 5.5 with thinking turned off', async () => {
+  modelQueue = [{ stop_reason: 'refusal', stop_details: { category: 'general_harms' }, content: [] }];
+  const response = await extract();
+  assert.equal(response.status, 200);
+  assert.equal((await response.json()).extraction.company, 'Muster AG');
+  assert.equal(payloads.length, 2);
+  assert.equal(payloads[0].model, 'claude-sonnet-5-5');
+  assert.deepEqual(payloads[0].thinking, { type: 'between_tools' });
+  assert.equal(payloads[1].model, 'claude-haiku-5-5');
+  assert.deepEqual(payloads[1].thinking, { type: 'disabled' });
+  assert.deepEqual(payloads[1].messages, payloads[0].messages);
+});
+
+test('a refusal from both models fails without using partial tool input', async () => {
+  const refused = { stop_reason: 'refusal', content: [{ type: 'tool_use', name: 'extract_job_ad', input: extracted() }] };
+  modelQueue = [refused, refused];
+  assert.equal((await extract()).status, 502);
+  assert.equal(payloads.length, 2);
+});
+
+test('successful extractions do not call the fallback model', async () => {
+  assert.equal((await extract()).status, 200);
+  assert.equal(payloads.length, 1);
+  assert.ok(payloads.every((payload) => payload.temperature === undefined));
 });
 
 test('AI requests have an absolute timeout', async (t) => {

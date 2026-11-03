@@ -2,6 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { request as httpsRequest, type RequestOptions } from "node:https";
 import { supabaseAdmin } from "../../../../../lib/supabase-server";
 import { fetchImpressumText, fetchPageText, parseSafeExternalUrl } from "../../../../lib/motivation-letter-source";
+import {
+  FALLBACK_ANTHROPIC_MODEL,
+  isRefusal,
+  logRefusal,
+  primaryAnthropicModel,
+  shouldUseFallback,
+  thinkingOff,
+} from "../../../../lib/anthropic-models";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -9,8 +17,6 @@ export const dynamic = "force-dynamic";
 // AI-Generierung braucht inkl. Inserat-/Impressum-Abruf bis zu ~50s.
 // 60s ist das Maximum, das auf allen Vercel-Plaenen (inkl. Hobby) erlaubt ist.
 export const maxDuration = 60;
-
-const DEFAULT_ANTHROPIC_MODEL = "claude-sonnet-4-20250514";
 
 type MotivationRequest = {
   applicationType?: "reactive" | "spontaneous";
@@ -29,6 +35,8 @@ type MotivationRequest = {
 type ClaudeResponse = {
   content?: Array<{ type: string; text?: string }>;
   model?: string;
+  stop_reason?: string;
+  stop_details?: { category?: string | null } | null;
   error?: {
     type?: string;
     message?: string;
@@ -214,9 +222,12 @@ function postAnthropicMessages(
   });
 }
 
-async function callAnthropicMessages(apiKey: string, payload: unknown) {
+async function callAnthropicMessages(
+  apiKey: string,
+  payload: unknown,
+  deadline: number = Date.now() + ANTHROPIC_TOTAL_BUDGET_MS
+) {
   let lastError: unknown = null;
-  const deadline = Date.now() + ANTHROPIC_TOTAL_BUDGET_MS;
 
   for (let attempt = 0; attempt < MAX_ANTHROPIC_ATTEMPTS; attempt += 1) {
     const remainingMs = deadline - Date.now();
@@ -538,12 +549,14 @@ export async function POST(request: NextRequest) {
   }).format(new Date());
 
   let response: AnthropicHttpResponse;
+  const primaryModel = primaryAnthropicModel();
+  // Primary attempt and fallback share one budget so the route stays under maxDuration.
+  const anthropicDeadline = Date.now() + ANTHROPIC_TOTAL_BUDGET_MS;
 
-  try {
-    response = await callAnthropicMessages(anthropicApiKey, {
-      model: process.env.ANTHROPIC_MODEL || DEFAULT_ANTHROPIC_MODEL,
+  const buildLetterPayload = (model: string) => ({
+      model,
       max_tokens: 1800,
-      temperature: 0.5,
+      ...thinkingOff(model),
       system: [
         "Du bist ein erfahrener Schweizer Recruiting- und Bewerbungsexperte. Erstelle passgenaue Motivationsschreiben fuer den Schweizer Arbeitsmarkt in einem selbstbewussten, natuerlichen Ton.",
         "Fuer Deutsch und Deutsch CH: Nutze Schweizer Hochdeutsch, niemals deutsches Eszett/ß verwenden, immer ss schreiben. Verwende keine Gedankenstriche oder eingeschobenen Saetze mit spaced hyphen. Nutze klare kurze Saetze, Kommas oder Punkte. Fuer Englisch oder Franzoesisch schreibe den ganzen Brief in der gewaehlten Sprache.",
@@ -563,7 +576,26 @@ export async function POST(request: NextRequest) {
           ],
         },
       ],
-    });
+  });
+
+  try {
+    response = await callAnthropicMessages(anthropicApiKey, buildLetterPayload(primaryModel), anthropicDeadline);
+
+    if (response.ok && shouldUseFallback(primaryModel, response.data)) {
+      logRefusal("AI motivation letter", primaryModel, response.data, true);
+      try {
+        response = await callAnthropicMessages(
+          anthropicApiKey,
+          buildLetterPayload(FALLBACK_ANTHROPIC_MODEL),
+          anthropicDeadline
+        );
+      } catch (error) {
+        // Keep the refused response; it is reported as an incomplete letter below.
+        console.error("AI motivation letter fallback failed", {
+          reason: error instanceof Error ? error.message : String(error),
+        });
+      }
+    }
   } catch (error) {
     console.error("AI motivation letter network failed", {
       reason: error instanceof Error ? error.message : String(error),
@@ -583,6 +615,12 @@ export async function POST(request: NextRequest) {
       rawText: claudeData ? undefined : response.rawText.slice(0, 500),
     });
     return jsonError(getAnthropicUserMessage(response.status, claudeData?.error?.type), 502);
+  }
+
+  // A refusal can arrive after partial output; never return that as a finished letter.
+  if (isRefusal(claudeData)) {
+    logRefusal("AI motivation letter", claudeData?.model || FALLBACK_ANTHROPIC_MODEL, claudeData, false);
+    return jsonError("Der AI-Service hat kein vollständiges Motivationsschreiben zurückgegeben. Bitte versuchen Sie es erneut.", 502);
   }
 
   const rawLetter = claudeData?.content
