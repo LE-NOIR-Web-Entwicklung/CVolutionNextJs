@@ -6,8 +6,10 @@ Create a local environment file with the required server keys. The Claude motiva
 
 ```bash
 ANTHROPIC_API_KEY=your_anthropic_api_key
-ANTHROPIC_MODEL=claude-sonnet-4-20250514
+ANTHROPIC_MODEL=claude-sonnet-5-5
 ```
+
+All Claude calls (motivation letters, CV import, advert import) go through `src/lib/anthropic-models.ts`. If the primary model declines a request (`stop_reason: "refusal"`), the request is retried once on `claude-haiku-5-5` with the same prompt, within the same time budget. If the fallback also declines, the user gets the usual error and partial output is discarded. Only the model and refusal category are logged.
 
 First, run the development server:
 

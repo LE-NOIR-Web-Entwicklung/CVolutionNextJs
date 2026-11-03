@@ -1,15 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
 import mammoth from "mammoth";
 import { supabaseAdmin } from "../../../../lib/supabase-server";
+import {
+  FALLBACK_ANTHROPIC_MODEL,
+  isRefusal,
+  logRefusal,
+  primaryAnthropicModel,
+  shouldUseFallback,
+  thinkingOff,
+} from "../../../lib/anthropic-models";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
-const DEFAULT_ANTHROPIC_MODEL = "claude-sonnet-4-20250514";
-
 type ClaudeResponse = {
   content?: Array<{ type: string; text?: string }>;
+  model?: string;
+  stop_reason?: string;
+  stop_details?: { category?: string | null } | null;
   error?: {
     message?: string;
   };
@@ -380,29 +389,45 @@ async function callClaudeForCv(fileKind: "pdf" | "docx", buffer: Buffer, extract
           },
         ];
 
-  const response = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: {
-      "content-type": "application/json",
-      "x-api-key": anthropicApiKey,
-      "anthropic-version": "2023-06-01",
-    },
-    body: JSON.stringify({
-      model: process.env.ANTHROPIC_MODEL || DEFAULT_ANTHROPIC_MODEL,
-      max_tokens: 6000,
-      temperature: 0.1,
-      system:
-        "Du bist ein präziser Schweizer CV-Datenextraktor. Du gibst ausschliesslich valides JSON zurück und mapst Lebenslaufdaten konservativ auf das angeforderte Schema.",
-      messages: [{ role: "user", content }],
-    }),
-  });
+  const requestCv = async (model: string) => {
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "x-api-key": anthropicApiKey,
+        "anthropic-version": "2023-06-01",
+      },
+      body: JSON.stringify({
+        model,
+        max_tokens: 6000,
+        ...thinkingOff(model),
+        system:
+          "Du bist ein präziser Schweizer CV-Datenextraktor. Du gibst ausschliesslich valides JSON zurück und mapst Lebenslaufdaten konservativ auf das angeforderte Schema.",
+        messages: [{ role: "user", content }],
+      }),
+    });
+    const data = (await response.json().catch(() => null)) as ClaudeResponse | null;
+    return { response, data };
+  };
 
-  const claudeData = (await response.json().catch(() => null)) as ClaudeResponse | null;
+  const primaryModel = primaryAnthropicModel();
+  let { response, data: claudeData } = await requestCv(primaryModel);
+  if (response.ok && shouldUseFallback(primaryModel, claudeData)) {
+    logRefusal("CV import", primaryModel, claudeData, true);
+    ({ response, data: claudeData } = await requestCv(FALLBACK_ANTHROPIC_MODEL));
+  }
+
   if (!response.ok) {
     console.error("CV import Claude request failed", {
       status: response.status,
       error: claudeData?.error?.message,
     });
+    throw new Error("Die Datei konnte nicht ausgelesen werden.");
+  }
+
+  // A refusal can carry partial JSON; never import it.
+  if (isRefusal(claudeData)) {
+    logRefusal("CV import", claudeData?.model || FALLBACK_ANTHROPIC_MODEL, claudeData, false);
     throw new Error("Die Datei konnte nicht ausgelesen werden.");
   }
 

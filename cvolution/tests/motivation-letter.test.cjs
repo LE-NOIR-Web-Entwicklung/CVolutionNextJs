@@ -25,10 +25,12 @@ const jobUrl = "https://careers.example.com/jobs/teamleitung";
 const description =
   "Sie führen ein regionales Beratungsteam und betreuen Kunden. Erfahrung in Personalführung, Rekrutierung und Budgetplanung ist erforderlich. Sie entwickeln bestehende Kundenbeziehungen weiter und begleiten die Mitarbeitenden im Tagesgeschäft.";
 let pages, requests, payloads, dnsAddress, paid, modelLetter, savedApplications;
+let modelResponses = [];
 
 function responseFor(url) {
   requests.push(url);
   if (new URL(url).hostname === "api.anthropic.com") {
+    if (modelResponses.length) return { status: 200, body: JSON.stringify(modelResponses.shift()) };
     return {
       status: 200,
       body: JSON.stringify({
@@ -199,6 +201,7 @@ const { POST: exportWord } = require(
 
 beforeEach(() => {
   savedApplications = [];
+  modelResponses = [];
   pages = new Map();
   requests = [];
   payloads = [];
@@ -554,6 +557,30 @@ test("career changes and missing direct qualifications do not instruct the model
     assert.match(payloads[0].system, /(?:fehlende|Fehlende).*Qualifikationen/);
     assert.match(payloads[0].system, /Erfinde keine.*Abschluesse/);
   }
+});
+
+test("a Sonnet 5.5 refusal is retried once on Haiku 5.5 with the same prompt", async () => {
+  modelResponses = [{ stop_reason: "refusal", stop_details: { category: "general_harms" }, content: [] }];
+  const response = await generate({ jobAd: description });
+  assert.equal(response.status, 200);
+  assert.match((await response.json()).letter, /individueller Entwurf/);
+  assert.equal(payloads.length, 2);
+  assert.equal(payloads[0].model, "claude-sonnet-5-5");
+  assert.deepEqual(payloads[0].thinking, { type: "between_tools" });
+  assert.equal(payloads[1].model, "claude-haiku-5-5");
+  assert.deepEqual(payloads[1].thinking, { type: "disabled" });
+  assert.equal(payloads[1].system, payloads[0].system);
+  assert.deepEqual(payloads[1].messages, payloads[0].messages);
+  assert.ok(payloads.every((payload) => payload.temperature === undefined));
+});
+
+test("a refusal from both models never returns the partial letter", async () => {
+  const refused = { stop_reason: "refusal", content: [{ type: "text", text: "Sehr geehrte Damen und Herren, ich" }] };
+  modelResponses = [refused, refused];
+  const response = await generate({ jobAd: description });
+  assert.equal(response.status, 502);
+  assert.doesNotMatch(JSON.stringify(await response.json()), /Sehr geehrte/);
+  assert.equal(payloads.length, 2);
 });
 
 test("an obsolete model refusal is handled as an invalid draft, not a CV rejection", async () => {
