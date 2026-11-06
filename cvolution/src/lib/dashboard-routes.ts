@@ -1,4 +1,4 @@
-export type DashboardArea = 'cv' | 'motivation' | 'applications' | 'settings';
+export type DashboardArea = 'cv' | 'motivation' | 'salary' | 'applications' | 'settings';
 
 // "neu" is the route of an application that has not been saved yet.
 export const NEW_APPLICATION_ROUTE = 'neu';
@@ -6,6 +6,7 @@ export const NEW_APPLICATION_ROUTE = 'neu';
 const AREA_SEGMENTS: Record<DashboardArea, string> = {
   cv: '',
   motivation: 'motivationsschreiben',
+  salary: 'lohnanalyse',
   applications: 'bewerbungen',
   settings: 'einstellungen',
 };
