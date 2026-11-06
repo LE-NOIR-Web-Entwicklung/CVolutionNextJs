@@ -5,7 +5,7 @@ import Image from "next/image";
 import { FaLinkedin, FaPhone, FaEnvelope } from "react-icons/fa";
 import Link from "next/link";
 import { AddToCartButton } from "@/components/AddToCartButton";
-import { SERVICE_OFFERS } from "@/lib/service-offers";
+import { OFFER_CARDS } from "@/lib/service-offers";
 
 export default function Home() {
   const slides = [
@@ -189,7 +189,7 @@ export default function Home() {
             </div>
 
             {/* Service Highlights */}
-            <div className="grid w-full max-w-[18.5rem] grid-cols-2 justify-items-stretch gap-2 text-xs sm:flex sm:max-w-6xl sm:flex-wrap sm:justify-center sm:text-sm lg:flex-nowrap">
+            {/* <div className="grid w-full max-w-[18.5rem] grid-cols-2 justify-items-stretch gap-2 text-xs sm:flex sm:max-w-6xl sm:flex-wrap sm:justify-center sm:text-sm lg:flex-nowrap">
               {[
                 { label: "Lohnanalyse", href: "/service-salary" },
                 { label: "Laufbahnberatung", href: "/service-career" },
@@ -210,21 +210,10 @@ export default function Home() {
                   {item.label}
                 </Link>
               ))}
-            </div>
+            </div> */}
 
           </div>
         </div>
-
-        {/* <a
-          href="#angebote"
-          aria-label="Zu den Angeboten scrollen"
-          className="absolute bottom-5 left-1/2 z-20 hidden -translate-x-1/2 flex-col items-center gap-2 text-white/62 transition duration-300 hover:text-white lg:flex"
-        >
-          <span className="h-10 w-6 rounded-full border border-white/28 bg-white/[0.06] shadow-[inset_0_1px_0_rgba(255,255,255,0.12)] backdrop-blur-sm">
-            <span className="mx-auto mt-2 block h-2 w-1 animate-bounce rounded-full bg-white/70" />
-          </span>
-          <span className="h-8 w-px bg-gradient-to-b from-white/52 to-transparent" />
-        </a> */}
       </section>
 
       {/* Products Section */}
@@ -245,7 +234,7 @@ export default function Home() {
           </div>
 
           <div className="mt-12 grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
-            {SERVICE_OFFERS.map((product) => (
+            {OFFER_CARDS.map((product) => (
               <article
                 key={product.name}
                 className="group relative flex min-h-[20rem] flex-col overflow-hidden rounded-3xl bg-white p-6 shadow-[0_1.25rem_3.5rem_rgba(15,37,65,0.07)] ring-1 ring-[#dce5ef] transition duration-300 hover:-translate-y-1 hover:shadow-[0_1.75rem_4.5rem_rgba(15,37,65,0.12)] focus-within:ring-2 focus-within:ring-[#204878]"

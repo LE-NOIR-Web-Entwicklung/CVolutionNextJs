@@ -1,3 +1,4 @@
+import { SERVICE_DOWNLOADS, SERVICE_DOWNLOADS_PATH } from "@/lib/service-downloads";
 import type { ShopProductKey } from "@/lib/shop";
 
 export type ServiceOffer = {
@@ -77,6 +78,31 @@ export const SERVICE_OFFERS: ServiceOffer[] = [
     link: "/service-linkedin",
     serviceType: "linkedin",
   },
+  {
+    name: "Downloads",
+    description:
+    "Masterprompts für Ihr Motivationsschreiben mit KI und Lebenslauf-Vorlagen für Word. Sofort per E-Mail-Link verfügbar, CHF 19.90 pro Dokument",
+    image: "/images/resume.png",
+    price: "CHF 19.90",
+    link: SERVICE_DOWNLOADS_PATH,
+    serviceType: "download_prompt_spontan",
+    hasMultipleVariants: true,
+    offerLabel: "5 Dokumente ansehen",
+  },
+];
+
+export type OfferCard = Pick<ServiceOffer, "name" | "description" | "image" | "price" | "link">;
+
+export const OFFER_CARDS: OfferCard[] = [
+  {
+    name: "Self-Service",
+    description:
+      "Lebenslauf und Motivationsschreiben selbst erstellen, Bewerbungen verwalten und den eigenen Lohn einordnen. Alles an einem Ort, jederzeit verfügbar",
+    image: "/images/self-service-icon.png",
+    price: "CHF 13.90 / Monat",
+    link: "/self",
+  },
+  ...SERVICE_OFFERS,
 ];
 
 export const CART_RECOMMENDATION_OFFERS: ServiceOffer[] = [
@@ -105,3 +131,12 @@ export const CART_RECOMMENDATION_OFFERS: ServiceOffer[] = [
   },
   SERVICE_OFFERS[6],
 ];
+
+export const CART_DOWNLOAD_OFFERS: ServiceOffer[] = SERVICE_DOWNLOADS.map((download) => ({
+    name: download.label,
+    description: download.description,
+    image: "/images/resume.png",
+    price: "CHF 19.90",
+    link: SERVICE_DOWNLOADS_PATH,
+    serviceType: download.key,
+}));

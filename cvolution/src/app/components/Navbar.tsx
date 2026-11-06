@@ -57,6 +57,7 @@ export default function Navbar() {
         { name: "Motivationsschreiben", href: "/service-motivation" },
         { name: "RAV Unterstützung", href: "/service-rav" },
         { name: "Check", href: "/service-check" },
+        { name: "Downloads", href: "/service-downloads" },
       ],
     },
     {

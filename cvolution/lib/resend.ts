@@ -465,6 +465,9 @@ function getCheckUploadedFiles(orders: CartOrderEmailItem[]) {
 
 function getServiceNextStepsHtml(item: CartEmailDisplayItem) {
     const lowerService = item.serviceLabel.toLowerCase();
+    if (item.orders[0]?.service_type?.startsWith("download_")) {
+        return "<span style='color:#64748B;'>Deinen persönlichen Download-Link findest du in dieser E-Mail.</span>";
+    }
     if (lowerService === "lebenslauf") {
         return `
             <span style="color:#64748B; display:block; margin-bottom:10px;">Sieh dir unsere 4 Topseller-Lebensläufe an und teile uns mit, welche Vorlage wir für dich erstellen dürfen:</span>
@@ -616,7 +619,48 @@ export const sendCartInfoEmail = async (orders: CartOrderEmailItem[]) => {
     await getResend().emails.send(emailData);
 };
 
-export const sendCartConfirmationEmail = async (email: string, orders: CartOrderEmailItem[]) => {
+function getDownloadSectionHtml(orders: CartOrderEmailItem[], downloadUrl?: string | null) {
+    if (!orders.some((order) => order.service_type?.startsWith("download_"))) return "";
+    if (!downloadUrl) {
+        return `<p style="color:#333; font-size:1.1rem;">Deinen persönlichen Download-Link senden wir dir separat zu.</p>`;
+    }
+    return `
+        <div style="margin:24px 0; padding:20px; border-radius:12px; background:#f4f8fb;">
+            <h2 style="color:#204878; font-size:1.15rem; margin:0 0 10px;">Deine Dokumente</h2>
+            <a href="${escapeHtml(downloadUrl)}" target="_blank" rel="noopener noreferrer" style="display:inline-block; background-color:#204878; color:#ffffff; text-decoration:none; font-weight:700; padding:12px 20px; border-radius:8px;">Dokumente herunterladen</a>
+            <p style="color:#64748B; font-size:0.95rem; margin:12px 0 0;">Dieser Link ist persönlich: Beim Öffnen senden wir einen Bestätigungscode an diese E-Mail-Adresse. Weitergeleitet funktioniert er deshalb nicht. Er ist 30 Tage gültig, jedes Dokument lässt sich 3-mal herunterladen. Die Dokumente sind auf deinen Namen lizenziert und dürfen nicht weitergegeben werden.</p>
+        </div>
+    `;
+}
+
+export const sendDownloadCodeEmail = async (email: string, code: string) => {
+    await getResend().emails.send({
+        from: "CVolution <info@cvolution.ch>",
+        to: email,
+        subject: `${code} ist dein CVolution Download-Code`,
+        html: `
+            <div style="font-family: 'Segoe UI', Arial, sans-serif; background: #f4f8fb; padding: 32px;">
+                <div style="max-width: 480px; margin: 0 auto; background: #fff; border-radius: 12px; padding: 32px 24px; text-align:center;">
+                    <img src="https://cvolution.ch/images/logo.png" alt="CVolution Logo" style="width: 80px; margin-bottom: 24px;" />
+                    <p style="color:#333; font-size:1.1rem;">Dein Code für den Download:</p>
+                    <p style="color:#204878; font-size:2rem; font-weight:700; letter-spacing:0.2em; margin:16px 0;">${escapeHtml(code)}</p>
+                    <p style="color:#64748B; font-size:0.95rem;">Der Code ist 10 Minuten gültig. Hast du ihn nicht angefordert, kannst du diese E-Mail ignorieren.</p>
+                </div>
+            </div>
+        `,
+    });
+};
+
+export const sendDownloadFailureNotice = async (email: string, orderIds: string[]) => {
+    await getResend().emails.send({
+        from: "CVolution <info@cvolution.ch>",
+        to: "info@cvolution.ch",
+        subject: "Download-Link konnte nicht erstellt werden",
+        html: `<p>Die Dokumente wurden bezahlt, aber der Download-Link konnte nicht erstellt werden. Bitte die Dokumente manuell an ${escapeHtml(email)} senden.</p><p>Bestellungen: ${escapeHtml(orderIds.join(", "))}</p>`,
+    });
+};
+
+export const sendCartConfirmationEmail = async (email: string, orders: CartOrderEmailItem[], downloadUrl?: string | null) => {
     if (!orders.length) return;
 
     const total = orders.reduce((sum, order) => sum + Number(order.final_price || 0), 0);
@@ -648,6 +692,7 @@ export const sendCartConfirmationEmail = async (email: string, orders: CartOrder
                     <p style="color:#333; font-size:1.1rem;">Wir haben deine Warenkorb-Bestellung erhalten.</p>
                     <h2 style="color:#204878; font-size:1.15rem; margin-top:24px;">Deine bestellten Services</h2>
                     ${serviceRows}
+                    ${getDownloadSectionHtml(orders, downloadUrl)}
                     <p style="color:#333; font-size:1.1rem;"><strong>Total:</strong> ${formatCurrency(total)}</p>
                     <p style="color:#333; font-size:1.1rem;">Bei Fragen erreichst du uns unter <a href="mailto:info@cvolution.ch" style="color:#204878;">info@cvolution.ch</a> oder telefonisch unter <a href="tel:+41764405151" style="color:#204878;">076 440 51 51</a>.</p>
                     <hr style="margin: 32px 0 16px 0; border: none; border-top: 1px solid #e5e7eb;" />

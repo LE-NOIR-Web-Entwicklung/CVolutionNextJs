@@ -7,7 +7,7 @@ import { ArrowRight, Check, ShoppingCart, X } from "lucide-react";
 import { addCartItem, readCart } from "@/lib/cart";
 import type { CheckDocumentKey } from "@/lib/check-service";
 import { SHOP_PRODUCTS, type ShopProductKey } from "@/lib/shop";
-import { CART_RECOMMENDATION_OFFERS } from "@/lib/service-offers";
+import { CART_DOWNLOAD_OFFERS, CART_RECOMMENDATION_OFFERS } from "@/lib/service-offers";
 
 type AddToCartButtonProps = {
   serviceType: ShopProductKey;
@@ -28,6 +28,7 @@ export function AddToCartButton({
   const [count, setCount] = useState(0);
   const [cartCounts, setCartCounts] = useState<Partial<Record<ShopProductKey, number>>>({});
   const [popupRecommendations, setPopupRecommendations] = useState(CART_RECOMMENDATION_OFFERS);
+  const [popupDownloads, setPopupDownloads] = useState(CART_DOWNLOAD_OFFERS);
   const [showCartPopup, setShowCartPopup] = useState(false);
   const product = SHOP_PRODUCTS[serviceType];
 
@@ -90,7 +91,9 @@ export function AddToCartButton({
       window.setTimeout(() => setAdded(false), 2200);
     }
     if (openPopup) {
-      setPopupRecommendations(CART_RECOMMENDATION_OFFERS.filter((offer) => !nextCounts[offer.serviceType]));
+      // An overview tile stands for several products, so it stays when one of them is in the cart.
+      setPopupRecommendations(CART_RECOMMENDATION_OFFERS.filter((offer) => offer.hasMultipleVariants || !nextCounts[offer.serviceType]));
+      setPopupDownloads(CART_DOWNLOAD_OFFERS.filter((offer) => !nextCounts[offer.serviceType]));
       setShowCartPopup(true);
     }
   }
@@ -142,6 +145,36 @@ export function AddToCartButton({
         </div>
 
         <div className="overflow-y-auto px-4 py-5 sm:px-7 sm:py-6">
+          {popupDownloads.length > 0 && (
+            <section className="mb-6" aria-labelledby="cart-popup-downloads">
+              <h2 id="cart-popup-downloads" className="mb-3 text-xl font-semibold tracking-tight text-[#111827]">Downloads</h2>
+              <div className="-mx-4 flex gap-2.5 overflow-x-auto px-4 pb-1 sm:mx-0 sm:grid sm:grid-cols-3 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-5">
+                {popupDownloads.map((download) => {
+                  const downloadCount = cartCounts[download.serviceType] || 0;
+
+                  return (
+                    <div key={download.serviceType} className="flex w-44 shrink-0 flex-col justify-between gap-2 rounded-xl border border-[#E5EAF0] bg-[#F8FAFC] p-3 sm:w-auto">
+                      <Link href={download.link} className="text-sm font-semibold leading-snug text-[#111827] hover:text-[#204878]">
+                        {download.name}
+                      </Link>
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-sm font-semibold tabular-nums text-[#204878]">{download.price}</span>
+                        <button
+                          type="button"
+                          onClick={() => handleAddToCart(download.serviceType, false)}
+                          className="inline-flex min-h-9 min-w-10 items-center justify-center gap-1 rounded-lg bg-[#204878] px-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#1a3a66] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#204878] focus-visible:ring-offset-2"
+                          aria-label={`${download.name} in den Warenkorb legen`}
+                        >
+                          <ShoppingCart className="h-4 w-4" aria-hidden="true" />
+                          {downloadCount > 0 && <span>({downloadCount})</span>}
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+          )}
           <h2 className="mb-4 text-xl font-semibold tracking-tight text-[#111827] sm:mb-5">Weitere Services</h2>
           {popupRecommendations.length > 0 ? (
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
@@ -150,7 +183,7 @@ export function AddToCartButton({
 
               return (
                 <div
-                  key={relatedProduct.serviceType}
+                  key={relatedProduct.name}
                   className="flex flex-col rounded-xl border border-[#E5EAF0] bg-white p-4 shadow-[0_0.5rem_2rem_rgba(15,37,65,0.05)] sm:min-h-64 sm:p-5"
                 >
                   <div className="flex-1">
@@ -161,12 +194,12 @@ export function AddToCartButton({
                   <div className="mt-4 grid grid-cols-[1fr_auto] gap-3 sm:mt-5 sm:grid-cols-2">
                     <Link
                       href={relatedProduct.link}
-                      className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-[#204878] px-4 py-3 text-sm font-semibold text-[#204878] transition-colors hover:bg-blue-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#204878] focus-visible:ring-offset-2"
+                      className={`${relatedProduct.hasMultipleVariants ? "col-span-2 " : ""}inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-[#204878] px-4 py-3 text-sm font-semibold text-[#204878] transition-colors hover:bg-blue-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#204878] focus-visible:ring-offset-2`}
                     >
                       Angebot
                       <ArrowRight className="h-4 w-4" aria-hidden="true" />
                     </Link>
-                    <button
+                    {!relatedProduct.hasMultipleVariants && <button
                       type="button"
                       onClick={() => handleAddToCart(relatedProduct.serviceType, false)}
                       className="inline-flex min-h-12 min-w-14 items-center justify-center gap-2 rounded-xl bg-[#204878] px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#1a3a66] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#204878] focus-visible:ring-offset-2"
@@ -174,7 +207,7 @@ export function AddToCartButton({
                     >
                       <ShoppingCart className="h-4 w-4" aria-hidden="true" />
                       {relatedCount > 0 && <span>({relatedCount})</span>}
-                    </button>
+                    </button>}
                   </div>
                 </div>
               );

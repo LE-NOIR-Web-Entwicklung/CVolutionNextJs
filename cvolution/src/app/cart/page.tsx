@@ -10,6 +10,7 @@ import {
   normalizeCheckDocumentSelections,
   type CheckDocumentKey,
 } from "@/lib/check-service";
+import { isServiceDownloadKey } from "@/lib/service-downloads";
 import { SHOP_PRODUCTS, type ShopProductKey } from "@/lib/shop";
 
 type CouponPreview =
@@ -134,7 +135,7 @@ export default function CartPage() {
         const checkSelections = isDocumentCheckService(item.serviceType as ShopProductKey)
           ? normalizeCheckDocumentSelections(item.checkSelections)
           : undefined;
-        const quantity = isSalaryService(item.serviceType as ShopProductKey)
+        const quantity = isSalaryService(item.serviceType as ShopProductKey) || isServiceDownloadKey(item.serviceType)
           ? 1
           : checkSelections
             ? checkSelections.length
@@ -187,9 +188,14 @@ export default function CartPage() {
           }
 
           const coupon = results[0];
+          // Per unit like the checkout, otherwise CHF 19.90 can differ by one Rappen from the charged amount.
+          const discountFactor = 1 - Number(coupon.discountValue || 0) / 100;
           const finalTotal = coupon.discountType === "free"
             ? 0
-            : Math.max(0, Math.round(originalTotal * (1 - Number(coupon.discountValue || 0) / 100) * 100) / 100);
+            : Math.max(0, Math.round(lines.reduce(
+              (sum, line) => sum + (Math.round(line.product.basePrice * discountFactor * 100) / 100) * line.quantity,
+              0
+            ) * 100) / 100);
 
           setCouponPreview({
             state: "valid",
@@ -710,7 +716,7 @@ export default function CartPage() {
                         <p className="text-xs text-[#64748B] truncate">{line.product.shortDescription}</p>
                       </div>
                       <div className="flex items-center gap-3 shrink-0">
-                        {!isSalaryService(line.serviceType) && !isDocumentCheckService(line.serviceType) && !isLinkedInProfileService(line.serviceType) && (
+                        {!isSalaryService(line.serviceType) && !isDocumentCheckService(line.serviceType) && !isLinkedInProfileService(line.serviceType) && !isServiceDownloadKey(line.serviceType) && (
                           <input
                             type="number"
                             min={1}

@@ -3,6 +3,10 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   outputFileTracingRoot: __dirname,
   reactStrictMode: true,
+  // The paid documents are read at runtime and must ship with these routes only.
+  outputFileTracingIncludes: {
+    "/api/service-downloads/**/*": ["./private-downloads/**/*"],
+  },
   // ".nosync" verhindert, dass iCloud Drive den lokalen Build-Cache
   // synchronisiert/evakuiert (Projekt liegt in ~/Documents). Ohne dies wird der
   // .next-Cache lokal immer wieder korrupt (ENOENT app-build-manifest.json).

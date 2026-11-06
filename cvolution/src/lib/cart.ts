@@ -3,6 +3,7 @@ import {
   normalizeCheckDocumentSelections,
   type CheckDocumentKey,
 } from "@/lib/check-service";
+import { isServiceDownloadKey } from "@/lib/service-downloads";
 
 export const CART_STORAGE_KEY = "cvolution_cart";
 
@@ -13,7 +14,7 @@ export type CartItem = {
 };
 
 function isSingleQuantityService(serviceType: unknown) {
-  return serviceType === "linkedin" || serviceType === "salary_pdf" || serviceType === "salary_phone";
+  return serviceType === "linkedin" || serviceType === "salary_pdf" || serviceType === "salary_phone" || isServiceDownloadKey(serviceType);
 }
 
 function isDocumentCheckService(serviceType: unknown) {

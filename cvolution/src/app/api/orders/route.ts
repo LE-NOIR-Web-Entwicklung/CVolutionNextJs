@@ -8,6 +8,7 @@ import {
   validateCouponForService,
   type Coupon,
 } from '@/lib/coupons';
+import { isServiceDownloadKey } from '@/lib/service-downloads';
 import { getServiceConfig } from '@/lib/services';
 import { getSaferpayShopReference } from '@/lib/saferpay';
 import { initializeWorldlineCheckout } from '@/lib/worldline-checkout';
@@ -98,6 +99,11 @@ export async function POST(request: NextRequest) {
 
     if (!email || !normalizedContactPhone || !serviceType || !serviceConfig) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    }
+
+    // Download links are only issued by the cart checkout, after a verified payment.
+    if (isServiceDownloadKey(serviceConfig.orderType)) {
+      return NextResponse.json({ error: 'Downloads können nur über den Warenkorb bestellt werden.' }, { status: 400 });
     }
 
     const normalizedLinkedInUrl = normalizeLinkedInUrl(linkedinUrl);

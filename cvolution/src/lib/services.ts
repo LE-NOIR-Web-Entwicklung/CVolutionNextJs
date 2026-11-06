@@ -1,9 +1,11 @@
 import { CHECK_SERVICE_UNIT_PRICE } from "@/lib/check-service";
+import { SERVICE_DOWNLOAD_PRICE, SERVICE_DOWNLOADS } from "@/lib/service-downloads";
 
 export const COUPON_SERVICE_KEYS = [
   "service-career",
   "service-check",
   "service-cv",
+  "service-downloads",
   "service-linkedin",
   "service-motivation",
   "service-rav",
@@ -119,6 +121,13 @@ export const SERVICE_CONFIGS: Record<string, ServiceConfig> = {
     basePrice: 13.9,
     paymentUrls: { normal: `${SAFERPAY_BASE}/95543d79-3a8d-4502-a8a1-aee08db29925` },
   },
+  ...Object.fromEntries(SERVICE_DOWNLOADS.map((download) => [download.key, {
+    orderType: download.key,
+    couponServiceKey: "service-downloads" as const,
+    label: download.label,
+    basePrice: SERVICE_DOWNLOAD_PRICE,
+    paymentUrls: { normal: null },
+  }])),
 };
 
 const SERVICE_ALIASES: Record<string, string> = {

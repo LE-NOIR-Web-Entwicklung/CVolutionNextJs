@@ -12,6 +12,7 @@ import {
   normalizeCheckDocumentSelections,
 } from "@/lib/check-service";
 import { getSaferpayShopReference } from "@/lib/saferpay";
+import { isServiceDownloadKey } from "@/lib/service-downloads";
 import { getShopProduct } from "@/lib/shop";
 import { initializeWorldlineCheckout } from "@/lib/worldline-checkout";
 import { processPaidCart } from "@/lib/order-processing";
@@ -62,7 +63,7 @@ function normalizeLinkedInUrl(value: unknown) {
 }
 
 function isSingleQuantityOrderType(orderType: string) {
-  return orderType === "linkedin" || orderType === "salary_pdf" || orderType === "salary_phone";
+  return orderType === "linkedin" || orderType === "salary_pdf" || orderType === "salary_phone" || isServiceDownloadKey(orderType);
 }
 
 function normalizeUploadedFiles(value: unknown): UploadedFileInput[] {

@@ -1,5 +1,7 @@
 import { supabaseAdmin } from "../../lib/supabase-server";
-import { sendCartConfirmationEmail, sendCartInfoEmail, sendConfirmationEmail, sendEmail } from "../../lib/resend";
+import { sendCartConfirmationEmail, sendCartInfoEmail, sendConfirmationEmail, sendDownloadFailureNotice, sendEmail } from "../../lib/resend";
+import { createDownloadGrant } from "@/lib/service-download-access";
+import { isServiceDownloadKey } from "@/lib/service-downloads";
 
 const EXTERNAL_ORDER_REDIRECT_URL =
   process.env.EXTERNAL_ORDER_REDIRECT_URL || "https://analyse.cvolution.ch/danke/";
@@ -109,14 +111,32 @@ export async function processPaidOrder(order: Order) {
     .eq("id", order.id);
 }
 
+// Only reachable after a verified payment or a free coupon, so a link always stands for a real purchase.
+async function issueDownloadLink(downloadOrders: Order[]) {
+  if (!downloadOrders.length) return null;
+  try {
+    return await createDownloadGrant(
+      downloadOrders as Parameters<typeof createDownloadGrant>[0],
+      process.env.NEXT_PUBLIC_SITE_URL || "https://cvolution.ch"
+    );
+  } catch (error) {
+    console.error("Download grant failed", { orderIds: downloadOrders.map((order) => order.id), error });
+    await sendDownloadFailureNotice(downloadOrders[0].email, downloadOrders.map((order) => order.id))
+      .catch((noticeError) => console.error("Download failure notice failed", noticeError));
+    return null;
+  }
+}
+
 export async function processPaidCart(orders: Order[]) {
   const cartOrders = orders.filter((order) => order.service_type !== "self");
   if (cartOrders.length === 0) return;
 
-  const customerEmail = cartOrders[0].email;
+  const downloadOrders = cartOrders.filter((order) => isServiceDownloadKey(order.service_type));
+  const customerEmail = downloadOrders[0]?.email ?? cartOrders[0].email;
+  const downloadUrl = await issueDownloadLink(downloadOrders);
   const results = await Promise.allSettled([
     sendCartInfoEmail(cartOrders as any),
-    sendCartConfirmationEmail(customerEmail, cartOrders as any),
+    sendCartConfirmationEmail(customerEmail, cartOrders as any, downloadUrl),
   ]);
 
   results.forEach((result, index) => {
