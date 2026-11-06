@@ -263,7 +263,7 @@ export function SalaryAnalysisSection({ hasSelfServiceAccess, onRequirePayment, 
     try {
       const response = await salaryRequest({ method: 'POST', body });
       const result = await response.json().catch(() => null);
-      if (response.status === 402) { onRequirePayment(); throw new Error('Die AI Lohnanalyse ist im aktiven Self-Service-Abo enthalten.'); }
+      if (response.status === 402) { onRequirePayment(); throw new Error('Die Lohnanalyse ist im aktiven Self-Service-Abo enthalten.'); }
       if (!response.ok) throw new Error(result?.error || 'Die Erstellung hat zu lange gedauert. Bitte versuchen Sie es erneut.');
       setSaved((items) => [{ id: result.id, createdAt: result.createdAt, analysis: result.analysis }, ...items]);
       setActiveId(result.id);
@@ -313,7 +313,7 @@ export function SalaryAnalysisSection({ hasSelfServiceAccess, onRequirePayment, 
 
   return (
     <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
-      <h2 className="text-xl font-semibold text-slate-950">AI Lohnanalyse</h2>
+      <h2 className="text-xl font-semibold text-slate-950">Lohnanalyse</h2>
       <p className="mt-1 text-sm text-slate-600">Vergleichen Sie Ihren Lohn mit dem Schweizer Markt. Die Analyse erscheint direkt hier im Dashboard.</p>
 
       {generating && (

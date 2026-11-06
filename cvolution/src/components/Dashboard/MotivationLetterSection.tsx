@@ -294,7 +294,7 @@ export const MotivationLetterSection: React.FC<MotivationLetterSectionProps> = (
     <div className={embedded ? "" : "rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-6"}>
       {!embedded && (
         <div className="mb-5">
-          <h2 className="text-xl font-semibold text-slate-950">AI Motivationsschreiben</h2>
+          <h2 className="text-xl font-semibold text-slate-950">Motivationsschreiben</h2>
           <p className="mt-1 text-sm text-slate-600">
             Inserat oder Zielunternehmen angeben, Schreiben erstellen und als Word-Datei herunterladen.
           </p>

@@ -350,7 +350,7 @@ export const Dashboard: React.FC = () => {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
         <Tabs value={activeArea} onValueChange={(area) => handleAreaChange(area)} className="space-y-4 sm:space-y-6">
-          <TabsList className="!flex h-auto w-full items-stretch justify-start gap-1 overflow-x-auto rounded-none border-b border-slate-200 !bg-transparent p-0 [scrollbar-width:none] sm:gap-3 lg:overflow-visible">
+          <TabsList className="!flex h-auto w-full flex-wrap items-stretch justify-start gap-x-1 rounded-none border-b border-slate-200 !bg-transparent p-0 sm:gap-x-3 lg:flex-nowrap">
             <TabsTrigger value="cv" className={areaTabClass}>
               Lebenslauf
             </TabsTrigger>
