@@ -3,7 +3,7 @@ import {
   normalizeCheckDocumentSelections,
   type CheckDocumentKey,
 } from "@/lib/check-service";
-import { isServiceDownloadKey } from "@/lib/service-downloads";
+import { isServiceDownloadKey, SERVICE_DOWNLOAD_BUNDLE } from "@/lib/service-downloads";
 
 export const CART_STORAGE_KEY = "cvolution_cart";
 
@@ -60,7 +60,12 @@ export function addCartItem(
   serviceType: ShopProductKey,
   options?: { checkSelections?: CheckDocumentKey[] }
 ) {
-  const items = readCart();
+  const bundleKey = SERVICE_DOWNLOAD_BUNDLE.key;
+  // The bundle already contains every document, so the two never sit in the cart together.
+  const items = readCart().filter((item) => serviceType !== bundleKey || !isServiceDownloadKey(item.serviceType));
+  if (isServiceDownloadKey(serviceType) && items.some((item) => item.serviceType === bundleKey)) {
+    return items;
+  }
   const fixedSingleQuantity = isSingleQuantityService(serviceType);
   const hasCheckSelectionOption = options?.checkSelections !== undefined;
   const checkSelections = isDocumentCheckService(serviceType)

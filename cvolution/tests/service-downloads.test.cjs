@@ -81,6 +81,34 @@ test('coupons can apply to every document, also those that exist today', () => {
   assert.ok(migration.indexOf('ADD CONSTRAINT coupons_services_check') < migration.indexOf('UPDATE coupons'));
 });
 
+test('the bundle costs CHF 49.90 and unlocks every document once', async () => {
+  assert.equal(getServiceConfig('download_bundle').basePrice, 49.9);
+  assert.equal(SHOP_PRODUCTS.download_bundle.label, 'Komplettpaket Downloads');
+  await access.createDownloadGrant([{ ...order, service_type: 'download_bundle' }, { ...order, id: 'other-order' }], 'https://cvolution.ch');
+  const keys = tables.service_download_items.map((item) => item.product_key).sort();
+  assert.deepEqual(keys, catalog.SERVICE_DOWNLOADS.map((download) => download.key).sort());
+  assert.equal(await catalog.isServiceDownloadKey('download_bundle'), true);
+  assert.equal(catalog.getServiceDownload('download_bundle'), null, 'the bundle itself is no file');
+});
+
+test('the cart never holds the bundle together with single documents', () => {
+  let stored = '[]';
+  global.window = { localStorage: { getItem: () => stored, setItem: (_key, value) => { stored = value; } }, dispatchEvent: () => true };
+  global.Event = global.Event || class {};
+  const cart = require('../src/lib/cart.ts');
+  try {
+    cart.addCartItem('cv');
+    cart.addCartItem('download_cv_klar');
+    cart.addCartItem('download_bundle');
+    assert.deepEqual(cart.readCart().map((item) => item.serviceType), ['cv', 'download_bundle']);
+    cart.addCartItem('download_cv_klar');
+    cart.addCartItem('download_bundle');
+    assert.deepEqual(cart.readCart().map((item) => [item.serviceType, item.quantity]), [['cv', 1], ['download_bundle', 1]]);
+  } finally {
+    delete global.window;
+  }
+});
+
 test('sold Word files contain no personal data of the original authors', async () => {
   const forbidden = /farete|ajdari|hotmail|flurstrasse|kloten|209 53|schulthess|cicek|armend|mustafa|agilitylogistics/i;
   for (const download of catalog.SERVICE_DOWNLOADS.filter((item) => item.format === 'Word')) {

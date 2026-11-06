@@ -1,6 +1,12 @@
 import { createHash, randomBytes, randomInt, timingSafeEqual } from "node:crypto";
 import { supabaseAdmin } from "../../lib/supabase-server";
-import { getServiceDownload, SERVICE_DOWNLOAD_MAX_PER_DOCUMENT, SERVICE_DOWNLOAD_VALID_DAYS } from "./service-downloads";
+import {
+  getIncludedDownloadKeys,
+  getServiceDownload,
+  SERVICE_DOWNLOAD_MAX_PER_DOCUMENT,
+  SERVICE_DOWNLOAD_VALID_DAYS,
+  type ServiceDownloadKey,
+} from "./service-downloads";
 
 export const DOWNLOAD_SESSION_COOKIE = "cvolution_download_session";
 export const DOWNLOAD_SESSION_MINUTES = 30;
@@ -59,9 +65,17 @@ export async function createDownloadGrant(orders: PaidDownloadOrder[], siteUrl: 
     .single();
   if (error || !grant) throw new Error(error?.message || "Download grant could not be created");
 
+  // Each document appears once, also when a bundle overlaps with a single purchase.
+  const items = new Map<string, { grant_id: string; order_id: string; product_key: string }>();
+  orders.forEach((order) => {
+    getIncludedDownloadKeys(order.service_type as ServiceDownloadKey).forEach((key) => {
+      if (!items.has(key)) items.set(key, { grant_id: grant.id, order_id: order.id, product_key: key });
+    });
+  });
+
   const { error: itemsError } = await supabaseAdmin
     .from("service_download_items")
-    .insert(orders.map((order) => ({ grant_id: grant.id, order_id: order.id, product_key: order.service_type })));
+    .insert([...items.values()]);
   if (itemsError) throw new Error(itemsError.message);
 
   return `${siteUrl.replace(/\/$/, "")}/downloads/${token}`;

@@ -3,12 +3,12 @@ import { ServiceDownloadCard } from "@/components/ServiceDownloadCard";
 import {
   SERVICE_DOWNLOAD_MAX_PER_DOCUMENT,
   SERVICE_DOWNLOAD_VALID_DAYS,
-  SERVICE_DOWNLOADS,
+  SERVICE_DOWNLOAD_OFFERS,
 } from "@/lib/service-downloads";
 
 export const metadata: Metadata = {
   title: "Downloads: Masterprompts und Lebenslauf-Vorlagen | CVolution",
-  description: "Masterprompts für Ihr Motivationsschreiben mit KI und Lebenslauf-Vorlagen für Word. CHF 19.90 pro Dokument.",
+  description: "Masterprompts für Ihr Motivationsschreiben mit KI und Lebenslauf-Vorlagen für Word. CHF 19.90 pro Dokument oder alle 5 für CHF 49.90.",
 };
 
 const STEPS = [
@@ -18,9 +18,6 @@ const STEPS = [
 ];
 
 export default function ServiceDownloads() {
-  const prompts = SERVICE_DOWNLOADS.filter((download) => download.group === "prompt");
-  const templates = SERVICE_DOWNLOADS.filter((download) => download.group === "cv");
-
   return (
     <main className="min-h-screen overflow-hidden bg-[#f4f7fb] text-[#142033]">
       <section className="relative isolate px-5 pb-16 pt-10 sm:px-6 sm:pb-20 sm:pt-12">
@@ -35,17 +32,11 @@ export default function ServiceDownloads() {
             Unsere Vorlagen für Ihre Bewerbung, sofort verfügbar.
           </h1>
           <p className="mt-4 max-w-2xl text-base leading-7 text-[#5d6b7f] text-pretty">
-            Masterprompts für Ihr Motivationsschreiben mit KI und Lebenslauf-Vorlagen für Word. Jedes Dokument kostet CHF 19.90.
+            Masterprompts für Ihr Motivationsschreiben mit KI und Lebenslauf-Vorlagen für Word. Jedes Dokument kostet CHF 19.90, alle 5 im Komplettpaket CHF 49.90.
           </p>
 
-          <h2 className="mt-12 text-2xl font-semibold tracking-tight text-[#101828]">Lebenslauf-Vorlagen</h2>
-          <div className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {templates.map((download) => <ServiceDownloadCard key={download.key} download={download} />)}
-          </div>
-
-          <h2 className="mt-12 text-2xl font-semibold tracking-tight text-[#101828]">Masterprompts</h2>
-          <div className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {prompts.map((download) => <ServiceDownloadCard key={download.key} download={download} />)}
+          <div className="mt-10 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {SERVICE_DOWNLOAD_OFFERS.map((download) => <ServiceDownloadCard key={download.key} download={download} />)}
           </div>
 
           <div className="mt-12 rounded-2xl bg-[#e9f0f8] p-6 ring-1 ring-[#d5e1ee] sm:p-7">

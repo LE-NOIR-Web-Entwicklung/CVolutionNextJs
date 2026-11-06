@@ -1,4 +1,4 @@
-import { SERVICE_DOWNLOADS, SERVICE_DOWNLOADS_PATH } from "@/lib/service-downloads";
+import { getServiceDownloadPrice, SERVICE_DOWNLOAD_OFFERS, SERVICE_DOWNLOADS_PATH } from "@/lib/service-downloads";
 import type { ShopProductKey } from "@/lib/shop";
 
 export type ServiceOffer = {
@@ -61,13 +61,15 @@ export const SERVICE_OFFERS: ServiceOffer[] = [
     serviceType: "check",
   },
   {
-    name: "RAV Unterstützung",
+    name: "Downloads",
     description:
-    "Unterstützung bei der Erfüllung von RAV-Vorgaben. Erstellung von Lebenslauf und Motivationsschreiben. Vorbereitung auf Bewerbungsgespräche",
-    image: "/images/customer-service.png",
-    price: "ab CHF 99",
-    link: "/service-rav",
-    serviceType: "rav",
+    "Masterprompts für Ihr Motivationsschreiben mit KI und Lebenslauf-Vorlagen für Word. CHF 19.90 pro Dokument oder alle 5 im Komplettpaket für CHF 49.90",
+    image: "/images/resume.png",
+    price: "ab CHF 19.90",
+    link: SERVICE_DOWNLOADS_PATH,
+    serviceType: "download_prompt_spontan",
+    hasMultipleVariants: true,
+    offerLabel: "6 Angebote ansehen",
   },
   {
     name: "LinkedIn Profil Optimierung",
@@ -79,15 +81,13 @@ export const SERVICE_OFFERS: ServiceOffer[] = [
     serviceType: "linkedin",
   },
   {
-    name: "Downloads",
+    name: "RAV Unterstützung",
     description:
-    "Masterprompts für Ihr Motivationsschreiben mit KI und Lebenslauf-Vorlagen für Word. Sofort per E-Mail-Link verfügbar, CHF 19.90 pro Dokument",
-    image: "/images/resume.png",
-    price: "CHF 19.90",
-    link: SERVICE_DOWNLOADS_PATH,
-    serviceType: "download_prompt_spontan",
-    hasMultipleVariants: true,
-    offerLabel: "5 Dokumente ansehen",
+    "Unterstützung bei der Erfüllung von RAV-Vorgaben. Erstellung von Lebenslauf und Motivationsschreiben. Vorbereitung auf Bewerbungsgespräche",
+    image: "/images/customer-service.png",
+    price: "ab CHF 99",
+    link: "/service-rav",
+    serviceType: "rav",
   },
 ];
 
@@ -105,6 +105,8 @@ export const OFFER_CARDS: OfferCard[] = [
   ...SERVICE_OFFERS,
 ];
 
+const offerNamed = (name: string) => SERVICE_OFFERS.find((offer) => offer.name === name) as ServiceOffer;
+
 export const CART_RECOMMENDATION_OFFERS: ServiceOffer[] = [
   {
     name: "Lohnanalyse Telefon",
@@ -115,10 +117,10 @@ export const CART_RECOMMENDATION_OFFERS: ServiceOffer[] = [
     link: "/service-salary-tel",
     serviceType: "salary_phone",
   },
-  SERVICE_OFFERS[1],
-  SERVICE_OFFERS[2],
-  SERVICE_OFFERS[4],
-  SERVICE_OFFERS[5],
+  offerNamed("Lebenslauf"),
+  offerNamed("Motivationsschreiben"),
+  offerNamed("Check"),
+  offerNamed("RAV Unterstützung"),
   {
     name: "Lohnanalyse PDF",
     description:
@@ -128,14 +130,14 @@ export const CART_RECOMMENDATION_OFFERS: ServiceOffer[] = [
     link: "/service-salary-pdf",
     serviceType: "salary_pdf",
   },
-  SERVICE_OFFERS[6],
+  offerNamed("LinkedIn Profil Optimierung"),
 ];
 
-export const CART_DOWNLOAD_OFFERS: ServiceOffer[] = SERVICE_DOWNLOADS.map((download) => ({
-    name: download.label,
-    description: download.description,
-    image: "/images/resume.png",
-    price: "CHF 19.90",
-    link: SERVICE_DOWNLOADS_PATH,
-    serviceType: download.key,
+export const CART_DOWNLOAD_OFFERS: ServiceOffer[] = SERVICE_DOWNLOAD_OFFERS.map((download) => ({
+  name: download.label,
+  description: download.description,
+  image: "/images/resume.png",
+  price: `CHF ${getServiceDownloadPrice(download.key).toFixed(2)}`,
+  link: SERVICE_DOWNLOADS_PATH,
+  serviceType: download.key,
 }));

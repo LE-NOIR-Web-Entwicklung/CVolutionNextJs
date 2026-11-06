@@ -1,4 +1,4 @@
-import { SERVICE_DOWNLOADS, SERVICE_DOWNLOADS_PATH, type ServiceDownloadKey } from "@/lib/service-downloads";
+import { SERVICE_DOWNLOAD_OFFERS, SERVICE_DOWNLOADS_PATH, type ServiceDownloadKey } from "@/lib/service-downloads";
 import { SERVICE_CONFIGS, type ServiceConfig } from "@/lib/services";
 
 export type ShopProductKey =
@@ -67,11 +67,13 @@ export const SHOP_PRODUCTS: Record<ShopProductKey, ShopProduct> = {
     href: "/service-salary-tel",
     shortDescription: "Lohnanalyse mit telefonischer Besprechung.",
   },
-  ...(Object.fromEntries(SERVICE_DOWNLOADS.map((download) => [download.key, {
+  ...(Object.fromEntries(SERVICE_DOWNLOAD_OFFERS.map((download) => [download.key, {
     ...SERVICE_CONFIGS[download.key],
     key: download.key,
     href: SERVICE_DOWNLOADS_PATH,
-    shortDescription: `${download.format}-Dokument zum Herunterladen, Link per E-Mail.`,
+    shortDescription: download.key === "download_bundle"
+      ? "Alle 5 Dokumente zum Herunterladen, Link per E-Mail."
+      : `${download.format}-Dokument zum Herunterladen, Link per E-Mail.`,
   }])) as Record<ServiceDownloadKey, ShopProduct>),
 };
 

@@ -6,10 +6,9 @@ import { ArrowRight } from "lucide-react";
 import { AddToCartButton } from "@/components/AddToCartButton";
 import { ServiceDownloadCard } from "@/components/ServiceDownloadCard";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { SERVICE_DOWNLOADS, SERVICE_DOWNLOADS_PATH } from "@/lib/service-downloads";
+import { SERVICE_DOWNLOAD_OFFERS } from "@/lib/service-downloads";
 import { OFFER_CARDS } from "@/lib/service-offers";
 
-const SERVICES = OFFER_CARDS.filter((offer) => offer.link !== SERVICE_DOWNLOADS_PATH);
 const TAB_CLASS = "h-11 rounded-lg transition-none px-5 text-sm font-semibold text-[#40516a] data-[state=active]:bg-[#204878] data-[state=active]:text-white data-[state=active]:shadow-sm";
 
 export default function Service() {
@@ -41,7 +40,7 @@ export default function Service() {
             </TabsList>
 
             <TabsContent value="services" className="mt-6 grid grid-cols-1 data-[state=inactive]:hidden gap-5 md:grid-cols-2 xl:grid-cols-3">
-            {SERVICES.map((product) => (
+            {OFFER_CARDS.map((product) => (
               <article
                 key={product.name}
                 className="group relative flex min-h-[20rem] flex-col overflow-hidden rounded-3xl bg-white p-6 shadow-[0_1.25rem_3.5rem_rgba(15,37,65,0.07)] ring-1 ring-[#dce5ef] transition duration-300 hover:-translate-y-1 hover:shadow-[0_1.75rem_4.5rem_rgba(15,37,65,0.12)] focus-within:ring-2 focus-within:ring-[#204878]"
@@ -92,7 +91,7 @@ export default function Service() {
 
             <TabsContent value="downloads" className="mt-6">
               <div className="mt-6 grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
-                {SERVICE_DOWNLOADS.map((download) => <ServiceDownloadCard key={download.key} download={download} />)}
+                {SERVICE_DOWNLOAD_OFFERS.map((download) => <ServiceDownloadCard key={download.key} download={download} />)}
               </div>
             </TabsContent>
           </Tabs>

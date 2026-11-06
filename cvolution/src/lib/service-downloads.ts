@@ -1,4 +1,5 @@
 export const SERVICE_DOWNLOAD_PRICE = 19.9;
+export const SERVICE_DOWNLOAD_BUNDLE_PRICE = 49.9;
 export const SERVICE_DOWNLOADS_PATH = "/service-downloads";
 export const SERVICE_DOWNLOAD_MAX_PER_DOCUMENT = 3;
 export const SERVICE_DOWNLOAD_VALID_DAYS = 30;
@@ -54,13 +55,33 @@ export const SERVICE_DOWNLOADS = [
   },
 ] as const;
 
+export const SERVICE_DOWNLOAD_BUNDLE = {
+  key: "download_bundle",
+  label: "Komplettpaket Downloads",
+  group: "bundle",
+  format: "Paket",
+  description: "Alle 5 Dokumente zusammen: die 3 Lebenslauf-Vorlagen und die 2 Masterprompts. Sie sparen CHF 49.60 gegenüber dem Einzelkauf.",
+} as const;
+
+export const SERVICE_DOWNLOAD_OFFERS = [...SERVICE_DOWNLOADS, SERVICE_DOWNLOAD_BUNDLE];
+
 export type ServiceDownload = (typeof SERVICE_DOWNLOADS)[number];
-export type ServiceDownloadKey = ServiceDownload["key"];
+export type ServiceDownloadOffer = (typeof SERVICE_DOWNLOAD_OFFERS)[number];
+export type ServiceDownloadKey = ServiceDownloadOffer["key"];
 
 export function getServiceDownload(key: unknown): ServiceDownload | null {
   return SERVICE_DOWNLOADS.find((download) => download.key === key) ?? null;
 }
 
 export function isServiceDownloadKey(key: unknown): key is ServiceDownloadKey {
-  return getServiceDownload(key) !== null;
+  return SERVICE_DOWNLOAD_OFFERS.some((offer) => offer.key === key);
+}
+
+export function getServiceDownloadPrice(key: ServiceDownloadKey) {
+  return key === SERVICE_DOWNLOAD_BUNDLE.key ? SERVICE_DOWNLOAD_BUNDLE_PRICE : SERVICE_DOWNLOAD_PRICE;
+}
+
+// The documents an order for this product unlocks.
+export function getIncludedDownloadKeys(key: ServiceDownloadKey): ServiceDownload["key"][] {
+  return key === SERVICE_DOWNLOAD_BUNDLE.key ? SERVICE_DOWNLOADS.map((download) => download.key) : [key];
 }

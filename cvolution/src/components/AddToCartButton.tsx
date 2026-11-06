@@ -7,6 +7,7 @@ import { ArrowRight, Check, ShoppingCart, X } from "lucide-react";
 import { addCartItem, readCart } from "@/lib/cart";
 import type { CheckDocumentKey } from "@/lib/check-service";
 import { SHOP_PRODUCTS, type ShopProductKey } from "@/lib/shop";
+import { isServiceDownloadKey, SERVICE_DOWNLOAD_BUNDLE } from "@/lib/service-downloads";
 import { CART_DOWNLOAD_OFFERS, CART_RECOMMENDATION_OFFERS } from "@/lib/service-offers";
 
 type AddToCartButtonProps = {
@@ -31,6 +32,9 @@ export function AddToCartButton({
   const [popupDownloads, setPopupDownloads] = useState(CART_DOWNLOAD_OFFERS);
   const [showCartPopup, setShowCartPopup] = useState(false);
   const product = SHOP_PRODUCTS[serviceType];
+  const includedInBundle = isServiceDownloadKey(serviceType)
+    && serviceType !== SERVICE_DOWNLOAD_BUNDLE.key
+    && Boolean(cartCounts[SERVICE_DOWNLOAD_BUNDLE.key]);
 
   useEffect(() => {
     if (!showCartPopup) return;
@@ -92,7 +96,7 @@ export function AddToCartButton({
     }
     if (openPopup) {
       setPopupRecommendations(CART_RECOMMENDATION_OFFERS.filter((offer) => !nextCounts[offer.serviceType]));
-      setPopupDownloads(CART_DOWNLOAD_OFFERS.filter((offer) => !nextCounts[offer.serviceType]));
+      setPopupDownloads(nextCounts[SERVICE_DOWNLOAD_BUNDLE.key] ? [] : CART_DOWNLOAD_OFFERS.filter((offer) => !nextCounts[offer.serviceType]));
       setShowCartPopup(true);
     }
   }
@@ -118,7 +122,7 @@ export function AddToCartButton({
               <p id="cart-popup-title" className="truncate text-sm font-semibold text-[#111827]">
                 {productName || product.label}
               </p>
-              <p className="mt-1 text-sm font-medium text-[#087A32]">Zum Warenkorb hinzugefügt</p>
+              <p className="mt-1 text-sm font-medium text-[#087A32]">{includedInBundle ? "Bereits im Komplettpaket enthalten" : "Zum Warenkorb hinzugefügt"}</p>
             </div>
             <Link
               href="/cart"
@@ -147,7 +151,7 @@ export function AddToCartButton({
           {popupDownloads.length > 0 && (
             <section className="mb-6" aria-labelledby="cart-popup-downloads">
               <h2 id="cart-popup-downloads" className="mb-3 text-xl font-semibold tracking-tight text-[#111827]">Downloads</h2>
-              <div className="-mx-4 flex gap-2.5 overflow-x-auto px-4 pb-1 sm:mx-0 sm:grid sm:grid-cols-3 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-5">
+              <div className="-mx-4 flex gap-2.5 overflow-x-auto px-4 pb-1 sm:mx-0 sm:grid sm:grid-cols-3 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-6">
                 {popupDownloads.map((download) => {
                   const downloadCount = cartCounts[download.serviceType] || 0;
 
