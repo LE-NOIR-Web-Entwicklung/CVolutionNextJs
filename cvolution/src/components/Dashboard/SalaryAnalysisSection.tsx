@@ -234,8 +234,12 @@ export function SalaryAnalysisSection({ hasSelfServiceAccess, onRequirePayment, 
   const [payslipName, setPayslipName] = useState('');
   const [cvName, setCvName] = useState('');
 
+  // Supabase hands out a new user object whenever the window regains focus. Reloading
+  // on that would swap the form for the spinner and drop every entry and chosen file.
+  const userId = user?.id;
+
   useEffect(() => {
-    if (!user) return;
+    if (!userId) return;
     let active = true;
     setLoading(true);
     setSaved([]);
@@ -244,7 +248,7 @@ export function SalaryAnalysisSection({ hasSelfServiceAccess, onRequirePayment, 
       .catch(() => { /* Without a saved analysis the form is shown. */ })
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
-  }, [user]);
+  }, [userId]);
 
   const current = saved.find((item) => item.id === activeId) || saved[0] || null;
 
