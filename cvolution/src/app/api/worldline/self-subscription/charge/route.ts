@@ -10,6 +10,7 @@ import {
   saferpayRequest,
   SAFERPAY_SELF_SUBSCRIPTION,
 } from "@/lib/saferpay";
+import { sendPushNotifications } from "@/lib/order-processing";
 
 export const maxDuration = 300;
 
@@ -240,6 +241,8 @@ async function chargeSubscription(userId: string, force = false): Promise<Charge
         subscription_current_period_end: billingPeriodEnd.toISOString(),
       })
       .eq("user_id", userId);
+
+    await sendPushNotifications();
 
     return { userId, success: true, orderId: order.id, transactionId, paymentStatus: captureStatus || transactionStatus };
   } catch (error) {
