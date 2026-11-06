@@ -509,12 +509,14 @@ export default function CartPage() {
           <input
             type="file"
             multiple
+            required
+            aria-required="true"
             accept={CHECK_FILE_ACCEPT}
             onChange={(event) => updateCheckFiles(line.serviceType, event.target.files)}
             className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#204878] focus:border-transparent transition"
           />
           <p className="mt-2 text-xs text-[#64748B]">
-            Optional: Sie können PDF-, Word- oder Bilddateien direkt mit der Bestellung übermitteln.
+            Pflichtfeld: Bitte laden Sie Ihre Unterlagen als PDF-, Word- oder Bilddateien hoch.
           </p>
           {uploadedFiles.length > 0 && (
             <ul className="mt-2 space-y-1 text-xs text-[#111827]">
@@ -565,6 +567,11 @@ export default function CartPage() {
             setIsSubmitting(false);
             return;
           }
+        }
+        if (isDocumentCheckService(item.serviceType) && !checkFiles[item.serviceType]?.length) {
+          setError("Bitte laden Sie Ihre Unterlagen für den Bewerbungsunterlagen-Check hoch.");
+          setIsSubmitting(false);
+          return;
         }
         if (isLinkedInProfileService(item.serviceType)) {
           const linkedInError = validateLinkedInLine(item.serviceType);

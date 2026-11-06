@@ -628,7 +628,7 @@ function getDownloadSectionHtml(orders: CartOrderEmailItem[], downloadUrl?: stri
         <div style="margin:24px 0; padding:20px; border-radius:12px; background:#f4f8fb;">
             <h2 style="color:#204878; font-size:1.15rem; margin:0 0 10px;">Deine Dokumente</h2>
             <a href="${escapeHtml(downloadUrl)}" target="_blank" rel="noopener noreferrer" style="display:inline-block; background-color:#204878; color:#ffffff; text-decoration:none; font-weight:700; padding:12px 20px; border-radius:8px;">Dokumente herunterladen</a>
-            <p style="color:#64748B; font-size:0.95rem; margin:12px 0 0;">Dieser Link ist persönlich: Beim Öffnen senden wir einen Bestätigungscode an diese E-Mail-Adresse. Weitergeleitet funktioniert er deshalb nicht. Er ist 30 Tage gültig, jedes Dokument lässt sich 3-mal herunterladen. Die Dokumente sind auf deinen Namen lizenziert und dürfen nicht weitergegeben werden.</p>
+            <p style="color:#64748B; font-size:0.95rem; margin:12px 0 0;">Dieser Link ist persönlich: Beim Öffnen senden wir einen Bestätigungscode an diese E-Mail-Adresse. Er ist 30 Tage gültig, jedes Dokument lässt sich 3-mal herunterladen. Die Dokumente sind auf deinen Namen lizenziert und dürfen nicht weitergegeben werden.</p>
         </div>
     `;
 }

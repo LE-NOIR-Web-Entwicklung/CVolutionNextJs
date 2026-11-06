@@ -118,6 +118,10 @@ export async function POST(request: NextRequest) {
       const quantity = product.orderType === "check"
         ? normalizeCheckDocumentSelections(item.checkSelections).length
         : normalizeQuantity(item.quantity);
+      const checkFiles = product.orderType === "check" ? normalizeUploadedFiles(item.checkFiles) : [];
+      if (product.orderType === "check" && checkFiles.length === 0) {
+        return NextResponse.json({ error: "Bitte laden Sie Ihre Unterlagen für den Bewerbungsunterlagen-Check hoch." }, { status: 400 });
+      }
       const linkedinUrl = normalizeLinkedInUrl(item.linkedinUrl);
       if (product.orderType === "linkedin" && !linkedinUrl) {
         return NextResponse.json({ error: "LinkedIn-URL ist für die Profiloptimierung erforderlich." }, { status: 400 });
@@ -152,7 +156,7 @@ export async function POST(request: NextRequest) {
         salaryFileName: getText(item.salaryFileName),
         cvFileBase64: getText(item.cvFileBase64),
         cvFileName: getText(item.cvFileName),
-        checkFiles: product.orderType === "check" ? normalizeUploadedFiles(item.checkFiles) : [],
+        checkFiles,
       });
     }
 
