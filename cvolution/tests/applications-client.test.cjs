@@ -83,7 +83,7 @@ test('errors remain actionable and deletion handles an empty successful response
   assert.equal(requests[2].method, 'DELETE');
 });
 
-test('data export contains all saved content and cleans up its temporary download', async () => {
+test('data export contains the overview columns and cleans up its temporary download', async () => {
   URL.createObjectURL = (blob) => { exportBlob = blob; return 'blob:fixture'; };
   URL.revokeObjectURL = (url) => { revoked = url === 'blob:fixture'; };
   const link = { click() { clicked = true; }, remove() { removed = true; } };
@@ -94,7 +94,8 @@ test('data export contains all saved content and cleans up its temporary downloa
   const zip = await require('jszip').loadAsync(await exportBlob.arrayBuffer());
   const sheet = await zip.file('xl/worksheets/sheet1.xml').async('string');
   assert.ok(zip.file('[Content_Types].xml') && zip.file('xl/workbook.xml'));
-  for (const text of ['Gespräch 2', '20.11.2026', 'Absatz eins.', '=Formel &amp; &lt;Partner&gt;']) assert.ok(sheet.includes(text), text);
+  for (const text of ['Gespräch 2', '20.11.2026', 'Inserat-Link', '=Formel &amp; &lt;Partner&gt;']) assert.ok(sheet.includes(text), text);
+  for (const text of ['Absatz eins.', 'Notizen', 'Motivationsschreiben', 'Nächster Schritt']) assert.ok(!sheet.includes(text), text);
   assert.ok(!sheet.includes('<f>'), 'Values are never written as formulas');
   assert.equal(link.download, 'cvolution-bewerbungen.xlsx');
   assert.ok(clicked && removed && revoked);

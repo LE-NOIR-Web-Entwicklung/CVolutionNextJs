@@ -385,10 +385,6 @@ export function ApplicationsSection({ hasSelfServiceAccess, onRequirePayment, on
 
                 <DetailCard title="Status & Termine">
                   <StatusStepper value={draft} onStatusChange={changeStatus} onDateChange={changeDate} disabled={busy || !hasSelfServiceAccess} />
-                  <div className="mt-4 border-t border-slate-100 pt-4 sm:w-1/2 sm:pr-2">
-                    <label htmlFor="application-deadline" className={`mb-1.5 block ${fieldLabel}`}>Bewerbungsfrist</label>
-                    <ApplicationDateInput id="application-deadline" label="Bewerbungsfrist" value={draft.deadline} onChange={(value) => update('deadline', value)} disabled={busy || !hasSelfServiceAccess} />
-                  </div>
                 </DetailCard>
 
                 <DetailCard title="Notizen">

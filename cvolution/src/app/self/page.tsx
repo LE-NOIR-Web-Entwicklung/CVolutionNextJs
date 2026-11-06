@@ -8,7 +8,7 @@ const steps = [
   },
   {
     title: "Stelle hinzufügen",
-    description: "Fügen Sie den Link zum Inserat ein. Die KI übernimmt Unternehmen, Stelle und Frist.",
+    description: "Fügen Sie den Link zum Inserat ein. Die KI übernimmt Unternehmen und Stelle.",
   },
   {
     title: "Schreiben erstellen",
@@ -16,7 +16,7 @@ const steps = [
   },
   {
     title: "Bewerbung verfolgen",
-    description: "Sie sehen jederzeit Status, Fristen und den nächsten Schritt jeder Bewerbung.",
+    description: "Sie sehen jederzeit Status, Termine und den nächsten Schritt jeder Bewerbung.",
   },
 ];
 
@@ -51,7 +51,7 @@ const tools = [
       "Stellenangaben per Link mit KI auslesen",
       "Schreiben direkt bei der Bewerbung",
       "Status und Termine bis zur Zusage",
-      "Fristen und nächste Schritte",
+      "Nächste Schritte und Notizen",
     ],
   },
 ];
