@@ -137,7 +137,7 @@ test('application journey saves separate letters, survives refresh and reuses th
   await manager.getByRole('button', { name: 'Versendet', exact: true }).click();
   assert.match(await manager.getByLabel('Versendet am', { exact: true }).inputValue(), /^\d{2}\.\d{2}\.\d{4}$/, 'Marking as sent dates the dispatch');
   await save(manager);
-  await page.getByRole('tab', { name: 'CV Self-Service', exact: true }).click();
+  await page.getByRole('tab', { name: 'Lebenslauf', exact: true }).click();
   await page.getByRole('tab', { name: 'Bewerbungsmanager', exact: true }).click();
   await manager.getByRole('button', { name: 'Aktuellen CV exportieren' }).click();
   await page.getByRole('dialog').getByRole('heading', { name: 'CV Exportieren' }).waitFor();
@@ -204,8 +204,8 @@ test('save, load and conflict failures keep input; deletion requires confirmatio
 
 test('standalone letters transfer to applications and stored data remains usable after expiry', options, async (t) => {
   const { page, manager, state } = await fixture(t);
-  await page.getByRole('tab', { name: 'AI Motivationsschreiben', exact: true }).click();
-  const tool = page.getByRole('tabpanel', { name: 'AI Motivationsschreiben', exact: true });
+  await page.getByRole('tab', { name: 'Motivationsschreiben', exact: true }).click();
+  const tool = page.getByRole('tabpanel', { name: 'Motivationsschreiben', exact: true });
   await tool.getByLabel('Stelle (optional)', { exact: true }).fill('Beratung');
   await tool.getByLabel('Unternehmen (optional)', { exact: true }).fill('Transfer AG');
   await tool.getByLabel(/^Stellenanzeige/).fill('Ein Inserat für die Beratung.');
@@ -214,12 +214,12 @@ test('standalone letters transfer to applications and stored data remains usable
   await tool.getByRole('button', { name: 'Bearbeiten', exact: true }).click();
   assert.equal(state.records.length, 0);
   await page.getByRole('tab', { name: 'Bewerbungsmanager', exact: true }).click();
-  await page.getByRole('tab', { name: 'AI Motivationsschreiben', exact: true }).click();
+  await page.getByRole('tab', { name: 'Motivationsschreiben', exact: true }).click();
   assert.match(await tool.getByLabel('Schreiben bearbeiten', { exact: true }).inputValue(), /Transfer AG/);
   await tool.getByRole('button', { name: 'Bewerbung speichern', exact: true }).click();
   await manager.getByLabel('Bewerbungen durchsuchen').waitFor();
   assert.equal(state.records.length, 1);
-  await page.getByRole('tab', { name: 'AI Motivationsschreiben', exact: true }).click();
+  await page.getByRole('tab', { name: 'Motivationsschreiben', exact: true }).click();
   assert.equal(await tool.getByLabel('Unternehmen (optional)', { exact: true }).inputValue(), '');
   await page.getByRole('tab', { name: 'Bewerbungsmanager', exact: true }).click();
   state.paid = false;
@@ -310,8 +310,8 @@ test('subscription expiry during editing blocks saving and opens the subscriptio
 
 test('standalone advert-only letters still download without creating an application', options, async (t) => {
   const { page, state } = await fixture(t);
-  await page.getByRole('tab', { name: 'AI Motivationsschreiben', exact: true }).click();
-  const tool = page.getByRole('tabpanel', { name: 'AI Motivationsschreiben', exact: true });
+  await page.getByRole('tab', { name: 'Motivationsschreiben', exact: true }).click();
+  const tool = page.getByRole('tabpanel', { name: 'Motivationsschreiben', exact: true });
   await tool.getByLabel(/^Stellenanzeige/).fill('Gesucht wird eine Person für die Beratung.');
   await tool.getByRole('button', { name: 'Erstellen', exact: true }).click();
   await tool.getByRole('article').waitFor();
@@ -353,7 +353,7 @@ test('detail views have their own URL, follow browser history and survive a relo
   await page.reload();
   await manager.getByLabel('Unternehmen *', { exact: true }).waitFor();
   assert.equal(await manager.getByLabel('Unternehmen *', { exact: true }).inputValue(), 'Muster AG');
-  await page.getByRole('tab', { name: 'CV Self-Service', exact: true }).click();
+  await page.getByRole('tab', { name: 'Lebenslauf', exact: true }).click();
   assert.equal(new URL(page.url()).pathname, '/dashboard');
   await page.getByRole('tab', { name: 'Bewerbungsmanager', exact: true }).click();
   assert.equal(new URL(page.url()).pathname, detail, 'Returning to the tab keeps the open application');

@@ -6,7 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Camera, LogOut, Settings } from 'lucide-react';
+import { LogOut, Settings } from 'lucide-react';
 import { dashboardPath, legacyDashboardHashArea, parseDashboardPath, type DashboardArea } from '@/lib/dashboard-routes';
 import { toast } from '@/hooks/use-toast';
 import ProfileSection from '@/components/Dashboard/ProfileSection';
@@ -352,26 +352,25 @@ export const Dashboard: React.FC = () => {
         <Tabs value={activeArea} onValueChange={(area) => handleAreaChange(area)} className="space-y-4 sm:space-y-6">
           <TabsList className="!flex h-auto w-full items-stretch justify-start gap-1 overflow-x-auto rounded-none border-b border-slate-200 !bg-transparent p-0 [scrollbar-width:none] sm:gap-3 lg:overflow-visible">
             <TabsTrigger value="cv" className={areaTabClass}>
-              <span className="hidden sm:inline">CV Self-Service</span><span className="sm:hidden">Lebenslauf</span>
+              Lebenslauf
             </TabsTrigger>
             <TabsTrigger value="motivation" className={areaTabClass}>
-              <span className="hidden sm:inline">AI Motivationsschreiben</span><span className="sm:hidden">AI-Schreiben</span>
+              Motivationsschreiben
             </TabsTrigger>
             <TabsTrigger value="salary" className={areaTabClass}>
-              <span className="hidden sm:inline">AI Lohnanalyse</span><span className="sm:hidden">Lohnanalyse</span>
+              Lohnanalyse
             </TabsTrigger>
             <TabsTrigger value="applications" className={areaTabClass}>
-              <span className="hidden sm:inline">Bewerbungsmanager</span><span className="sm:hidden">Bewerbungen</span>
+              Bewerbungsmanager
             </TabsTrigger>
             <a
               href="https://www.headshotpro.com/?via=armend"
               target="_blank"
               rel="noopener sponsored"
-              aria-label="Bewerbungsfoto (öffnet in neuem Fenster)"
-              title="Bewerbungsfoto"
+              title="Öffnet in neuem Fenster"
               className="-mb-px inline-flex h-11 shrink-0 items-center gap-1.5 border-b-2 border-transparent px-2 text-[13px] font-medium text-slate-500 transition-colors hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#204878] sm:px-1 sm:text-sm"
             >
-              <Camera className="h-4 w-4 sm:hidden" /><span className="hidden sm:inline">Bewerbungsfoto</span>
+              Bewerbungsfoto
             </a>
             <TabsTrigger
               value="settings"
