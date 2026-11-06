@@ -164,13 +164,22 @@ export default function Home() {
 
             {/* Subheadline */}
             <p className="max-w-2xl text-base leading-8 text-white/74 sm:text-lg mb-8">
-              Mit über 10 Jahren Erfahrung im Recruiting
-              unterstützen wir bei Lebenslauf, Lohnanalyse
-              und strategischer Laufbahnberatung.
+              Mit über 10 Jahren Erfahrung im Recruiting unterstützen wir bei Lebenslauf,
+              Lohnanalyse und Laufbahnberatung. Oder Sie erstellen Ihre Bewerbung
+              selbst, mit Self-Service und Downloads.
             </p>
 
             {/* CTA Buttons */}
             <div className="flex w-full flex-col items-stretch justify-center gap-3 sm:w-auto sm:flex-row sm:items-center mb-10 sm:mb-14">
+              <Link
+                href="/self"
+                className="inline-flex min-h-12 items-center justify-center rounded-md bg-white px-6 py-3 text-sm font-semibold text-[#0F172A] shadow-[0_1rem_2.5rem_rgba(0,0,0,0.22)] transition duration-300 hover:-translate-y-0.5 hover:bg-[#f4f7fb]"
+              >
+                Self-Service Starten
+                <svg className="w-4 h-4 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                </svg>
+              </Link>
               <Link
                 href="/service-salary"
                 className="inline-flex min-h-12 items-center justify-center rounded-md bg-white px-6 py-3 text-sm font-semibold text-[#0F172A] shadow-[0_1rem_2.5rem_rgba(0,0,0,0.22)] transition duration-300 hover:-translate-y-0.5 hover:bg-[#f4f7fb]"

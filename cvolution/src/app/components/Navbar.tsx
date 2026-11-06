@@ -50,16 +50,18 @@ export default function Navbar() {
       href: "/service",
       dropdown: true,
       items: [
-        { name: "Laufbahnberatung", href: "/service-career" },
-        { name: "Lebenslauf", href: "/service-cv" },
-        { name: "LinkedIn Profil", href: "/service-linkedin" },
         { name: "Lohnanalyse", href: "/service-salary" },
+        { name: "Lebenslauf", href: "/service-cv" },
         { name: "Motivationsschreiben", href: "/service-motivation" },
-        { name: "RAV Unterstützung", href: "/service-rav" },
+        { name: "Laufbahnberatung", href: "/service-career" },
         { name: "Check", href: "/service-check" },
         { name: "Downloads", href: "/service-downloads" },
+        { name: "LinkedIn Profil", href: "/service-linkedin" },
+        { name: "RAV Unterstützung", href: "/service-rav" },
       ],
     },
+    { name: "Self-Service", href: "/self" },
+    { name: "Blog", href: "/blog" },
     {
       name: "Über",
       href: "/about",
@@ -68,8 +70,6 @@ export default function Navbar() {
         { name: "Team", href: "/team" },
       ],
     },
-    { name: "Self-Service", href: "/self" },
-    { name: "Blog", href: "/blog" },
     { name: "Kontakt", href: "/contact" },
   ];
 
