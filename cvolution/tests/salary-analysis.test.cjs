@@ -80,6 +80,17 @@ test('the entered salary is the fallback when the payslip gives no monthly amoun
   assert.equal(result.salary.months, 13);
 });
 
+test('without profile data, name and age come from the documents', () => {
+  const data = { ...raw(), person: { ...raw().person, name: 'Aus Dokument', birth_year: 1990 } };
+  const result = salary().finalizeSalaryAnalysis(data, { ...context, name: '', birthdate: null });
+  assert.equal(result.person.name, 'Aus Dokument');
+  assert.equal(result.person.age, 36);
+  const kept = salary().finalizeSalaryAnalysis(data, context);
+  assert.equal(kept.person.name, 'Testperson Muster', 'Profile data takes precedence');
+  assert.equal(kept.person.age, 26);
+  assert.equal(salary().finalizeSalaryAnalysis({ ...data, person: {} }, { ...context, name: '', birthdate: null }).person.age, null);
+});
+
 test('incomplete model results are rejected', () => {
   assert.throws(() => salary().finalizeSalaryAnalysis({ ...raw(), market: { median: 0 } }, context));
   assert.throws(() => salary().finalizeSalaryAnalysis({ ...raw(), scenarios: {} }, context));
@@ -146,6 +157,15 @@ test('without CV data a CV upload is required and then sent along', async () => 
   const response = await route().POST(form({ cv: pdf('cv.pdf') }));
   assert.equal(response.status, 200);
   assert.equal(modelBody.messages[0].content.filter((block) => block.type === 'document').length, 2);
+});
+
+test('an empty profile works with an uploaded CV', async () => {
+  tables.experiences = [];
+  tables.profiles = { ...tables.profiles, full_name: null, headline: null, birthdate: null };
+  global.fetch = async () => Response.json({ stop_reason: 'tool_use', content: [{ type: 'tool_use', name: 'submit_salary_analysis', input: { ...raw(), person: { ...raw().person, name: 'Aus Dokument', birth_year: 1990 } } }] });
+  const response = await route().POST(form({ cv: pdf('cv.pdf') }));
+  assert.equal(response.status, 200);
+  assert.equal((await response.json()).analysis.person.name, 'Aus Dokument');
 });
 
 test('invalid requests stop before any model call', async () => {

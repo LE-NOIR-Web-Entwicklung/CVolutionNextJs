@@ -383,7 +383,7 @@ export function SalaryAnalysisSection({ hasSelfServiceAccess, onRequirePayment, 
       )}
       {/* Stays mounted while generating so a failed run keeps the entries and files. */}
       <form onSubmit={submit} className={generating ? 'hidden' : 'mt-6 space-y-5'}>
-          <fieldset disabled={!hasSelfServiceAccess} className="contents">
+          <fieldset disabled={!hasSelfServiceAccess} className="min-w-0 space-y-5">
             {(profileName || profileBirthdate) && (
               <p className="rounded-md bg-slate-50 px-3 py-2 text-sm text-slate-600">
                 Aus Ihrem Profil: {[profileName, formatApplicationDate(profileBirthdate)].filter(Boolean).join(' · ')}
@@ -394,9 +394,6 @@ export function SalaryAnalysisSection({ hasSelfServiceAccess, onRequirePayment, 
               <div><label htmlFor={`${fieldId}-workload`} className={labelClass}>Pensum *</label><Input id={`${fieldId}-workload`} name="workload" required inputMode="numeric" maxLength={6} placeholder="z.B. 100%" className={fieldClass} /></div>
               <div><label htmlFor={`${fieldId}-workplace`} className={labelClass}>Arbeitsort *</label><Input id={`${fieldId}-workplace`} name="workplace" required maxLength={80} placeholder="z.B. Zürich" className={fieldClass} /></div>
             </div>
-            {!profileBirthdate && (
-              <div className="sm:w-1/3"><label htmlFor={`${fieldId}-birthdate`} className={labelClass}>Geburtsdatum *</label><Input id={`${fieldId}-birthdate`} name="birthdate" type="date" required className={fieldClass} /></div>
-            )}
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
                 <label htmlFor={`${fieldId}-payslip`} className={labelClass}>Aktuelle Lohnabrechnung *</label>
@@ -412,7 +409,7 @@ export function SalaryAnalysisSection({ hasSelfServiceAccess, onRequirePayment, 
                 <div>
                   <label htmlFor={`${fieldId}-cv`} className={labelClass}>Aktueller Lebenslauf *</label>
                   <input id={`${fieldId}-cv`} name="cv" type="file" required accept="application/pdf,.pdf,image/jpeg,image/png" onChange={(event) => setCvName(event.target.files?.[0]?.name || '')} className={fileInput} />
-                  <p className="mt-1 text-xs text-slate-500">{cvName || 'Noch kein Lebenslauf im CV Self-Service erfasst.'}</p>
+                  <p className="mt-1 text-xs text-slate-500">{cvName || 'Noch kein Lebenslauf im CV Self-Service erfasst. Name und weitere Angaben übernehmen wir aus der Datei.'}</p>
                 </div>
               )}
             </div>

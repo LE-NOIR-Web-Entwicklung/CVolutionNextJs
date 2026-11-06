@@ -113,7 +113,7 @@ export async function POST(request: Request) {
     if (!enteredAnnualGross || !workload || workload > 100 || !workplace) throw new ApplicationInputError('Bitte erfassen Sie Bruttojahreslohn, Pensum und Arbeitsort.');
 
     const { data: profile } = await supabaseAdmin.from('profiles').select('full_name,headline,birthdate').eq('user_id', user.id).maybeSingle();
-    const birthdate = field(form, 'birthdate', 10) || profile?.birthdate || null;
+    const birthdate = profile?.birthdate || null;
     const name = profile?.full_name || '';
     const payslip = await uploadBlock(form.get('payslip'), 'die aktuelle Lohnabrechnung');
     const cvText = await storedCvText(user.id);
