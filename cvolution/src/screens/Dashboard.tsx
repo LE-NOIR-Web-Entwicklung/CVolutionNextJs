@@ -23,7 +23,8 @@ import { CVExportModal } from '@/components/CVExport/CVExportModal';
 import { PaymentModal } from '@/components/ui/PaymentModal';
 
 const cvTabClass = 'h-9 min-w-0 rounded-md !bg-transparent px-3 text-sm font-medium !text-slate-600 !shadow-none transition-colors hover:!text-slate-900 data-[state=active]:!bg-white data-[state=active]:!text-[#204878] data-[state=active]:!shadow-sm';
-const areaTabClass = '-mb-px h-11 min-w-0 rounded-none border-b-2 border-transparent !bg-transparent px-1.5 text-[13px] font-medium !text-slate-500 !shadow-none transition-colors hover:!text-slate-900 data-[state=active]:border-[#204878] data-[state=active]:!text-[#204878] sm:px-1 sm:text-sm';
+// Two-column button grid on phones, underline tabs from md upwards.
+const areaTabClass = 'h-10 min-w-0 rounded-md border border-slate-200 !bg-white px-2 text-[13px] font-medium !text-slate-600 !shadow-none transition-colors hover:!text-slate-900 data-[state=active]:border-[#204878] data-[state=active]:!bg-[#204878] data-[state=active]:!text-white md:-mb-px md:h-11 md:rounded-none md:border-0 md:border-b-2 md:border-transparent md:!bg-transparent md:px-1 md:text-sm md:!text-slate-500 md:data-[state=active]:border-[#204878] md:data-[state=active]:!bg-transparent md:data-[state=active]:!text-[#204878]';
 
 // Loaded on demand because the charts are heavy.
 const SalaryAnalysisSection = dynamic(() => import('@/components/Dashboard/SalaryAnalysisSection').then((module) => module.SalaryAnalysisSection), { ssr: false });
@@ -328,9 +329,9 @@ export const Dashboard: React.FC = () => {
       {/* Header */}
       <header className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
+          <div className="flex justify-between items-center h-12 sm:h-16">
             <div className="flex items-center">
-              <Badge variant="secondary" className="text-gray-600 sm:ml-3 text-xs sm:text-sm hidden sm:inline-flex">
+              <Badge variant="secondary" className="text-gray-600 sm:ml-3 text-xs sm:text-sm">
                 CVolution GmbH | Self-Service
               </Badge>
             </div>
@@ -350,7 +351,7 @@ export const Dashboard: React.FC = () => {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
         <Tabs value={activeArea} onValueChange={(area) => handleAreaChange(area)} className="space-y-4 sm:space-y-6">
-          <TabsList className="!flex h-auto w-full flex-wrap items-stretch justify-start gap-x-1 rounded-none border-b border-slate-200 !bg-transparent p-0 sm:gap-x-3 lg:flex-nowrap">
+          <TabsList className="!grid h-auto w-full grid-cols-2 gap-1.5 rounded-none !bg-transparent p-0 md:!flex md:items-stretch md:justify-start md:gap-3 md:border-b md:border-slate-200">
             <TabsTrigger value="cv" className={areaTabClass}>
               Lebenslauf
             </TabsTrigger>
@@ -368,7 +369,7 @@ export const Dashboard: React.FC = () => {
               target="_blank"
               rel="noopener sponsored"
               title="Öffnet in neuem Fenster"
-              className="-mb-px inline-flex h-11 shrink-0 items-center gap-1.5 border-b-2 border-transparent px-2 text-[13px] font-medium text-slate-500 transition-colors hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#204878] sm:px-1 sm:text-sm"
+              className={`inline-flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#204878] ${areaTabClass}`}
             >
               Bewerbungsfoto
             </a>
@@ -376,9 +377,9 @@ export const Dashboard: React.FC = () => {
               value="settings"
               aria-label="Einstellungen"
               title="Einstellungen"
-              className={`ml-auto w-10 shrink-0 !px-0 ${areaTabClass}`}
+              className={`gap-1.5 md:ml-auto md:w-10 md:shrink-0 md:!px-0 ${areaTabClass}`}
             >
-              <Settings className="h-4 w-4" />
+              <Settings className="h-4 w-4" /><span className="md:hidden">Einstellungen</span>
             </TabsTrigger>
           </TabsList>
 
