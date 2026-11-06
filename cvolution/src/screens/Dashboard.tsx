@@ -15,6 +15,7 @@ import EducationSection from '@/components/Dashboard/EducationSection';
 import SkillsAndLanguagesSection from '@/components/Dashboard/SkillsAndLanguagesSection';
 import { MotivationLetterSection } from '@/components/Dashboard/MotivationLetterSection';
 import { ApplicationsSection } from '@/components/Dashboard/ApplicationsSection';
+import { SettingsSection } from '@/components/Dashboard/SettingsSection';
 import { emptyApplication, emptyMotivationForm, type Application, type MotivationDraft } from '@/lib/applications';
 import { saveApplication } from '@/lib/applications-client';
 import { CVImportButton } from '@/components/Dashboard/CVImportButton';
@@ -234,12 +235,6 @@ export const Dashboard: React.FC = () => {
 
   const handleCancelSubscription = async () => {
     if (!hasActiveSubscription || cancelingSubscription) return;
-
-    const confirmed = window.confirm(
-      'Abo wirklich kündigen? Ihr Zugang bleibt bis zum Ende der bezahlten Laufzeit aktiv. Es werden danach keine weiteren monatlichen Abbuchungen ausgelöst.'
-    );
-
-    if (!confirmed) return;
 
     setCancelingSubscription(true);
     try {
@@ -488,40 +483,19 @@ export const Dashboard: React.FC = () => {
             />
           </TabsContent>
 
-          <TabsContent value="settings">
-            <div className="bg-white rounded-lg shadow p-4 sm:p-8">
-              <div className="border-b pb-4 mb-6">
-                <h2 className="text-3xl sm:text-2xl font-bold text-gray-900">Einstellungen</h2>
-                <p className="text-sm text-gray-600 mt-1">Konto und Abo verwalten</p>
-              </div>
-
-              <div className="rounded-lg border border-slate-200 p-4 sm:p-4">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                  <div>
-                    <p className="text-sm font-medium text-slate-900">
-                      {hasCanceledSubscription ? 'Abo gekündigt' : 'Monatsabo'}
-                    </p>
-                    <p className="text-xs text-slate-600 mt-1">
-                      {hasSelfServiceAccess && paidPeriodEnd
-                        ? `${hasActiveSubscription ? 'Aktiv bis' : 'Zugriff bis'} ${formatSubscriptionDate(paidPeriodEnd)}${hasActiveSubscription ? ' · verlängert sich automatisch' : hasCanceledSubscription ? ' · keine weiteren Abbuchungen' : ''}`
-                        : 'Kein aktives Abo gefunden'}
-                    </p>
-                  </div>
-                  {hasActiveSubscription && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={handleCancelSubscription}
-                      disabled={cancelingSubscription}
-                      className="border-red-200 bg-white text-red-700 hover:bg-red-50 hover:text-red-800"
-                    >
-                      {cancelingSubscription ? 'Kündige...' : 'Abo kündigen'}
-                    </Button>
-                  )}
-                </div>
-              </div>
-            </div>
+          <TabsContent value="settings" className="mt-0">
+            <SettingsSection
+              email={user?.email || ''}
+              hasActiveSubscription={hasActiveSubscription}
+              hasCanceledSubscription={hasCanceledSubscription}
+              hasAccess={hasSelfServiceAccess}
+              canRenew={!hasSelfServiceAccess || accessEndsSoon}
+              accessUntil={paidPeriodEnd ? formatSubscriptionDate(paidPeriodEnd) : null}
+              canceling={cancelingSubscription}
+              onCancelSubscription={handleCancelSubscription}
+              onRenew={openSelfServicePayment}
+              onSignOut={handleSignOut}
+            />
           </TabsContent>
         </Tabs>
       </div>

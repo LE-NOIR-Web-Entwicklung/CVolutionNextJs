@@ -291,7 +291,7 @@ export const MotivationLetterSection: React.FC<MotivationLetterSectionProps> = (
   ];
 
   return (
-    <div className={embedded ? "" : "rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-6"}>
+    <div className={embedded ? "lg:h-full" : "rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-6"}>
       {!embedded && (
         <div className="mb-5">
           <h2 className="text-xl font-semibold text-slate-950">Motivationsschreiben</h2>
@@ -301,9 +301,14 @@ export const MotivationLetterSection: React.FC<MotivationLetterSectionProps> = (
         </div>
       )}
 
-      <form onSubmit={handleGenerate} className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] lg:items-start">
+      <form
+        onSubmit={handleGenerate}
+        className={embedded
+          ? "grid lg:h-full lg:grid-cols-[26rem_minmax(0,1fr)] lg:grid-rows-[minmax(0,1fr)]"
+          : "grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] lg:items-start"}
+      >
         <fieldset disabled={disabled || isGenerating || isSavingDraft} className="contents">
-        <fieldset disabled={readOnly} className="min-w-0 space-y-5">
+        <fieldset disabled={readOnly} className={embedded ? "min-w-0 space-y-5 px-5 pt-5 sm:px-6 lg:overflow-y-auto" : "min-w-0 space-y-5"}>
           <FormGroup title="Art der Bewerbung">
             <div role="radiogroup" aria-label="Art der Bewerbung" className="grid grid-cols-2 gap-1 rounded-lg bg-slate-100 p-1">
               {typeOptions.map(([value, label, Icon]) => {
@@ -441,8 +446,8 @@ export const MotivationLetterSection: React.FC<MotivationLetterSectionProps> = (
                   ? <span className="font-normal text-slate-500">· {[form.companyStreet, [form.companyPostalCode, form.companyCity].filter(Boolean).join(" ")].filter(Boolean).join(", ")}</span>
                   : <span className="font-normal text-slate-500">(optional)</span>}
               </summary>
-              <div className="mt-3 grid gap-3 sm:grid-cols-[minmax(0,1.4fr)_minmax(0,0.6fr)_minmax(0,1fr)]">
-                <div className="space-y-1.5">
+              <div className={`mt-3 grid gap-3 ${embedded ? "grid-cols-[minmax(0,0.7fr)_minmax(0,1.3fr)]" : "sm:grid-cols-[minmax(0,1.4fr)_minmax(0,0.6fr)_minmax(0,1fr)]"}`}>
+                <div className={`space-y-1.5 ${embedded ? "col-span-2" : ""}`}>
                   <label htmlFor={`${fieldId}-companyStreet`} className={labelClass}>
                     Adresse
                   </label>
@@ -492,14 +497,17 @@ export const MotivationLetterSection: React.FC<MotivationLetterSectionProps> = (
             </Alert>
           )}
 
-          <div className="flex flex-wrap items-center gap-2 border-t border-slate-100 pt-5">
+          <div className={embedded
+            ? "sticky bottom-0 -mx-5 border-t border-slate-200 bg-white px-5 py-3 sm:-mx-6 sm:px-6"
+            : "flex flex-wrap items-center gap-2 border-t border-slate-100 pt-5"}
+          >
             <Button
               type="submit"
               disabled={isGenerating}
-              className="min-h-10 bg-[#204878] text-white hover:bg-[#1a3a66]"
+              className={`min-h-10 bg-[#204878] text-white hover:bg-[#1a3a66] ${embedded ? "w-full" : ""}`}
             >
               {isGenerating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-              {hasSelfServiceAccess ? "Erstellen" : "Abo aktivieren"}
+              {hasSelfServiceAccess ? (letter ? "Neu erstellen" : "Erstellen") : "Abo aktivieren"}
             </Button>
             {onSaveDraft && !embedded && (
               <Button type="button" variant="outline" onClick={handleSaveDraft} disabled={isDownloading} className="min-h-10 border-slate-200 bg-white text-slate-700 hover:bg-slate-50">
@@ -515,8 +523,13 @@ export const MotivationLetterSection: React.FC<MotivationLetterSectionProps> = (
           </div>
         </fieldset>
 
-        <aside aria-label="Entwurf" className="min-w-0 rounded-lg border border-slate-200 bg-slate-50 lg:sticky lg:top-4">
-          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 px-3 py-2.5 sm:px-4">
+        <aside
+          aria-label="Entwurf"
+          className={embedded
+            ? "min-w-0 border-t border-slate-200 bg-slate-100 lg:overflow-y-auto lg:border-l lg:border-t-0"
+            : "min-w-0 rounded-lg border border-slate-200 bg-slate-50 lg:sticky lg:top-4"}
+        >
+          <div className={`flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 ${embedded ? "sticky top-0 z-10 bg-white px-5 py-2.5 sm:px-6" : "px-3 py-2.5 sm:px-4"}`}>
             <div className="flex min-w-0 items-center gap-2">
               <FileText className="h-4 w-4 shrink-0 text-[#204878]" />
               <h3 className="text-sm font-semibold text-slate-950">Entwurf</h3>
@@ -548,7 +561,7 @@ export const MotivationLetterSection: React.FC<MotivationLetterSectionProps> = (
             </div>
           </div>
 
-          <div className="p-3 sm:p-4">
+          <div className={embedded ? "p-4 sm:p-6" : "p-3 sm:p-4"}>
             {isGenerating ? (
               <div className="flex min-h-72 flex-col items-center justify-center rounded-md border border-dashed border-slate-300 bg-white px-6 text-center" role="status">
                 <Loader2 className="mb-3 h-7 w-7 animate-spin text-[#204878]" />

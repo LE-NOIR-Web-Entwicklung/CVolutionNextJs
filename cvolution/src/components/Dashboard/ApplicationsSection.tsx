@@ -436,11 +436,14 @@ export function ApplicationsSection({ hasSelfServiceAccess, onRequirePayment, on
           </div>
 
           <Dialog open={letterOpen} onOpenChange={(open) => { if (!working) setLetterOpen(open); }}>
-            <DialogContent className="max-h-[92vh] max-w-5xl overflow-y-auto bg-white text-slate-950">
-              <DialogHeader>
-                <DialogTitle>Motivationsschreiben</DialogTitle>
-                <DialogDescription>Wird beim Erstellen und Herunterladen an dieser Bewerbung gespeichert.</DialogDescription>
+            <DialogContent className="flex h-dvh max-w-6xl flex-col gap-0 overflow-hidden border-0 bg-white p-0 text-slate-950 shadow-2xl sm:h-[min(92dvh,58rem)] sm:w-[calc(100vw-2rem)] sm:rounded-2xl">
+              <DialogHeader className="shrink-0 space-y-0.5 border-b border-slate-200 px-5 py-4 pr-12 text-left sm:px-6">
+                <DialogTitle className="text-lg font-semibold text-slate-950">Motivationsschreiben</DialogTitle>
+                <DialogDescription className="truncate text-sm text-slate-500">
+                  {[draft.job_title, draft.company].filter(Boolean).join(' · ') || 'Wird an dieser Bewerbung gespeichert'}
+                </DialogDescription>
               </DialogHeader>
+              <div className="min-h-0 flex-1 overflow-y-auto lg:overflow-hidden">
               <MotivationLetterSection
                 embedded
                 hasSelfServiceAccess={hasSelfServiceAccess}
@@ -454,6 +457,7 @@ export function ApplicationsSection({ hasSelfServiceAccess, onRequirePayment, on
                 readOnly={!hasSelfServiceAccess}
                 onBusyChange={setWorking}
               />
+              </div>
             </DialogContent>
           </Dialog>
         </div>
