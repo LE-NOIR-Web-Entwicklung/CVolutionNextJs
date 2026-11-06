@@ -1,6 +1,6 @@
 import { supabaseAdmin } from '../../../../lib/supabase-server';
 import { FALLBACK_ANTHROPIC_MODEL, isRefusal, logRefusal, primaryAnthropicModel, shouldUseFallback, thinkingOff } from '../../../lib/anthropic-models';
-import { ApplicationInputError, todayInZurich } from '../../../lib/applications';
+import { ApplicationInputError, isApplicationId, todayInZurich } from '../../../lib/applications';
 import { applicationFailure, applicationJson, applicationUser, requireApplicationSubscription } from '../../../lib/applications-server';
 import { finalizeSalaryAnalysis, SALARY_SYSTEM_PROMPT, SALARY_TOOL } from '../../../lib/salary-analysis';
 
@@ -13,6 +13,12 @@ const MODEL_BUDGET_MS = 52000;
 const MIN_FALLBACK_MS = 8000;
 // Vercel rejects request bodies above 4.5 MB.
 const MAX_UPLOAD_BYTES = 4 * 1024 * 1024;
+const SAVED_STATUS = 'completed';
+const MAX_LISTED = 50;
+
+function savedAnalysis(row: { id: string; created_at: string; analysis_json: unknown }) {
+  return { id: row.id, createdAt: row.created_at, analysis: row.analysis_json };
+}
 
 type UploadBlock = { type: 'document' | 'image'; source: { type: 'base64'; media_type: string; data: string } };
 
@@ -92,8 +98,10 @@ export async function GET(request: Request) {
   try {
     const user = await applicationUser(request);
     if (!user) return applicationJson({ error: 'Bitte melden Sie sich erneut an.' }, 401);
-    const { data, error } = await supabaseAdmin.from('salary_analyses').select('result').eq('user_id', user.id).maybeSingle();
-    return applicationJson({ analysis: error ? null : data?.result ?? null });
+    const { data, error } = await supabaseAdmin.from('salary_analyses').select('id,created_at,analysis_json')
+      .eq('user_id', user.id).eq('status', SAVED_STATUS).order('created_at', { ascending: false }).limit(MAX_LISTED);
+    if (error) throw error;
+    return applicationJson({ analyses: (data || []).map(savedAnalysis) });
   } catch (error) { return applicationFailure(error); }
 }
 
@@ -145,10 +153,17 @@ export async function POST(request: Request) {
       return applicationJson({ error: 'Die Lohnanalyse konnte nicht erstellt werden. Bitte versuchen Sie es erneut.' }, 502);
     }
 
-    const { error: saveError } = await supabaseAdmin.from('salary_analyses')
-      .upsert({ user_id: user.id, result: analysis, updated_at: new Date().toISOString() }, { onConflict: 'user_id' });
+    const { data: row, error: saveError } = await supabaseAdmin.from('salary_analyses').insert({
+      user_id: user.id,
+      status: SAVED_STATUS,
+      job_title: analysis.person.position,
+      workload_percent: analysis.salary.workload,
+      annual_gross_salary: analysis.salary.annualGross,
+      benchmark_source_type: 'ai_estimate',
+      analysis_json: analysis,
+    }).select('id,created_at,analysis_json').single();
     if (saveError) console.error('Salary analysis not saved', { code: saveError.code });
-    return applicationJson({ analysis, saved: !saveError });
+    return applicationJson(row ? { ...savedAnalysis(row), saved: true } : { id: null, createdAt: new Date().toISOString(), analysis, saved: false });
   } catch (error) { return applicationFailure(error); }
 }
 
@@ -156,7 +171,9 @@ export async function DELETE(request: Request) {
   try {
     const user = await applicationUser(request);
     if (!user) return applicationJson({ error: 'Bitte melden Sie sich erneut an.' }, 401);
-    const { error } = await supabaseAdmin.from('salary_analyses').delete().eq('user_id', user.id);
+    const id = new URL(request.url).searchParams.get('id');
+    if (!isApplicationId(id)) throw new ApplicationInputError('Ungültige Lohnanalyse.');
+    const { error } = await supabaseAdmin.from('salary_analyses').delete().eq('id', id).eq('user_id', user.id);
     if (error) throw error;
     return new Response(null, { status: 204, headers: { 'Cache-Control': 'private, no-store' } });
   } catch (error) { return applicationFailure(error); }

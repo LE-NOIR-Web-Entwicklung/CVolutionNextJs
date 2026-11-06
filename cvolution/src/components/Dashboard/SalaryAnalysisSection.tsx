@@ -1,5 +1,6 @@
 import React, { useEffect, useId, useState } from 'react';
-import { AlertCircle, Check, FileText, Loader2, Sparkles, Trash2 } from 'lucide-react';
+import Link from 'next/link';
+import { AlertCircle, ArrowRight, Check, FileText, Loader2, Sparkles, Trash2 } from 'lucide-react';
 import { Bar, BarChart, CartesianGrid, Cell, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -21,6 +22,7 @@ type Props = {
 };
 
 type Unit = 'year' | 'month';
+type SavedAnalysis = { id: string | null; createdAt: string; analysis: SalaryAnalysis };
 
 const MAX_UPLOAD_BYTES = 4 * 1024 * 1024;
 const fieldClass = 'border-slate-200 bg-white text-slate-950 focus-visible:ring-[#204878]/20';
@@ -33,11 +35,11 @@ const scenarioStyles: Record<SalaryScenarioKey, { tile: string; color: string }>
   optimistic: { tile: 'from-[#3498db] to-[#2980b9]', color: '#3498db' },
 };
 
-async function salaryRequest(options: RequestInit = {}) {
+async function salaryRequest(options: RequestInit = {}, query = '') {
   const { data } = await supabase.auth.getSession();
   const token = data.session?.access_token;
   if (!token) throw new Error('Bitte melden Sie sich erneut an.');
-  return fetch('/api/salary-analysis', { ...options, cache: 'no-store', headers: { Authorization: `Bearer ${token}` } });
+  return fetch(`/api/salary-analysis${query}`, { ...options, cache: 'no-store', headers: { Authorization: `Bearer ${token}` } });
 }
 
 function Section({ number, title, children }: { number: number; title: string; children: React.ReactNode }) {
@@ -204,6 +206,17 @@ function Report({ analysis, onRestart, onDelete, busy }: { analysis: SalaryAnaly
         <Button type="button" onClick={onRestart} disabled={busy} className="bg-[#204878] text-white hover:bg-[#1a3a66]"><Sparkles className="h-4 w-4" /> Neue Analyse erstellen</Button>
         <Button type="button" variant="ghost" onClick={onDelete} disabled={busy} className="text-red-700 hover:bg-red-50 hover:text-red-800"><Trash2 className="h-4 w-4" /> Analyse löschen</Button>
       </div>
+
+      <aside className="flex flex-col gap-4 rounded-lg bg-[#204878] p-5 text-white sm:flex-row sm:items-center sm:justify-between sm:p-6">
+        <div>
+          <h3 className="text-lg font-semibold">Lohnanalyse von unseren Experten</h3>
+          <p className="mt-1 text-sm leading-6 text-white/80">Lassen Sie Ihren Lohn von CVolution persönlich prüfen, als PDF oder mit telefonischer Besprechung.</p>
+        </div>
+        <Link href="/service-salary" className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg bg-white px-5 py-2.5 text-sm font-semibold text-[#204878] transition-colors hover:bg-[#EEF4FA]">
+          Jetzt ansehen
+          <ArrowRight className="h-4 w-4" />
+        </Link>
+      </aside>
     </div>
   );
 }
@@ -211,7 +224,8 @@ function Report({ analysis, onRestart, onDelete, busy }: { analysis: SalaryAnaly
 export function SalaryAnalysisSection({ hasSelfServiceAccess, onRequirePayment, hasCvData, profileName, profileBirthdate }: Props) {
   const { user } = useAuth();
   const fieldId = useId();
-  const [analysis, setAnalysis] = useState<SalaryAnalysis | null>(null);
+  const [saved, setSaved] = useState<SavedAnalysis[]>([]);
+  const [activeId, setActiveId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
@@ -224,13 +238,15 @@ export function SalaryAnalysisSection({ hasSelfServiceAccess, onRequirePayment, 
     if (!user) return;
     let active = true;
     setLoading(true);
-    setAnalysis(null);
+    setSaved([]);
     salaryRequest()
-      .then(async (response) => { const result = await response.json().catch(() => null); if (active && response.ok) setAnalysis(result?.analysis || null); })
+      .then(async (response) => { const result = await response.json().catch(() => null); if (active && response.ok) { setSaved(result?.analyses || []); setActiveId(null); } })
       .catch(() => { /* Without a saved analysis the form is shown. */ })
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
   }, [user]);
+
+  const current = saved.find((item) => item.id === activeId) || saved[0] || null;
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -245,7 +261,8 @@ export function SalaryAnalysisSection({ hasSelfServiceAccess, onRequirePayment, 
       const result = await response.json().catch(() => null);
       if (response.status === 402) { onRequirePayment(); throw new Error('Die AI Lohnanalyse ist im aktiven Self-Service-Abo enthalten.'); }
       if (!response.ok) throw new Error(result?.error || 'Die Erstellung hat zu lange gedauert. Bitte versuchen Sie es erneut.');
-      setAnalysis(result.analysis);
+      setSaved((items) => [{ id: result.id, createdAt: result.createdAt, analysis: result.analysis }, ...items]);
+      setActiveId(result.id);
       setShowForm(false);
       if (!result.saved) toast({ title: 'Analyse nicht gespeichert', description: 'Die Analyse ist nur sichtbar, bis Sie die Seite neu laden.', variant: 'destructive' });
       requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: 'smooth' }));
@@ -255,12 +272,15 @@ export function SalaryAnalysisSection({ hasSelfServiceAccess, onRequirePayment, 
   }
 
   async function remove() {
-    if (!window.confirm('Diese Lohnanalyse endgültig löschen?')) return;
+    if (!current || !window.confirm('Diese Lohnanalyse endgültig löschen?')) return;
     setDeleting(true);
     try {
-      const response = await salaryRequest({ method: 'DELETE' });
-      if (!response.ok) throw new Error();
-      setAnalysis(null);
+      if (current.id) {
+        const response = await salaryRequest({ method: 'DELETE' }, `?id=${current.id}`);
+        if (!response.ok) throw new Error();
+      }
+      setSaved((items) => items.filter((item) => item !== current));
+      setActiveId(null);
       setShowForm(false);
       toast({ title: 'Lohnanalyse gelöscht' });
     } catch {
@@ -269,7 +289,21 @@ export function SalaryAnalysisSection({ hasSelfServiceAccess, onRequirePayment, 
   }
 
   if (loading) return <div role="status" className="flex h-48 items-center justify-center rounded-lg border border-slate-200 bg-white text-sm text-slate-500 shadow-sm"><Loader2 className="mr-2 h-5 w-5 animate-spin text-[#204878]" /> Wird geladen …</div>;
-  if (analysis && !showForm) return <Report analysis={analysis} onRestart={() => setShowForm(true)} onDelete={remove} busy={deleting} />;
+  if (current && !showForm) {
+    return (
+      <div className="space-y-4">
+        {saved.length > 1 && (
+          <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-3">
+            <label htmlFor={`${fieldId}-saved`} className="text-sm font-medium text-slate-900">Gespeicherte Analysen</label>
+            <select id={`${fieldId}-saved`} value={saved.indexOf(current)} onChange={(event) => setActiveId(saved[Number(event.target.value)].id)} className="h-10 min-w-0 rounded-md border border-slate-200 bg-white px-3 text-sm text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#204878] sm:w-96">
+              {saved.map((item, index) => <option key={item.id || index} value={index}>{[formatApplicationDate(item.createdAt.slice(0, 10)), item.analysis.person.position].filter(Boolean).join(' · ')}</option>)}
+            </select>
+          </div>
+        )}
+        <Report key={current.id || 'unsaved'} analysis={current.analysis} onRestart={() => setShowForm(true)} onDelete={remove} busy={deleting} />
+      </div>
+    );
+  }
 
   const fileInput = 'block w-full cursor-pointer rounded-md border border-slate-200 bg-white text-sm text-slate-700 file:mr-3 file:cursor-pointer file:border-0 file:border-r file:border-slate-200 file:bg-slate-50 file:px-3 file:py-2.5 file:text-sm file:font-medium file:text-slate-700';
 
@@ -328,7 +362,7 @@ export function SalaryAnalysisSection({ hasSelfServiceAccess, onRequirePayment, 
             <Button type="submit" className="min-h-10 bg-[#204878] text-white hover:bg-[#1a3a66]">
               {hasSelfServiceAccess ? <><FileText className="h-4 w-4" /> Lohnanalyse erstellen</> : 'Abo aktivieren'}
             </Button>
-            {analysis && <Button type="button" variant="ghost" onClick={() => { setShowForm(false); setError(''); }} className="min-h-10 text-slate-600 hover:bg-slate-100">Abbrechen</Button>}
+            {current && <Button type="button" variant="ghost" onClick={() => { setShowForm(false); setError(''); }} className="min-h-10 text-slate-600 hover:bg-slate-100">Abbrechen</Button>}
           </div>
       </form>
     </div>

@@ -11,14 +11,15 @@ Module._extensions['.ts'] = (module, filename) => module._compile(ts.transpileMo
 }).outputText, filename);
 const originalLoad = Module._load;
 const originalFetch = global.fetch;
-let tables, saved, modelRequests, modelBody, paid;
+let tables, saved, deletedBy, modelRequests, modelBody, paid;
 function query(table) {
-  const result = () => ({ data: tables[table] ?? null, error: table === 'salary_analyses' && tables.missingTable ? { code: '42P01' } : null });
+  const result = () => ({ data: tables[table] ?? null, error: null });
   const chain = {
     select: () => chain, eq: () => chain, order: () => chain,
     single: async () => result(), maybeSingle: async () => result(),
-    upsert: async (row) => { if (tables.missingTable) return { error: { code: '42P01' } }; saved = row; return { error: null }; },
-    delete: () => { saved = 'deleted'; return chain; },
+    limit: () => chain,
+    insert: (row) => { if (tables.saveFails) return { select: () => ({ single: async () => ({ data: null, error: { code: '23514' } }) }) }; saved = row; return { select: () => ({ single: async () => ({ data: { id: 'row-1', created_at: '2026-11-06T10:00:00Z', analysis_json: row.analysis_json }, error: null }) }) }; },
+    delete: () => { saved = 'deleted'; deletedBy = []; return { eq: (column, value) => { deletedBy.push([column, value]); return { eq: async (nextColumn, nextValue) => { deletedBy.push([nextColumn, nextValue]); return { error: null }; } }; } }; },
     then: (resolve) => resolve(result()),
   };
   return chain;
@@ -137,7 +138,10 @@ test('an analysis uses the stored CV, sends the payslip and is saved', async () 
   assert.equal(response.status, 200);
   assert.equal(result.saved, true);
   assert.equal(result.analysis.person.name, 'Testperson Muster');
+  assert.equal(result.id, 'row-1');
   assert.equal(saved.user_id, 'user-1');
+  assert.equal(saved.status, 'completed');
+  assert.equal(saved.analysis_json.person.name, 'Testperson Muster');
   const content = modelBody.messages[0].content;
   assert.equal(content.filter((block) => block.type === 'document').length, 1, 'Only the payslip is uploaded');
   assert.match(content.at(-1).text, /Reporting/);
@@ -172,13 +176,27 @@ test('invalid requests stop before any model call', async () => {
   assert.equal(modelRequests, 0);
 });
 
-test('a missing table only skips saving and an empty answer is an error', async () => {
-  tables.missingTable = true;
+test('saved analyses are listed per user and a failed save still shows the result', async () => {
+  const headers = { authorization: 'Bearer valid' };
+  tables.salary_analyses = [{ id: 'row-1', created_at: '2026-11-06T10:00:00Z', analysis_json: { person: { position: 'Controller' } } }];
+  const loaded = await (await route().GET(new Request('https://example.test/api/salary-analysis', { headers }))).json();
+  assert.deepEqual(loaded.analyses, [{ id: 'row-1', createdAt: '2026-11-06T10:00:00Z', analysis: { person: { position: 'Controller' } } }]);
+  tables.saveFails = true;
   const response = await route().POST(form());
   assert.equal(response.status, 200);
-  assert.equal((await response.json()).saved, false);
-  const loaded = await route().GET(new Request('https://example.test/api/salary-analysis', { headers: { authorization: 'Bearer valid' } }));
-  assert.deepEqual(await loaded.json(), { analysis: null });
+  const result = await response.json();
+  assert.equal(result.saved, false);
+  assert.equal(result.id, null);
+  assert.equal(result.analysis.person.name, 'Testperson Muster');
   global.fetch = async () => Response.json({ stop_reason: 'max_tokens', content: [] });
   assert.equal((await route().POST(form())).status, 502);
+});
+
+test('deleting is limited to the signed-in owner and needs a valid id', async () => {
+  const id = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+  const url = 'https://example.test/api/salary-analysis';
+  const headers = { authorization: 'Bearer valid' };
+  assert.equal((await route().DELETE(new Request(`${url}?id=nope`, { method: 'DELETE', headers }))).status, 400);
+  assert.equal((await route().DELETE(new Request(`${url}?id=${id}`, { method: 'DELETE', headers }))).status, 204);
+  assert.deepEqual(deletedBy, [['id', id], ['user_id', 'user-1']]);
 });
