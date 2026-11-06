@@ -175,7 +175,7 @@ export default function Home() {
                 href="/self"
                 className="inline-flex min-h-12 items-center justify-center rounded-md bg-white px-6 py-3 text-sm font-semibold text-[#0F172A] shadow-[0_1rem_2.5rem_rgba(0,0,0,0.22)] transition duration-300 hover:-translate-y-0.5 hover:bg-[#f4f7fb]"
               >
-                Self-Service Starten
+                Self-Service starten
                 <svg className="w-4 h-4 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
                 </svg>
