@@ -45,12 +45,7 @@ const raw = () => ({
   salary: { monthly: 6735, months: 13, variable: 0 },
   market: { low: 90000, median: 100000, high: 115000, intro: 'Spanne' },
   summary: { intro: 'Einleitung mit Strasse und gross', points: [{ tone: 'negative', title: 'Unter Markt', text: 'Text' }] },
-  social: { rows: [{ name: 'AHV', base: 87555, rate: '5.30%', amount: 4640, assessment: 'Standard' }], bvg: { insured_salary: 61095, minimum_employee_rate: '3.5%', actual_employee_rate: '4.0%', assessment: 'Standard', text: 'Text' } },
   scenarios: { pessimistic: scenario(92000), realistic: scenario(100000), optimistic: scenario(110000) },
-  employers: [{ category: 'KMU', low: 85000, high: 100000, current: true }],
-  positioning: { items: [{ title: 'Regional', text: 'Text' }], conclusion: 'Fazit' },
-  qualifications: { formal: [{ title: 'Fachausweis', institution: 'Schule', year: '2026' }], experience: 'a', competencies: 'b', specials: 'c', market_value: 'd' },
-  recommendations: { short: ['a'], medium: ['b'], long: [{ path: 'c', target: 'CHF 120\'000' }], negotiation: ['d'] },
 });
 
 test('derived figures are calculated from the payslip, not taken from the model', () => {

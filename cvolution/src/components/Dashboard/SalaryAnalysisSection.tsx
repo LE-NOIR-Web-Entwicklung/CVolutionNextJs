@@ -1,5 +1,5 @@
 import React, { useEffect, useId, useState } from 'react';
-import { AlertCircle, ArrowRight, Check, FileText, Loader2, Sparkles, Trash2 } from 'lucide-react';
+import { AlertCircle, Check, FileText, Loader2, Sparkles, Trash2 } from 'lucide-react';
 import { Bar, BarChart, CartesianGrid, Cell, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -52,16 +52,6 @@ function Section({ number, title, children }: { number: number; title: string; c
   );
 }
 
-function InfoBox({ title, children, tone = 'blue' }: { title: string; children: React.ReactNode; tone?: 'blue' | 'green' | 'grey' }) {
-  const styles = { blue: 'border-[#2196f3] bg-[#e3f2fd]', green: 'border-[#27ae60] bg-[#e8f5e9]', grey: 'border-[#4a90e2] bg-slate-50' }[tone];
-  return (
-    <div className={`rounded border-l-4 p-4 ${styles}`}>
-      <h4 className="mb-1.5 text-sm font-semibold text-slate-900">{title}</h4>
-      <div className="text-sm leading-6 text-slate-700">{children}</div>
-    </div>
-  );
-}
-
 function UnitToggle({ unit, onChange, months }: { unit: Unit; onChange: (unit: Unit) => void; months: number }) {
   return (
     <div role="group" aria-label="Darstellung der Beträge" className="inline-flex rounded-md bg-slate-100 p-0.5 text-xs">
@@ -88,7 +78,7 @@ function ChartTooltip({ active, payload, reference, referenceLabel, format }: { 
 }
 
 function Report({ analysis, onRestart, onDelete, busy }: { analysis: SalaryAnalysis; onRestart: () => void; onDelete: () => void; busy: boolean }) {
-  const { person, salary, market, deviation, summary, social, scenarios, employers, positioning, qualifications, recommendations } = analysis;
+  const { person, salary, market, deviation, summary, scenarios } = analysis;
   const [unit, setUnit] = useState<Unit>('year');
   const [activeScenario, setActiveScenario] = useState<SalaryScenarioKey>('realistic');
   const convert = (value: number) => (unit === 'year' ? value : Math.round(value / salary.months));
@@ -170,37 +160,7 @@ function Report({ analysis, onRestart, onDelete, busy }: { analysis: SalaryAnaly
         </ul>
       </Section>
 
-      <Section number={2} title="Sozialversicherungen">
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[34rem] text-left text-sm">
-            <thead><tr className="border-b-2 border-[#4a90e2] bg-slate-50">{['Sozialversicherung', 'Basis', 'Satz', 'Betrag', 'Bewertung'].map((title) => <th key={title} scope="col" className="px-3 py-2.5 font-semibold text-slate-900">{title}</th>)}</tr></thead>
-            <tbody>
-              {social.rows.map((row) => {
-                const total = /^total/i.test(row.name);
-                return (
-                  <tr key={row.name} className={`border-b border-slate-200 ${total ? 'bg-slate-100 font-semibold' : ''}`}>
-                    <td className="px-3 py-2.5">{row.name}</td>
-                    <td className="px-3 py-2.5 tabular-nums">{row.base ? formatChf(row.base) : ''}</td>
-                    <td className="px-3 py-2.5 tabular-nums">{row.rate}</td>
-                    <td className="px-3 py-2.5 tabular-nums">{row.amount ? formatChf(row.amount) : ''}</td>
-                    <td className="px-3 py-2.5 text-slate-600">{row.assessment}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-        <div className="mt-4">
-          <InfoBox tone="green" title={`Berufliche Vorsorge (BVG): ${social.bvg.assessment}`}>
-            <p>{social.bvg.text}</p>
-            <p className="mt-2 text-xs text-slate-600">
-              {[social.bvg.insuredSalary ? `Versicherter Lohn ${formatChf(social.bvg.insuredSalary)}` : '', social.bvg.minimumEmployeeRate && `Mindest-Arbeitnehmeranteil ${social.bvg.minimumEmployeeRate}`, social.bvg.actualEmployeeRate && `Tatsächlich ${social.bvg.actualEmployeeRate}`].filter(Boolean).join(' · ')}
-            </p>
-          </InfoBox>
-        </div>
-      </Section>
-
-      <Section number={3} title="Marktvergleich Schweiz">
+      <Section number={2} title="Marktvergleich Schweiz">
         <p className="text-sm leading-6 text-slate-700">{market.intro}</p>
         <div role="group" aria-label="Szenario wählen" className="mt-5 grid gap-3 sm:grid-cols-3">
           {scenarios.map((item) => {
@@ -232,62 +192,6 @@ function Report({ analysis, onRestart, onDelete, busy }: { analysis: SalaryAnaly
               </Bar>
             </BarChart>
           </ResponsiveContainer>
-        </div>
-      </Section>
-
-      <Section number={4} title="Positionierung im Markt">
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[26rem] text-left text-sm">
-            <thead><tr className="border-b-2 border-[#4a90e2] bg-slate-50"><th scope="col" className="px-3 py-2.5 font-semibold text-slate-900">Unternehmenskategorie</th><th scope="col" className="px-3 py-2.5 font-semibold text-slate-900">Lohnspanne (100%)</th></tr></thead>
-            <tbody>
-              {employers.map((row) => (
-                <tr key={row.category} className={`border-b border-slate-200 ${row.current ? 'bg-[#fff3cd]' : ''}`}>
-                  <td className="px-3 py-2.5">{row.category}{row.current && <span className="ml-2 text-xs font-medium text-amber-800">Ihre aktuelle Position</span>}</td>
-                  <td className="whitespace-nowrap px-3 py-2.5 tabular-nums">{formatChf(row.low)} – {formatChf(row.high).replace('CHF ', '')}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        <div className="mt-4 grid gap-3 sm:grid-cols-2">
-          {positioning.items.map((item) => <InfoBox key={item.title} title={item.title}>{item.text}</InfoBox>)}
-        </div>
-        {positioning.conclusion && <div className="mt-3"><InfoBox title="Fazit">{positioning.conclusion}</InfoBox></div>}
-      </Section>
-
-      <Section number={5} title="Qualifikationsanalyse">
-        {qualifications.formal.length > 0 && (
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[26rem] text-left text-sm">
-              <thead><tr className="border-b-2 border-[#4a90e2] bg-slate-50">{['Abschluss', 'Institution', 'Jahr'].map((title) => <th key={title} scope="col" className="px-3 py-2.5 font-semibold text-slate-900">{title}</th>)}</tr></thead>
-              <tbody>{qualifications.formal.map((row) => <tr key={row.title} className="border-b border-slate-200"><td className="px-3 py-2.5">{row.title}</td><td className="px-3 py-2.5">{row.institution}</td><td className="px-3 py-2.5 tabular-nums">{row.year}</td></tr>)}</tbody>
-            </table>
-          </div>
-        )}
-        <div className="mt-4 grid gap-3 sm:grid-cols-2">
-          <InfoBox tone="grey" title="Berufserfahrung">{qualifications.experience}</InfoBox>
-          <InfoBox tone="grey" title="Kernkompetenzen">{qualifications.competencies}</InfoBox>
-          <InfoBox tone="grey" title="Besonderheiten">{qualifications.specials}</InfoBox>
-          <InfoBox title="Marktwert-Einschätzung">{qualifications.marketValue}</InfoBox>
-        </div>
-      </Section>
-
-      <Section number={6} title="Strategische Empfehlungen">
-        <div className="grid gap-6 md:grid-cols-2">
-          {([['Kurzfristig (0-12 Monate)', recommendations.short], ['Mittelfristig (12-24 Monate)', recommendations.medium], ['Verhandlungstipps', recommendations.negotiation]] as const).map(([title, items]) => (
-            <div key={title}>
-              <h4 className="mb-2 border-b-2 border-slate-200 pb-1.5 font-semibold text-[#4a90e2]">{title}</h4>
-              <ul className="space-y-2">
-                {items.map((item) => <li key={item} className="flex gap-2 text-sm leading-6 text-slate-700"><ArrowRight className="mt-1 h-4 w-4 shrink-0 text-[#4a90e2]" /><span>{item}</span></li>)}
-              </ul>
-            </div>
-          ))}
-          <div>
-            <h4 className="mb-2 border-b-2 border-slate-200 pb-1.5 font-semibold text-[#4a90e2]">Langfristig (24+ Monate)</h4>
-            <ul className="space-y-2">
-              {recommendations.long.map((item) => <li key={item.path} className="flex items-start justify-between gap-3 text-sm leading-6 text-slate-700"><span>{item.path}</span><span className="shrink-0 font-semibold tabular-nums text-slate-900">{item.target}</span></li>)}
-            </ul>
-          </div>
         </div>
       </Section>
 
