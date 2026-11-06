@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, BriefcaseBusiness, CalendarClock, Check, FileText, Sparkles } from "lucide-react";
+import { ArrowRight, BarChart3, BriefcaseBusiness, Camera, Check, ExternalLink, FileText, Sparkles } from "lucide-react";
 
 const steps = [
   {
@@ -22,9 +22,10 @@ const steps = [
 
 const tools = [
   {
-    title: "CV Self-Service",
-    description: "Ihr Lebenslauf, einmal erfasst und jederzeit aktuell.",
+    title: "Lebenslauf",
+    description: "Einmal erfasst und jederzeit aktuell.",
     icon: FileText,
+    className: "lg:col-span-2",
     items: [
       "Profil, Erfahrung, Bildung, Sprachen und Fähigkeiten",
       "Import von CV oder LinkedIn-PDF",
@@ -33,9 +34,10 @@ const tools = [
     ],
   },
   {
-    title: "AI Motivationsschreiben",
-    description: "Ein eigenes Schreiben für jede Stelle.",
+    title: "Motivationsschreiben",
+    description: "Ein eigenes KI-Schreiben für jede Stelle.",
     icon: Sparkles,
+    className: "lg:col-span-2",
     items: [
       "Passend zu Inserat und Lebenslauf",
       "Für Stellen- und Spontanbewerbungen",
@@ -44,15 +46,41 @@ const tools = [
     ],
   },
   {
+    title: "Lohnanalyse",
+    description: "Ihr Lohn im Vergleich zum Schweizer Markt.",
+    icon: BarChart3,
+    className: "lg:col-span-2",
+    items: [
+      "KI-Einschätzung aus Lohnabrechnung und Lebenslauf",
+      "Interaktive Diagramme direkt im Dashboard",
+      "3 Szenarien: Pessimistisch, Realistisch, Optimistisch",
+      "Mehrere Analysen speichern",
+    ],
+  },
+  {
     title: "Bewerbungsmanager",
     description: "Alle Bewerbungen an einem Ort im Blick.",
     icon: BriefcaseBusiness,
+    className: "lg:col-span-3",
     items: [
       "Stellenangaben per Link mit KI auslesen",
-      "Schreiben direkt bei der Bewerbung",
-      "Status und Termine bis zur Zusage",
-      "Nächste Schritte und Notizen",
+      "Status von Versendet über Gespräch 1 und 2 bis Zusage oder Absage",
+      "Termine, nächste Schritte und Notizen",
+      "Schreiben direkt bei der Bewerbung, Export als Excel",
     ],
+  },
+  {
+    title: "Bewerbungsfoto",
+    description: "Das passende Foto für Ihre Bewerbung.",
+    icon: Camera,
+    className: "lg:col-span-3",
+    badge: "Partnerangebot",
+    items: [
+      "Bewerbungsfoto über unseren Partner HeadshotPro",
+      "Direkt aus dem Dashboard erreichbar",
+      "Nicht im Abo enthalten, separat buchbar",
+    ],
+    link: { href: "https://www.headshotpro.com/?via=armend", label: "Zu HeadshotPro" },
   },
 ];
 
@@ -70,10 +98,11 @@ const designs = [
 ];
 
 // Fictional entries for the product preview in the hero.
+const previewFilters = [["Alle", 3], ["Offen", 3], ["1. Gespräch", 1], ["2. Gespräch", 1], ["Absagen", 0], ["Zusagen", 0]] as const;
 const previewApplications = [
-  { title: "Teamleitung Beratung", company: "Muster AG", status: "Gespräch", statusClass: "border-amber-200 bg-amber-50 text-amber-800", next: "Gespräch vorbereiten" },
-  { title: "Projektleitung", company: "Beispiel GmbH", status: "Versendet", statusClass: "border-blue-200 bg-blue-50 text-blue-800", next: "Telefonisch nachfassen" },
-  { title: "Sachbearbeitung HR", company: "Vorlage AG", status: "Entwurf", statusClass: "border-slate-200 bg-slate-50 text-slate-600", next: "Unterlagen versenden" },
+  { title: "Teamleitung Beratung", company: "Muster AG", status: "Gespräch 2", date: "12.11.2026", statusClass: "border-amber-300 bg-amber-100 text-amber-900", next: "Gespräch vorbereiten" },
+  { title: "Projektleitung", company: "Beispiel GmbH", status: "Gespräch 1", date: "18.11.2026", statusClass: "border-amber-200 bg-amber-50 text-amber-800", next: "" },
+  { title: "Sachbearbeitung HR", company: "Vorlage AG", status: "Versendet", date: "03.11.2026", statusClass: "border-blue-200 bg-blue-50 text-blue-800", next: "Telefonisch nachfassen" },
 ];
 
 const startButton = "inline-flex items-center justify-center gap-2 rounded-lg px-6 py-3 text-sm font-semibold transition-colors duration-200";
@@ -89,7 +118,7 @@ export default function Self() {
               Von der Stellenanzeige zur fertigen Bewerbung
             </h1>
             <p className="mt-5 max-w-xl text-lg leading-relaxed text-[#64748B]">
-              Lebenslauf, Motivationsschreiben und alle Ihre Bewerbungen an einem Ort. Sie erledigen alles selbst, die KI hilft beim Schreiben.
+              Lebenslauf, Motivationsschreiben, Lohnanalyse und alle Ihre Bewerbungen an einem Ort. Sie erledigen alles selbst, die KI hilft Ihnen dabei.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
               <Link href="/self/login" className={`${startButton} bg-[#204878] text-white hover:bg-[#1a3a66]`}>
@@ -105,25 +134,23 @@ export default function Self() {
 
           <div aria-hidden="true" className="hidden rounded-lg border border-slate-200 bg-white p-5 shadow-[0_12px_32px_rgba(32,72,120,0.1)] lg:block">
             <p className="font-semibold text-[#111827]">Bewerbungen</p>
-            <div className="mt-3 flex gap-1.5 text-xs">
-              <span className="rounded-full bg-[#204878] px-2.5 py-1 text-white">Alle 3</span>
-              <span className="rounded-full border border-slate-200 px-2.5 py-1 text-slate-600">Offen 2</span>
-              <span className="rounded-full border border-slate-200 px-2.5 py-1 text-slate-600">Fällig 1</span>
+            <div className="mt-3 flex flex-wrap gap-1.5 text-xs">
+              {previewFilters.map(([label, count], index) => (
+                <span key={label} className={`rounded-full px-2.5 py-1 ${index === 0 ? "bg-[#204878] text-white" : "border border-slate-200 text-slate-600"}`}>{label} {count}</span>
+              ))}
             </div>
             <ul className="mt-3 divide-y divide-slate-100">
               {previewApplications.map((application) => (
-                <li key={application.title} className="py-3">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-semibold text-[#111827]">{application.title}</p>
-                      <p className="text-xs text-[#64748B]">{application.company}</p>
-                    </div>
-                    <span className={`shrink-0 rounded-full border px-2 py-0.5 text-xs font-medium ${application.statusClass}`}>{application.status}</span>
+                <li key={application.title} className="flex items-start justify-between gap-3 py-3">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold text-[#111827]">{application.title}</p>
+                    <p className="text-xs text-[#64748B]">{application.company}</p>
+                    {application.next && <p className="mt-1 text-xs text-[#64748B]">{application.next}</p>}
                   </div>
-                  <p className="mt-1.5 flex items-center gap-1.5 text-xs text-[#64748B]">
-                    <CalendarClock className="h-3.5 w-3.5 shrink-0" />
-                    {application.next}
-                  </p>
+                  <div className="shrink-0 text-right">
+                    <span className={`rounded-full border px-2 py-0.5 text-xs font-medium ${application.statusClass}`}>{application.status}</span>
+                    <p className="mt-1.5 text-xs tabular-nums text-[#64748B]">{application.date}</p>
+                  </div>
                 </li>
               ))}
             </ul>
@@ -158,14 +185,17 @@ export default function Self() {
       <section className="border-y border-slate-200 bg-white py-14 sm:py-20">
         <div className="mx-auto max-w-6xl px-6">
           <h2 className="text-2xl font-semibold tracking-tight text-[#111827] sm:text-3xl">Das ist alles enthalten</h2>
-          <p className="mt-2 text-base text-[#64748B]">Drei Werkzeuge, die zusammenarbeiten, in einem Abo.</p>
+          <p className="mt-2 text-base text-[#64748B]">Vier Werkzeuge in einem Abo, dazu das Bewerbungsfoto über unseren Partner.</p>
 
-          <div className="mt-10 grid gap-5 lg:grid-cols-3">
+          <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-6">
             {tools.map((tool) => (
-              <article key={tool.title} className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
-                <span className="flex h-10 w-10 items-center justify-center rounded-md bg-[#EEF4FA] text-[#204878]">
-                  <tool.icon className="h-5 w-5" />
-                </span>
+              <article key={tool.title} className={`flex flex-col rounded-lg border border-slate-200 bg-white p-6 shadow-sm ${tool.className}`}>
+                <div className="flex items-start justify-between gap-3">
+                  <span className="flex h-10 w-10 items-center justify-center rounded-md bg-[#EEF4FA] text-[#204878]">
+                    <tool.icon className="h-5 w-5" />
+                  </span>
+                  {tool.badge && <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600">{tool.badge}</span>}
+                </div>
                 <h3 className="mt-4 text-lg font-semibold text-[#111827]">{tool.title}</h3>
                 <p className="mt-1 text-sm text-[#64748B]">{tool.description}</p>
                 <ul className="mt-5 space-y-2.5 border-t border-slate-100 pt-5">
@@ -176,6 +206,12 @@ export default function Self() {
                     </li>
                   ))}
                 </ul>
+                {tool.link && (
+                  <a href={tool.link.href} target="_blank" rel="noopener sponsored" className="mt-5 inline-flex items-center gap-1.5 text-sm font-semibold text-[#204878] hover:underline">
+                    {tool.link.label}
+                    <ExternalLink className="h-3.5 w-3.5" />
+                  </a>
+                )}
               </article>
             ))}
           </div>
