@@ -36,11 +36,11 @@ const STATUS = {
 
 function Card({ icon: Icon, title, children }: { icon: React.ElementType; title: string; children: React.ReactNode }) {
   return (
-    <section className="rounded-lg border border-slate-200 bg-white shadow-sm">
+    <section className="flex h-full flex-col rounded-lg border border-slate-200 bg-white shadow-sm">
       <h3 className="flex items-center gap-2 border-b border-slate-100 px-4 py-3.5 text-sm font-semibold text-slate-950 sm:px-5">
         <Icon className="h-4 w-4 text-[#204878]" aria-hidden="true" />{title}
       </h3>
-      <div className="px-4 py-4 sm:px-5">{children}</div>
+      <div className="flex flex-1 flex-col px-4 py-4 sm:px-5">{children}</div>
     </section>
   );
 }
@@ -80,7 +80,7 @@ export function SettingsSection({
         <p className="mt-1 text-sm text-slate-600">Konto und Abo verwalten</p>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)] lg:items-start">
+      <div className="grid gap-4 lg:grid-cols-3">
         <Card icon={CreditCard} title="Abo">
           <dl>
             <Row label="Paket">Self-Service</Row>
@@ -106,7 +106,7 @@ export function SettingsSection({
           )}
 
           {(canRenew || hasActiveSubscription) && (
-            <div className="mt-5 flex flex-col gap-2 border-t border-slate-100 pt-4 sm:flex-row sm:justify-end">
+            <div className="mt-auto flex flex-col gap-2 pt-5">
               {canRenew && (
                 <Button type="button" onClick={onRenew} className={`min-h-10 ${cvPrimary}`}>
                   {hasAccess ? 'Abo verlängern' : 'Abo aktivieren'}
@@ -127,35 +127,33 @@ export function SettingsSection({
           )}
         </Card>
 
-        <div className="space-y-4">
-          <Card icon={UserRound} title="Konto">
-            <p className="text-sm text-slate-500">Angemeldet als</p>
-            <p className="mt-0.5 break-words text-sm font-medium text-slate-950">{email}</p>
-            <Button type="button" onClick={onSignOut} className={`mt-4 min-h-10 w-full ${cvSecondary}`}>
-              <LogOut className="h-4 w-4" aria-hidden="true" /> Abmelden
-            </Button>
-          </Card>
+        <Card icon={UserRound} title="Konto">
+          <p className="text-sm text-slate-500">Angemeldet als</p>
+          <p className="mb-5 mt-0.5 break-words text-sm font-medium text-slate-950">{email}</p>
+          <Button type="button" onClick={onSignOut} className={`mt-auto min-h-10 w-full ${cvSecondary}`}>
+            <LogOut className="h-4 w-4" aria-hidden="true" /> Abmelden
+          </Button>
+        </Card>
 
-          <Card icon={HelpCircle} title="Hilfe">
-            <ul className="space-y-3 text-sm">
-              <li>
-                <a href="mailto:info@cvolution.ch" className="inline-flex items-center gap-2 text-slate-700 hover:text-[#204878]">
-                  <Mail className="h-4 w-4 text-slate-400" aria-hidden="true" /> info@cvolution.ch
-                </a>
-              </li>
-              <li>
-                <a href="tel:+41764405151" className="inline-flex items-center gap-2 text-slate-700 hover:text-[#204878]">
-                  <Phone className="h-4 w-4 text-slate-400" aria-hidden="true" /> 076 440 51 51
-                </a>
-              </li>
-              <li>
-                <Link href="/agb" className="inline-flex items-center gap-2 text-slate-700 hover:text-[#204878]">
-                  <FileText className="h-4 w-4 text-slate-400" aria-hidden="true" /> Allgemeine Geschäftsbedingungen
-                </Link>
-              </li>
-            </ul>
-          </Card>
-        </div>
+        <Card icon={HelpCircle} title="Hilfe">
+          <ul className="space-y-3 text-sm">
+            <li>
+              <a href="mailto:info@cvolution.ch" className="inline-flex items-center gap-2 text-slate-700 hover:text-[#204878]">
+                <Mail className="h-4 w-4 text-slate-400" aria-hidden="true" /> info@cvolution.ch
+              </a>
+            </li>
+            <li>
+              <a href="tel:+41764405151" className="inline-flex items-center gap-2 text-slate-700 hover:text-[#204878]">
+                <Phone className="h-4 w-4 text-slate-400" aria-hidden="true" /> 076 440 51 51
+              </a>
+            </li>
+            <li>
+              <Link href="/agb" className="inline-flex items-center gap-2 text-slate-700 hover:text-[#204878]">
+                <FileText className="h-4 w-4 text-slate-400" aria-hidden="true" /> Allgemeine Geschäftsbedingungen
+              </Link>
+            </li>
+          </ul>
+        </Card>
       </div>
 
       <AlertDialog open={confirmCancel} onOpenChange={setConfirmCancel}>

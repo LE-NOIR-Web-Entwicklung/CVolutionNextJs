@@ -28,6 +28,12 @@ test('LinkedIn order confirmations offer the appointment link', async () => {
   for (const mail of sent) assert.ok(mail.html.includes(LINK));
 });
 
+test('the logo carries its size as attributes, because Outlook ignores the CSS width', async () => {
+  await sendConfirmationEmail('ava@example.ch', 'Lebenslauf');
+  await sendCartConfirmationEmail('ava@example.ch', [{ email: 'ava@example.ch', service_label: 'Lebenslauf', final_price: 99 }]);
+  for (const mail of sent) assert.match(mail.html, /logo\.png" alt="CVolution Logo" width="160" height="34"/);
+});
+
 test('other services do not get the LinkedIn appointment link', async () => {
   await sendCartConfirmationEmail('ava@example.ch', [{ email: 'ava@example.ch', service_label: 'Motivationsschreiben', final_price: 99 }]);
   assert.ok(!sent[0].html.includes(LINK));

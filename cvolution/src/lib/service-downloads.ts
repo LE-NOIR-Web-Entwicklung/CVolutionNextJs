@@ -6,22 +6,22 @@ export const SERVICE_DOWNLOAD_VALID_DAYS = 30;
 export const SERVICE_DOWNLOADS = [
   {
     key: "download_cv_akzent",
-    label: "Lebenslauf-Vorlage Akzent",
+    label: "Lebenslauf-Vorlage Modern",
     group: "cv",
     format: "Word",
     description: "Markante Vorlage mit farbiger Seitenleiste und Foto. Direkt in Word mit Ihren Angaben ausfüllen.",
     file: "lebenslauf-akzent.docx",
-    downloadName: "CVolution-Lebenslauf-Akzent.docx",
+    downloadName: "CVolution-Lebenslauf-Modern.docx",
     preview: "/images/cv-designs/cv-design-modern.png",
   },
   {
     key: "download_cv_klar",
-    label: "Lebenslauf-Vorlage Klar",
+    label: "Lebenslauf-Vorlage Zeitlos",
     group: "cv",
     format: "Word",
     description: "Ruhige Vorlage mit grossem Namen und viel Weissraum. Direkt in Word mit Ihren Angaben ausfüllen.",
     file: "lebenslauf-klar.docx",
-    downloadName: "CVolution-Lebenslauf-Klar.docx",
+    downloadName: "CVolution-Lebenslauf-Zeitlos.docx",
     preview: "/images/cv-designs/cv-design-zeitlos.png",
   },
   {

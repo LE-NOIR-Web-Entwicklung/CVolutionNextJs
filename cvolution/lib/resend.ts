@@ -62,7 +62,7 @@ export const sendEmail = async (
         html: `
             <div style="font-family: 'Segoe UI', Arial, sans-serif; background: #f4f8fb; padding: 32px;">
                 <div style="max-width: 480px; margin: 0 auto; background: #fff; border-radius: 12px; box-shadow: 0 2px 8px rgba(32,72,120,0.08); padding: 32px 24px; text-align: left;">
-                    <img src="https://cvolution.ch/images/logo.png" alt="CVolution Logo" style="width: 80px; margin-bottom: 24px; display: block; margin-left: auto; margin-right: auto;" />
+                    <img src="https://cvolution.ch/images/logo.png" alt="CVolution Logo" width="160" height="34" style="width: 160px; height: 34px; margin-bottom: 24px; display: block; margin-left: auto; margin-right: auto;" />
                     <h1 style="color: #204878; font-size: 1.5rem; margin-bottom: 16px; text-align: center;">Neue Anfrage: ${service}</h1>
                     <div style="margin-bottom: 24px;">
                         ${name ? `<p style="color: #333; font-size: 1.1rem;"><strong>Name:</strong> ${name}</p>` : ""}
@@ -186,7 +186,7 @@ export const sendConfirmationEmail = async (email: string, service: string) => {
         html: `
             <div style="font-family: 'Segoe UI', Arial, sans-serif; background: #f4f8fb; padding: 32px;">
                 <div style="max-width: 480px; margin: 0 auto; background: #fff; border-radius: 12px; box-shadow: 0 2px 8px rgba(32,72,120,0.08); padding: 32px 24px; text-align: center;">
-                    <img src="https://cvolution.ch/images/logo.png" alt="CVolution Logo" style="width: 80px; margin-bottom: 24px;" />
+                    <img src="https://cvolution.ch/images/logo.png" alt="CVolution Logo" width="160" height="34" style="width: 160px; height: 34px; margin-bottom: 24px;" />
                     <h1 style="color: #204878; font-size: 2rem; margin-bottom: 16px;">Vielen Dank für deine Bestellung!</h1>
                     ${customMessage}
                     <div style="margin: 32px 0;">
@@ -438,7 +438,7 @@ export const sendSelfServiceInfoEmail = async (data: SelfServiceInfoEmailData) =
         html: `
             <div style="font-family: 'Segoe UI', Arial, sans-serif; background: #f4f8fb; padding: 32px;">
                 <div style="max-width: 640px; margin: 0 auto; background: #fff; border-radius: 12px; box-shadow: 0 2px 8px rgba(32,72,120,0.08); padding: 32px 24px; text-align: left;">
-                    <img src="https://cvolution.ch/images/logo.png" alt="CVolution Logo" style="width: 80px; margin-bottom: 24px; display: block; margin-left: auto; margin-right: auto;" />
+                    <img src="https://cvolution.ch/images/logo.png" alt="CVolution Logo" width="160" height="34" style="width: 160px; height: 34px; margin-bottom: 24px; display: block; margin-left: auto; margin-right: auto;" />
                     <h1 style="color: #204878; font-size: 1.5rem; margin-bottom: 16px; text-align: center;">Neue Self-Service-Buchung</h1>
                     <div style="margin-bottom: 24px;">
                         ${renderInfoRow("Name / Vorname", displayName)}
@@ -603,7 +603,7 @@ export const sendCartInfoEmail = async (orders: CartOrderEmailItem[]) => {
         html: `
             <div style="font-family: 'Segoe UI', Arial, sans-serif; background: #f4f8fb; padding: 32px;">
                 <div style="max-width: 640px; margin: 0 auto; background: #fff; border-radius: 12px; box-shadow: 0 2px 8px rgba(32,72,120,0.08); padding: 32px 24px; text-align: left;">
-                    <img src="https://cvolution.ch/images/logo.png" alt="CVolution Logo" style="width: 80px; margin-bottom: 24px; display: block; margin-left: auto; margin-right: auto;" />
+                    <img src="https://cvolution.ch/images/logo.png" alt="CVolution Logo" width="160" height="34" style="width: 160px; height: 34px; margin-bottom: 24px; display: block; margin-left: auto; margin-right: auto;" />
                     <h1 style="color: #204878; font-size: 1.5rem; margin-bottom: 16px; text-align: center;">Neue Warenkorb-Bestellung</h1>
                     <p style="color:#333; font-size:1rem;"><strong>Positionen:</strong> ${displayItems.length}</p>
                     <p style="color:#333; font-size:1rem;"><strong>Subtotal:</strong> ${formatCurrency(subtotal)}</p>
@@ -646,7 +646,7 @@ export const sendDownloadCodeEmail = async (email: string, code: string) => {
         html: `
             <div style="font-family: 'Segoe UI', Arial, sans-serif; background: #f4f8fb; padding: 32px;">
                 <div style="max-width: 480px; margin: 0 auto; background: #fff; border-radius: 12px; padding: 32px 24px; text-align:center;">
-                    <img src="https://cvolution.ch/images/logo.png" alt="CVolution Logo" style="width: 80px; margin-bottom: 24px;" />
+                    <img src="https://cvolution.ch/images/logo.png" alt="CVolution Logo" width="160" height="34" style="width: 160px; height: 34px; margin-bottom: 24px;" />
                     <p style="color:#333; font-size:1.1rem;">Dein Code für den Download:</p>
                     <p style="color:#204878; font-size:2rem; font-weight:700; letter-spacing:0.2em; margin:16px 0;">${escapeHtml(code)}</p>
                     <p style="color:#64748B; font-size:0.95rem;">Der Code ist 10 Minuten gültig. Hast du ihn nicht angefordert, kannst du diese E-Mail ignorieren.</p>
@@ -692,7 +692,7 @@ export const sendCartConfirmationEmail = async (email: string, orders: CartOrder
         html: `
             <div style="font-family: 'Segoe UI', Arial, sans-serif; background: #f4f8fb; padding: 32px;">
                 <div style="max-width: 640px; margin: 0 auto; background: #fff; border-radius: 12px; box-shadow: 0 2px 8px rgba(32,72,120,0.08); padding: 32px 24px;">
-                    <img src="https://cvolution.ch/images/logo.png" alt="CVolution Logo" style="width: 80px; margin-bottom: 24px; display:block; margin-left:auto; margin-right:auto;" />
+                    <img src="https://cvolution.ch/images/logo.png" alt="CVolution Logo" width="160" height="34" style="width: 160px; height: 34px; margin-bottom: 24px; display:block; margin-left:auto; margin-right:auto;" />
                     <h1 style="color: #204878; font-size: 2rem; margin-bottom: 16px; text-align:center;">Vielen Dank für deine Bestellung!</h1>
                     <p style="color:#333; font-size:1.1rem;">Wir haben deine Warenkorb-Bestellung erhalten.</p>
                     <h2 style="color:#204878; font-size:1.15rem; margin-top:24px;">Deine bestellten Services</h2>
