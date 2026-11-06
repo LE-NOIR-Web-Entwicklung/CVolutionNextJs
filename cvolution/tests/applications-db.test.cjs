@@ -32,7 +32,8 @@ before(() => {
     GRANT USAGE ON SCHEMA public, auth TO authenticated, anon, service_role;
     GRANT EXECUTE ON FUNCTION auth.uid() TO authenticated;
     ${fs.readFileSync(path.join(__dirname, '../supabase/migrations/20261103_create_applications.sql'), 'utf8')}
-    ${fs.readFileSync(path.join(__dirname, '../supabase/migrations/20261106_add_application_interview_dates.sql'), 'utf8')}`);
+    ${fs.readFileSync(path.join(__dirname, '../supabase/migrations/20261106_add_application_interview_dates.sql'), 'utf8')}
+    ${fs.readFileSync(path.join(__dirname, '../supabase/migrations/20261106_create_salary_analyses.sql'), 'utf8')}`);
 });
 beforeEach(() => sql('TRUNCATE public.applications;'));
 after(() => {

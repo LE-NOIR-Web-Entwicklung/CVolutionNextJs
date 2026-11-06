@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
+import dynamic from 'next/dynamic';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -23,6 +24,9 @@ import { PaymentModal } from '@/components/ui/PaymentModal';
 
 const cvTabClass = 'h-9 min-w-0 rounded-md !bg-transparent px-3 text-sm font-medium !text-slate-600 !shadow-none transition-colors hover:!text-slate-900 data-[state=active]:!bg-white data-[state=active]:!text-[#204878] data-[state=active]:!shadow-sm';
 const areaTabClass = '-mb-px h-11 min-w-0 rounded-none border-b-2 border-transparent !bg-transparent px-1.5 text-[13px] font-medium !text-slate-500 !shadow-none transition-colors hover:!text-slate-900 data-[state=active]:border-[#204878] data-[state=active]:!text-[#204878] sm:px-1 sm:text-sm';
+
+// Loaded on demand because the charts are heavy.
+const SalaryAnalysisSection = dynamic(() => import('@/components/Dashboard/SalaryAnalysisSection').then((module) => module.SalaryAnalysisSection), { ssr: false });
 
 export const Dashboard: React.FC = () => {
   const { user, signOut } = useAuth();
@@ -346,12 +350,15 @@ export const Dashboard: React.FC = () => {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
         <Tabs value={activeArea} onValueChange={(area) => handleAreaChange(area)} className="space-y-4 sm:space-y-6">
-          <TabsList className="!flex h-auto w-full items-stretch justify-start gap-1 rounded-none border-b border-slate-200 !bg-transparent p-0 sm:gap-3">
+          <TabsList className="!flex h-auto w-full items-stretch justify-start gap-1 overflow-x-auto rounded-none border-b border-slate-200 !bg-transparent p-0 [scrollbar-width:none] sm:gap-3 lg:overflow-visible">
             <TabsTrigger value="cv" className={areaTabClass}>
               <span className="hidden sm:inline">CV Self-Service</span><span className="sm:hidden">Lebenslauf</span>
             </TabsTrigger>
             <TabsTrigger value="motivation" className={areaTabClass}>
               <span className="hidden sm:inline">AI Motivationsschreiben</span><span className="sm:hidden">AI-Schreiben</span>
+            </TabsTrigger>
+            <TabsTrigger value="salary" className={areaTabClass}>
+              <span className="hidden sm:inline">AI Lohnanalyse</span><span className="sm:hidden">Lohnanalyse</span>
             </TabsTrigger>
             <TabsTrigger value="applications" className={areaTabClass}>
               <span className="hidden sm:inline">Bewerbungsmanager</span><span className="sm:hidden">Bewerbungen</span>
@@ -454,6 +461,17 @@ export const Dashboard: React.FC = () => {
               draft={motivationDraft}
               onDraftChange={setMotivationDraft}
               onSaveDraft={saveMotivationDraft}
+            />
+          </TabsContent>
+
+          <TabsContent value="salary" forceMount className={activeArea === 'salary' ? '' : 'hidden'}>
+            <SalaryAnalysisSection
+              key={user?.id || 'anonymous'}
+              hasSelfServiceAccess={hasSelfServiceAccess}
+              onRequirePayment={openSelfServicePayment}
+              hasCvData={experiencesData.length > 0 || educationData.length > 0}
+              profileName={profileData?.full_name || ''}
+              profileBirthdate={profileData?.birthdate || null}
             />
           </TabsContent>
 

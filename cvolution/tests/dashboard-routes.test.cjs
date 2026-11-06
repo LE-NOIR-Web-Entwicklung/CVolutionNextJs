@@ -17,6 +17,7 @@ test('dashboard paths map to areas and application detail routes', () => {
   assert.deepEqual(routes().parseDashboardPath('/dashboard/'), { area: 'cv', applicationId: null });
   assert.deepEqual(routes().parseDashboardPath('/dashboard/motivationsschreiben'), { area: 'motivation', applicationId: null });
   assert.deepEqual(routes().parseDashboardPath('/dashboard/einstellungen'), { area: 'settings', applicationId: null });
+  assert.deepEqual(routes().parseDashboardPath('/dashboard/lohnanalyse'), { area: 'salary', applicationId: null });
   assert.deepEqual(routes().parseDashboardPath('/dashboard/bewerbungen'), { area: 'applications', applicationId: null });
   assert.deepEqual(routes().parseDashboardPath(`/dashboard/bewerbungen/${id.toUpperCase()}`), { area: 'applications', applicationId: id });
   assert.deepEqual(routes().parseDashboardPath('/dashboard/bewerbungen/neu'), { area: 'applications', applicationId: 'neu' });
@@ -29,7 +30,7 @@ test('unknown dashboard paths are rejected', () => {
 });
 
 test('paths round-trip and legacy hashes resolve to areas', () => {
-  for (const area of ['cv', 'motivation', 'applications', 'settings']) {
+  for (const area of ['cv', 'motivation', 'salary', 'applications', 'settings']) {
     assert.equal(routes().parseDashboardPath(routes().dashboardPath(area)).area, area);
   }
   assert.equal(routes().dashboardPath('applications', id), `/dashboard/bewerbungen/${id}`);
