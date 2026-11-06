@@ -23,6 +23,7 @@ interface CVPdfDocumentProps {
 }
 
 const ACCENT = '#005B82';
+const SIDEBAR_WIDTH = 62;
 
 // Design 1: kompaktes Layout mit blauen Seitenbalken.
 // Umsetzung Review-Feedback:
@@ -36,8 +37,8 @@ const styles = StyleSheet.create({
     fontFamily: 'Helvetica',
     paddingTop: 24,
     paddingBottom: 24,
-    paddingLeft: 58,
-    paddingRight: 58,
+    paddingLeft: 84,
+    paddingRight: 84,
     color: '#1a1a1a',
   },
   sidebarLeft: {
@@ -45,7 +46,7 @@ const styles = StyleSheet.create({
     top: 0,
     bottom: 0,
     left: 0,
-    width: 26,
+    width: SIDEBAR_WIDTH,
     backgroundColor: ACCENT,
   },
   sidebarRight: {
@@ -53,7 +54,7 @@ const styles = StyleSheet.create({
     top: 0,
     bottom: 0,
     right: 0,
-    width: 26,
+    width: SIDEBAR_WIDTH,
     backgroundColor: ACCENT,
   },
   header: {

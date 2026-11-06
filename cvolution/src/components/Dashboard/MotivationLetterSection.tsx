@@ -60,7 +60,7 @@ const LetterPreview: React.FC<{ letter: string }> = ({ letter }) => {
     .filter(Boolean);
 
   return (
-    <div className="space-y-4 text-[13px] leading-6 text-slate-900 sm:text-sm">
+    <div className="space-y-[1.1em] font-[Arial,Helvetica,sans-serif] text-[13px] leading-[1.45] text-slate-900 sm:text-sm">
       {blocks.map((block, blockIdx) => {
         const lines = block.split("\n").map((line) => line.trim()).filter(Boolean);
         const allBullets = lines.length > 0 && lines.every((line) => /^[-–•*]\s+/.test(line));
@@ -163,10 +163,10 @@ export const MotivationLetterSection: React.FC<MotivationLetterSectionProps> = (
     if (!canGenerate) {
       setError(spontaneous
         ? embedded
-          ? "Bitte erfassen Sie oben Stellenbezeichnung und Unternehmen."
+          ? "Bitte erfassen Sie in der Bewerbung Stellenbezeichnung und Unternehmen."
           : "Bitte geben Sie die gewünschte Funktion und das Unternehmen oder dessen Website an."
         : embedded
-          ? "Bitte fügen Sie die Stellenanzeige ein oder erfassen Sie oben den Link zum Inserat."
+          ? "Bitte fügen Sie die Stellenanzeige ein oder erfassen Sie in der Bewerbung den Link zum Inserat."
           : "Bitte fügen Sie die Stellenanzeige ein oder geben Sie den Link zum Inserat an.");
       return;
     }
@@ -332,7 +332,7 @@ export const MotivationLetterSection: React.FC<MotivationLetterSectionProps> = (
           <FormGroup
             title={spontaneous ? "Zielunternehmen" : "Stelle"}
             description={embedded
-              ? "Link, Stelle und Unternehmen stammen aus der Bewerbung oben."
+              ? "Link, Stelle und Unternehmen stammen aus der Bewerbung."
               : spontaneous
                 ? "Ein Stelleninserat ist nicht nötig. Beschreiben Sie Funktion und Unternehmen."
                 : "Inserat einfügen oder Link angeben. Stelle und Unternehmen werden sonst erkannt."}

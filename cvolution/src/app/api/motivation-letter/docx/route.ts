@@ -22,7 +22,8 @@ type DocxRequest = {
 
 const FONT = "Arial";
 const FONT_SIZE = 22; // 11pt
-const LINE_SPACING = 240; // Einfacher Zeilenabstand, kein zusaetzlicher Absatzabstand
+const LINE_SPACING = 300; // 1.25-fach, entspricht der Vorschau
+const BLOCK_GAP = 240; // 12pt zwischen den Briefbloecken, wie in der Vorschau
 
 function jsonError(message: string, status: number) {
   return NextResponse.json({ error: message }, { status });
@@ -80,10 +81,9 @@ function stripBullet(line: string) {
 }
 
 // Saubere Briefformatierung:
-// - Adressbloecke mit engem Zeilenabstand
-// - Betreff fett, kurze Trennung zwischen Briefbloecken
+// - Gleiche Schrift, Zeilen- und Blockabstaende wie die A4-Vorschau im Generator
+// - Betreff fett
 // - Echte Word-Bulletpoints
-// - Kein zusaetzlicher Absatzabstand, einfacher Zeilenabstand
 function createLetterParagraphs(letter: string): Paragraph[] {
   const paragraphs: Paragraph[] = [];
   const blocks = letter
@@ -94,7 +94,7 @@ function createLetterParagraphs(letter: string): Paragraph[] {
   blocks.forEach((block, blockIdx) => {
     if (blockIdx > 0) {
       paragraphs.push(new Paragraph({
-        spacing: { before: 0, after: 0, line: 120, lineRule: LineRuleType.EXACT },
+        spacing: { before: 0, after: 0, line: BLOCK_GAP, lineRule: LineRuleType.EXACT },
         keepNext: true,
       }));
     }

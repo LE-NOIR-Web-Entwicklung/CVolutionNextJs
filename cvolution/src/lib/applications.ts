@@ -1,7 +1,8 @@
 export const APPLICATION_STATUSES = {
-  draft: 'Entwurf',
+  draft: 'Noch nicht versendet',
   sent: 'Versendet',
-  interview: 'Gespräch',
+  interview: 'Gespräch 1',
+  interview2: 'Gespräch 2',
   offer: 'Zusage',
   rejected: 'Absage',
   withdrawn: 'Zurückgezogen',
@@ -29,6 +30,9 @@ export type ApplicationInput = {
   job_title: string;
   status: ApplicationStatus;
   applied_at: string | null;
+  interview1_at: string | null;
+  interview2_at: string | null;
+  decision_at: string | null;
   deadline: string | null;
   next_action_at: string | null;
   next_action: string;
@@ -51,7 +55,7 @@ export function emptyMotivationForm(): MotivationForm {
 }
 
 export function emptyApplication(): ApplicationInput {
-  return { company: '', job_title: '', status: 'draft', applied_at: null, deadline: null, next_action_at: null, next_action: '', notes: '', motivation_form: emptyMotivationForm(), motivation_letter: '' };
+  return { company: '', job_title: '', status: 'draft', applied_at: null, interview1_at: null, interview2_at: null, decision_at: null, deadline: null, next_action_at: null, next_action: '', notes: '', motivation_form: emptyMotivationForm(), motivation_letter: '' };
 }
 
 export class ApplicationInputError extends Error {}
@@ -98,6 +102,10 @@ export function parseApplicationInput(value: unknown): ApplicationInput {
     job_title: jobTitle,
     status: input.status as ApplicationStatus,
     applied_at: date(input.applied_at),
+    // Absent in requests from tabs opened before these fields existed.
+    interview1_at: date(input.interview1_at ?? null),
+    interview2_at: date(input.interview2_at ?? null),
+    decision_at: date(input.decision_at ?? null),
     deadline: date(input.deadline),
     next_action_at: date(input.next_action_at),
     next_action: text(input.next_action, 240, 'Nächster Schritt'),
@@ -132,24 +140,24 @@ export function todayInZurich(): string {
 }
 
 export function isApplicationOpen(application: Pick<ApplicationInput, 'status'>): boolean {
-  return ['draft', 'sent', 'interview'].includes(application.status);
+  return ['draft', 'sent', 'interview', 'interview2'].includes(application.status);
 }
 
 export function isActionDue(application: ApplicationInput, today = todayInZurich()): boolean {
   return isApplicationOpen(application) && Boolean(application.next_action_at && application.next_action_at <= today);
 }
 
-export type ApplicationView = 'all' | 'open' | 'due';
+export type ApplicationView = 'all' | 'open' | 'interview' | 'interview2' | 'rejected' | 'offer';
 
-export function matchesApplicationView(application: ApplicationInput, view: ApplicationView, today = todayInZurich()): boolean {
-  return view === 'all' || (view === 'open' ? isApplicationOpen(application) : isActionDue(application, today));
+export function matchesApplicationView(application: Pick<ApplicationInput, 'status'>, view: ApplicationView): boolean {
+  return view === 'all' || (view === 'open' ? isApplicationOpen(application) : application.status === view);
 }
 
-export function filterApplications(applications: Application[], search: string, status: ApplicationStatus | 'all', view: ApplicationView = 'all', today = todayInZurich()): Application[] {
+export function filterApplications(applications: Application[], search: string, status: ApplicationStatus | 'all', view: ApplicationView = 'all'): Application[] {
   const query = search.trim().toLocaleLowerCase('de-CH');
   return applications.filter((application) =>
     (status === 'all' || application.status === status) &&
-    matchesApplicationView(application, view, today) &&
+    matchesApplicationView(application, view) &&
     `${application.company} ${application.job_title}`.toLocaleLowerCase('de-CH').includes(query)
   ).sort((a, b) => {
     const group = Number(isApplicationOpen(b)) - Number(isApplicationOpen(a));
@@ -159,30 +167,41 @@ export function filterApplications(applications: Application[], search: string, 
   });
 }
 
-// Statuses shown as steps; offer and rejected are alternative end states, withdrawn sits apart.
-export const APPLICATION_STEPS: ApplicationStatus[] = ['draft', 'sent', 'interview'];
-export const APPLICATION_END_STATES: ApplicationStatus[] = ['offer', 'rejected'];
+export type ApplicationDateKey = 'applied_at' | 'interview1_at' | 'interview2_at' | 'decision_at';
+type ApplicationProgress = Pick<ApplicationInput, 'status' | ApplicationDateKey>;
+
+// Order of the steps; offer and rejected are alternative end states, withdrawn sits apart.
+const STEP_ORDER: Partial<Record<ApplicationStatus, number>> = { draft: 0, sent: 1, interview: 2, interview2: 3, offer: 4, rejected: 4 };
+const STEP_DATES: Partial<Record<ApplicationStatus, ApplicationDateKey>> = { sent: 'applied_at', interview: 'interview1_at', interview2: 'interview2_at', offer: 'decision_at', rejected: 'decision_at' };
 
 export function applicationStepIndex(status: ApplicationStatus): number {
-  return status === 'draft' ? 0 : status === 'sent' ? 1 : status === 'interview' ? 2 : 3;
+  return STEP_ORDER[status] ?? 0;
 }
 
-// "Versendet am" only exists from "Versendet" on: entering it dates the dispatch, leaving it clears the date.
-export function withApplicationStatus<T extends Pick<ApplicationInput, 'status' | 'applied_at'>>(input: T, status: ApplicationStatus, today = todayInZurich()): T {
+export function applicationStatusDate(application: ApplicationProgress): string | null {
+  const key = STEP_DATES[application.status];
+  return key ? application[key] : null;
+}
+
+// Dispatch and decision happen on the day they are marked; interviews get their date from the user.
+export function withApplicationStatus<T extends ApplicationProgress>(input: T, status: ApplicationStatus, today = todayInZurich()): T {
   if (status === 'draft') return { ...input, status, applied_at: null };
-  return { ...input, status, applied_at: input.applied_at || (status === 'sent' ? today : null) };
+  const key = STEP_DATES[status];
+  if (!key || key === 'interview1_at' || key === 'interview2_at' || input[key]) return { ...input, status };
+  return { ...input, status, [key]: today };
 }
 
-export function withAppliedAt<T extends Pick<ApplicationInput, 'status' | 'applied_at'>>(input: T, appliedAt: string | null): T {
-  const dated = Boolean(appliedAt && /^\d{4}-\d{2}-\d{2}$/.test(appliedAt));
-  return { ...input, applied_at: appliedAt, status: dated && input.status === 'draft' ? 'sent' : input.status };
+// Entering a date for a later step moves the application to that step.
+export function withApplicationDate<T extends ApplicationProgress>(input: T, key: ApplicationDateKey, value: string | null): T {
+  const next = { ...input, [key]: value };
+  const step = (Object.keys(STEP_DATES) as ApplicationStatus[]).find((status) => STEP_DATES[status] === key);
+  const dated = Boolean(value && /^\d{4}-\d{2}-\d{2}$/.test(value));
+  return dated && key !== 'decision_at' && step && input.status !== 'withdrawn' && applicationStepIndex(input.status) < applicationStepIndex(step) ? { ...next, status: step } : next;
 }
 
-export const NEXT_STEP_SUGGESTIONS: Record<ApplicationStatus, string[]> = {
-  draft: ['Unterlagen versenden', 'Motivationsschreiben fertigstellen'],
-  sent: ['Telefonisch nachfassen', 'Rückmeldung abwarten'],
-  interview: ['Gespräch vorbereiten', 'Dankes-Mail senden'],
-  offer: ['Vertrag prüfen', 'Zusage geben'],
-  rejected: [],
-  withdrawn: [],
-};
+// Clicking the active step again undoes it: back to the latest earlier step that has a date.
+export function previousApplicationStatus(input: ApplicationProgress): ApplicationStatus {
+  const current = applicationStepIndex(input.status);
+  const earlier = (['interview2', 'interview', 'sent'] as ApplicationStatus[]).filter((status) => applicationStepIndex(status) < current);
+  return earlier.find((status) => input[STEP_DATES[status] as ApplicationDateKey]) ?? 'draft';
+}

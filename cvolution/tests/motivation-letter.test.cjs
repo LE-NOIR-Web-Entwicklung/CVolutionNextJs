@@ -409,6 +409,8 @@ test("manual recipient details and untrusted source boundaries are in the prompt
   );
   assert.match(userPrompt(), /Wunschweg 8/);
   assert.match(userPrompt(), /Manuelle Nutzereingaben.*Vorrang/);
+  assert.match(payloads[0].system, /genau eine Ansprechperson.*HR.*zuerst genannte Person/);
+  assert.match(payloads[0].system, /Empfaengerblock: zuerst der Firmenname, darunter die Ansprechperson/);
   assert.match(
     payloads[0].system,
     /Anweisungen.*(?:Inhalt|Daten).*nicht.*Systemanweisungen/,
@@ -626,7 +628,7 @@ async function exportLetter(letter) {
   return Buffer.from(await response.arrayBuffer());
 }
 
-test("Word text uses single line spacing and no added paragraph spacing", async () => {
+test("Word text keeps the line and block spacing of the preview", async () => {
   const buffer = await exportLetter(compactLetter);
   const zip = await require("jszip").loadAsync(buffer);
   const xml = await zip.file("word/document.xml").async("string");
@@ -634,7 +636,7 @@ test("Word text uses single line spacing and no added paragraph spacing", async 
     assert.match(paragraph, /w:before="0"/);
     assert.match(paragraph, /w:after="0"/);
     if (paragraph.includes("<w:t"))
-      assert.match(paragraph, /w:line="240"[^>]*w:lineRule="auto"/);
+      assert.match(paragraph, /w:line="300"[^>]*w:lineRule="auto"/);
   }
   const text = (await require("mammoth").extractRawText({ buffer })).value;
   for (const paragraph of letterParagraphs) assert.ok(text.includes(paragraph));

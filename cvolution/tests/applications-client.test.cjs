@@ -89,10 +89,13 @@ test('data export contains all saved content and cleans up its temporary downloa
   const link = { click() { clicked = true; }, remove() { removed = true; } };
   global.document = { createElement: () => link, body: { appendChild() {} } };
   const rows = [{ ...valid(), motivation_letter: 'Absatz eins.\n\nAbsatz zwei.' }];
-  client.downloadApplications(rows);
-  const exported = JSON.parse(await exportBlob.text());
-  assert.deepEqual(exported.applications, rows);
-  assert.ok(Number.isFinite(Date.parse(exported.exported_at)));
-  assert.equal(link.download, 'cvolution-bewerbungen.json');
+  await client.downloadApplications([{ ...rows[0], company: '=Formel & <Partner>', status: 'interview2', interview2_at: '2026-11-20', created_at: '2026-11-01T00:00:00Z', updated_at: '2026-11-02T00:00:00Z' }]);
+  assert.equal(exportBlob.type, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+  const zip = await require('jszip').loadAsync(await exportBlob.arrayBuffer());
+  const sheet = await zip.file('xl/worksheets/sheet1.xml').async('string');
+  assert.ok(zip.file('[Content_Types].xml') && zip.file('xl/workbook.xml'));
+  for (const text of ['Gespräch 2', '20.11.2026', 'Absatz eins.', '=Formel &amp; &lt;Partner&gt;']) assert.ok(sheet.includes(text), text);
+  assert.ok(!sheet.includes('<f>'), 'Values are never written as formulas');
+  assert.equal(link.download, 'cvolution-bewerbungen.xlsx');
   assert.ok(clicked && removed && revoked);
 });

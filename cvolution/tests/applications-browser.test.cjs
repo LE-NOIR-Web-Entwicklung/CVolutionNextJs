@@ -75,19 +75,27 @@ async function fixture(t) {
   const page = await context.newPage();
   page.on('pageerror', (error) => state.errors.push(error.message));
   await page.goto(`${baseUrl}/dashboard#applications`);
-  const manager = page.getByRole('tabpanel', { name: 'Bewerbungen', exact: true });
+  const manager = page.getByRole('tabpanel', { name: 'Bewerbungsmanager', exact: true });
   await manager.getByRole('heading', { name: 'Ihre erste Bewerbung beginnt hier' }).waitFor();
   return { page, manager, state };
 }
 
+// Leaves the letter dialog open with the job advert filled in.
 async function create(manager, company = 'Muster AG', job = 'Projektleitung') {
   await manager.getByRole('button', { name: 'Bewerbung erfassen', exact: true }).click();
   await manager.getByLabel('Unternehmen *', { exact: true }).fill(company);
   await manager.getByLabel('Stellenbezeichnung *', { exact: true }).fill(job);
-  await manager.getByLabel(/^Stellenanzeige/).fill('Gesucht wird eine erfahrene Person für Beratung und Projektleitung.');
+  await manager.getByRole('button', { name: 'Schreiben erstellen', exact: true }).click();
+  await manager.page().getByRole('dialog').getByLabel(/^Stellenanzeige/).fill('Gesucht wird eine erfahrene Person für Beratung und Projektleitung.');
+}
+
+async function closeLetter(manager) {
+  await manager.page().keyboard.press('Escape');
+  await manager.page().getByRole('dialog').waitFor({ state: 'hidden' });
 }
 
 async function save(manager) {
+  if (await manager.page().getByRole('dialog').count()) await closeLetter(manager);
   await manager.getByRole('button', { name: 'Bewerbung speichern', exact: true }).first().click();
   await manager.getByRole('status').filter({ hasText: 'Alle Änderungen gespeichert' }).waitFor();
 }
@@ -117,38 +125,41 @@ test('application journey saves separate letters, survives refresh and reuses th
   await create(manager);
   await manager.getByLabel('Nächste Aktion am', { exact: true }).fill('02.11.2026');
   await manager.getByLabel('Nächster Schritt', { exact: true }).fill('Nachfassen');
-  await manager.getByRole('button', { name: 'Erstellen', exact: true }).click();
+  await page.getByRole('dialog').getByRole('button', { name: 'Erstellen', exact: true }).click();
   await manager.getByLabel('Bewerbungen durchsuchen').waitFor();
   assert.equal(state.records.length, 1);
   await manager.getByRole('button').filter({ hasText: 'Projektleitung' }).click();
-  await manager.getByRole('article').waitFor();
-  await manager.getByRole('button', { name: 'Bearbeiten', exact: true }).click();
-  await manager.getByLabel('Schreiben bearbeiten', { exact: true }).fill('Mein bearbeiteter Brief.\n\nZweiter Absatz.');
+  await manager.getByRole('button', { name: 'Öffnen', exact: true }).click();
+  await page.getByRole('dialog').getByRole('article').waitFor();
+  await page.getByRole('dialog').getByRole('button', { name: 'Bearbeiten', exact: true }).click();
+  await page.getByRole('dialog').getByLabel('Schreiben bearbeiten', { exact: true }).fill('Mein bearbeiteter Brief.\n\nZweiter Absatz.');
+  await closeLetter(manager);
   await manager.getByRole('button', { name: 'Versendet', exact: true }).click();
   assert.match(await manager.getByLabel('Versendet am', { exact: true }).inputValue(), /^\d{2}\.\d{2}\.\d{4}$/, 'Marking as sent dates the dispatch');
   await save(manager);
   await page.getByRole('tab', { name: 'CV Self-Service', exact: true }).click();
-  await page.getByRole('tab', { name: 'Bewerbungen', exact: true }).click();
-  assert.equal(await manager.getByLabel('Schreiben bearbeiten', { exact: true }).inputValue(), 'Mein bearbeiteter Brief.\n\nZweiter Absatz.');
+  await page.getByRole('tab', { name: 'Bewerbungsmanager', exact: true }).click();
   await manager.getByRole('button', { name: 'Aktuellen CV exportieren' }).click();
   await page.getByRole('dialog').getByRole('heading', { name: 'CV Exportieren' }).waitFor();
   await page.getByRole('dialog').getByRole('button', { name: 'Abbrechen' }).click();
   await page.reload();
   await manager.getByRole('button').filter({ hasText: 'Projektleitung' }).click();
-  await manager.getByRole('article').filter({ hasText: 'Zweiter Absatz.' }).waitFor();
-  await manager.getByRole('button', { name: 'Bearbeiten', exact: true }).click();
-  assert.equal(await manager.getByLabel('Schreiben bearbeiten', { exact: true }).inputValue(), 'Mein bearbeiteter Brief.\n\nZweiter Absatz.');
+  await manager.getByRole('button', { name: 'Öffnen', exact: true }).click();
+  await page.getByRole('dialog').getByRole('article').filter({ hasText: 'Zweiter Absatz.' }).waitFor();
+  await page.getByRole('dialog').getByRole('button', { name: 'Bearbeiten', exact: true }).click();
+  assert.equal(await page.getByRole('dialog').getByLabel('Schreiben bearbeiten', { exact: true }).inputValue(), 'Mein bearbeiteter Brief.\n\nZweiter Absatz.');
+  await closeLetter(manager);
   assert.equal(state.records.find((row) => row.company === 'Muster AG').status, 'sent');
   await manager.getByRole('button', { name: 'Übersicht', exact: true }).click();
   await create(manager, 'Zweite AG', 'Beratung');
-  await manager.getByRole('button', { name: 'Erstellen', exact: true }).click();
+  await page.getByRole('dialog').getByRole('button', { name: 'Erstellen', exact: true }).click();
   await manager.getByLabel('Bewerbungen durchsuchen').waitFor();
   assert.equal(state.records.length, 2);
   assert.match(state.records.find((row) => row.company === 'Muster AG').motivation_letter, /bearbeiteter Brief/);
   assert.match(state.records.find((row) => row.company === 'Zweite AG').motivation_letter, /Zweite AG/);
   await manager.getByLabel('Bewerbungen durchsuchen').fill('mUsTeR');
   assert.equal(await manager.locator('li').count(), 1);
-  await manager.getByLabel('Nach Status filtern').selectOption('rejected');
+  await manager.getByRole('button', { name: 'Absagen (0)', exact: true }).click();
   await manager.getByRole('heading', { name: 'Keine passenden Bewerbungen' }).waitFor();
   assert.deepEqual(state.errors, []);
 });
@@ -202,7 +213,7 @@ test('standalone letters transfer to applications and stored data remains usable
   await tool.getByRole('article').filter({ hasText: 'Transfer AG' }).waitFor();
   await tool.getByRole('button', { name: 'Bearbeiten', exact: true }).click();
   assert.equal(state.records.length, 0);
-  await page.getByRole('tab', { name: 'Bewerbungen', exact: true }).click();
+  await page.getByRole('tab', { name: 'Bewerbungsmanager', exact: true }).click();
   await page.getByRole('tab', { name: 'AI Motivationsschreiben', exact: true }).click();
   assert.match(await tool.getByLabel('Schreiben bearbeiten', { exact: true }).inputValue(), /Transfer AG/);
   await tool.getByRole('button', { name: 'Bewerbung speichern', exact: true }).click();
@@ -210,24 +221,26 @@ test('standalone letters transfer to applications and stored data remains usable
   assert.equal(state.records.length, 1);
   await page.getByRole('tab', { name: 'AI Motivationsschreiben', exact: true }).click();
   assert.equal(await tool.getByLabel('Unternehmen (optional)', { exact: true }).inputValue(), '');
-  await page.getByRole('tab', { name: 'Bewerbungen', exact: true }).click();
+  await page.getByRole('tab', { name: 'Bewerbungsmanager', exact: true }).click();
   state.paid = false;
   await page.reload();
   await manager.getByRole('button').filter({ hasText: 'Transfer AG' }).click();
   await manager.getByRole('button', { name: 'Abo aktivieren', exact: true }).waitFor();
-  await manager.getByRole('button', { name: 'Text', exact: true }).click();
-  assert.equal(await manager.getByLabel('Gespeichertes Schreiben', { exact: true }).getAttribute('readonly'), '');
+  await manager.getByRole('button', { name: 'Öffnen', exact: true }).click();
+  await page.getByRole('dialog').getByRole('button', { name: 'Text', exact: true }).click();
+  assert.equal(await page.getByRole('dialog').getByLabel('Gespeichertes Schreiben', { exact: true }).getAttribute('readonly'), '');
+  await closeLetter(manager);
   assert.equal(await manager.getByLabel('Unternehmen *', { exact: true }).isDisabled(), true);
   assert.equal(await manager.getByRole('button', { name: 'Mit KI auslesen', exact: true }).isDisabled(), true);
   const download = page.waitForEvent('download');
-  await manager.getByRole('button', { name: 'Word', exact: true }).click();
+  await manager.getByRole('button', { name: 'Word herunterladen', exact: true }).click();
   await download;
   assert.equal(state.words[0].applicationId, state.records[0].id);
   assert.match(state.records[0].motivation_letter, /Transfer AG/);
   const exportDownload = page.waitForEvent('download');
   await manager.getByRole('button', { name: 'Daten exportieren' }).click();
   const exported = await exportDownload;
-  assert.equal(exported.suggestedFilename(), 'cvolution-bewerbungen.json');
+  assert.equal(exported.suggestedFilename(), 'cvolution-bewerbungen.xlsx');
   assert.equal(state.generations.length, 1);
   await manager.getByRole('button', { name: 'Bewerbung erfassen', exact: true }).click();
   await page.getByRole('dialog').waitFor();
@@ -248,7 +261,9 @@ test('advert link extraction fills a reviewable draft and preserves notes', opti
   await page.waitForFunction(() => document.getElementById('application-company')?.value === 'Import AG');
   assert.equal(await manager.getByLabel('Stellenbezeichnung *', { exact: true }).inputValue(), 'Teamleitung');
   assert.equal(await manager.getByLabel('Bewerbungsfrist', { exact: true }).inputValue(), '15.12.2026');
-  assert.equal(await manager.getByLabel('Ansprechperson (optional)', { exact: true }).inputValue(), 'Frau Beispiel');
+  await manager.getByRole('button', { name: 'Schreiben erstellen', exact: true }).click();
+  assert.equal(await page.getByRole('dialog').getByLabel('Ansprechperson (optional)', { exact: true }).inputValue(), 'Frau Beispiel');
+  await closeLetter(manager);
   assert.equal(await manager.getByLabel('Notizen', { exact: true }).inputValue(), 'Eigene Notizen bleiben erhalten');
   assert.equal(state.records.length, 0, 'Import must not save before review');
   await manager.getByRole('button', { name: 'Bewerbung speichern', exact: true }).first().click();
@@ -341,7 +356,7 @@ test('detail views have their own URL, follow browser history and survive a relo
   assert.equal(await manager.getByLabel('Unternehmen *', { exact: true }).inputValue(), 'Muster AG');
   await page.getByRole('tab', { name: 'CV Self-Service', exact: true }).click();
   assert.equal(new URL(page.url()).pathname, '/dashboard');
-  await page.getByRole('tab', { name: 'Bewerbungen', exact: true }).click();
+  await page.getByRole('tab', { name: 'Bewerbungsmanager', exact: true }).click();
   assert.equal(new URL(page.url()).pathname, detail, 'Returning to the tab keeps the open application');
   await manager.getByRole('button', { name: 'Übersicht', exact: true }).click();
   await manager.getByLabel('Bewerbungen durchsuchen').waitFor();
@@ -362,10 +377,10 @@ test('filter chips count and filter open and due applications', options, async (
   await manager.getByRole('button', { name: 'Alle (3)', exact: true }).waitFor();
   await manager.getByRole('button', { name: 'Offen (2)', exact: true }).click();
   assert.equal(await manager.getByRole('listitem').count(), 2);
-  await manager.getByRole('button', { name: 'Fällig (1)', exact: true }).click();
+  await manager.getByRole('button', { name: 'Absagen (1)', exact: true }).click();
   assert.equal(await manager.getByRole('listitem').count(), 1);
-  await manager.getByRole('listitem').filter({ hasText: 'Fällige Stelle' }).waitFor();
-  await manager.getByLabel('Bewerbungen durchsuchen').fill('Offene');
+  await manager.getByRole('listitem').filter({ hasText: 'Abgesagte Stelle' }).waitFor();
+  await manager.getByLabel('Bewerbungen durchsuchen').fill('Offene Stelle');
   await manager.getByRole('heading', { name: 'Keine passenden Bewerbungen' }).waitFor();
   await manager.getByRole('button', { name: 'Filter zurücksetzen', exact: true }).click();
   assert.equal(await manager.getByRole('listitem').count(), 3);
@@ -376,9 +391,9 @@ test('filter chips count and filter open and due applications', options, async (
 test('date fields use Swiss formatting, validate input and retain calendar selection', options, async (t) => {
   const { page, manager, state } = await fixture(t);
   await create(manager);
-  assert.equal(await manager.getByLabel('Versendet am', { exact: true }).count(), 0, 'Drafts have no dispatch date');
-  await manager.getByRole('button', { name: 'Bereits versendet? Als versendet markieren', exact: true }).click();
+  await closeLetter(manager);
   await manager.getByLabel('Versendet am', { exact: true }).fill('03.11.2026');
+  await manager.getByRole('button', { name: 'Versendet', exact: true, pressed: true }).waitFor();
   await manager.getByLabel('Bewerbungsfrist', { exact: true }).fill('30112026');
   await manager.getByLabel('Nächste Aktion am', { exact: true }).fill('17.11.2026');
   assert.equal(await manager.getByLabel('Bewerbungsfrist', { exact: true }).inputValue(), '30.11.2026');

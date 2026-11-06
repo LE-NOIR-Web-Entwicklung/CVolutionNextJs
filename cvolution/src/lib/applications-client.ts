@@ -1,5 +1,6 @@
 import { supabase } from '@/integrations/supabase/client';
 import { type Application, type ApplicationInput, type JobAdExtraction, parseApplicationInput } from './applications';
+import { applicationsWorkbook } from './applications-export';
 
 export class ApplicationRequestError extends Error {
   constructor(message: string, public status: number) { super(message); }
@@ -49,12 +50,12 @@ export async function extractApplication(url: string): Promise<JobAdExtraction> 
   return result.extraction;
 }
 
-export function downloadApplications(applications: Application[]) {
-  const blob = new Blob([JSON.stringify({ exported_at: new Date().toISOString(), applications }, null, 2)], { type: 'application/json;charset=utf-8' });
+export async function downloadApplications(applications: Application[]) {
+  const blob = await applicationsWorkbook(applications);
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
-  link.download = 'cvolution-bewerbungen.json';
+  link.download = 'cvolution-bewerbungen.xlsx';
   document.body.appendChild(link);
   link.click();
   link.remove();

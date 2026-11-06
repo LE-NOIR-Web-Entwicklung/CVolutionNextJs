@@ -1,258 +1,226 @@
-"use client";
-
-import { useState } from "react";
 import Link from "next/link";
-import { ArrowRight, BriefcaseBusiness, Check, FileDown, FileText, LayoutTemplate, Sparkles } from "lucide-react";
+import { ArrowRight, BriefcaseBusiness, CalendarClock, Check, FileText, Sparkles } from "lucide-react";
 
-const features = [
+const steps = [
+  {
+    title: "Lebenslauf erfassen",
+    description: "Tragen Sie Ihre Daten ein oder importieren Sie einen bestehenden CV oder Ihr LinkedIn-PDF.",
+  },
+  {
+    title: "Stelle hinzufügen",
+    description: "Fügen Sie den Link zum Inserat ein. Die KI übernimmt Unternehmen, Stelle und Frist.",
+  },
+  {
+    title: "Schreiben erstellen",
+    description: "Die KI verfasst ein Motivationsschreiben passend zu Stelle und Lebenslauf. Sie prüfen und laden es als Word-Datei herunter.",
+  },
+  {
+    title: "Bewerbung verfolgen",
+    description: "Sie sehen jederzeit Status, Fristen und den nächsten Schritt jeder Bewerbung.",
+  },
+];
+
+const tools = [
   {
     title: "CV Self-Service",
-    label: "Lebenslauf",
-    description: "Profil, Erfahrung, Ausbildung und Fähigkeiten strukturiert erfassen und als professionellen CV exportieren.",
-    eyebrow: "01",
+    description: "Ihr Lebenslauf, einmal erfasst und jederzeit aktuell.",
     icon: FileText,
-    className: "lg:col-span-2",
-    tone: "bg-[#204878] text-white",
-    labelClassName: "text-white/70",
-    descriptionClassName: "text-white/80",
-    iconClassName: "bg-white/10 text-white ring-white/20",
-    details: ["CV-Daten zentral pflegen", "PDF-Export mit Designs", "Import von CV oder LinkedIn-PDF"],
+    items: [
+      "Profil, Erfahrung, Bildung, Sprachen und Fähigkeiten",
+      "Import von CV oder LinkedIn-PDF",
+      "3 Designs: Klassisch, Modern, Zeitlos",
+      "Export als PDF oder Word-Datei",
+    ],
   },
   {
-    title: "AI Motivations-Schreiben",
-    label: "Schreibtool",
-    description: "Separates Formular für Stelle, Unternehmen, Adresse und Inserat mit formatiertem Word-Download.",
-    eyebrow: "02",
+    title: "AI Motivationsschreiben",
+    description: "Ein eigenes Schreiben für jede Stelle.",
     icon: Sparkles,
-    className: "lg:col-span-2",
-    tone: "bg-white text-[#111827]",
-    labelClassName: "text-[#204878]",
-    descriptionClassName: "text-[#64748B]",
-    iconClassName: "bg-[#EEF4FA] text-[#204878] ring-[#D8E4F0]",
-    details: ["Eigener Bereich", "Unternehmensadresse inklusive", "Download als Word-Datei"],
-  },
-  {
-    title: "3 Designs",
-    label: "professionell",
-    description: "Klassisch, modern und zeitlos für unterschiedliche Bewerbungen.",
-    eyebrow: "03",
-    icon: LayoutTemplate,
-    className: "lg:col-span-1",
-    tone: "bg-white text-[#111827]",
-    labelClassName: "text-[#204878]",
-    descriptionClassName: "text-[#64748B]",
-    iconClassName: "bg-[#EEF4FA] text-[#204878] ring-[#D8E4F0]",
-    details: ["Klassisch", "Modern", "Zeitlos"],
+    items: [
+      "Passend zu Inserat und Lebenslauf",
+      "Für Stellen- und Spontanbewerbungen",
+      "Auf Deutsch, Englisch und Französisch",
+      "Text bearbeiten und als Word-Datei herunterladen",
+    ],
   },
   {
     title: "Bewerbungsmanager",
-    label: "Organisation",
-    description: "Inserat-Link einfügen und Stellenangaben mit KI übernehmen. Verwalten Sie Bewerbungen, Schreiben, Status und nächste Aktionen im Self-Service-Abo.",
-    eyebrow: "04",
+    description: "Alle Bewerbungen an einem Ort im Blick.",
     icon: BriefcaseBusiness,
-    className: "lg:col-span-3",
-    tone: "bg-white text-[#111827]",
-    labelClassName: "text-[#204878]",
-    descriptionClassName: "text-[#64748B]",
-    iconClassName: "bg-[#EEF4FA] text-[#204878] ring-[#D8E4F0]",
-    details: ["KI-Inseratimport per Link", "Schreiben pro Stelle", "Status und nächste Aktionen"],
-  },
-  {
-    title: "CHF 13.90",
-    label: "pro Monat",
-    description: "Lebenslauf, Designs, Export, KI-Motivationsschreiben und Bewerbungsmanager mit KI-Inseratimport im gleichen Abo. Unbegrenzte Änderungen & Unbegrenzte Downloads",
-    eyebrow: "Abo",
-    icon: FileDown,
-    className: "lg:col-span-4",
-    tone: "bg-[#EEF4FA] text-[#111827]",
-    labelClassName: "text-[#204878]",
-    descriptionClassName: "text-[#475569]",
-    iconClassName: "bg-white text-[#204878] ring-[#D8E4F0]",
-    details: ["Unbegrenzte Änderungen", "Unbegrenzte Downloads", "CV und AI-Schreiben getrennt"],
+    items: [
+      "Stellenangaben per Link mit KI auslesen",
+      "Schreiben direkt bei der Bewerbung",
+      "Status und Termine bis zur Zusage",
+      "Fristen und nächste Schritte",
+    ],
   },
 ];
 
-const workflows = [
-  {
-    label: "CV Self-Service",
-    title: "Lebenslauf selbst erstellen & pflegen",
-    description:
-      "Erfassen Sie Profil, Berufserfahrung, Ausbildung, Sprachen und Fähigkeiten an einem Ort. Der CV-Bereich bleibt bewusst auf Lebenslauf und Export fokussiert.",
-    points: ["Strukturierte Daten", "CV-Export", "Profilpflege"],
-  },
-  {
-    label: "AI Motivationsschreiben",
-    title: "Schreiben pro Stelle generieren",
-    description:
-      "Das Motivationsschreiben ist ein eigenes Werkzeug: Stelle, Unternehmen, Adresse und Inserat einfügen, Entwurf prüfen und als Word-Datei herunterladen.",
-    points: ["Stellenbezug", "Word-Download", "Entwurf prüfen"],
-  },
-];
-
-const benefits = [
-  "Einfache Benutzeroberfläche",
-  "Professioneller CV-Export",
-  "Word Download für Motivationsschreiben",
-  "Anpassung an konkrete Stellenanzeigen",
-  "Bewerbungen und Schreiben zentral verwalten",
-  "Status, Fristen und nächste Schritte im Blick",
-  "Unbegrenzt veränderbar",
+const included = [
+  "Unbegrenzte Änderungen",
   "Unbegrenzte Downloads",
   "Sichere Datenspeicherung",
   "Zugriff von überall",
 ];
 
 const designs = [
-  {
-    title: "Klassisch",
-    image: "/images/cv-designs/cv-design-klassisch.png",
-  },
-  {
-    title: "Modern",
-    image: "/images/cv-designs/cv-design-modern.png",
-  },
-  {
-    title: "Zeitlos",
-    image: "/images/cv-designs/cv-design-zeitlos.png",
-  },
+  { title: "Klassisch", image: "/images/cv-designs/cv-design-klassisch.png" },
+  { title: "Modern", image: "/images/cv-designs/cv-design-modern.png" },
+  { title: "Zeitlos", image: "/images/cv-designs/cv-design-zeitlos.png" },
 ];
 
-function DesignShowcase() {
-  const [isOpen, setIsOpen] = useState(false);
+// Fictional entries for the product preview in the hero.
+const previewApplications = [
+  { title: "Teamleitung Beratung", company: "Muster AG", status: "Gespräch", statusClass: "border-amber-200 bg-amber-50 text-amber-800", next: "Gespräch vorbereiten" },
+  { title: "Projektleitung", company: "Beispiel GmbH", status: "Versendet", statusClass: "border-blue-200 bg-blue-50 text-blue-800", next: "Telefonisch nachfassen" },
+  { title: "Sachbearbeitung HR", company: "Vorlage AG", status: "Entwurf", statusClass: "border-slate-200 bg-slate-50 text-slate-600", next: "Unterlagen versenden" },
+];
 
-  return (
-    <div className="rounded-2xl border border-gray-100 bg-white shadow-sm">
-      <button
-        type="button"
-        onClick={() => setIsOpen(!isOpen)}
-        className="flex w-full items-center justify-between gap-4 px-6 py-5 text-left"
-      >
-        <div>
-          <h2 className="text-xl font-semibold text-[#111827]">Unsere 3 professionellen Designs</h2>
-          <p className="mt-1 text-sm text-[#64748B]">Wählen Sie den Stil, der zu Ihrer Bewerbung passt.</p>
-        </div>
-        <svg
-          className={`h-5 w-5 shrink-0 text-[#64748B] transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-        </svg>
-      </button>
-
-      <div className={`overflow-hidden transition-all duration-300 ${isOpen ? "max-h-[4200px] opacity-100" : "max-h-0 opacity-0"}`}>
-        <div className="grid gap-5 border-t border-gray-100 p-6 md:grid-cols-3">
-          {designs.map((design) => (
-            <div key={design.title} className="overflow-hidden rounded-xl border border-gray-100 bg-[#F8FAFC]">
-              <div className="aspect-[1/1.38]">
-                <img src={design.image} alt={`Lebenslauf Design ${design.title}`} className="h-full w-full object-cover" />
-              </div>
-              <div className="border-t border-gray-100 bg-white px-4 py-3">
-                <h3 className="text-center text-sm font-semibold text-[#111827]">{design.title}</h3>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
+const startButton = "inline-flex items-center justify-center gap-2 rounded-lg px-6 py-3 text-sm font-semibold transition-colors duration-200";
 
 export default function Self() {
   return (
     <main className="min-h-screen bg-[#F8FAFC]">
-      <section className="py-20 sm:py-24">
-        <div className="mx-auto max-w-6xl px-6">
-          <div className="mx-auto max-w-3xl text-center">
-            <p className="mb-4 text-sm font-semibold uppercase tracking-wide text-[#204878]">Self-Service</p>
-            <h1 className="text-4xl font-semibold tracking-tight text-[#111827] sm:text-5xl">
-              CV Self-Service & <br /> AI Motivationsschreiben
+      <section className="border-b border-slate-200 bg-white">
+        <div className="mx-auto grid max-w-6xl items-center gap-10 px-6 py-14 sm:py-20 lg:grid-cols-[minmax(0,1fr)_24rem] lg:gap-16">
+          <div>
+            <p className="text-sm font-semibold text-[#204878]">Self-Service</p>
+            <h1 className="mt-3 text-4xl font-semibold leading-tight tracking-tight text-balance text-[#111827] sm:text-5xl">
+              Von der Stellenanzeige zur fertigen Bewerbung
             </h1>
-            <p className="mx-auto mt-5 max-w-2xl text-lg leading-relaxed text-[#64748B]">
-              Pflegen Sie zuerst Ihren Lebenslauf im Self-Service. <br /> Danach erstellen Sie im separaten AI-Bereich ein passendes Motivationsschreiben mit Stellenanzeige und Unternehmensadresse.
+            <p className="mt-5 max-w-xl text-lg leading-relaxed text-[#64748B]">
+              Lebenslauf, Motivationsschreiben und alle Ihre Bewerbungen an einem Ort. Sie erledigen alles selbst, die KI hilft beim Schreiben.
             </p>
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
+              <Link href="/self/login" className={`${startButton} bg-[#204878] text-white hover:bg-[#1a3a66]`}>
+                Jetzt Self-Service starten
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+              <a href="#ablauf" className={`${startButton} border border-slate-200 bg-white text-slate-700 hover:bg-slate-50`}>
+                So funktioniert es
+              </a>
+            </div>
+            <p className="mt-4 text-sm text-[#64748B]">CHF 13.90 pro Monat, alles inklusive.</p>
           </div>
 
-          <div className="mt-10 flex justify-center">
-            <Link
-              href="/self/login"
-              className="inline-flex items-center justify-center rounded-xl bg-[#204878] px-7 py-3.5 text-sm font-semibold text-white shadow-sm transition-colors duration-200 hover:bg-[#1a3a66]"
-            >
-              Jetzt Self-Service starten
-            </Link>
-          </div>
-
-          <div className="mt-12 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            {features.map((feature) => (
-              <article
-                key={feature.title}
-                className={`${feature.className} group flex min-h-64 flex-col justify-between rounded-lg border border-slate-200/80 p-6 shadow-[0_14px_45px_rgba(32,72,120,0.08)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_20px_60px_rgba(32,72,120,0.14)] ${feature.tone}`}
-              >
-                <div>
-                  <div className="flex items-center justify-between gap-4">
-                    <div className={`flex h-11 w-11 items-center justify-center rounded-md ring-1 ring-inset ${feature.iconClassName}`}>
-                      <feature.icon className="h-5 w-5" />
+          <div aria-hidden="true" className="hidden rounded-lg border border-slate-200 bg-white p-5 shadow-[0_12px_32px_rgba(32,72,120,0.1)] lg:block">
+            <p className="font-semibold text-[#111827]">Bewerbungen</p>
+            <div className="mt-3 flex gap-1.5 text-xs">
+              <span className="rounded-full bg-[#204878] px-2.5 py-1 text-white">Alle 3</span>
+              <span className="rounded-full border border-slate-200 px-2.5 py-1 text-slate-600">Offen 2</span>
+              <span className="rounded-full border border-slate-200 px-2.5 py-1 text-slate-600">Fällig 1</span>
+            </div>
+            <ul className="mt-3 divide-y divide-slate-100">
+              {previewApplications.map((application) => (
+                <li key={application.title} className="py-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-semibold text-[#111827]">{application.title}</p>
+                      <p className="text-xs text-[#64748B]">{application.company}</p>
                     </div>
-                    <span className={`text-xs font-semibold uppercase tracking-wide ${feature.labelClassName}`}>{feature.eyebrow}</span>
+                    <span className={`shrink-0 rounded-full border px-2 py-0.5 text-xs font-medium ${application.statusClass}`}>{application.status}</span>
                   </div>
-                  <p className={`mt-6 text-xs font-semibold uppercase tracking-wide ${feature.labelClassName}`}>{feature.label}</p>
-                  <h2 className="mt-2 max-w-sm text-2xl font-semibold leading-tight text-balance sm:text-3xl">{feature.title}</h2>
-                  <p className={`mt-4 max-w-md text-sm leading-relaxed ${feature.descriptionClassName}`}>{feature.description}</p>
+                  <p className="mt-1.5 flex items-center gap-1.5 text-xs text-[#64748B]">
+                    <CalendarClock className="h-3.5 w-3.5 shrink-0" />
+                    {application.next}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section id="ablauf" className="scroll-mt-24 py-14 sm:py-20">
+        <div className="mx-auto max-w-6xl px-6">
+          <h2 className="text-2xl font-semibold tracking-tight text-[#111827] sm:text-3xl">So funktioniert es</h2>
+          <p className="mt-2 text-base text-[#64748B]">In vier Schritten zur Bewerbung. Den Lebenslauf erfassen Sie nur einmal.</p>
+
+          <ol className="mt-10 grid gap-8 lg:grid-cols-4 lg:gap-6">
+            {steps.map((step, index) => (
+              <li key={step.title} className="relative flex gap-4 lg:block">
+                {index < steps.length - 1 && (
+                  <span aria-hidden="true" className="absolute left-5 top-10 -bottom-8 w-px bg-slate-300 lg:bottom-auto lg:left-12 lg:right-0 lg:top-5 lg:h-px lg:w-auto" />
+                )}
+                <span className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#204878] text-sm font-semibold text-white">
+                  {index + 1}
+                </span>
+                <div className="lg:mt-4 lg:pr-4">
+                  <h3 className="font-semibold text-[#111827]">{step.title}</h3>
+                  <p className="mt-1.5 text-sm leading-relaxed text-[#64748B]">{step.description}</p>
                 </div>
-                {/* <ul className="mt-7 grid gap-2 sm:grid-cols-3 lg:grid-cols-none xl:grid-cols-3">
-                  {feature.details.map((detail) => (
-                    <li key={detail} className={`flex items-center gap-2 text-sm ${feature.descriptionClassName}`}>
-                      <Check className="h-4 w-4 shrink-0" />
-                      <span>{detail}</span>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </section>
+
+      <section className="border-y border-slate-200 bg-white py-14 sm:py-20">
+        <div className="mx-auto max-w-6xl px-6">
+          <h2 className="text-2xl font-semibold tracking-tight text-[#111827] sm:text-3xl">Das ist alles enthalten</h2>
+          <p className="mt-2 text-base text-[#64748B]">Drei Werkzeuge, die zusammenarbeiten, in einem Abo.</p>
+
+          <div className="mt-10 grid gap-5 lg:grid-cols-3">
+            {tools.map((tool) => (
+              <article key={tool.title} className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+                <span className="flex h-10 w-10 items-center justify-center rounded-md bg-[#EEF4FA] text-[#204878]">
+                  <tool.icon className="h-5 w-5" />
+                </span>
+                <h3 className="mt-4 text-lg font-semibold text-[#111827]">{tool.title}</h3>
+                <p className="mt-1 text-sm text-[#64748B]">{tool.description}</p>
+                <ul className="mt-5 space-y-2.5 border-t border-slate-100 pt-5">
+                  {tool.items.map((item) => (
+                    <li key={item} className="flex items-start gap-2.5 text-sm text-slate-700">
+                      <Check className="mt-0.5 h-4 w-4 shrink-0 text-[#204878]" />
+                      <span>{item}</span>
                     </li>
                   ))}
-                </ul> */}
+                </ul>
               </article>
             ))}
           </div>
+        </div>
+      </section>
 
-          <div className="mt-8 grid gap-6 lg:grid-cols-2">
-            {workflows.map((workflow) => (
-              <section key={workflow.label} className="rounded-lg border border-slate-200/80 bg-white p-7 shadow-[0_14px_45px_rgba(32,72,120,0.07)]">
-                <div className="flex items-start justify-between gap-6">
-                  <div>
-                    <p className="text-xs font-semibold uppercase tracking-wide text-[#204878]">{workflow.label}</p>
-                    <h2 className="mt-3 text-2xl font-semibold leading-tight text-[#111827]">{workflow.title}</h2>
-                  </div>
-                  <ArrowRight className="mt-1 h-5 w-5 shrink-0 text-[#204878]" />
+      <section className="py-14 sm:py-20">
+        <div className="mx-auto max-w-6xl px-6">
+          <h2 className="text-2xl font-semibold tracking-tight text-[#111827] sm:text-3xl">3 Designs für Ihren Lebenslauf</h2>
+          <p className="mt-2 text-base text-[#64748B]">Wählen Sie beim Export den Stil, der zu Ihrer Bewerbung passt.</p>
+
+          <div className="mt-10 grid gap-5 sm:grid-cols-3">
+            {designs.map((design) => (
+              <figure key={design.title} className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
+                <div className="aspect-[1/1.38]">
+                  <img src={design.image} alt={`Lebenslauf Design ${design.title}`} className="h-full w-full object-cover" />
                 </div>
-                <p className="mt-4 max-w-prose text-base leading-relaxed text-[#64748B]">{workflow.description}</p>
-                <div className="mt-6 flex flex-wrap gap-2">
-                  {workflow.points.map((point) => (
-                    <span key={point} className="rounded-md bg-[#EEF4FA] px-3 py-1.5 text-xs font-semibold text-[#204878]">
-                      {point}
-                    </span>
-                  ))}
-                </div>
-              </section>
+                <figcaption className="border-t border-slate-100 px-4 py-3 text-center text-sm font-semibold text-[#111827]">{design.title}</figcaption>
+              </figure>
             ))}
           </div>
+        </div>
+      </section>
 
-          <div className="mt-8 space-y-8">
-            <div className="rounded-2xl border border-gray-100 bg-white p-8 shadow-sm">
-              <h2 className="text-2xl font-semibold text-[#111827]">Alles für Ihre Bewerbung</h2>
-              <p className="mt-4 text-base leading-relaxed text-[#64748B]">
-                Der Self-Service ist ideal, wenn Sie Ihre Bewerbungsunterlagen selbst pflegen möchten, aber trotzdem eine professionelle Struktur und Formulierung wünschen.
+      <section className="pb-14 sm:pb-20">
+        <div className="mx-auto max-w-6xl px-6">
+          <div className="grid gap-8 rounded-lg bg-[#204878] p-6 text-white sm:p-10 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
+            <div>
+              <p className="text-sm font-medium text-white/70">Self-Service-Abo</p>
+              <p className="mt-2 text-4xl font-semibold tracking-tight">
+                CHF 13.90 <span className="text-lg font-normal text-white/70">pro Monat</span>
               </p>
-              <ul className="mt-6 grid gap-3 sm:grid-cols-2">
-                {benefits.map((benefit) => (
-                  <li key={benefit} className="flex items-start gap-3 text-sm text-[#64748B]">
-                    <svg className="mt-0.5 h-5 w-5 shrink-0 text-[#204878]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                    </svg>
-                    <span>{benefit}</span>
+              <ul className="mt-6 grid gap-2.5 sm:grid-cols-2">
+                {included.map((item) => (
+                  <li key={item} className="flex items-center gap-2.5 text-sm text-white/90">
+                    <Check className="h-4 w-4 shrink-0" />
+                    <span>{item}</span>
                   </li>
                 ))}
               </ul>
             </div>
-
-            <DesignShowcase />
+            <Link href="/self/login" className={`${startButton} bg-white text-[#204878] hover:bg-[#EEF4FA]`}>
+              Jetzt Self-Service starten
+              <ArrowRight className="h-4 w-4" />
+            </Link>
           </div>
         </div>
       </section>

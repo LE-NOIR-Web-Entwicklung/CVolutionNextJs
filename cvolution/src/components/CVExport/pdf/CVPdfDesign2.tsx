@@ -25,15 +25,34 @@ interface CVPdfDesign2Props {
 // - Titel, Firma und Arbeitsort bleiben zusammen auf einer Seite (wrap={false})
 // - Leere Felder werden komplett weggelassen
 // - Kompakte Abstaende, damit der CV wenn moeglich auf eine Seite passt
+const SIDEBAR_WIDTH = 62;
+const SIDEBAR_COLOR = '#EFEFEF';
+
 const styles = StyleSheet.create({
   page: {
     fontSize: 10,
     fontFamily: 'Helvetica',
     paddingTop: 24,
     paddingBottom: 24,
-    paddingLeft: 56,
-    paddingRight: 56,
+    paddingLeft: 84,
+    paddingRight: 84,
     color: '#252525',
+  },
+  sidebarLeft: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    left: 0,
+    width: SIDEBAR_WIDTH,
+    backgroundColor: SIDEBAR_COLOR,
+  },
+  sidebarRight: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    right: 0,
+    width: SIDEBAR_WIDTH,
+    backgroundColor: SIDEBAR_COLOR,
   },
   header: {
     flexDirection: 'row',
@@ -164,6 +183,9 @@ export const CVPdfDesign2: React.FC<CVPdfDesign2Props> = ({
   return (
     <Document>
       <Page size="A4" style={styles.page} wrap>
+        <View style={styles.sidebarLeft} fixed />
+        <View style={styles.sidebarRight} fixed />
+
         {/* Header: Name links, Foto rechts */}
         <View style={styles.header}>
           <View style={styles.headerText}>

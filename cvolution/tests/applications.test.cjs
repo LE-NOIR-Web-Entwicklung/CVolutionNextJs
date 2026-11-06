@@ -75,7 +75,7 @@ test('application defaults are independent and cover every status', () => {
   const first = domain().emptyApplication();
   first.motivation_form.company = 'changed';
   assert.equal(domain().emptyApplication().motivation_form.company, '');
-  assert.deepEqual(Object.keys(domain().APPLICATION_STATUSES), ['draft', 'sent', 'interview', 'offer', 'rejected', 'withdrawn']);
+  assert.deepEqual(Object.keys(domain().APPLICATION_STATUSES), ['draft', 'sent', 'interview', 'interview2', 'offer', 'rejected', 'withdrawn']);
 });
 
 test('validation normalizes ownership-free data and keeps letter paragraphs', () => {
@@ -116,10 +116,12 @@ test('search, status and next-action sorting work with overdue and closed applic
   assert.equal(domain().isActionDue(rows[0], '2026-11-03'), false);
   assert.equal(domain().isActionDue(rows[2], '2026-11-03'), false);
   assert.equal(domain().isActionDue({ ...rows[0], next_action_at: null }, '2026-11-03'), false);
-  assert.deepEqual(domain().filterApplications(rows, '', 'all', 'open', '2026-11-03').map((row) => row.id), ['b', 'a']);
-  assert.deepEqual(domain().filterApplications(rows, '', 'all', 'due', '2026-11-03').map((row) => row.id), ['b']);
-  assert.deepEqual(domain().filterApplications(rows, 'andere', 'all', 'due', '2026-11-03').map((row) => row.id), ['b']);
-  assert.deepEqual(domain().filterApplications(rows, '', 'sent', 'due', '2026-11-03').map((row) => row.id), []);
+  assert.deepEqual(domain().filterApplications(rows, '', 'all', 'open').map((row) => row.id), ['b', 'a']);
+  assert.deepEqual(domain().filterApplications(rows, '', 'all', 'interview').map((row) => row.id), ['b']);
+  assert.deepEqual(domain().filterApplications(rows, '', 'all', 'interview2').map((row) => row.id), []);
+  assert.deepEqual(domain().filterApplications(rows, '', 'all', 'rejected').map((row) => row.id), ['c']);
+  assert.deepEqual(domain().filterApplications(rows, 'andere', 'all', 'interview').map((row) => row.id), ['b']);
+  assert.deepEqual(domain().filterApplications(rows, '', 'all', 'offer').map((row) => row.id), []);
 });
 
 test('date-only reminders use Zurich midnight and extracting input drops record metadata', (t) => {
@@ -253,15 +255,30 @@ test('database failures do not leak details or return success', async () => {
   }
 });
 
-test('status changes keep the dispatch date consistent', () => {
-  const draft = { status: 'draft', applied_at: null };
-  assert.deepEqual(domain().withApplicationStatus(draft, 'sent', '2026-11-03'), { status: 'sent', applied_at: '2026-11-03' });
-  assert.deepEqual(domain().withApplicationStatus({ status: 'sent', applied_at: '2026-10-01' }, 'interview', '2026-11-03'), { status: 'interview', applied_at: '2026-10-01' });
-  assert.deepEqual(domain().withApplicationStatus(draft, 'interview', '2026-11-03'), { status: 'interview', applied_at: null });
-  assert.deepEqual(domain().withApplicationStatus({ status: 'sent', applied_at: '2026-10-01' }, 'draft'), { status: 'draft', applied_at: null });
-  assert.deepEqual(domain().withAppliedAt(draft, '2026-11-01'), { status: 'sent', applied_at: '2026-11-01' });
-  assert.deepEqual(domain().withAppliedAt(draft, '01.11'), { status: 'draft', applied_at: '01.11' });
-  assert.deepEqual(domain().withAppliedAt({ status: 'interview', applied_at: '2026-10-01' }, null), { status: 'interview', applied_at: null });
-  assert.deepEqual(['draft', 'sent', 'interview', 'offer', 'rejected', 'withdrawn'].map(domain().applicationStepIndex), [0, 1, 2, 3, 3, 3]);
-  assert.deepEqual(domain().NEXT_STEP_SUGGESTIONS.rejected, []);
+test('status changes and step dates stay consistent', () => {
+  const start = { status: 'draft', applied_at: null, interview1_at: null, interview2_at: null, decision_at: null };
+  const { withApplicationStatus: status, withApplicationDate: date, previousApplicationStatus: previous, applicationStatusDate: statusDate } = domain();
+  assert.equal(status(start, 'sent', '2026-11-03').applied_at, '2026-11-03');
+  assert.equal(status({ ...start, applied_at: '2026-10-01' }, 'sent', '2026-11-03').applied_at, '2026-10-01');
+  assert.equal(status(start, 'interview', '2026-11-03').interview1_at, null, 'Interview dates are entered, not assumed');
+  assert.equal(status(start, 'rejected', '2026-11-03').decision_at, '2026-11-03');
+  assert.equal(status({ ...start, status: 'sent', applied_at: '2026-10-01' }, 'draft').applied_at, null);
+  assert.equal(date(start, 'applied_at', '2026-11-01').status, 'sent');
+  assert.equal(date(start, 'applied_at', '01.11').status, 'draft');
+  assert.equal(date({ ...start, status: 'sent' }, 'interview2_at', '2026-11-20').status, 'interview2');
+  assert.equal(date({ ...start, status: 'interview2' }, 'interview1_at', '2026-11-10').status, 'interview2', 'Earlier dates never move an application back');
+  assert.equal(date({ ...start, status: 'sent' }, 'decision_at', '2026-11-20').status, 'sent', 'A decision date alone does not pick an outcome');
+  assert.equal(date({ ...start, status: 'withdrawn' }, 'interview1_at', '2026-11-20').status, 'withdrawn');
+  assert.equal(previous({ ...start, status: 'offer', applied_at: '2026-10-01', interview1_at: '2026-10-10' }), 'interview');
+  assert.equal(previous({ ...start, status: 'interview2', applied_at: '2026-10-01' }), 'sent');
+  assert.equal(previous({ ...start, status: 'sent', applied_at: '2026-10-01' }), 'draft');
+  assert.equal(statusDate({ ...start, status: 'interview2', interview2_at: '2026-11-20' }), '2026-11-20');
+  assert.equal(statusDate({ ...start, status: 'rejected', decision_at: '2026-11-21' }), '2026-11-21');
+  assert.equal(statusDate(start), null);
+  assert.deepEqual(['draft', 'sent', 'interview', 'interview2', 'offer', 'rejected'].map(domain().applicationStepIndex), [0, 1, 2, 3, 4, 4]);
+});
+
+test('requests from older tabs without the new date fields stay valid', () => {
+  const { interview1_at, interview2_at, decision_at, ...older } = valid();
+  assert.equal(domain().parseApplicationInput(older).interview1_at, null);
 });

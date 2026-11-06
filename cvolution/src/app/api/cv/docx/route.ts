@@ -2,18 +2,20 @@ import { NextRequest, NextResponse } from "next/server";
 import {
   BorderStyle,
   Document,
+  Header,
+  HeightRule,
+  HorizontalPositionRelativeFrom,
   ImageRun,
   LineRuleType,
   Packer,
-  PageBorderDisplay,
-  PageBorderOffsetFrom,
-  PageBorderZOrder,
   Paragraph,
   Table,
   TableCell,
   TableLayoutType,
   TableRow,
   TextRun,
+  TextWrappingType,
+  VerticalPositionRelativeFrom,
   WidthType,
 } from "docx";
 import { supabaseAdmin } from "../../../../../lib/supabase-server";
@@ -182,12 +184,44 @@ const THEMES: Record<CvDesign, Theme> = {
   },
 };
 
-// Kompakte Seitenraender je Design (Twips)
+// Seitenraender je Design (Twips); Modern und Zeitlos lassen Platz fuer die Seitenbalken
 const PAGE = {
-  design1: { top: 480, bottom: 480, left: 1160, right: 1160, content: 11906 - 2 * 1160 },
-  design2: { top: 480, bottom: 480, left: 1120, right: 1120, content: 11906 - 2 * 1120 },
-  design3: { top: 480, bottom: 480, left: 1040, right: 1040, content: 11906 - 2 * 1040 },
+  design1: { top: 480, bottom: 480, left: 1680, right: 1680, content: 11906 - 2 * 1680 },
+  design2: { top: 480, bottom: 480, left: 1680, right: 1680, content: 11906 - 2 * 1680 },
+  design3: { top: 800, bottom: 800, left: 1040, right: 1040, content: 11906 - 2 * 1040 },
 };
+
+// Seitenbalken (PDF: 62pt) als einfarbige 1x1-PNGs, im Header bis an den Seitenrand gestreckt.
+// Word-Seitenraender sind auf 12pt begrenzt und koennen diese Breite nicht darstellen.
+const SIDEBAR_PNG: Partial<Record<CvDesign, string>> = {
+  design1: "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAACXBIWXMAAAPoAAAD6AG1e1JrAAAADElEQVQImWNgiG4CAAE8AN5qYO1pAAAAAElFTkSuQmCC",
+  design2: "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAACXBIWXMAAAPoAAAD6AG1e1JrAAAADElEQVQImWN4//49AAWeAs67FjpyAAAAAElFTkSuQmCC",
+};
+const SIDEBAR_W_PX = 83;
+const PAGE_H_PX = 1123;
+const EMU_PER_PX = 9525;
+const PAGE_W_EMU = 11906 * 635;
+
+function sidebarParagraph(png: string) {
+  const data = Buffer.from(png, "base64");
+  const bar = (offset: number) =>
+    new ImageRun({
+      type: "png",
+      data,
+      transformation: { width: SIDEBAR_W_PX, height: PAGE_H_PX },
+      floating: {
+        horizontalPosition: { relative: HorizontalPositionRelativeFrom.PAGE, offset },
+        verticalPosition: { relative: VerticalPositionRelativeFrom.PAGE, offset: 0 },
+        behindDocument: true,
+        allowOverlap: true,
+        wrap: { type: TextWrappingType.NONE },
+      },
+    });
+  return new Paragraph({
+    children: [bar(0), bar(PAGE_W_EMU - SIDEBAR_W_PX * EMU_PER_PX)],
+    spacing: { before: 0, after: 0, line: 20, lineRule: LineRuleType.EXACT },
+  });
+}
 
 const NO_BORDER = { style: BorderStyle.NONE, size: 0, color: "FFFFFF" } as const;
 const CELL_NO_BORDERS = { top: NO_BORDER, bottom: NO_BORDER, left: NO_BORDER, right: NO_BORDER };
@@ -205,10 +239,14 @@ const NO_CELL_MARGINS = { top: 0, bottom: 0, left: 0, right: 0 };
 const PHOTO_W_PX = 123;
 const PHOTO_H_PX = 147;
 const PHOTO_CELL_W = 92 * 20 + 80;
+// Klassisch: Personalien-Zeilen (Twips) und geschaetzte Zeichen pro Zeile der Wertespalte
+const CLASSIC_ROW_MIN = 300;
+const CLASSIC_HEADER_MIN = 1920;
+const CLASSIC_VALUE_CHARS = 58;
 
 type Photo = { data: Buffer; type: "jpg" | "png" };
 
-async function fetchProfilePhoto(url?: string | null): Promise<Photo | null> {
+async function fetchProfilePhoto(url?: string | null, heightPx = PHOTO_H_PX): Promise<Photo | null> {
   if (!url || !/^https:\/\//i.test(url)) return null;
   try {
     const controller = new AbortController();
@@ -225,7 +263,7 @@ async function fetchProfilePhoto(url?: string | null): Promise<Photo | null> {
       const sharp = (await import("sharp")).default;
       const cropped = await sharp(raw)
         .rotate() // EXIF-Orientierung korrigieren
-        .resize(PHOTO_W_PX * 3, PHOTO_H_PX * 3, { fit: "cover", position: "centre" })
+        .resize(PHOTO_W_PX * 3, heightPx * 3, { fit: "cover", position: "centre" })
         .jpeg({ quality: 88 })
         .toBuffer();
       return { data: cropped, type: "jpg" };
@@ -240,15 +278,16 @@ async function fetchProfilePhoto(url?: string | null): Promise<Photo | null> {
   }
 }
 
-function photoParagraph(photo: Photo, theme: Theme) {
+function photoParagraph(photo: Photo, theme: Theme, heightPx = PHOTO_H_PX) {
   return new Paragraph({
     children: [
       new ImageRun({
         type: photo.type,
         data: photo.data,
-        transformation: { width: PHOTO_W_PX, height: PHOTO_H_PX },
+        transformation: { width: PHOTO_W_PX, height: heightPx },
       }),
     ],
+    spacing: { line: 240, lineRule: LineRuleType.AUTO },
     border: {
       top: { style: BorderStyle.SINGLE, size: 4, color: theme.photoBorder },
       bottom: { style: BorderStyle.SINGLE, size: 4, color: theme.photoBorder },
@@ -262,10 +301,10 @@ function run(text: string, opts: { size?: number; bold?: boolean; color?: string
   return new TextRun({ text, font: FONT, size: opts.size ?? 19, bold: opts.bold, color: opts.color });
 }
 
-function sectionTitle(text: string, theme: Theme, opts: { first?: boolean; size?: number } = {}) {
+function sectionTitle(text: string, theme: Theme, opts: { first?: boolean; size?: number; roomy?: boolean } = {}) {
   return new Paragraph({
     children: [run(text, { size: opts.size ?? 24, bold: true, color: theme.section })],
-    spacing: { before: opts.first ? 0 : 120, after: 60 },
+    spacing: { before: opts.first ? 0 : opts.roomy ? 280 : 120, after: opts.roomy ? 120 : 60 },
     keepNext: true,
     border: {
       bottom: { style: BorderStyle.SINGLE, size: theme.sectionBorderSize, color: theme.sectionBorder, space: 2 },
@@ -309,7 +348,7 @@ function layoutCell(children: (Paragraph | Table)[], width: number, opts: { vAli
 
 // Kontaktzeilen als Label/Wert-Tabelle (PDF: contactLabel width 80/90pt)
 function contactTable(
-  rows: Array<{ label: string; value: string; bold?: boolean; valueSize?: number }>,
+  rows: Array<{ label: string; value: string; bold?: boolean; valueSize?: number; height?: number }>,
   labelWidth: number,
   totalWidth: number,
   theme: Theme,
@@ -319,6 +358,7 @@ function contactTable(
     rows.map(
       (row, idx) =>
         new TableRow({
+          height: row.height ? { value: row.height, rule: HeightRule.ATLEAST } : undefined,
           children: [
             layoutCell(
               [
@@ -409,35 +449,29 @@ function itemsTableDesign3(items: any[], theme: Theme, kind: "experience" | "edu
     const range = `${formatDate(item.start_date)} - ${item.is_current ? "heute" : formatDate(item.end_date)}`;
     const bullets = extractBullets(item.description, kind === "experience" ? getMaxBullets(idx) : 3);
     const isLast = idx === items.length - 1;
-    // Kompakter Abstand zwischen Eintraegen (4pt)
-    const gapAfter = isLast ? 0 : 80;
+    // Abstand zwischen Eintraegen (8pt)
+    const gapAfter = isLast ? 0 : 160;
     const hasBullets = bullets.length > 0;
 
     const body: Paragraph[] = [
+      // Stellentitel, Arbeitgeber und Ort auf einer Zeile
       new Paragraph({
-        children: [run(title, { size: 20, bold: true })],
-        spacing: { after: meta || hasBullets ? 20 : gapAfter },
-        keepNext: Boolean(meta) || hasBullets,
+        children: [
+          run(title, { size: 20, bold: true }),
+          ...(meta ? [run(title ? `, ${meta}` : meta, { size: 20, color: theme.meta })] : []),
+        ],
+        spacing: { after: hasBullets ? 40 : gapAfter },
+        keepNext: hasBullets,
         keepLines: true,
       }),
     ];
-    if (meta) {
-      body.push(
-        new Paragraph({
-          children: [run(meta, { color: theme.meta })],
-          spacing: { after: hasBullets ? 20 : gapAfter },
-          keepNext: hasBullets,
-          keepLines: true,
-        })
-      );
-    }
     bullets.forEach((bullet, bulletIdx) => {
       body.push(
         new Paragraph({
           children: [run(bullet)],
           bullet: { level: 0 },
           indent: { left: 360, hanging: 200 },
-          spacing: { after: bulletIdx === bullets.length - 1 ? gapAfter : 10 },
+          spacing: { after: bulletIdx === bullets.length - 1 ? gapAfter : 30 },
         })
       );
     });
@@ -605,7 +639,19 @@ export async function POST(request: NextRequest) {
     .filter(([, value]) => typeof value === "string" && value.trim())
     .map(([label, value]) => ({ label, value: (value as string).trim() }));
 
-  const photo = await fetchProfilePhoto(profile.profile_picture_url);
+  // Klassisch: Foto genau so hoch wie die Personalien, Zeilen fuellen mindestens die Fotohoehe
+  const classicRows = [
+    ...(profile.full_name ? [{ label: "Name", value: String(profile.full_name), bold: true, valueSize: 22 }] : []),
+    ...contactRows,
+  ];
+  const classicRowHeight = Math.max(CLASSIC_ROW_MIN, Math.ceil(CLASSIC_HEADER_MIN / Math.max(classicRows.length, 1)));
+  const classicHeaderRows = classicRows.map((row) => ({
+    ...row,
+    height: classicRowHeight * Math.ceil(row.value.length / CLASSIC_VALUE_CHARS || 1),
+  }));
+  const classicPhotoHeight = Math.round(classicHeaderRows.reduce((sum, row) => sum + row.height, 0) / 15);
+
+  const photo = await fetchProfilePhoto(profile.profile_picture_url, design === "design3" ? classicPhotoHeight : PHOTO_H_PX);
   const hasKnowledge = preparedLanguages.length > 0 || abilities.length > 0 || driverLicenses.length > 0;
 
   const children: (Paragraph | Table)[] = [];
@@ -615,15 +661,12 @@ export async function POST(request: NextRequest) {
     children.push(
       new Paragraph({
         children: [run("Lebenslauf", { size: 30, bold: true })],
-        spacing: { after: 120 },
+        spacing: { after: 200 },
         border: { bottom: { style: BorderStyle.SINGLE, size: 12, color: "000000", space: 4 } },
       })
     );
 
-    const headerRows = [
-      ...(profile.full_name ? [{ label: "Name", value: profile.full_name, bold: true, valueSize: 22 }] : []),
-      ...contactRows,
-    ];
+    const headerRows = classicHeaderRows;
     if (headerRows.length > 0 || photo) {
       const contactWidth = page.content - (photo ? PHOTO_CELL_W : 0);
       const headerCells = [
@@ -633,7 +676,7 @@ export async function POST(request: NextRequest) {
         ),
       ];
       if (photo) {
-        headerCells.push(layoutCell([photoParagraph(photo, theme)], PHOTO_CELL_W));
+        headerCells.push(layoutCell([photoParagraph(photo, theme, classicPhotoHeight)], PHOTO_CELL_W));
       }
       children.push(
         layoutTable(
@@ -645,15 +688,15 @@ export async function POST(request: NextRequest) {
     }
 
     if (experiences.length > 0) {
-      children.push(sectionTitle("Berufliche Erfahrung", theme, { size: 23 }));
+      children.push(sectionTitle("Berufliche Erfahrung", theme, { size: 23, roomy: true }));
       children.push(itemsTableDesign3(experiences, theme, "experience", page.content));
     }
     if (education.length > 0) {
-      children.push(sectionTitle("Aus- & Weiterbildungen", theme, { size: 23 }));
+      children.push(sectionTitle("Aus- & Weiterbildungen", theme, { size: 23, roomy: true }));
       children.push(itemsTableDesign3(education, theme, "education", page.content));
     }
     if (hasKnowledge) {
-      children.push(sectionTitle("Kenntnisse & Fähigkeiten", theme, { size: 23 }));
+      children.push(sectionTitle("Kenntnisse & Fähigkeiten", theme, { size: 23, roomy: true }));
       children.push(knowledgeTable(theme, page.content, 2100, preparedLanguages, abilities, driverLicenses));
     }
   } else {
@@ -729,7 +772,7 @@ export async function POST(request: NextRequest) {
     if (contactRows.length > 0) {
       children.push(sectionTitle("Kontaktdaten", theme, { first: true }));
       children.push(
-        contactTable(contactRows, 1600, page.content, theme, design === "design2" ? theme.meta : undefined)
+        contactTable(contactRows, 1800, page.content, theme, design === "design2" ? theme.meta : undefined)
       );
     }
 
@@ -749,6 +792,8 @@ export async function POST(request: NextRequest) {
     }
   }
 
+  const sidebar = SIDEBAR_PNG[design];
+
   const docxDocument = new Document({
     creator: "CVolution",
     title: "Lebenslauf",
@@ -757,7 +802,7 @@ export async function POST(request: NextRequest) {
       default: {
         document: {
           run: { font: FONT, size: 19 },
-          paragraph: { spacing: { before: 0, after: 0, line: 240, lineRule: LineRuleType.AUTO } },
+          paragraph: { spacing: { before: 0, after: 0, line: design === "design3" ? 276 : 240, lineRule: LineRuleType.AUTO } },
         },
       },
     },
@@ -766,24 +811,13 @@ export async function POST(request: NextRequest) {
         properties: {
           page: {
             size: { width: 11906, height: 16838 },
-            margin: { top: page.top, right: page.right, bottom: page.bottom, left: page.left },
-            // Design 1: blaue Seitenbalken links+rechts auf jeder Seite
-            ...(design === "design1"
-              ? {
-                  borders: {
-                    pageBorders: {
-                      display: PageBorderDisplay.ALL_PAGES,
-                      offsetFrom: PageBorderOffsetFrom.PAGE,
-                      zOrder: PageBorderZOrder.FRONT,
-                    },
-                    pageBorderLeft: { style: BorderStyle.SINGLE, size: 96, color: "005B82", space: 0 },
-                    pageBorderRight: { style: BorderStyle.SINGLE, size: 96, color: "005B82", space: 0 },
-                  },
-                }
-              : {}),
+            margin: { top: page.top, right: page.right, bottom: page.bottom, left: page.left, header: 0 },
           },
         },
-        children,
+        // Der Header wiederholt die Balken auf jeder Seite. Word zeigt Header-Inhalte am
+        // Bildschirm blass an, darum liegen sie auf Seite 1 zusaetzlich im Dokument.
+        ...(sidebar ? { headers: { default: new Header({ children: [sidebarParagraph(sidebar)] }) } } : {}),
+        children: sidebar ? [sidebarParagraph(sidebar), ...children] : children,
       },
     ],
   });

@@ -5,7 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { LogOut, Settings } from 'lucide-react';
+import { Camera, LogOut, Settings } from 'lucide-react';
 import { dashboardPath, legacyDashboardHashArea, parseDashboardPath, type DashboardArea } from '@/lib/dashboard-routes';
 import { toast } from '@/hooks/use-toast';
 import ProfileSection from '@/components/Dashboard/ProfileSection';
@@ -22,7 +22,7 @@ import { CVExportModal } from '@/components/CVExport/CVExportModal';
 import { PaymentModal } from '@/components/ui/PaymentModal';
 
 const cvTabClass = 'h-9 min-w-0 rounded-md !bg-transparent px-3 text-sm font-medium !text-slate-600 !shadow-none transition-colors hover:!text-slate-900 data-[state=active]:!bg-white data-[state=active]:!text-[#204878] data-[state=active]:!shadow-sm';
-const areaTabClass = '-mb-px h-11 min-w-0 rounded-none border-b-2 border-transparent !bg-transparent px-2 text-sm font-medium !text-slate-500 !shadow-none transition-colors hover:!text-slate-900 data-[state=active]:border-[#204878] data-[state=active]:!text-[#204878] sm:px-1';
+const areaTabClass = '-mb-px h-11 min-w-0 rounded-none border-b-2 border-transparent !bg-transparent px-1.5 text-[13px] font-medium !text-slate-500 !shadow-none transition-colors hover:!text-slate-900 data-[state=active]:border-[#204878] data-[state=active]:!text-[#204878] sm:px-1 sm:text-sm';
 
 export const Dashboard: React.FC = () => {
   const { user, signOut } = useAuth();
@@ -346,7 +346,7 @@ export const Dashboard: React.FC = () => {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
         <Tabs value={activeArea} onValueChange={(area) => handleAreaChange(area)} className="space-y-4 sm:space-y-6">
-          <TabsList className="!flex h-auto w-full items-stretch justify-start gap-1 rounded-none border-b border-slate-200 !bg-transparent p-0 sm:gap-4">
+          <TabsList className="!flex h-auto w-full items-stretch justify-start gap-1 rounded-none border-b border-slate-200 !bg-transparent p-0 sm:gap-3">
             <TabsTrigger value="cv" className={areaTabClass}>
               <span className="hidden sm:inline">CV Self-Service</span><span className="sm:hidden">Lebenslauf</span>
             </TabsTrigger>
@@ -354,8 +354,18 @@ export const Dashboard: React.FC = () => {
               <span className="hidden sm:inline">AI Motivationsschreiben</span><span className="sm:hidden">AI-Schreiben</span>
             </TabsTrigger>
             <TabsTrigger value="applications" className={areaTabClass}>
-              Bewerbungen
+              <span className="hidden sm:inline">Bewerbungsmanager</span><span className="sm:hidden">Bewerbungen</span>
             </TabsTrigger>
+            <a
+              href="https://www.headshotpro.com/?via=armend"
+              target="_blank"
+              rel="noopener sponsored"
+              aria-label="Bewerbungsfoto (öffnet in neuem Fenster)"
+              title="Bewerbungsfoto"
+              className="-mb-px inline-flex h-11 shrink-0 items-center gap-1.5 border-b-2 border-transparent px-2 text-[13px] font-medium text-slate-500 transition-colors hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#204878] sm:px-1 sm:text-sm"
+            >
+              <Camera className="h-4 w-4 sm:hidden" /><span className="hidden sm:inline">Bewerbungsfoto</span>
+            </a>
             <TabsTrigger
               value="settings"
               aria-label="Einstellungen"

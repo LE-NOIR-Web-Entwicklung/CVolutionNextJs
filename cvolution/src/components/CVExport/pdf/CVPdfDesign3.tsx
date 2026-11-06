@@ -25,37 +25,43 @@ interface CVPdfDesign3Props {
 // - Taetigkeiten immer als Bulletpoints (aktuellste Stelle mehr, aeltere weniger)
 // - Titel, Firma und Arbeitsort bleiben zusammen auf einer Seite (wrap={false})
 // - Leere Felder werden komplett weggelassen
-// - Kompakte Abstaende, damit der CV wenn moeglich auf eine Seite passt
+// - Titel, Arbeitgeber und Arbeitsort stehen auf einer Zeile
+// - Grosszuegige Abstaende, die Seite wird genutzt statt gequetscht
+// - Foto ist genau so hoch wie der Personalien-Block
+const PHOTO_MIN_HEIGHT = 96;
+
 const styles = StyleSheet.create({
   page: {
     fontSize: 10,
     fontFamily: 'Helvetica',
-    paddingTop: 24,
-    paddingBottom: 24,
+    paddingTop: 32,
+    paddingBottom: 30,
     paddingLeft: 52,
     paddingRight: 52,
     color: '#000000',
-    lineHeight: 1.15,
+    lineHeight: 1.25,
   },
   topTitle: {
     fontSize: 15,
     fontWeight: 'bold',
     borderBottom: '1.5 solid #000000',
-    paddingBottom: 2,
-    marginBottom: 6,
+    paddingBottom: 3,
+    marginBottom: 10,
   },
   headerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'stretch',
+    minHeight: PHOTO_MIN_HEIGHT,
     marginBottom: 6,
   },
   contactBlock: {
     flex: 1,
     paddingRight: 16,
+    justifyContent: 'space-between',
   },
   contactRow: {
     flexDirection: 'row',
-    marginBottom: 1,
   },
   contactLabel: {
     width: 90,
@@ -70,23 +76,31 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: 'bold',
   },
-  photo: {
+  // Der Rahmen uebernimmt per stretch die Hoehe der Personalien, das Bild fuellt ihn.
+  photoFrame: {
     width: 92,
-    height: 110,
-    objectFit: 'cover',
+    position: 'relative',
     border: '1 solid #000000',
+  },
+  photo: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    objectFit: 'cover',
   },
   sectionTitle: {
     fontSize: 11.5,
     fontWeight: 'bold',
-    marginTop: 6,
-    marginBottom: 3,
+    marginTop: 12,
+    marginBottom: 6,
     borderBottom: '1.5 solid #000000',
-    paddingBottom: 2,
+    paddingBottom: 3,
   },
   itemRow: {
     flexDirection: 'row',
-    marginBottom: 4,
+    marginBottom: 6,
   },
   itemDate: {
     width: 105,
@@ -96,19 +110,19 @@ const styles = StyleSheet.create({
   itemBody: {
     flex: 1,
   },
-  itemTitle: {
+  itemLine: {
     fontSize: 10,
-    fontWeight: 'bold',
-  },
-  itemMeta: {
-    fontSize: 9.5,
     color: '#333333',
-    marginBottom: 1,
+    marginBottom: 2,
+  },
+  itemTitle: {
+    fontWeight: 'bold',
+    color: '#000000',
   },
   bulletRow: {
     flexDirection: 'row',
     marginLeft: 8,
-    marginBottom: 0.5,
+    marginBottom: 1.5,
   },
   bulletPoint: {
     width: 10,
@@ -120,7 +134,7 @@ const styles = StyleSheet.create({
   },
   skillRow: {
     flexDirection: 'row',
-    marginBottom: 2,
+    marginBottom: 5,
   },
   skillLabel: {
     width: 105,
@@ -151,6 +165,14 @@ const formatRange = (startDate?: string | null, endDate?: string | null, isCurre
   if (!start && !end) return '';
   return `${start} - ${end}`;
 };
+
+// Stellentitel fett, Arbeitgeber und Ort direkt dahinter auf derselben Zeile
+const ItemLine = ({ title, meta }: { title: string; meta: string }) => (
+  <Text style={styles.itemLine}>
+    <Text style={styles.itemTitle}>{title}</Text>
+    {title && meta ? `, ${meta}` : meta}
+  </Text>
+);
 
 const Bullets = ({ items }: { items: string[] }) => (
   <View>
@@ -199,7 +221,9 @@ export const CVPdfDesign3: React.FC<CVPdfDesign3Props> = ({
             ))}
           </View>
           {profile?.profile_picture_url ? (
-            <Image src={profile.profile_picture_url} style={styles.photo} />
+            <View style={styles.photoFrame}>
+              <Image src={profile.profile_picture_url} style={styles.photo} />
+            </View>
           ) : null}
         </View>
 
@@ -217,8 +241,7 @@ export const CVPdfDesign3: React.FC<CVPdfDesign3Props> = ({
                     {formatRange(exp.start_date, exp.end_date, exp.is_current)}
                   </Text>
                   <View style={styles.itemBody}>
-                    <Text style={styles.itemTitle}>{exp.job_title || ''}</Text>
-                    {meta ? <Text style={styles.itemMeta}>{meta}</Text> : null}
+                    <ItemLine title={exp.job_title || ''} meta={meta} />
                     {bullets.length > 0 && <Bullets items={bullets} />}
                   </View>
                 </View>
@@ -241,10 +264,7 @@ export const CVPdfDesign3: React.FC<CVPdfDesign3Props> = ({
                     {formatRange(edu.start_date, edu.end_date, edu.is_current)}
                   </Text>
                   <View style={styles.itemBody}>
-                    <Text style={styles.itemTitle}>
-                      {[edu.degree, edu.field_of_study].filter(Boolean).join(', ')}
-                    </Text>
-                    {meta ? <Text style={styles.itemMeta}>{meta}</Text> : null}
+                    <ItemLine title={[edu.degree, edu.field_of_study].filter(Boolean).join(', ')} meta={meta} />
                     {bullets.length > 0 && <Bullets items={bullets} />}
                   </View>
                 </View>
@@ -255,11 +275,11 @@ export const CVPdfDesign3: React.FC<CVPdfDesign3Props> = ({
 
         {/* Kenntnisse & Faehigkeiten: leere Bereiche werden weggelassen */}
         {hasKnowledgeSection && (
-          <View wrap={false}>
-            <Text style={styles.sectionTitle}>Kenntnisse &amp; Fähigkeiten</Text>
+          <View>
+            <Text style={styles.sectionTitle} minPresenceAhead={40}>Kenntnisse &amp; Fähigkeiten</Text>
 
             {preparedLanguages.length > 0 && (
-              <View style={styles.skillRow}>
+              <View style={styles.skillRow} wrap={false}>
                 <Text style={styles.skillLabel}>Sprachen</Text>
                 <View style={styles.skillContent}>
                   {preparedLanguages.map((lang) => (
@@ -273,7 +293,7 @@ export const CVPdfDesign3: React.FC<CVPdfDesign3Props> = ({
             )}
 
             {abilities.length > 0 && (
-              <View style={styles.skillRow}>
+              <View style={styles.skillRow} wrap={false}>
                 <Text style={styles.skillLabel}>Fähigkeiten</Text>
                 <View style={styles.skillContent}>
                   {abilities.map((s, idx) => (
@@ -287,7 +307,7 @@ export const CVPdfDesign3: React.FC<CVPdfDesign3Props> = ({
             )}
 
             {driverLicenses.length > 0 && (
-              <View style={styles.skillRow}>
+              <View style={styles.skillRow} wrap={false}>
                 <Text style={styles.skillLabel}>Führerschein</Text>
                 <View style={styles.skillContent}>
                   {driverLicenses.map((s, idx) => (

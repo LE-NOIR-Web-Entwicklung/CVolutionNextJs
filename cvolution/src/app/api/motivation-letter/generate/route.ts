@@ -361,7 +361,8 @@ function buildSenderContext(profile: any, userEmail: string | undefined) {
 // Struktur und inhaltliche Gewichtung der gelieferten JobFit-Vorlagen.
 const LETTER_STYLE_GUIDE = `
 Briefform: Absender, Empfaenger, Ort und aktuelles Datum, Betreff, persoenliche Anrede, vier Textabsätze, Grussformel und Name. Bloecke jeweils durch eine Leerzeile trennen.
-Absender und Empfaenger enthalten nur vorhandene und belegte Angaben. Keine Platzhalter ergaenzen. Eine bekannte Ansprechperson namentlich anreden; fehlt sie, eine neutrale Anrede verwenden und keinen Namen erfinden.
+Absender und Empfaenger enthalten nur vorhandene und belegte Angaben. Keine Platzhalter ergaenzen. Immer genau eine Ansprechperson waehlen, auch wenn mehrere Personen genannt sind: bevorzugt die Person aus HR, Personal oder Recruiting; ist das nicht klar ersichtlich, die zuerst genannte Person. Nur diese eine Person erscheint in Empfaengerblock und Anrede. Fehlt eine Ansprechperson, eine neutrale Anrede verwenden und keinen Namen erfinden.
+Reihenfolge im Empfaengerblock: zuerst der Firmenname, darunter die Ansprechperson, dann Strasse, dann PLZ und Ort.
 
 Reaktivbewerbung auf eine ausgeschriebene Stelle:
 Betreff: "Bewerbung als [exakter Stellentitel / Pensum, soweit bekannt]".
@@ -434,7 +435,7 @@ ${cvContext || "Es sind noch keine CV-Daten im Profil erfasst."}
 Vorgehen fuer den Empfaengerblock (oberer Teil):
 1. Nutze zuerst die im Inserat oder auf der Website genannte Firma, Adresse und Ansprechperson.
 2. Falls dort keine Adresse steht, nutze die Angaben aus dem Impressum.
-3. Manuelle Nutzereingaben (Adresse, PLZ, Ort, Ansprechperson) haben Vorrang, wenn vorhanden.
+3. Manuelle Nutzereingaben (Adresse, PLZ, Ort, Ansprechperson) haben Vorrang, wenn vorhanden. Auch dann nur eine Ansprechperson verwenden.
 4. Wenn keine verlaesslichen Angaben gefunden werden, lasse die betroffene Zeile weg. Erfinde keine Adressen.
 5. Die Adresse eines Stellenportals ist keine Arbeitgeberadresse. Verwende Impressumsangaben nur, wenn sie nachweislich zum Zielunternehmen gehoeren.
 `.trim();
