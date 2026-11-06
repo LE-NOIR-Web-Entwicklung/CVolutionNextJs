@@ -91,8 +91,7 @@ export function AddToCartButton({
       window.setTimeout(() => setAdded(false), 2200);
     }
     if (openPopup) {
-      // An overview tile stands for several products, so it stays when one of them is in the cart.
-      setPopupRecommendations(CART_RECOMMENDATION_OFFERS.filter((offer) => offer.hasMultipleVariants || !nextCounts[offer.serviceType]));
+      setPopupRecommendations(CART_RECOMMENDATION_OFFERS.filter((offer) => !nextCounts[offer.serviceType]));
       setPopupDownloads(CART_DOWNLOAD_OFFERS.filter((offer) => !nextCounts[offer.serviceType]));
       setShowCartPopup(true);
     }
@@ -183,7 +182,7 @@ export function AddToCartButton({
 
               return (
                 <div
-                  key={relatedProduct.name}
+                  key={relatedProduct.serviceType}
                   className="flex flex-col rounded-xl border border-[#E5EAF0] bg-white p-4 shadow-[0_0.5rem_2rem_rgba(15,37,65,0.05)] sm:min-h-64 sm:p-5"
                 >
                   <div className="flex-1">
@@ -194,12 +193,12 @@ export function AddToCartButton({
                   <div className="mt-4 grid grid-cols-[1fr_auto] gap-3 sm:mt-5 sm:grid-cols-2">
                     <Link
                       href={relatedProduct.link}
-                      className={`${relatedProduct.hasMultipleVariants ? "col-span-2 " : ""}inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-[#204878] px-4 py-3 text-sm font-semibold text-[#204878] transition-colors hover:bg-blue-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#204878] focus-visible:ring-offset-2`}
+                      className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-[#204878] px-4 py-3 text-sm font-semibold text-[#204878] transition-colors hover:bg-blue-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#204878] focus-visible:ring-offset-2"
                     >
                       Angebot
                       <ArrowRight className="h-4 w-4" aria-hidden="true" />
                     </Link>
-                    {!relatedProduct.hasMultipleVariants && <button
+                    <button
                       type="button"
                       onClick={() => handleAddToCart(relatedProduct.serviceType, false)}
                       className="inline-flex min-h-12 min-w-14 items-center justify-center gap-2 rounded-xl bg-[#204878] px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#1a3a66] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#204878] focus-visible:ring-offset-2"
@@ -207,7 +206,7 @@ export function AddToCartButton({
                     >
                       <ShoppingCart className="h-4 w-4" aria-hidden="true" />
                       {relatedCount > 0 && <span>({relatedCount})</span>}
-                    </button>}
+                    </button>
                   </div>
                 </div>
               );

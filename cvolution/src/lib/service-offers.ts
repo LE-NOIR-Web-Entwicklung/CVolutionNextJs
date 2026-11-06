@@ -106,7 +106,15 @@ export const OFFER_CARDS: OfferCard[] = [
 ];
 
 export const CART_RECOMMENDATION_OFFERS: ServiceOffer[] = [
-  SERVICE_OFFERS[0],
+  {
+    name: "Lohnanalyse Telefon",
+    description:
+      "Fundierte Einschätzung Ihrer Vergütung im Branchenvergleich. Im telefonischen Gespräch ordnen wir die Resultate gemeinsam ein und beantworten Ihre Fragen.",
+    image: "/images/search.png",
+    price: "CHF 119",
+    link: "/service-salary-tel",
+    serviceType: "salary_phone",
+  },
   SERVICE_OFFERS[1],
   SERVICE_OFFERS[2],
   SERVICE_OFFERS[4],
@@ -119,15 +127,6 @@ export const CART_RECOMMENDATION_OFFERS: ServiceOffer[] = [
     price: "CHF 69",
     link: "/service-salary-pdf",
     serviceType: "salary_pdf",
-  },
-  {
-    name: "Lohnanalyse Telefon",
-    description:
-      "Fundierte Einschätzung Ihrer Vergütung im Branchenvergleich. Im telefonischen Gespräch ordnen wir die Resultate gemeinsam ein und beantworten Ihre Fragen.",
-    image: "/images/search.png",
-    price: "CHF 119",
-    link: "/service-salary-tel",
-    serviceType: "salary_phone",
   },
   SERVICE_OFFERS[6],
 ];
