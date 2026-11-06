@@ -163,6 +163,8 @@ export const sendConfirmationEmail = async (email: string, service: string) => {
             Es freut uns, dass wir dein LinkedIn-Profil für die Stellensuche optimieren dürfen.</p>
             <h2 style=\"color: #204878; font-size: 1.1rem; margin-bottom: 12px;\">Wie geht es weiter?</h2>
             <p style=\"color: #333; font-size: 1.1rem; margin-bottom: 16px;\">Wir prüfen dein Profil, schärfen deine Positionierung und erarbeiten ansprechende Formulierungen für Headline, Info-Bereich und relevante Stationen.</p>
+            <p style=\"color: #333; font-size: 1.1rem; margin-bottom: 16px;\">Über den folgenden Link kannst du direkt einen Termin für das Gespräch buchen.<br />
+            <a href=\"https://calendly.com/armend-cvolution/besprechung-lohnanalyse-klon\" style=\"color: #204878; text-decoration: underline; font-weight: bold;\" target=\"_blank\">Termin buchen</a></p>
             <p style=\"color: #333; font-size: 1.1rem; margin-bottom: 16px;\">Falls du zusätzlich einen aktuellen Lebenslauf, ein Wunschstelleninserat oder besondere Zielrollen hast, kannst du uns diese Unterlagen gerne per E-Mail an <a href=\"mailto:info@cvolution.ch\" style=\"color: #204878; text-decoration: underline;\">info@cvolution.ch</a> senden.</p>
             <p style=\"color: #333; font-size: 1.1rem;\">Wir freuen uns auf die Zusammenarbeit mit dir!</p>
         `;
@@ -497,7 +499,10 @@ function getServiceNextStepsHtml(item: CartEmailDisplayItem) {
         return "<span style='color:#64748B;'>Bitte sende uns dein Bewerbungsdossier als PDF an info@cvolution.ch, falls du es noch nicht übermittelt hast.</span>";
     }
     if (lowerService === "linkedin profil optimierung") {
-        return "<span style='color:#64748B;'>Wir prüfen dein LinkedIn-Profil, schärfen deine Positionierung und senden dir ansprechende Formulierungen für die Stellensuche.</span>";
+        return `
+            <span style="color:#64748B; display:block; margin-bottom:10px;">Wir prüfen dein LinkedIn-Profil, schärfen deine Positionierung und senden dir ansprechende Formulierungen für die Stellensuche. Bitte buche deinen Termin für das Gespräch:</span>
+            <a href="https://calendly.com/armend-cvolution/besprechung-lohnanalyse-klon" target="_blank" rel="noopener noreferrer" style="display:inline-block; background:#204878; color:#ffffff; text-decoration:none; font-weight:600; font-size:0.95rem; padding:10px 16px; border-radius:8px;">Termin buchen</a>
+        `;
     }
     if (lowerService === "motivationsschreiben") {
         return "<span style='color:#64748B;'>Bitte sende uns das Stelleninserat sowie deinen Lebenslauf oder dein LinkedIn-Profil an info@cvolution.ch.</span>";
