@@ -2,6 +2,11 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   outputFileTracingRoot: __dirname,
+  // Der Elternordner hat ein eigenes package-lock.json; ohne festes Root
+  // waehlt Turbopack diesen und findet das Next.js-Paket nicht.
+  turbopack: {
+    root: __dirname,
+  },
   reactStrictMode: true,
   // The paid documents are read at runtime and must ship with these routes only.
   outputFileTracingIncludes: {
@@ -21,9 +26,6 @@ const nextConfig: NextConfig = {
         pathname: "/storage/v1/object/public/blog-images/**",
       },
     ],
-  },
-  eslint: {
-    ignoreDuringBuilds: true,
   },
   /* config options here */
 };

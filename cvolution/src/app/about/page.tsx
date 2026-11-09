@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import { FaEnvelope, FaLinkedin, FaPhone } from "react-icons/fa";
 
 export const metadata = {
@@ -54,18 +55,18 @@ export default function About() {
         <div className="mx-auto max-w-6xl">
           <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_28rem] lg:items-center">
             <div>
-              <p className="mb-4 inline-flex rounded-md border border-[#204878]/15 bg-white/70 px-3 py-1.5 text-sm font-semibold text-[#204878] shadow-sm shadow-[#204878]/5">
+              <p className="mb-4 inline-flex rounded-full border border-[#204878]/15 bg-white/70 px-3 py-1 text-sm font-semibold text-[#204878] shadow-sm shadow-[#204878]/5">
                 Über CVolution
               </p>
-              <h1 className="max-w-3xl text-4xl font-semibold leading-[1.03] tracking-tight text-[#101828] text-balance sm:text-5xl lg:text-6xl">
+              <h1 className="max-w-3xl text-4xl font-bold leading-[1.05] text-[#101828] text-balance sm:text-5xl lg:text-6xl">
                 Bewerbungen, die klar zeigen, wer Sie sind.
               </h1>
-              <p className="mt-5 max-w-2xl text-base leading-7 text-[#5d6b7f] text-pretty sm:text-lg sm:leading-8">
+              <p className="mt-5 max-w-2xl text-base leading-7 text-[#4f5d72] text-pretty sm:text-lg sm:leading-8">
                 Wir verbinden Recruiting-Erfahrung, präzise Sprache und modernes Bewerbungsdesign, damit Ihre Unterlagen schneller verstanden werden und besser wirken.
               </p>
             </div>
 
-            <div className="relative overflow-hidden rounded-3xl bg-white shadow-[0_1.5rem_4rem_rgba(15,37,65,0.12)] ring-1 ring-[#dce5ef]">
+            <div className="relative overflow-hidden rounded-2xl bg-white shadow-[0_1.5rem_4rem_rgba(15,37,65,0.12)] ring-1 ring-[#dce5ef]">
               <Image
                 src="/images/about.jpg"
                 alt="CVolution Beratung"
@@ -88,7 +89,7 @@ export default function About() {
                 className="rounded-2xl bg-white p-6 shadow-[0_1rem_2.75rem_rgba(15,37,65,0.06)] ring-1 ring-[#dce5ef]"
               >
                 <p className="text-3xl font-semibold text-[#204878] tabular-nums">{value}</p>
-                <p className="mt-2 text-sm leading-6 text-[#607089]">{label}</p>
+                <p className="mt-2 text-sm leading-6 text-[#4f5d72]">{label}</p>
               </div>
             ))}
           </div>
@@ -97,7 +98,7 @@ export default function About() {
 
       <section className="px-5 pb-20 sm:px-6 sm:pb-24">
         <div className="mx-auto grid max-w-6xl gap-6">
-          <aside className="rounded-3xl bg-[#173d66] p-7 text-white shadow-2xl shadow-[#173d66]/18">
+          <aside className="rounded-2xl bg-[#173d66] p-7 text-white shadow-2xl shadow-[#173d66]/18">
             <p className="text-sm font-medium text-white/68">Warum wir das tun</p>
             <h2 className="mt-4 max-w-3xl text-3xl font-semibold tracking-tight text-balance">
               Gute Unterlagen reduzieren Reibung im Bewerbungsprozess.
@@ -107,11 +108,11 @@ export default function About() {
             </p>
           </aside>
 
-          <article className="rounded-3xl bg-white p-7 shadow-[0_1.25rem_3.5rem_rgba(15,37,65,0.07)] ring-1 ring-[#dce5ef] sm:p-9">
+          <article className="rounded-2xl bg-white p-7 shadow-[0_1.25rem_3.5rem_rgba(15,37,65,0.07)] ring-1 ring-[#dce5ef] sm:p-9">
             <h2 className="text-3xl font-semibold tracking-tight text-[#101828]">
               Wir sind CVolution
             </h2>
-            <div className="mt-6 space-y-5 text-base leading-8 text-[#607089]">
+            <div className="mt-6 space-y-5 text-base leading-8 text-[#4f5d72]">
               <p>
                 Mit über 10 Jahren Erfahrung in der Rekrutierung und im HR wissen wir, worauf es ankommt, um bei potenziellen Arbeitgebern zu überzeugen. Wir haben mehr als 10&apos;000 Lebensläufe gesichtet und kennen die Kriterien, die den Unterschied machen.
               </p>
@@ -132,76 +133,66 @@ export default function About() {
               className="rounded-2xl bg-white p-6 shadow-[0_1rem_2.75rem_rgba(15,37,65,0.06)] ring-1 ring-[#dce5ef]"
             >
               <h3 className="text-xl font-semibold tracking-tight text-[#101828]">{item.title}</h3>
-              <p className="mt-3 text-sm leading-7 text-[#607089]">{item.text}</p>
+              <p className="mt-3 text-sm leading-7 text-[#4f5d72]">{item.text}</p>
             </div>
           ))}
         </div>
       </section>
 
-      <section className="relative overflow-hidden py-24">
-        <Image
-          src="/images/teamsectionbg.png"
-          alt="Team section background"
-          fill
-          sizes="100vw"
-          quality={100}
-          className="object-cover object-[70%] md:object-center"
-        />
-        <div className="absolute inset-0 bg-transparent md:bg-[#193961]/60" />
-        <div className="relative z-10 mx-auto max-w-6xl px-6">
-          <div className="mb-16 text-center">
-            <h2 className="text-3xl font-semibold text-white sm:text-4xl">
-              Unser Team
-            </h2>
-            <p className="mx-auto mt-4 max-w-xl text-lg text-gray-400">
-              Erfahrene Experten, die Ihre Karriere voranbringen.
-            </p>
+      <section className="bg-white px-5 py-20 sm:px-6 sm:py-24">
+        <div className="mx-auto max-w-6xl">
+          <div className="mb-10 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <h2 className="text-3xl font-bold text-[#101828] sm:text-4xl">Unser Team</h2>
+              <p className="mt-3 text-base leading-7 text-[#4f5d72]">
+                Erfahrene Experten, die Ihre Karriere voranbringen.
+              </p>
+            </div>
+            <Link
+              href="/team"
+              className="group inline-flex items-center gap-1.5 text-sm font-semibold text-[#204878]"
+            >
+              Team kennenlernen
+              <span aria-hidden="true" className="transition group-hover:translate-x-1">→</span>
+            </Link>
           </div>
-          <div className="mx-auto grid max-w-3xl grid-cols-1 gap-8 md:grid-cols-2">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             {team.map((member) => (
-              <div
+              <article
                 key={member.email}
-                className="rounded-2xl border border-white/10 bg-white/5 p-8 text-center transition-colors duration-200 hover:bg-white/10"
+                className="flex items-center gap-5 rounded-2xl bg-[#f4f7fb] p-5 ring-1 ring-[#dce5ef]"
               >
-                <div className="relative mx-auto mb-6 h-36 w-36 md:h-24 md:w-24">
-                  <div className="absolute inset-0 rounded-full ring-2 ring-white/20 ring-offset-4 ring-offset-transparent" />
+                <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-xl bg-[#e9f0f8]">
                   <Image
                     src={member.image}
                     alt={member.name}
                     fill
-                    className="rounded-full object-cover object-top"
+                    sizes="6rem"
+                    className="object-cover object-top"
                   />
                 </div>
-                <h3 className="mb-1 text-lg font-semibold text-white">
-                  {member.name}
-                </h3>
-                <p className="mb-5 text-sm text-gray-400">{member.position}</p>
-                <div className="flex justify-center gap-4">
-                  <a
-                    href={`tel:${member.phone}`}
-                    className="text-gray-500 transition-colors hover:text-white"
-                    aria-label="Telefon"
-                  >
-                    <FaPhone size={16} />
-                  </a>
-                  <a
-                    href={`mailto:${member.email}`}
-                    className="text-gray-500 transition-colors hover:text-white"
-                    aria-label="E-Mail"
-                  >
-                    <FaEnvelope size={16} />
-                  </a>
-                  <a
-                    href={member.linkedin}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-gray-500 transition-colors hover:text-white"
-                    aria-label="LinkedIn"
-                  >
-                    <FaLinkedin size={16} />
-                  </a>
+                <div className="min-w-0">
+                  <h3 className="text-lg font-bold text-[#101828]">{member.name}</h3>
+                  <p className="mt-0.5 text-sm text-[#4f5d72]">{member.position}</p>
+                  <div className="mt-3 flex gap-2">
+                    {[
+                      { href: `tel:${member.phone}`, label: "Telefon", icon: FaPhone },
+                      { href: `mailto:${member.email}`, label: "E-Mail", icon: FaEnvelope },
+                      { href: member.linkedin, label: "LinkedIn", icon: FaLinkedin, external: true },
+                    ].map(({ href, label, icon: ContactIcon, external }) => (
+                      <a
+                        key={label}
+                        href={href}
+                        {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+                        className="flex h-9 w-9 items-center justify-center rounded-lg bg-white text-[#204878] ring-1 ring-[#dce5ef] transition hover:bg-[#204878] hover:text-white"
+                        aria-label={`${label} ${member.name}`}
+                      >
+                        <ContactIcon size={14} />
+                      </a>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              </article>
             ))}
           </div>
         </div>

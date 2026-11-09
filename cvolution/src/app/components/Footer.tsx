@@ -7,9 +7,10 @@ export default function Footer() {
   const navItems = [
     { name: "Home", href: "/" },
     { name: "Angebot", href: "/service" },
+    { name: "Self-Service", href: "/self" },
+    { name: "Blog", href: "/blog" },
     { name: "Über", href: "/about" },
     { name: "Team", href: "/team" },
-    // { name: "Self-Service", href: "/self" },
     { name: "Kontakt", href: "/contact" },
   ];
 
@@ -21,7 +22,7 @@ export default function Footer() {
           {/* Brand + Contact */}
           <div>
             <img src="/images/logo-nobg.png" className="h-8 mb-6" alt="CVolution Logo" />
-            <ul className="space-y-3 text-sm text-gray-400">
+            <ul className="space-y-3 text-sm text-slate-300">
               <li>
                 <a href="mailto:info@cvolution.ch" className="hover:text-white transition-colors">
                   info@cvolution.ch
@@ -46,27 +47,30 @@ export default function Footer() {
             <div className="flex gap-4 mt-6">
               <a
                 href="https://linkedin.com/company/cvolution-gmbh"
+                aria-label="CVolution auf LinkedIn"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-gray-500 hover:text-white transition-colors"
+                className="text-slate-400 hover:text-white transition-colors"
               >
-                <FaLinkedin size={18} />
+                <FaLinkedin size={18} aria-hidden="true" />
               </a>
               <a
                 href="https://facebook.com/cvolutionswitzerland"
+                aria-label="CVolution auf Facebook"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-gray-500 hover:text-white transition-colors"
+                className="text-slate-400 hover:text-white transition-colors"
               >
-                <FaFacebook size={18} />
+                <FaFacebook size={18} aria-hidden="true" />
               </a>
               <a
                 href="https://instagram.com/cvolution.ch"
+                aria-label="CVolution auf Instagram"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-gray-500 hover:text-white transition-colors"
+                className="text-slate-400 hover:text-white transition-colors"
               >
-                <FaInstagram size={18} />
+                <FaInstagram size={18} aria-hidden="true" />
               </a>
             </div>
           </div>
@@ -74,7 +78,7 @@ export default function Footer() {
           {/* About */}
           <div>
             <h3 className="text-sm font-semibold text-white mb-4 uppercase tracking-wider">Über CVolution</h3>
-            <p className="text-sm text-gray-400 leading-relaxed">
+            <p className="text-sm text-slate-300 leading-relaxed">
               Wir legen grossen Wert auf Präzision, Kreativität und
               Individualität, damit Ihre Bewerbung auffällt und überzeugt. Mit
               unserer langjährigen Erfahrung und Expertise sind wir der ideale
@@ -85,10 +89,10 @@ export default function Footer() {
           {/* Navigation */}
           <div>
             <h3 className="text-sm font-semibold text-white mb-4 uppercase tracking-wider">Navigation</h3>
-            <ul className="space-y-2.5">
+            <ul className="grid grid-cols-2 gap-x-6 gap-y-2.5">
               {navItems.map((item, index) => (
                 <li key={index}>
-                  <Link href={item.href} className="text-sm text-gray-400 hover:text-white transition-colors">
+                  <Link href={item.href} className="text-sm text-slate-300 hover:text-white transition-colors">
                     {item.name}
                   </Link>
                 </li>
@@ -121,7 +125,7 @@ export default function Footer() {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className="text-xs text-gray-400 hover:text-white transition-colors leading-relaxed"
+                  className="text-xs text-slate-300 hover:text-white transition-colors leading-relaxed"
                 >
                   {item.name}
                 </Link>
@@ -132,27 +136,27 @@ export default function Footer() {
 
         {/* Footer Bottom */}
         <div className="mt-12 pt-6 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-slate-400">
             &copy; {new Date().getFullYear()} CVolution GmbH. Alle Rechte vorbehalten.
           </p>
           <div className="flex items-center gap-6">
-            <Link href="/agb" className="text-xs text-gray-500 hover:text-white transition-colors">
+            <Link href="/agb" className="text-xs text-slate-400 hover:text-white transition-colors">
               AGB
             </Link>
-            <Link href="/data" className="text-xs text-gray-500 hover:text-white transition-colors">
+            <Link href="/data" className="text-xs text-slate-400 hover:text-white transition-colors">
               Datenschutz
             </Link>
-            <Link href="/impressum" className="text-xs text-gray-500 hover:text-white transition-colors">
+            <Link href="/impressum" className="text-xs text-slate-400 hover:text-white transition-colors">
               Impressum
             </Link>
           </div>
-          <p className="text-xs text-gray-600">
+          <p className="text-xs text-slate-400">
             Entwickelt von{" "}
             <a
               href="https://ha-meira.ch"
               target="_blank"
               rel="noopener noreferrer"
-              className="hover:text-gray-400 transition-colors"
+              className="hover:text-white transition-colors"
             >
               HA MEIRA
             </a>

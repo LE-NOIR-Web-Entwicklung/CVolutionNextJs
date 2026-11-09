@@ -9,7 +9,7 @@ export default function ServiceCheck() {
       image="/images/checked.png"
       imageAlt="Check"
       introTitle="Ein Check, der Ihre Bewerbung schärft"
-      description="Ein überzeugendes Bewerbungsdossier ist oft der Schlüssel zum Vorstellungsgespräch. Personalverantwortliche entscheiden innert Sekunden, ob eine Bewerbung weiter geprüft wird – oder eben nicht. Deshalb ist es entscheidend, dass deine Unterlagen inhaltlich wie formal überzeugen. Wir prüfen Aufbau, Inhalt, Formulierungen, Gestaltung sowie die Gesamtaussage deines Dossiers. Du erhältst von uns ein verständliches Feedback mit konkreten Empfehlungen. Wir analysieren deine Bewerbungsdokumente sorgfältig und zeigen dir auf, wo du optimieren kannst."
+      description="Ein überzeugendes Bewerbungsdossier ist oft der Schlüssel zum Vorstellungsgespräch. Personalverantwortliche entscheiden innert Sekunden, ob eine Bewerbung weiter geprüft wird – oder eben nicht. Deshalb ist es entscheidend, dass Ihre Unterlagen inhaltlich wie formal überzeugen. Wir prüfen Aufbau, Inhalt, Formulierungen, Gestaltung sowie die Gesamtaussage Ihres Dossiers. Sie erhalten von uns ein verständliches Feedback mit konkreten Empfehlungen. Wir analysieren Ihre Bewerbungsdokumente sorgfältig und zeigen Ihnen auf, wo Sie optimieren können."
       servicesTitle="Wir prüfen insbesondere"
       services={[
         "Lebenslauf",

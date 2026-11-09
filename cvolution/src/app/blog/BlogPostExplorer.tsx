@@ -34,11 +34,21 @@ type BlogPostExplorerProps = {
 
 export function BlogPostExplorer({ posts }: BlogPostExplorerProps) {
   const [query, setQuery] = useState("");
+  const [activeTag, setActiveTag] = useState<string | null>(null);
   const normalizedQuery = normalizeSearchValue(query.trim());
+  const tags = useMemo(() => {
+    const counts = new Map<string, number>();
+    posts.forEach((post) => (post.tags || []).forEach((tag) => counts.set(tag, (counts.get(tag) || 0) + 1)));
+    return [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 8).map(([tag]) => tag);
+  }, [posts]);
   const filteredPosts = useMemo(() => {
-    if (!normalizedQuery) return posts;
-    return posts.filter((post) => getSearchText(post).includes(normalizedQuery));
-  }, [normalizedQuery, posts]);
+    return posts.filter((post) => {
+      if (activeTag && !(post.tags || []).includes(activeTag)) return false;
+      if (normalizedQuery && !getSearchText(post).includes(normalizedQuery)) return false;
+      return true;
+    });
+  }, [activeTag, normalizedQuery, posts]);
+  const isFiltering = Boolean(query.trim() || activeTag);
   const featured = filteredPosts[0];
   const remainingPosts = filteredPosts.slice(1);
 
@@ -53,8 +63,30 @@ export function BlogPostExplorer({ posts }: BlogPostExplorerProps) {
 
   return (
     <div className="space-y-10">
-      <div className="flex flex-col items-stretch gap-3 border-b border-slate-200 pb-5 sm:flex-row sm:items-center sm:justify-end">
-        <div className="relative w-full sm:max-w-sm">
+      <div className="flex flex-col items-stretch gap-4 border-b border-slate-200 pb-5 lg:flex-row lg:items-center lg:justify-between">
+        {tags.length > 0 && (
+          <div className="flex flex-wrap gap-2" role="group" aria-label="Nach Thema filtern">
+            {[null, ...tags].map((tag) => {
+              const isActive = activeTag === tag;
+              return (
+                <button
+                  key={tag ?? "__all"}
+                  type="button"
+                  onClick={() => setActiveTag(tag)}
+                  aria-pressed={isActive}
+                  className={`rounded-full px-3.5 py-1.5 text-sm font-medium transition ${
+                    isActive
+                      ? "bg-[#204878] text-white"
+                      : "bg-white text-slate-700 ring-1 ring-slate-200 hover:ring-[#204878]/40 hover:text-[#204878]"
+                  }`}
+                >
+                  {tag ?? "Alle"}
+                </button>
+              );
+            })}
+          </div>
+        )}
+        <div className="relative w-full lg:ml-auto lg:max-w-xs">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" aria-hidden="true" />
           <input
             id="blog-search"
@@ -63,10 +95,10 @@ export function BlogPostExplorer({ posts }: BlogPostExplorerProps) {
             onChange={(event) => setQuery(event.target.value)}
             placeholder="Blog durchsuchen"
             aria-label="Blog durchsuchen"
-            className="w-full rounded-lg border border-slate-200 bg-transparent py-2.5 pl-10 pr-3 text-sm text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-[#204878] focus:bg-white focus:ring-3 focus:ring-[#204878]/8"
+            className="w-full rounded-lg border border-slate-200 bg-white py-2.5 pl-10 pr-3 text-sm text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-[#204878] focus:bg-white focus:ring-3 focus:ring-[#204878]/8"
           />
         </div>
-        {query.trim() && (
+        {isFiltering && (
           <p className="text-sm text-slate-500">
             {filteredPosts.length} {filteredPosts.length === 1 ? "Beitrag" : "Beiträge"} gefunden
           </p>

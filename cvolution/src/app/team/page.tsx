@@ -34,29 +34,24 @@ export default function Team() {
 
         <div className="mx-auto max-w-6xl">
           <div className="mx-auto max-w-3xl text-center">
-            <p className="mb-4 inline-flex rounded-md border border-[#204878]/15 bg-white/75 px-3 py-1.5 text-sm font-semibold text-[#204878] shadow-sm shadow-[#204878]/5">
-              Team
-            </p>
-            <h1 className="text-4xl font-semibold leading-tight tracking-tight text-[#101828] text-balance sm:text-5xl lg:text-6xl">
+            <h1 className="text-4xl font-bold leading-tight text-[#101828] text-balance sm:text-5xl lg:text-6xl">
               Das Team hinter CVolution
             </h1>
-            <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-[#5d6b7f] text-pretty sm:text-lg sm:leading-8">
+            <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-[#4f5d72] text-pretty sm:text-lg sm:leading-8">
               Erfahrene Experten mit über 10 Jahren Branchenerfahrung.
             </p>
           </div>
 
-          <div className="mt-10 grid gap-5 md:grid-cols-3">
+          <div className="mt-12 grid gap-8 md:grid-cols-3">
             {[
-              ["10+", "Jahre Erfahrung"],
-              ["HR", "Recruiting-Praxis"],
-              ["1:1", "persönliche Begleitung"],
-            ].map(([value, label]) => (
-              <div
-                key={label}
-                className="rounded-2xl bg-white p-6 shadow-[0_1rem_2.75rem_rgba(15,37,65,0.06)] ring-1 ring-[#dce5ef]"
-              >
-                <p className="text-3xl font-semibold text-[#204878] tabular-nums">{value}</p>
-                <p className="mt-2 text-sm leading-6 text-[#607089]">{label}</p>
+              ["01", "Kennenlernen", "Wir klären Ihre Situation, Ziele und die passende Unterstützung."],
+              ["02", "Umsetzen", "Wir erarbeiten Ihre Unterlagen oder Ihre Strategie, präzise und persönlich."],
+              ["03", "Weiterkommen", "Sie erhalten Ergebnisse, mit denen Sie selbstbewusst in den nächsten Schritt gehen."],
+            ].map(([step, title, text]) => (
+              <div key={step} className="border-t-2 border-[#204878] pt-5">
+                <p className="text-sm font-semibold text-[#204878] tabular-nums">{step}</p>
+                <h2 className="mt-1 text-lg font-bold text-[#101828]">{title}</h2>
+                <p className="mt-2 text-sm leading-6 text-[#4f5d72]">{text}</p>
               </div>
             ))}
           </div>
@@ -69,7 +64,7 @@ export default function Team() {
             {teamMembers.map((member) => (
               <article
                 key={member.email}
-                className="group overflow-hidden rounded-3xl bg-white shadow-[0_1.5rem_4rem_rgba(15,37,65,0.09)] ring-1 ring-[#dce5ef]"
+                className="group overflow-hidden rounded-2xl bg-white shadow-[0_1.5rem_4rem_rgba(15,37,65,0.09)] ring-1 ring-[#dce5ef]"
               >
                 <div className="relative aspect-square overflow-hidden bg-[#e9f0f8]">
                   <Image
@@ -80,12 +75,12 @@ export default function Team() {
                   />
                   <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#173d66]/90 to-transparent p-7 pt-20 text-white">
                     <h2 className="text-2xl font-semibold tracking-tight">{member.name}</h2>
-                    <p className="mt-1 text-sm text-white/72">{member.position}</p>
+                    <p className="mt-1 text-sm text-white/80">{member.position}</p>
                   </div>
                 </div>
 
                 <div className="p-7">
-                  <p className="text-base leading-8 text-[#607089]">
+                  <p className="text-base leading-8 text-[#4f5d72]">
                     {member.description}
                   </p>
                 </div>
@@ -93,14 +88,14 @@ export default function Team() {
                 <div className="flex items-center gap-3 border-t border-[#e6edf5] px-7 py-5">
                   <a
                     href={`tel:${member.phone}`}
-                    className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#eef4fb] text-[#204878] transition hover:bg-[#204878] hover:text-white"
+                    className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#eef4fb] text-[#204878] transition hover:bg-[#204878] hover:text-white"
                     aria-label="Telefon"
                   >
                     <FaPhone size={16} />
                   </a>
                   <a
                     href={`mailto:${member.email}`}
-                    className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#eef4fb] text-[#204878] transition hover:bg-[#204878] hover:text-white"
+                    className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#eef4fb] text-[#204878] transition hover:bg-[#204878] hover:text-white"
                     aria-label="E-Mail"
                   >
                     <FaEnvelope size={16} />
@@ -109,7 +104,7 @@ export default function Team() {
                     href={member.linkedin}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#eef4fb] text-[#204878] transition hover:bg-[#204878] hover:text-white"
+                    className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#eef4fb] text-[#204878] transition hover:bg-[#204878] hover:text-white"
                     aria-label="LinkedIn"
                   >
                     <FaLinkedin size={16} />

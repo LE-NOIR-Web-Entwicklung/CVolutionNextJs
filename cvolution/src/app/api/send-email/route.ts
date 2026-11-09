@@ -6,7 +6,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { name, email, service, address, postalCode, message } = body;
 
-    if (!name || !email || !service || !address || !postalCode || !message) {
+    if (!name || !email || !service || !message) {
       return NextResponse.json({ message: "Alle Felder sind erforderlich." }, { status: 400 });
     }
 

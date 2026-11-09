@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "cvolution-dev",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "cvolution", "run", "dev"],
+      "port": 3000
+    }
+  ]
+}

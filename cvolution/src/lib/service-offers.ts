@@ -16,7 +16,7 @@ export const SERVICE_OFFERS: ServiceOffer[] = [
   {
     name: "Lohnanalyse",
     description:
-      "Transparenter Vergleich mit branchenüblichen Gehältern. Individuelle Einschätzung basierend auf Ihrer Position und Erfahrung. Wertvolle Argumente für Ihre Gehaltsverhandlung",
+      "Ihr Lohn im Branchenvergleich, mit individueller Einschätzung und starken Argumenten für die Gehaltsverhandlung.",
     image: "/images/search.png",
     price: "ab CHF 69",
     link: "/service-salary",
@@ -27,7 +27,7 @@ export const SERVICE_OFFERS: ServiceOffer[] = [
   {
     name: "Lebenslauf",
     description:
-    "Analyse Ihrer bisherigen beruflichen Laufbahn. Individuelle Gestaltung eines professionellen Lebenslaufs. Anpassung an die gewünschte Position und Branche",
+    "Ein professioneller Lebenslauf, individuell gestaltet und auf Ihre Zielposition und Branche zugeschnitten.",
     image: "/images/resume.png",
     price: "CHF 99",
     link: "/service-cv",
@@ -36,7 +36,7 @@ export const SERVICE_OFFERS: ServiceOffer[] = [
   {
     name: "Motivationsschreiben",
     description:
-      "Gemeinsames Erarbeiten Ihrer individuellen Argumente. Formulierung eines überzeugenden Motivationsschreibens. Angepasst an spezifische Stellenanforderungen",
+      "Wir erarbeiten Ihre Argumente und formulieren ein überzeugendes Schreiben, passend zur ausgeschriebenen Stelle.",
     image: "/images/copy-writing.png",
     price: "CHF 99",
     link: "/service-motivation",
@@ -45,7 +45,7 @@ export const SERVICE_OFFERS: ServiceOffer[] = [
   {
     name: "Laufbahnberatung",
     description:
-    "Analyse Ihrer Stärken, Interessen und Ziele. Erarbeitung individueller Karriere-Strategien. Beratung zu Weiterbildung und beruflicher Neuorientierung",
+    "Stärken, Ziele und Optionen klären: Strategien für Weiterbildung, Neuorientierung und den nächsten Karriereschritt.",
     image: "/images/talk.png",
     price: "CHF 149 / Stunde",
     link: "/service-career",
@@ -54,7 +54,7 @@ export const SERVICE_OFFERS: ServiceOffer[] = [
   {
     name: "Check",
     description:
-    "Wir prüfen deinen Lebenslauf, dein Motivationsschreiben, deine Arbeitszeugnisse und weitere Bewerbungsdokumente auf Inhalt, Aufbau, Gestaltung und Formulierungen",
+    "Wir prüfen Ihre Bewerbungsunterlagen auf Inhalt, Aufbau, Gestaltung und Formulierungen, mit konkreten Empfehlungen.",
     image: "/images/checked.png",
     price: "ab CHF 59",
     link: "/service-check",
@@ -63,7 +63,7 @@ export const SERVICE_OFFERS: ServiceOffer[] = [
   {
     name: "Downloads",
     description:
-    "Masterprompts für Ihr Motivationsschreiben mit KI und Lebenslauf-Vorlagen für Word. CHF 19.90 pro Dokument oder alle 5 im Komplettpaket für CHF 49.90",
+    "KI-Masterprompts für Motivationsschreiben und Word-Vorlagen für den Lebenslauf. Einzeln oder im Komplettpaket.",
     image: "/images/resume.png",
     price: "ab CHF 19.90",
     link: SERVICE_DOWNLOADS_PATH,
@@ -74,7 +74,7 @@ export const SERVICE_OFFERS: ServiceOffer[] = [
   {
     name: "LinkedIn Profil Optimierung",
     description:
-    "Schärfung Ihres LinkedIn-Auftritts für die Stellensuche. Klare Positionierung, optimierte Profilstruktur und ansprechendes Copywriting für Recruiter",
+    "Ein geschärftes LinkedIn-Profil mit klarer Positionierung und Texten, die Recruiter ansprechen.",
     image: "/images/copy-writing.png",
     price: "CHF 149",
     link: "/service-linkedin",
@@ -83,7 +83,7 @@ export const SERVICE_OFFERS: ServiceOffer[] = [
   {
     name: "RAV Unterstützung",
     description:
-    "Unterstützung bei der Erfüllung von RAV-Vorgaben. Erstellung von Lebenslauf und Motivationsschreiben. Vorbereitung auf Bewerbungsgespräche",
+    "Unterlagen nach RAV-Vorgaben, von Lebenslauf und Motivationsschreiben bis zur Vorbereitung aufs Gespräch.",
     image: "/images/customer-service.png",
     price: "ab CHF 99",
     link: "/service-rav",
@@ -97,7 +97,7 @@ export const OFFER_CARDS: OfferCard[] = [
   {
     name: "Self-Service",
     description:
-      "Lebenslauf und Motivationsschreiben selbst erstellen, Bewerbungen verwalten und den eigenen Lohn einordnen. Alles an einem Ort, jederzeit verfügbar",
+      "Lebenslauf und Motivationsschreiben selbst erstellen, Bewerbungen verwalten und den eigenen Lohn einordnen.",
     image: "/images/self-service-icon.png",
     price: "CHF 13.90 / Monat",
     link: "/self",

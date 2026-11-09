@@ -1,18 +1,30 @@
 "use client";
 
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
- import { Suspense, useState } from "react";
+import { Suspense, useState } from "react";
+import { CalendarCheck, Mail, MapPin, Phone } from "lucide-react";
+
+const CONTACT_CHANNELS = [
+  { icon: Mail, label: "E-Mail", value: "info@cvolution.ch", href: "mailto:info@cvolution.ch" },
+  { icon: Phone, label: "Telefon", value: "+41 76 440 51 51", href: "tel:+41764405151" },
+  {
+    icon: MapPin,
+    label: "Adresse",
+    value: "Ausserfeldstrasse 9, 5036 Oberentfelden",
+    href: "https://maps.app.goo.gl/w6xbQW3mxBxoj6sa8",
+    external: true,
+  },
+];
 
 function ContactPage() {
   const searchParams = useSearchParams();
   const subjectFromParams = searchParams?.get("subject") || "";
-  const [isAgbChecked, setIsAgbChecked] = useState(false);
+  const [isPrivacyChecked, setIsPrivacyChecked] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     subject: subjectFromParams,
-    address: "",
-    postalCode: "",
     message: "",
   });
 
@@ -25,10 +37,8 @@ function ContactPage() {
     formData.name.trim() !== "" &&
     formData.email.trim() !== "" &&
     formData.subject.trim() !== "" &&
-    formData.address.trim() !== "" &&
-    formData.postalCode.trim() !== "" &&
     formData.message.trim() !== "" &&
-    isAgbChecked;
+    isPrivacyChecked;
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState<string | null>(null);
@@ -48,8 +58,6 @@ function ContactPage() {
           name: formData.name,
           email: formData.email,
           service: formData.subject,
-          address: formData.address,
-          postalCode: formData.postalCode,
           message: formData.message,
         }),
       });
@@ -59,11 +67,9 @@ function ContactPage() {
           name: "",
           email: "",
           subject: subjectFromParams,
-          address: "",
-          postalCode: "",
           message: "",
         });
-        setIsAgbChecked(false);
+        setIsPrivacyChecked(false);
       } else {
         const data = await res.json();
         setSubmitError(data.message || "Fehler beim Senden der Nachricht.");
@@ -77,7 +83,7 @@ function ContactPage() {
   };
 
   const inputClass =
-    "w-full rounded-xl border border-[#d5e1ee] bg-white px-4 py-3 text-sm text-[#111827] shadow-sm shadow-[#173d66]/[0.02] transition placeholder:text-[#94a3b8] focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#204878]";
+    "w-full rounded-lg border border-[#d5e1ee] bg-white px-4 py-3 text-sm text-[#111827] shadow-sm shadow-[#173d66]/[0.02] transition placeholder:text-[#94a3b8] focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#204878]";
   const labelClass = "mb-2 block text-sm font-semibold text-[#101828]";
 
   return (
@@ -86,20 +92,58 @@ function ContactPage() {
         <div className="absolute inset-x-0 top-0 -z-10 h-[28rem] bg-[radial-gradient(circle_at_50%_0%,rgba(32,72,120,0.14),transparent_34%),linear-gradient(180deg,#ffffff_0%,#eef4fb_100%)]" />
 
         <div className="mx-auto max-w-6xl">
-          <div className="mx-auto mb-12 max-w-2xl text-center">
-            <p className="mb-4 inline-flex rounded-md border border-[#204878]/15 bg-white/75 px-3 py-1.5 text-sm font-semibold text-[#204878] shadow-sm shadow-[#204878]/5">
-              Kontakt
-            </p>
-            <h1 className="text-4xl font-semibold leading-tight tracking-tight text-[#101828] text-balance sm:text-5xl">
+          <div className="mx-auto mb-10 max-w-2xl text-center">
+            <h1 className="text-4xl font-bold leading-tight text-[#101828] text-balance sm:text-5xl">
               Kontaktieren Sie uns
             </h1>
-            <p className="mt-4 text-base leading-7 text-[#5d6b7f] text-pretty">
+            <p className="mt-4 text-base leading-7 text-[#4f5d72] text-pretty">
               Wir freuen uns, von Ihnen zu hören.
             </p>
           </div>
 
-          <div className="mx-auto max-w-4xl overflow-hidden rounded-3xl bg-white shadow-[0_1.5rem_4rem_rgba(15,37,65,0.09)] ring-1 ring-[#dce5ef]">
-            <div className="h-1.5 bg-[#204878]" />
+          <div className="grid gap-6 lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)] lg:items-start">
+          <aside className="flex flex-col gap-6 rounded-2xl bg-[#173d66] p-7 text-white shadow-[0_1.5rem_4rem_rgba(15,37,65,0.14)] sm:p-8">
+            <div>
+              <h2 className="text-xl font-bold">Direkter Kontakt</h2>
+              <p className="mt-2 text-sm leading-6 text-white/80">
+                Wir antworten in der Regel innerhalb eines Werktags.
+              </p>
+            </div>
+            <ul className="flex flex-col gap-4">
+              {CONTACT_CHANNELS.map(({ icon: Icon, label, value, href, external }) => (
+                <li key={label}>
+                  <a
+                    href={href}
+                    {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+                    className="group flex items-start gap-3"
+                  >
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white/10 transition group-hover:bg-white/20">
+                      <Icon className="h-[1.125rem] w-[1.125rem]" strokeWidth={1.75} aria-hidden="true" />
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block text-xs font-medium uppercase tracking-wider text-white/70">{label}</span>
+                      <span className="block text-sm font-semibold text-white group-hover:underline underline-offset-2">{value}</span>
+                    </span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+            <div className="border-t border-white/15 pt-6">
+              <p className="text-sm font-semibold">Lieber direkt buchen?</p>
+              <p className="mt-1 text-sm leading-6 text-white/80">
+                Alle Leistungen mit Preisen finden Sie in unserem Angebot.
+              </p>
+              <Link
+                href="/service"
+                className="mt-4 inline-flex items-center gap-2 rounded-lg bg-white px-4 py-2.5 text-sm font-semibold text-[#173d66] transition hover:-translate-y-0.5 hover:bg-[#f4f7fb]"
+              >
+                <CalendarCheck className="h-4 w-4" aria-hidden="true" />
+                Angebot ansehen
+              </Link>
+            </div>
+          </aside>
+
+          <div className="overflow-hidden rounded-2xl bg-white shadow-[0_1.5rem_4rem_rgba(15,37,65,0.09)] ring-1 ring-[#dce5ef]">
             <div className="p-7 sm:p-9">
             {submitSuccess && (
               <div className="mb-6 rounded-xl border border-green-100 bg-green-50 p-4 text-sm font-medium text-green-700">
@@ -147,40 +191,6 @@ function ContactPage() {
                 />
               </div>
 
-              {/* Street + Nr Field */}
-              <div>
-                <label htmlFor="address" className={labelClass}>
-                  Strasse + Nr
-                </label>
-                <input
-                  type="text"
-                  id="address"
-                  name="address"
-                  value={formData.address}
-                  onChange={handleInputChange}
-                  className={inputClass}
-                  placeholder="Strasse + Hausnummer"
-                  required
-                />
-              </div>
-
-              {/* Postal Code Field */}
-              <div>
-                <label htmlFor="postalCode" className={labelClass}>
-                  PLZ + Ort
-                </label>
-                <input
-                  type="text"
-                  id="postalCode"
-                  name="postalCode"
-                  value={formData.postalCode}
-                  onChange={handleInputChange}
-                  className={inputClass}
-                  placeholder="PLZ + Ort"
-                  required
-                />
-              </div>
-
               {/* Subject Field */}
               <div className="md:col-span-2">
                 <label htmlFor="subject" className={labelClass}>
@@ -218,22 +228,22 @@ function ContactPage() {
                 ></textarea>
               </div>
 
-              {/* AGB Checkbox */}
+              {/* Datenschutz Checkbox */}
               <div className="flex items-start gap-3 md:col-span-2">
                 <input
                   type="checkbox"
-                  id="agb"
-                  name="agb"
-                  checked={isAgbChecked}
-                  onChange={(e) => setIsAgbChecked(e.target.checked)}
+                  id="privacy"
+                  name="privacy"
+                  checked={isPrivacyChecked}
+                  onChange={(e) => setIsPrivacyChecked(e.target.checked)}
                   className="mt-0.5 h-4 w-4 flex-shrink-0 rounded border-[#cbd9e8] text-[#204878] focus:ring-[#204878]"
                 />
-                <label htmlFor="agb" className="text-sm text-[#64748B]">
-                  Ich habe die{" "}
-                  <a href="/agb" target="_blank" className="text-[#204878] hover:underline">
-                    AGB
-                  </a>{" "}
-                  gelesen und akzeptiere sie.
+                <label htmlFor="privacy" className="text-sm leading-6 text-[#4f5d72]">
+                  Ich bin einverstanden, dass meine Angaben zur Bearbeitung meiner Anfrage verwendet werden. Details in der{" "}
+                  <a href="/data" target="_blank" className="font-medium text-[#204878] underline-offset-2 hover:underline">
+                    Datenschutzerklärung
+                  </a>
+                  .
                 </label>
               </div>
 
@@ -242,7 +252,7 @@ function ContactPage() {
                 <button
                   type="submit"
                   disabled={!isFormValid || isSubmitting}
-                  className={`w-full rounded-xl px-6 py-3 text-sm font-semibold transition duration-200 ${
+                  className={`w-full rounded-lg px-6 py-3 text-sm font-semibold transition duration-200 ${
                     isFormValid && !isSubmitting
                       ? "bg-[#204878] text-white shadow-lg shadow-[#204878]/20 hover:-translate-y-0.5 hover:bg-[#173d66] active:translate-y-0"
                       : "cursor-not-allowed bg-[#eef2f7] text-[#94a3b8]"
@@ -253,6 +263,7 @@ function ContactPage() {
               </div>
             </form>
             </div>
+          </div>
           </div>
         </div>
       </section>

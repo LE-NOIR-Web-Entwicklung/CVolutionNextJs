@@ -4,8 +4,53 @@ import { useState } from "react";
 import Image from "next/image";
 import { FaLinkedin, FaPhone, FaEnvelope } from "react-icons/fa";
 import Link from "next/link";
-import { AddToCartButton } from "@/components/AddToCartButton";
+import {
+  ArrowRight,
+  Briefcase,
+  Coins,
+  Compass,
+  Download,
+  FileCheck,
+  FileText,
+  FileUser,
+  MonitorSmartphone,
+  PenLine,
+  UserRound,
+  type LucideIcon,
+} from "lucide-react";
 import { OFFER_CARDS } from "@/lib/service-offers";
+import { SERVICE_DOWNLOADS_PATH } from "@/lib/service-downloads";
+
+const OFFER_ICONS: Record<string, LucideIcon> = {
+  "/self": MonitorSmartphone,
+  "/service-salary": Coins,
+  "/service-cv": FileUser,
+  "/service-motivation": PenLine,
+  "/service-career": Compass,
+  "/service-check": FileCheck,
+  [SERVICE_DOWNLOADS_PATH]: Download,
+  "/service-linkedin": UserRound,
+  "/service-rav": Briefcase,
+};
+
+const TEAM = [
+  {
+    name: "Armend Mustafa",
+    position: "CEO | Managing Partner",
+    image: "/images/team-1.jpg",
+    phone: "+41764405151",
+    email: "armend@cvolution.ch",
+    linkedin: "https://www.linkedin.com/in/armend-mustafa/",
+  },
+  {
+    name: "Jan Eggenberger",
+    position: "CTO | Software Engineer",
+    image: "/images/team-2.jpg",
+    phone: "+41796654892",
+    email: "jan@cvolution.ch",
+    linkedin: "https://www.linkedin.com/in/jan-eggenberger-903517179",
+  },
+];
 
 export default function Home() {
   const slides = [
@@ -148,32 +193,33 @@ export default function Home() {
           <div className="mx-auto flex max-w-5xl flex-col items-center text-center">
 
             {/* Badge */}
-            <div className="inline-flex items-center gap-2 rounded-md border border-white/16 bg-white/[0.09] px-3.5 py-2 text-xs font-semibold text-white/82 shadow-[0_1rem_3rem_rgba(0,0,0,0.16)] backdrop-blur-md mb-7">
+            <div className="inline-flex items-center gap-2 rounded-full border border-white/16 bg-white/[0.09] px-3.5 py-2 text-xs font-semibold text-white/82 shadow-[0_1rem_3rem_rgba(0,0,0,0.16)] backdrop-blur-md mb-7">
               <span className="h-1.5 w-1.5 rounded-full bg-white/78" />
               1000+ Kunden bereits erfolgreich unterstützt
             </div>
 
             {/* Headline */}
-            <h1 className="max-w-5xl text-[clamp(2.85rem,12vw,7.25rem)] font-semibold leading-[0.94] mb-6 text-white [text-wrap:balance]">
+            <h1 className="max-w-5xl text-[clamp(2.5rem,7vw,5.25rem)] font-bold leading-[1.02] tracking-[-0.035em] mb-6 text-white [text-wrap:balance]">
               Unsere Bewerbung,{" "}
               <br className="hidden sm:block" />
-              <span className="text-white/72">
-                deine Entwicklung!
+              <span className="relative inline-block">
+                Ihre Entwicklung.
+                <span aria-hidden="true" className="absolute -bottom-1 left-0 right-0 h-[0.08em] rounded-full bg-white/35 sm:-bottom-2" />
               </span>
             </h1>
 
             {/* Subheadline */}
             <p className="max-w-2xl text-base leading-8 text-white/74 sm:text-lg mb-8">
-              Mit über 10 Jahren Erfahrung im Recruiting unterstützen wir bei Lebenslauf,
+              Mit über 10 Jahren Recruiting-Erfahrung unterstützen wir Sie bei Lebenslauf,
               Lohnanalyse und Laufbahnberatung. Oder Sie erstellen Ihre Bewerbung
               selbst, mit Self-Service und Downloads.
             </p>
 
             {/* CTA Buttons */}
-            <div className="flex w-full flex-col items-stretch justify-center gap-3 sm:w-auto sm:flex-row sm:items-center mb-10 sm:mb-14">
+            <div className="flex w-full flex-col items-stretch justify-center gap-3 sm:w-auto sm:flex-row sm:items-center mb-6">
               <Link
                 href="/self"
-                className="inline-flex min-h-12 items-center justify-center rounded-md bg-white px-6 py-3 text-sm font-semibold text-[#0F172A] shadow-[0_1rem_2.5rem_rgba(0,0,0,0.22)] transition duration-300 hover:-translate-y-0.5 hover:bg-[#f4f7fb]"
+                className="inline-flex min-h-12 items-center justify-center rounded-lg bg-white px-6 py-3 text-sm font-semibold text-[#0F172A] shadow-[0_1rem_2.5rem_rgba(0,0,0,0.22)] transition duration-300 hover:-translate-y-0.5 hover:bg-[#f4f7fb]"
               >
                 Self-Service starten
                 <svg className="w-4 h-4 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
@@ -182,20 +228,18 @@ export default function Home() {
               </Link>
               <Link
                 href="/service-salary"
-                className="inline-flex min-h-12 items-center justify-center rounded-md bg-white px-6 py-3 text-sm font-semibold text-[#0F172A] shadow-[0_1rem_2.5rem_rgba(0,0,0,0.22)] transition duration-300 hover:-translate-y-0.5 hover:bg-[#f4f7fb]"
+                className="inline-flex min-h-12 items-center justify-center rounded-lg border border-white/30 bg-white/[0.06] px-6 py-3 text-sm font-semibold text-white backdrop-blur-md transition duration-300 hover:-translate-y-0.5 hover:border-white/50 hover:bg-white/[0.12]"
               >
                 Lohnanalyse buchen
-                <svg className="w-4 h-4 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                </svg>
-              </Link>
-              <Link
-                href="/service"
-                className="inline-flex min-h-12 items-center justify-center rounded-md border border-white/22 bg-white/[0.08] px-6 py-3 text-sm font-semibold text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.12)] backdrop-blur-md transition duration-300 hover:-translate-y-0.5 hover:bg-white/[0.14]"
-              >
-                Alle Angebote ansehen
               </Link>
             </div>
+            <Link
+              href="/service"
+              className="group mb-10 inline-flex items-center gap-1.5 text-sm font-medium text-white/75 underline-offset-4 transition hover:text-white hover:underline sm:mb-14"
+            >
+              Alle Angebote ansehen
+              <span aria-hidden="true" className="transition group-hover:translate-x-0.5">→</span>
+            </Link>
 
             {/* Service Highlights */}
             {/* <div className="grid w-full max-w-[18.5rem] grid-cols-2 justify-items-stretch gap-2 text-xs sm:flex sm:max-w-6xl sm:flex-wrap sm:justify-center sm:text-sm lg:flex-nowrap">
@@ -231,151 +275,98 @@ export default function Home() {
 
         <div className="mx-auto max-w-6xl">
           <div className="mx-auto max-w-2xl text-center">
-            <p className="mb-4 inline-flex rounded-md border border-[#204878]/15 bg-white/75 px-3 py-1.5 text-sm font-semibold text-[#204878] shadow-sm shadow-[#204878]/5">
-              CVolution Bewerbungsservice
-            </p>
-            <h2 className="text-4xl font-semibold leading-tight tracking-tight text-[#101828] text-balance sm:text-5xl">
+            <h2 className="text-4xl font-bold leading-tight text-[#101828] text-balance sm:text-5xl">
               Unser Angebot
             </h2>
-            <p className="mt-4 text-base leading-7 text-[#5d6b7f] text-pretty">
+            <p className="mt-4 text-base leading-7 text-[#4f5d72] text-pretty">
               Professionelle Unterstützung für jeden Schritt Ihrer Karriere.
             </p>
           </div>
 
           <div className="mt-12 grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
-            {OFFER_CARDS.map((product) => (
-              <article
-                key={product.name}
-                className="group relative flex min-h-[20rem] flex-col overflow-hidden rounded-3xl bg-white p-6 shadow-[0_1.25rem_3.5rem_rgba(15,37,65,0.07)] ring-1 ring-[#dce5ef] transition duration-300 hover:-translate-y-1 hover:shadow-[0_1.75rem_4.5rem_rgba(15,37,65,0.12)] focus-within:ring-2 focus-within:ring-[#204878]"
-              >
-                <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-[#204878] opacity-0 transition duration-300 group-hover:opacity-100" />
-                <div className="mb-7 flex items-start justify-between gap-5">
-                  <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#eef4fb] ring-1 ring-[#d8e4f1] transition duration-300 group-hover:bg-[#204878]">
-                    <Image
-                      src={product.image}
-                      alt=""
-                      width={34}
-                      height={34}
-                      className="transition duration-300 group-hover:invert"
-                    />
+            {OFFER_CARDS.map((product) => {
+              const Icon = OFFER_ICONS[product.link] ?? FileText;
+              return (
+                <Link
+                  key={product.name}
+                  href={product.link}
+                  className="group relative flex flex-col rounded-2xl bg-white p-6 shadow-[0_1rem_3rem_rgba(15,37,65,0.06)] ring-1 ring-[#dce5ef] transition duration-300 hover:-translate-y-1 hover:shadow-[0_1.5rem_4rem_rgba(15,37,65,0.12)] hover:ring-[#204878]/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#204878]"
+                >
+                  <div className="mb-6 flex items-start justify-between gap-5">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#eef4fb] text-[#204878] transition duration-300 group-hover:bg-[#204878] group-hover:text-white">
+                      <Icon className="h-6 w-6" strokeWidth={1.75} aria-hidden="true" />
+                    </div>
+                    <span className="rounded-full bg-[#f2f6fb] px-3 py-1 text-sm font-semibold text-[#204878] tabular-nums">
+                      {product.price}
+                    </span>
                   </div>
-                  <span className="rounded-md bg-[#f2f6fb] px-2.5 py-1 text-sm font-semibold text-[#204878] tabular-nums">
-                    {product.price}
-                  </span>
-                </div>
 
-                <div className="flex flex-1 flex-col">
-                  <h3 className="text-xl font-semibold tracking-tight text-[#101828]">
+                  <h3 className="text-xl font-bold text-[#101828]">
                     {product.name}
                   </h3>
-                  <p className="mt-3 text-[0.95rem] leading-7 text-[#607089] text-pretty">
+                  <p className="mt-2 flex-1 text-[0.95rem] leading-7 text-[#4f5d72] text-pretty">
                     {product.description}
                   </p>
-                </div>
 
-                <div className="mt-7 grid grid-cols-1 gap-3 border-t border-[#e6edf5] pt-5 sm:grid-cols-[minmax(0,1fr)_4.5rem]">
-                  <Link
-                    href={product.link}
-                    className={`sm:col-span-2 inline-flex w-full items-center justify-center rounded-xl bg-[#204878] px-3 py-3 text-center text-sm font-semibold text-white shadow-lg shadow-[#204878]/20 transition duration-200 hover:-translate-y-0.5 hover:bg-[#173d66] active:translate-y-0`}
-                  >
-                    <p>Angebot ansehen <span aria-hidden="true" className="transition group-hover:translate-x-1">→</span></p>
-                  </Link>
-                  {/* {!product.hasMultipleVariants && (
-                    <AddToCartButton
-                      serviceType={product.serviceType}
-                      productName={product.name}
-                      className="inline-flex w-full items-center justify-center rounded-xl bg-[#204878] px-3 py-3 text-center text-sm font-semibold text-white shadow-lg shadow-[#204878]/20 transition duration-200 hover:-translate-y-0.5 hover:bg-[#173d66] active:translate-y-0"
-                    />
-                  )} */}
-                </div>
-              </article>
-            ))}
+                  <span className="mt-6 inline-flex items-center gap-1.5 text-sm font-semibold text-[#204878]">
+                    Angebot ansehen
+                    <ArrowRight className="h-4 w-4 transition duration-300 group-hover:translate-x-1" aria-hidden="true" />
+                  </span>
+                </Link>
+              );
+            })}
           </div>
         </div>
       </section>
 
       {/* Team Section */}
-      <section className="relative py-24 overflow-hidden">
-        <Image
-          src="/images/teamsectionbg.png"
-          alt="Team section background"
-          fill
-          sizes="100vw"
-          quality={100}
-          className="object-cover object-[70%] md:object-center"
-        />
-        <div className="absolute inset-0 bg-transparent md:bg-[#193961]/60" />
-        <div className="relative z-10 max-w-6xl mx-auto px-6">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl sm:text-4xl font-semibold text-white mb-4">
+      <section className="relative overflow-hidden bg-white px-5 py-20 sm:px-6 sm:py-24">
+        <div className="mx-auto max-w-6xl">
+          <div className="mx-auto mb-12 max-w-2xl text-center">
+            <h2 className="text-4xl font-bold text-[#101828] text-balance sm:text-5xl">
               Unser Team
             </h2>
-            <p className="text-lg text-gray-400 max-w-xl mx-auto">
+            <p className="mt-4 text-base leading-7 text-[#4f5d72] text-pretty">
               Erfahrene Experten, die Ihre Karriere voranbringen.
             </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-3xl mx-auto">
-            {[
-              {
-                name: "Armend Mustafa",
-                position: "CEO | Managing Partner",
-                image: "/images/team-1.jpg",
-                phone: "+41764405151",
-                email: "armend@cvolution.ch",
-                linkedin: "https://www.linkedin.com/in/armend-mustafa/",
-              },
-              {
-                name: "Jan Eggenberger",
-                position: "CTO | Software Engineer",
-                image: "/images/team-2.jpg",
-                phone: "+41796654892",
-                email: "jan@cvolution.ch",
-                linkedin: "https://www.linkedin.com/in/jan-eggenberger-903517179",
-              },
-            ].map((member, index) => (
-              <div
-                key={index}
-                className="bg-white/5 border border-white/10 rounded-2xl p-8 text-center hover:bg-white/10 transition-colors duration-200"
+          <div className="mx-auto grid max-w-4xl grid-cols-1 gap-6 md:grid-cols-2">
+            {TEAM.map((member) => (
+              <article
+                key={member.email}
+                className="group overflow-hidden rounded-2xl bg-white shadow-[0_1.5rem_4rem_rgba(15,37,65,0.09)] ring-1 ring-[#dce5ef]"
               >
-                <div className="relative mx-auto mb-6 w-36 h-36 md:w-24 md:h-24">
-                  <div className="absolute inset-0 rounded-full ring-2 ring-white/20 ring-offset-4 ring-offset-transparent" />
+                <div className="relative aspect-[4/5] overflow-hidden bg-[#e9f0f8]">
                   <Image
                     src={member.image}
                     alt={member.name}
                     fill
-                    className="rounded-full object-cover object-top"
+                    sizes="(min-width: 768px) 28rem, 100vw"
+                    className="object-cover object-top transition duration-500 group-hover:scale-[1.03]"
                   />
+                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#173d66]/90 to-transparent p-6 pt-20 text-white">
+                    <h3 className="text-2xl font-bold">{member.name}</h3>
+                    <p className="mt-1 text-sm text-white/80">{member.position}</p>
+                  </div>
                 </div>
-                <h3 className="text-lg font-semibold text-white mb-1">
-                  {member.name}
-                </h3>
-                <p className="text-sm text-gray-400 mb-5">{member.position}</p>
-                <div className="flex justify-center gap-4">
-                  <a
-                    href={`tel:${member.phone}`}
-                    className="text-gray-500 hover:text-white transition-colors"
-                    aria-label="Telefon"
-                  >
-                    <FaPhone size={16} />
-                  </a>
-                  <a
-                    href={`mailto:${member.email}`}
-                    className="text-gray-500 hover:text-white transition-colors"
-                    aria-label="E-Mail"
-                  >
-                    <FaEnvelope size={16} />
-                  </a>
-                  <a
-                    href={member.linkedin}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-gray-500 hover:text-white transition-colors"
-                    aria-label="LinkedIn"
-                  >
-                    <FaLinkedin size={16} />
-                  </a>
+                <div className="flex items-center gap-3 px-6 py-5">
+                  {[
+                    { href: `tel:${member.phone}`, label: "Telefon", icon: FaPhone },
+                    { href: `mailto:${member.email}`, label: "E-Mail", icon: FaEnvelope },
+                    { href: member.linkedin, label: "LinkedIn", icon: FaLinkedin, external: true },
+                  ].map(({ href, label, icon: ContactIcon, external }) => (
+                    <a
+                      key={label}
+                      href={href}
+                      {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+                      className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#eef4fb] text-[#204878] transition hover:bg-[#204878] hover:text-white"
+                      aria-label={`${label} ${member.name}`}
+                    >
+                      <ContactIcon size={16} />
+                    </a>
+                  ))}
                 </div>
-              </div>
+              </article>
             ))}
           </div>
         </div>

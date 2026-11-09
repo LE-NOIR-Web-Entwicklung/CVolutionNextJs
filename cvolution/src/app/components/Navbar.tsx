@@ -88,16 +88,19 @@ export default function Navbar() {
               <div key={index} className="relative">
                 {item.dropdown ? (
                   <div className="relative" ref={dropdownRef}>
-                    <div className="flex items-center">
+                    <div className="flex h-10 items-center rounded-lg transition-colors hover:bg-gray-50">
                       <Link
                         href={item.href}
-                        className="px-3 py-2 text-sm font-medium text-[#111827] hover:text-[#204878] transition-colors duration-150 rounded-md hover:bg-gray-50"
+                        className="flex h-full items-center pl-3 pr-1 text-sm font-medium leading-none text-[#111827] hover:text-[#204878] transition-colors duration-150"
                       >
                         {item.name}
                       </Link>
                       <button
-                        className="p-1 text-gray-400 hover:text-[#204878] transition-colors"
+                        type="button"
+                        className="flex h-full items-center pl-0.5 pr-2.5 text-gray-400 hover:text-[#204878] transition-colors"
                         onClick={() => toggleDropdown(item.name)}
+                        aria-expanded={openDropdown === item.name}
+                        aria-label={`${item.name}-Menü öffnen`}
                       >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
@@ -114,7 +117,7 @@ export default function Navbar() {
                       </button>
                     </div>
                     {openDropdown === item.name && (
-                      <ul className="absolute left-0 mt-1 w-52 bg-white border border-gray-100 rounded-xl shadow-lg z-10 py-1">
+                      <ul className="absolute left-0 top-full mt-1 w-56 bg-white border border-gray-100 rounded-xl shadow-lg z-10 py-1">
                         {item.items.map((subItem, idx) => (
                           <li key={idx}>
                             <Link
@@ -132,7 +135,7 @@ export default function Navbar() {
                 ) : (
                   <Link
                     href={item.href}
-                    className="px-3 py-2 text-sm font-medium text-[#111827] hover:text-[#204878] transition-colors duration-150 rounded-md hover:bg-gray-50"
+                    className="flex h-10 items-center rounded-lg px-3 text-sm font-medium leading-none text-[#111827] hover:text-[#204878] transition-colors duration-150 hover:bg-gray-50"
                   >
                     {item.name}
                   </Link>
@@ -141,10 +144,11 @@ export default function Navbar() {
             ))}
             <Link
               href="/service"
-              className="ml-2 px-4 py-2 text-sm font-semibold text-white bg-[#204878] rounded-lg hover:bg-[#1a3a66] transition-colors duration-150"
+              className="ml-3 inline-flex h-10 items-center rounded-lg bg-[#204878] px-4 text-sm font-semibold text-white transition-colors duration-150 hover:bg-[#1a3a66]"
             >
               Jetzt buchen
             </Link>
+            <span className="mx-1 h-6 w-px bg-gray-200" aria-hidden="true" />
             <CartNavLink />
             {/* <Link
               href="/cart"
@@ -155,7 +159,7 @@ export default function Navbar() {
           </div>
 
           <div className="lg:hidden flex items-center gap-2">
-            <CartNavLink compact />
+            <CartNavLink />
             <button
               className="p-2 text-[#111827] hover:text-[#204878] rounded-md hover:bg-gray-50 transition-colors"
               onClick={toggleMobileMenu}
@@ -245,7 +249,7 @@ export default function Navbar() {
                 </Link>
               </li>
               <li>
-                <CartNavLink onClick={closeMobileMenu} />
+                <CartNavLink variant="row" onClick={closeMobileMenu} />
               </li>
               {/* <li className="mt-3 pt-3 border-t border-gray-100">
                 <Link

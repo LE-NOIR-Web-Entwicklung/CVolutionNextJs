@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { ShoppingBag } from "lucide-react";
 import { readCart } from "@/lib/cart";
 
-export function CartNavLink({ onClick, compact = false }: { onClick?: () => void; compact?: boolean }) {
+export function CartNavLink({ onClick, variant = "icon" }: { onClick?: () => void; variant?: "icon" | "row" }) {
   const [count, setCount] = useState(0);
 
   useEffect(() => {
@@ -21,18 +22,43 @@ export function CartNavLink({ onClick, compact = false }: { onClick?: () => void
     };
   }, []);
 
+  const label = count > 0 ? `Warenkorb, ${count} ${count === 1 ? "Position" : "Positionen"}` : "Warenkorb";
+
+  if (variant === "row") {
+    return (
+      <Link
+        href="/cart"
+        onClick={onClick}
+        className="flex items-center justify-between rounded-lg px-3 py-2.5 text-sm font-medium text-[#111827] transition-colors hover:bg-gray-50 hover:text-[#204878]"
+        aria-label={label}
+      >
+        <span className="inline-flex items-center gap-2">
+          <ShoppingBag className="h-4 w-4" aria-hidden="true" />
+          Warenkorb
+        </span>
+        {count > 0 && (
+          <span className="min-w-5 rounded-full bg-[#204878] px-1.5 py-0.5 text-center text-xs font-semibold text-white tabular-nums">
+            {count}
+          </span>
+        )}
+      </Link>
+    );
+  }
+
   return (
     <Link
       href="/cart"
       onClick={onClick}
-      className={
-        compact
-          ? "inline-flex shrink-0 items-center justify-center rounded-lg bg-[#204878] px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-[#1a3a66]"
-          : "block w-full text-center px-4 py-3 text-sm font-semibold text-white bg-[#204878] rounded-lg hover:bg-[#1a3a66] transition-colors md:ml-4 md:w-auto md:text-left md:py-2"
-      }
-      aria-label={`Warenkorb mit ${count} Positionen`}
+      className="relative inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-[#111827] transition-colors hover:bg-gray-50 hover:text-[#204878]"
+      aria-label={label}
+      title="Warenkorb"
     >
-      Warenkorb{count > 0 ? ` (${count})` : ""}
+      <ShoppingBag className="h-5 w-5" strokeWidth={1.75} aria-hidden="true" />
+      {count > 0 && (
+        <span className="absolute -right-0.5 -top-0.5 flex h-[1.125rem] min-w-[1.125rem] items-center justify-center rounded-full bg-[#204878] px-1 text-[0.65rem] font-bold leading-none text-white ring-2 ring-white tabular-nums">
+          {count}
+        </span>
+      )}
     </Link>
   );
 }
