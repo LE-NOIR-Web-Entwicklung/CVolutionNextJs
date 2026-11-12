@@ -398,10 +398,6 @@ export const Dashboard: React.FC = () => {
             isRenewal={isRenewal}
           />
 
-          {/* <TabsContent value="linkedin">
-            <LinkedInExtractor />
-          </TabsContent> */}
-
           {accessEndsSoon && (
             <p role="status" className="text-xs text-amber-800">
               Ihr Self-Service-Zugang endet am {formatSubscriptionDate(paidPeriodEnd)}.{' '}
