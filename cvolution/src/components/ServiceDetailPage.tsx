@@ -1,8 +1,10 @@
-"use client";
-
 import Image from "next/image";
-import Link from "next/link";
 import { AddToCartButton } from "@/components/AddToCartButton";
+import { FaqSection } from "@/components/content/FaqSection";
+import { RelatedGuides } from "@/components/content/RelatedGuides";
+import { JsonLd } from "@/components/seo/JsonLd";
+import { breadcrumbSchema, serviceSchema, type Faq } from "@/lib/seo";
+import { guidesForService } from "@/lib/seo-pages";
 import type { ShopProductKey } from "@/lib/shop";
 
 type ServiceDetailPageProps = {
@@ -19,6 +21,12 @@ type ServiceDetailPageProps = {
   price: string;
   priceSuffix?: string;
   serviceType: ShopProductKey;
+  /** Route of this page, used for canonical schema URLs and the matching guides. */
+  path: string;
+  /** Name for the Service schema, e.g. "Lebenslauf schreiben lassen". */
+  schemaName: string;
+  offers: { name: string; price: number; unitText?: string }[];
+  faqs?: Faq[];
 };
 
 export function ServiceDetailPage({
@@ -35,9 +43,25 @@ export function ServiceDetailPage({
   price,
   priceSuffix,
   serviceType,
+  path,
+  schemaName,
+  offers,
+  faqs = [],
 }: ServiceDetailPageProps) {
+  const guides = guidesForService(path);
+
   return (
     <main className="min-h-screen overflow-hidden bg-[#f4f7fb] text-[#142033]">
+      <JsonLd
+        data={[
+          serviceSchema({ name: schemaName, description: subtitle, path, serviceType: eyebrow, offers }),
+          breadcrumbSchema([
+            { name: "Startseite", path: "/" },
+            { name: "Angebot", path: "/service" },
+            { name: eyebrow, path },
+          ]),
+        ]}
+      />
       <section className="relative isolate px-5 pb-16 pt-10 sm:px-6 sm:pb-20 sm:pt-12">
         <div className="absolute inset-x-0 top-0 -z-10 h-[20rem] bg-[radial-gradient(circle_at_28%_0%,rgba(32,72,120,0.14),transparent_30%),linear-gradient(180deg,#ffffff_0%,#eef4fb_100%)]" />
 
@@ -61,7 +85,7 @@ export function ServiceDetailPage({
             <aside className="rounded-2xl bg-[#173d66] p-5 text-white shadow-xl shadow-[#173d66]/16">
               <div className="flex items-center gap-4">
                 <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/10 ring-1 ring-white/18">
-                  <Image src={image} alt={imageAlt} width={32} height={32} className="invert" />
+                  <Image src={image} alt={imageAlt} width={32} height={32} className="invert" priority />
                 </div>
                 <div>
                   <p className="text-sm font-medium text-white/68">Preis</p>
@@ -108,6 +132,25 @@ export function ServiceDetailPage({
                 ))}
               </ul>
             </aside>
+          </div>
+
+          {faqs.length > 0 ? <FaqSection faqs={faqs} className="mt-14" /> : null}
+
+          <RelatedGuides
+            guides={guides}
+            className="mt-14"
+            intro="Kostenlose Anleitungen und Muster zum Thema – von unseren Recruiting-Profis."
+          />
+
+          <div className="mt-14 flex flex-col items-start gap-4 rounded-2xl bg-[#173d66] p-6 text-white sm:flex-row sm:items-center sm:justify-between sm:p-7">
+            <div>
+              <p className="text-lg font-semibold">{eyebrow} für {price}{priceSuffix ? ` ${priceSuffix}` : ""}</p>
+              <p className="mt-1 text-sm text-white/72">Bezahlung mit TWINT oder Kreditkarte · Recruiting-Profis aus der Schweiz</p>
+            </div>
+            <AddToCartButton
+              serviceType={serviceType}
+              className="w-full rounded-xl bg-white px-6 py-3 text-center text-sm font-semibold text-[#173d66] shadow-lg shadow-black/10 transition duration-200 hover:-translate-y-0.5 hover:bg-[#eef4fb] sm:w-auto"
+            />
           </div>
         </div>
       </section>

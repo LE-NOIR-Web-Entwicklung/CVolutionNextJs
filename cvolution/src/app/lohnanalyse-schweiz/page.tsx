@@ -1,13 +1,9 @@
-import type { Metadata } from "next";
 import Link from "next/link";
-import Script from "next/script";
+import { GuideCta } from "@/components/content/GuideCta";
+import { GuideSchema } from "@/components/seo/GuideSchema";
+import { metaFor } from "@/lib/seo-pages";
 
-export const metadata: Metadata = {
-  title: "Lohnanalyse Schweiz 2026 | Ihren Marktwert kennen und nutzen",
-  description:
-    "Lohnanalyse Schweiz: Erfahren Sie, wie Sie Ihren fairen Lohn ermitteln, welche Faktoren den Lohn beeinflussen und wie Sie Lohnungleichheiten erkennen und ansprechen.",
-  alternates: { canonical: "https://cvolution.ch/lohnanalyse-schweiz" },
-};
+export const metadata = metaFor("/lohnanalyse-schweiz", { type: "article" });
 
 const faqData = [
   {
@@ -45,24 +41,7 @@ const faqData = [
 export default function LohnanalyseSchweiz() {
   return (
     <>
-      <Script
-        id="faq-schema"
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "FAQPage",
-            mainEntity: faqData.map((faq) => ({
-              "@type": "Question",
-              name: faq.question,
-              acceptedAnswer: {
-                "@type": "Answer",
-                text: faq.answer,
-              },
-            })),
-          }),
-        }}
-      />
+      <GuideSchema path="/lohnanalyse-schweiz" faqs={faqData} />
       <main className="bg-[#F8FAFC] min-h-screen">
         <div className="max-w-4xl mx-auto px-4 py-12">
 
@@ -70,13 +49,23 @@ export default function LohnanalyseSchweiz() {
           <div className="mb-10">
             <p className="text-sm font-medium text-[#204878] uppercase tracking-wide mb-2">Bewerbungsratgeber</p>
             <h1 className="text-4xl font-bold text-[#111827] leading-tight mb-4">
-              Lohnanalyse Schweiz – Ihren Marktwert kennen und einsetzen
+              Lohnanalyse Schweiz: So prüfen Sie selbst, ob Ihr Lohn fair ist
             </h1>
             <p className="text-lg text-[#64748B] leading-relaxed">
               Wer seinen Marktwert kennt, verhandelt selbstbewusster und erzielt bessere Ergebnisse. Eine systematische
               Lohnanalyse hilft Ihnen zu verstehen, wo Sie im Vergleich zu ähnlichen Stellen stehen – und gibt Ihnen eine
-              solide Basis für Gespräche mit Ihrem Arbeitgeber.
+              solide Basis für Gespräche mit Ihrem Arbeitgeber. Dieser Ratgeber zeigt, wie Sie den Vergleich selbst machen.
             </p>
+            <div className="mt-6 rounded-xl border border-[#204878]/15 bg-white p-5 text-[#374151]">
+              <p className="font-semibold text-[#111827]">Keine Zeit für den eigenen Vergleich?</p>
+              <p className="mt-1 text-sm leading-relaxed">
+                Unsere Recruiting-Profis erstellen Ihre persönliche Lohnanalyse mit Branchen- und Kantonsvergleich –
+                als PDF in 2 Arbeitstagen für CHF 69.{" "}
+                <Link href="/service-salary" className="font-semibold text-[#204878] underline underline-offset-4">
+                  Lohnanalyse erstellen lassen
+                </Link>
+              </p>
+            </div>
           </div>
 
           <section className="mb-10">
@@ -198,7 +187,8 @@ export default function LohnanalyseSchweiz() {
                 <><strong>Nutzen Sie mindestens zwei Quellen:</strong> Salarium als Basis, Lohncheck.ch zur Ergänzung.</>,
                 <><strong>Berücksichtigen Sie Nebenleistungen:</strong> Bonus, BVG-Beitrag, Homeoffice, Ferientage und Weiterbildungsbudget sind Teil der Gesamtvergütung.</>,
                 <><strong>Notieren Sie den Brutto-Jahreslohn:</strong> In der Schweiz wird der Lohn meist auf 12 Monate berechnet. Ein 13. Monatslohn ist verbreitet und sollte separat ausgewiesen sein.</>,
-                <><strong>Vergleichen Sie:</strong> Liegt Ihr Lohn mehr als 15 % unter dem Median für Ihr Profil, ist eine Verhandlung angebracht.</>,
+                <><strong>Vergleichen Sie:</strong> Liegt Ihr Lohn mehr als 15 % unter dem Median für Ihr Profil, ist eine Verhandlung angebracht. Wie Sie diese vorbereiten, lesen Sie im Ratgeber <Link href="/lohn-verhandeln-schweiz" className="font-semibold text-[#204878] underline underline-offset-4">Lohn verhandeln</Link>.</>,
+                <><strong>Unsicher beim Ergebnis?</strong> Lassen Sie Ihren Lohn von Fachleuten einordnen: Die <Link href="/service-salary" className="font-semibold text-[#204878] underline underline-offset-4">Lohnanalyse von CVolution</Link> vergleicht Ihr Gesamtpaket mit passenden Profilen und liefert Argumente für das Gespräch.</>,
               ].map((item, i) => (
                 <li key={i} className="flex items-start gap-2 text-[#374151]">
                   <svg className="w-5 h-5 text-[#204878] flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
@@ -254,23 +244,7 @@ export default function LohnanalyseSchweiz() {
             </div>
           </section>
 
-          {/* CTA */}
-          <section className="bg-[#204878] rounded-2xl p-8 text-white text-center">
-            <h2 className="text-2xl font-semibold mb-3">Professionelle Unterstützung bei Ihrer Bewerbung</h2>
-            <p className="text-blue-100/80 mb-6 max-w-xl mx-auto">
-              Unsere Experten mit über 10 Jahren Recruiting-Erfahrung begleiten Sie auf dem Weg zu Ihrer neuen Stelle.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Link href="/service-salary"
-                className="inline-flex items-center justify-center px-6 py-3 bg-white text-[#204878] font-semibold rounded-xl hover:bg-blue-50 transition-colors duration-200">
-                Lohn analysieren lassen
-              </Link>
-              <Link href="/service"
-                className="inline-flex items-center justify-center px-6 py-3 bg-white/10 text-white font-medium rounded-xl border border-white/20 hover:bg-white/20 transition-colors duration-200">
-                Komplette Bewerbung
-              </Link>
-            </div>
-          </section>
+          <GuideCta path="/lohnanalyse-schweiz" />
 
         </div>
       </main>

@@ -1,5 +1,9 @@
+import { metaFor } from "@/lib/seo-pages";
+import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, BarChart3, BriefcaseBusiness, Camera, Check, ExternalLink, FileText, Sparkles } from "lucide-react";
+
+export const metadata = metaFor("/self");
 
 const steps = [
   {
@@ -226,8 +230,14 @@ export default function Self() {
           <div className="mt-10 grid gap-5 sm:grid-cols-3">
             {designs.map((design) => (
               <figure key={design.title} className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
-                <div className="aspect-[1/1.38]">
-                  <img src={design.image} alt={`Lebenslauf Design ${design.title}`} className="h-full w-full object-cover" />
+                <div className="relative aspect-[1/1.38]">
+                  <Image
+                    src={design.image}
+                    alt={`Lebenslauf Design ${design.title}`}
+                    fill
+                    sizes="(min-width: 640px) 33vw, 100vw"
+                    className="object-cover"
+                  />
                 </div>
                 <figcaption className="border-t border-slate-100 px-4 py-3 text-center text-sm font-semibold text-[#111827]">{design.title}</figcaption>
               </figure>

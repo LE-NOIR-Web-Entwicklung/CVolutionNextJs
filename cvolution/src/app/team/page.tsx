@@ -76,6 +76,7 @@ export default function Team() {
                     src={member.image}
                     alt={member.name}
                     fill
+                    sizes="(min-width: 768px) 50vw, 100vw"
                     className="object-cover object-top transition duration-500 group-hover:scale-[1.03]"
                   />
                   <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#173d66]/90 to-transparent p-7 pt-20 text-white">

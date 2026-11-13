@@ -24,7 +24,7 @@ export default function Service() {
                 CVolution Bewerbungsservice
               </p>
               <h1 className="max-w-3xl text-4xl font-semibold leading-[1.03] tracking-tight text-[#101828] text-balance sm:text-5xl lg:text-6xl">
-                Das passende Paket für Ihren nächsten Karriereschritt.
+                Bewerbungsservice: das passende Paket für Ihren nächsten Karriereschritt.
               </h1>
               <p className="mt-5 max-w-2xl text-base leading-7 text-[#5d6b7f] text-pretty sm:text-lg sm:leading-8">
                 Von der Standortbestimmung bis zur fertigen Bewerbung: Wir helfen dort, wo Sie gerade stehen,

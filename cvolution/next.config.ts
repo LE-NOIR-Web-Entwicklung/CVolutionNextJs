@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { BLOG_SLUG_REDIRECTS } from "./src/lib/blog-redirects";
 
 const nextConfig: NextConfig = {
   outputFileTracingRoot: __dirname,
@@ -14,6 +15,11 @@ const nextConfig: NextConfig = {
   // Deployment fehl (routes-manifest.json not found).
   distDir: process.env.VERCEL ? ".next" : ".next.nosync",
   images: {
+    // AVIF first, WebP fallback. The largest source photo is 1672px wide, so 2048/3840
+    // variants only re-encode the original at full size; capping the list avoids that.
+    formats: ["image/avif", "image/webp"],
+    deviceSizes: [640, 750, 828, 1080, 1200, 1600, 1920],
+    minimumCacheTTL: 60 * 60 * 24 * 30,
     remotePatterns: [
       {
         protocol: "https",
@@ -21,6 +27,13 @@ const nextConfig: NextConfig = {
         pathname: "/storage/v1/object/public/blog-images/**",
       },
     ],
+  },
+  async redirects() {
+    return BLOG_SLUG_REDIRECTS.map(({ from, to }) => ({
+      source: `/blog/${from}`,
+      destination: `/blog/${to}`,
+      permanent: true,
+    }));
   },
   eslint: {
     ignoreDuringBuilds: true,

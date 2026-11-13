@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { ArrowRight, Check, ShoppingCart, X } from "lucide-react";
 import { addCartItem, readCart } from "@/lib/cart";
+import { trackFunnel } from "@/lib/funnel";
 import type { CheckDocumentKey } from "@/lib/check-service";
 import { SHOP_PRODUCTS, type ShopProductKey } from "@/lib/shop";
 import { isServiceDownloadKey, SERVICE_DOWNLOAD_BUNDLE } from "@/lib/service-downloads";
@@ -77,6 +78,7 @@ export function AddToCartButton({
   }, [serviceType]);
 
   function handleAddToCart(nextServiceType: ShopProductKey, openPopup: boolean) {
+    trackFunnel({ name: "add_to_cart", service: serviceType });
     const nextItems = addCartItem(
       nextServiceType,
       nextServiceType === serviceType && checkSelections ? { checkSelections } : undefined

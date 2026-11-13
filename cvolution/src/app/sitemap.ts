@@ -1,49 +1,49 @@
-import { MetadataRoute } from "next";
+import type { MetadataRoute } from "next";
+import { SITE_URL } from "@/lib/seo";
+import { GUIDES, PAGE_META, type PagePath } from "@/lib/seo-pages";
+import { getPublishedBlogPosts } from "@/lib/public-blog";
 
-const BASE_URL = "https://cvolution.ch";
+// Rebuilt at most once per hour so new blog posts show up without a deploy.
+export const revalidate = 3600;
 
-export default function sitemap(): MetadataRoute.Sitemap {
-  const routes = [
-    { path: "/", priority: 1.0, changeFrequency: "weekly" as const },
-    { path: "/service", priority: 0.9, changeFrequency: "weekly" as const },
-    { path: "/service-cv", priority: 0.9, changeFrequency: "monthly" as const },
-    { path: "/service-linkedin", priority: 0.9, changeFrequency: "monthly" as const },
-    { path: "/service-salary", priority: 0.9, changeFrequency: "monthly" as const },
-    { path: "/service-career", priority: 0.9, changeFrequency: "monthly" as const },
-    { path: "/service-motivation", priority: 0.8, changeFrequency: "monthly" as const },
-    { path: "/service-check", priority: 0.8, changeFrequency: "monthly" as const },
-    { path: "/service-rav", priority: 0.8, changeFrequency: "monthly" as const },
-    { path: "/service-downloads", priority: 0.8, changeFrequency: "monthly" as const },
-    { path: "/self", priority: 0.8, changeFrequency: "monthly" as const },
-    { path: "/about", priority: 0.7, changeFrequency: "monthly" as const },
-    { path: "/team", priority: 0.7, changeFrequency: "monthly" as const },
-    { path: "/contact", priority: 0.7, changeFrequency: "monthly" as const },
-    { path: "/blog", priority: 0.8, changeFrequency: "weekly" as const },
-    { path: "/agb", priority: 0.3, changeFrequency: "yearly" as const },
-    { path: "/impressum", priority: 0.3, changeFrequency: "yearly" as const },
-    // Ratgeber
-    { path: "/lebenslauf-vorlage-schweiz", priority: 0.8, changeFrequency: "monthly" as const },
-    { path: "/lebenslauf-aufbau", priority: 0.8, changeFrequency: "monthly" as const },
-    { path: "/lebenslauf-fehler", priority: 0.8, changeFrequency: "monthly" as const },
-    { path: "/lebenslauf-beispiel", priority: 0.8, changeFrequency: "monthly" as const },
-    { path: "/lebenslauf-format-schweiz", priority: 0.8, changeFrequency: "monthly" as const },
-    { path: "/lebenslauf-student", priority: 0.8, changeFrequency: "monthly" as const },
-    { path: "/lebenslauf-quereinsteiger", priority: 0.8, changeFrequency: "monthly" as const },
-    { path: "/motivationsschreiben-tipps", priority: 0.8, changeFrequency: "monthly" as const },
-    { path: "/bewerbung-schreiben", priority: 0.8, changeFrequency: "monthly" as const },
-    { path: "/bewerbung-schweiz", priority: 0.8, changeFrequency: "monthly" as const },
-    { path: "/bewerbung-vorlage-schweiz", priority: 0.8, changeFrequency: "monthly" as const },
-    { path: "/bewerbung-nach-kuendigung", priority: 0.8, changeFrequency: "monthly" as const },
-    { path: "/bewerbungsgespraech-tipps", priority: 0.8, changeFrequency: "monthly" as const },
-    { path: "/lohn-verhandeln-schweiz", priority: 0.8, changeFrequency: "monthly" as const },
-    { path: "/lohnanalyse-schweiz", priority: 0.8, changeFrequency: "monthly" as const },
-    { path: "/rav-bewerbung-tipps", priority: 0.8, changeFrequency: "monthly" as const },
-  ];
+const PRIORITY: Partial<Record<PagePath, number>> = {
+  "/": 1.0,
+  "/service-salary": 0.95,
+  "/service": 0.9,
+  "/service-cv": 0.9,
+  "/service-motivation": 0.85,
+  "/service-career": 0.85,
+  "/service-linkedin": 0.85,
+  "/service-check": 0.85,
+  "/service-rav": 0.8,
+  "/service-downloads": 0.8,
+  "/self": 0.85,
+  "/blog": 0.7,
+  "/about": 0.5,
+  "/team": 0.4,
+  "/contact": 0.5,
+  "/agb": 0.2,
+  "/impressum": 0.2,
+};
 
-  return routes.map(({ path, priority, changeFrequency }) => ({
-    url: `${BASE_URL}${path}`,
-    lastModified: new Date(),
-    changeFrequency,
-    priority,
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const now = new Date();
+  const guidePaths = new Set<string>(GUIDES.map((guide) => guide.path));
+
+  const pages: MetadataRoute.Sitemap = (Object.keys(PAGE_META) as PagePath[]).map((path) => ({
+    url: `${SITE_URL}${path === "/" ? "" : path}`,
+    lastModified: now,
+    changeFrequency: path === "/" || path === "/blog" ? "weekly" : guidePaths.has(path) ? "monthly" : "monthly",
+    priority: PRIORITY[path] ?? (guidePaths.has(path) ? 0.75 : 0.6),
   }));
+
+  const posts = await getPublishedBlogPosts();
+  const blog: MetadataRoute.Sitemap = posts.map((post) => ({
+    url: `${SITE_URL}/blog/${post.slug}`,
+    lastModified: new Date(post.updated_at || post.published_at || post.created_at),
+    changeFrequency: "monthly",
+    priority: 0.6,
+  }));
+
+  return [...pages, ...blog];
 }

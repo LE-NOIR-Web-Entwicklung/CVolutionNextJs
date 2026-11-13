@@ -1,15 +1,16 @@
-import type { Metadata } from "next";
 import Link from "next/link";
-import Script from "next/script";
+import { GuideCta } from "@/components/content/GuideCta";
+import { GuideSchema } from "@/components/seo/GuideSchema";
+import { metaFor } from "@/lib/seo-pages";
 
-export const metadata: Metadata = {
-  title: "Lebenslauf Beispiel Schweiz 2026 | Vollständige Muster für alle Berufe",
-  description:
-    "Lebenslauf Beispiele für die Schweiz: Muster für Fachkräfte, Führungspersonen, Berufseinsteiger und Quereinsteiger – mit Erklärungen und Tipps für jeden Abschnitt.",
-  alternates: { canonical: "https://cvolution.ch/lebenslauf-beispiel" },
-};
+export const metadata = metaFor("/lebenslauf-beispiel", { type: "article" });
 
 const faqData = [
+  {
+    question: "Welches Lebenslauf-Beispiel passt zu mir?",
+    answer:
+      "Wenn Sie gerade die Lehre oder das Studium abgeschlossen haben, orientieren Sie sich am Beispiel Berufseinstieg: Ausbildung zuerst. Mit einigen Jahren Erfahrung passt das Beispiel Fachkraft. Als Kader oder Führungsperson ergänzen Sie ein kurzes Profil mit Führungsspanne und Ergebnissen, wie im dritten Beispiel.",
+  },
   {
     question: "Wie unterscheidet sich ein Schweizer Lebenslauf von einem deutschen?",
     answer:
@@ -37,27 +38,235 @@ const faqData = [
   },
 ];
 
+type CvStation = { dates: string; title: string; tasks?: string[] };
+
+type CvExample = {
+  id: string;
+  label: string;
+  heading: string;
+  intro: string;
+  person: [string, string][];
+  profile?: string;
+  firstSection: "experience" | "education";
+  experience: CvStation[];
+  education: CvStation[];
+  languages: [string, string][];
+  skills: [string, string][];
+  tips: string[];
+};
+
+const cvExamples: CvExample[] = [
+  {
+    id: "berufseinstieg",
+    label: "Berufseinstieg nach der Lehre",
+    heading: "Lebenslauf Beispiel: Berufseinstieg nach der Lehre",
+    intro:
+      "Für Lehrabgängerinnen, Lehrabgänger und Personen mit wenig Berufserfahrung. Ausbildung, Lehrbetrieb und Nebenjobs tragen den Lebenslauf.",
+    person: [
+      ["Name", "Laura Muster"],
+      ["Adresse", "Bahnhofstrasse 5\n5000 Aarau"],
+      ["Tel.", "079 000 00 00"],
+      ["E-Mail", "laura.muster@muster.ch"],
+      ["Geburtsdatum", "14. März 2006"],
+      ["Nationalität", "Schweiz"],
+    ],
+    firstSection: "education",
+    education: [
+      { dates: "08.2022 – 07.2025", title: "Kauffrau EFZ, Profil E, Musterversicherung AG, Aarau", tasks: ["Abschlussnote 5.2", "Berufsmaturität kaufmännisch, BMS Aarau"] },
+      { dates: "08.2019 – 07.2022", title: "Bezirksschule, Aarau" },
+    ],
+    experience: [
+      { dates: "08.2025 – heute", title: "Sachbearbeiterin Kundendienst (befristet), Musterversicherung AG, Aarau", tasks: ["Bearbeitung von rund 40 Kundenanfragen pro Tag per Telefon und E-Mail", "Erfassung von Policenänderungen im Kernsystem"] },
+      { dates: "08.2022 – 07.2025", title: "Lehre als Kauffrau, Musterversicherung AG, Aarau", tasks: ["Einsätze in Schadenabteilung, Buchhaltung und Empfang", "Eigenständige Betreuung des Lernenden-Instagram-Kanals"] },
+      { dates: "2021 – 2024", title: "Aushilfe Verkauf (Samstage), Musterbäckerei, Aarau" },
+    ],
+    languages: [["Deutsch", "Muttersprache"], ["Englisch", "B2 (First Certificate)"], ["Französisch", "B1"]],
+    skills: [["Programme", "MS Office (Excel fortgeschritten), SAP Grundkenntnisse"], ["Interessen", "Handball (Juniorentrainerin), Fotografie"]],
+    tips: [
+      "Ausbildung steht vor der Berufserfahrung, weil sie aktuell das stärkste Argument ist.",
+      "Noten und Berufsmaturität gehören hinein, wenn sie gut sind.",
+      "Nebenjobs und Vereinstätigkeit zeigen Zuverlässigkeit und Verantwortung.",
+    ],
+  },
+  {
+    id: "fachkraft",
+    label: "Erfahrene Fachkraft",
+    heading: "Lebenslauf Beispiel: Erfahrene Fachkraft",
+    intro:
+      "Typischer Lebenslauf für eine Fachkraft mit rund 8 Jahren Berufserfahrung im Schweizer Format. Die Berufserfahrung steht oben, mit messbaren Ergebnissen.",
+    person: [
+      ["Name", "Max Mustermann"],
+      ["Adresse", "Musterstrasse 12\n8000 Zürich"],
+      ["Tel.", "076 000 00 00"],
+      ["E-Mail", "max.mustermann@muster.ch"],
+      ["Geburtsdatum", "10. Januar 1990"],
+      ["Nationalität", "Schweiz"],
+    ],
+    firstSection: "experience",
+    experience: [
+      { dates: "02.2022 – heute", title: "Senior Marketing Manager, Musterfirma AG, Zürich", tasks: ["Leitung des digitalen Marketings (Budget CHF 2 Mio.)", "Führung eines 5-köpfigen Teams", "Steigerung der organischen Reichweite um 45 %", "Einführung von Marketing-Automation (HubSpot)"] },
+      { dates: "05.2019 – 01.2022", title: "Marketing Manager, Zweite Firma GmbH, Basel", tasks: ["Aufbau des Content-Marketings von Grund auf", "Planung und Umsetzung von 12 Kampagnen pro Jahr", "Reporting und KPI-Analysen für die Geschäftsleitung"] },
+      { dates: "08.2017 – 04.2019", title: "Marketing Assistant, Dritte AG, Bern", tasks: ["Organisation von Events und Messen", "Betreuung der Social-Media-Kanäle"] },
+    ],
+    education: [
+      { dates: "09.2014 – 07.2017", title: "Bachelor of Science in Betriebsökonomie, Fachhochschule Nordwestschweiz" },
+      { dates: "2023", title: "CAS Digital Marketing, Hochschule Luzern" },
+      { dates: "08.2010 – 07.2013", title: "Kaufmann EFZ mit Berufsmaturität, Muster AG, Bern" },
+    ],
+    languages: [["Deutsch", "Muttersprache"], ["Englisch", "C1, verhandlungssicher"], ["Französisch", "B2"]],
+    skills: [["Programme", "HubSpot, Google Analytics 4, Adobe Creative Suite, MS Office"], ["Führerausweis", "Kategorie B"]],
+    tips: [
+      "Jede Station nennt Verantwortung und mindestens ein messbares Ergebnis.",
+      "Weiterbildungen (CAS) zeigen, dass das Profil aktuell bleibt.",
+      "Ältere Stationen sind kürzer beschrieben als die aktuelle Stelle.",
+    ],
+  },
+  {
+    id: "fuehrungsperson",
+    label: "Führungsperson",
+    heading: "Lebenslauf Beispiel: Führungsperson",
+    intro:
+      "Für Kader und Führungspersonen mit langjähriger Erfahrung. Ein kurzes Profil oben fasst Führungsspanne, Budget und Erfolge zusammen.",
+    person: [
+      ["Name", "Andrea Beispiel"],
+      ["Adresse", "Seeweg 3\n6300 Zug"],
+      ["Tel.", "078 000 00 00"],
+      ["E-Mail", "andrea.beispiel@muster.ch"],
+      ["Geburtsdatum", "2. Juni 1978"],
+      ["Nationalität", "Schweiz"],
+    ],
+    profile:
+      "Finanzchefin mit über 20 Jahren Erfahrung in Industrie und Handel, davon 12 Jahre in Führungsfunktionen. Schwerpunkte: Transformation des Finanzbereichs, Controlling und Finanzierung im Wachstum.",
+    firstSection: "experience",
+    experience: [
+      { dates: "04.2018 – heute", title: "CFO und Mitglied der Geschäftsleitung, Muster Industrie AG, Zug (Umsatz CHF 320 Mio., 900 Mitarbeitende)", tasks: ["Führung von Finanzen, Controlling, IT und HR mit 35 Mitarbeitenden", "Umstellung auf Swiss GAAP FER und Verkürzung des Monatsabschlusses von 12 auf 5 Tage", "Refinanzierung über CHF 80 Mio. zu besseren Konditionen"] },
+      { dates: "01.2012 – 03.2018", title: "Leiterin Controlling, Handels AG, Luzern", tasks: ["Aufbau eines konzernweiten Reportings für 14 Gesellschaften", "Führung von 8 Mitarbeitenden"] },
+      { dates: "2003 – 2011", title: "Verschiedene Funktionen in Revision und Controlling, Revisions AG, Zürich" },
+    ],
+    education: [
+      { dates: "2015 – 2016", title: "Executive MBA, Universität St. Gallen (HSG)" },
+      { dates: "2006 – 2009", title: "Eidg. dipl. Expertin in Rechnungslegung und Controlling" },
+      { dates: "1998 – 2002", title: "lic. oec. publ., Universität Zürich" },
+    ],
+    languages: [["Deutsch", "Muttersprache"], ["Englisch", "C2"], ["Französisch", "C1"]],
+    skills: [["Mandate", "Stiftungsrätin Pensionskasse Muster (seit 2020)"], ["Systeme", "SAP S/4HANA, Power BI"]],
+    tips: [
+      "Das Profil oben beantwortet in drei Zeilen: Wer, welche Ebene, welche Erfolge.",
+      "Unternehmensgrösse und Führungsspanne geben Ergebnissen den Massstab.",
+      "Frühe Stationen werden zusammengefasst – der Lebenslauf bleibt bei zwei Seiten.",
+    ],
+  },
+];
+
+function CvBlock({ title, stations }: { title: string; stations: CvStation[] }) {
+  return (
+    <>
+      <div className="border-b border-[#111827] pb-1 mb-3">
+        <p className="font-bold text-sm">{title}</p>
+      </div>
+      <div className="mb-5 space-y-3">
+        {stations.map((station) => (
+          <div key={station.dates + station.title} className="flex flex-col gap-1 sm:flex-row sm:gap-6">
+            <div className="w-36 flex-shrink-0 text-[#374151] font-medium text-xs pt-0.5">{station.dates}</div>
+            <div>
+              <p className="font-bold text-xs mb-1">{station.title}</p>
+              {station.tasks ? (
+                <ul className="list-disc list-inside space-y-0.5 text-xs text-[#374151]">
+                  {station.tasks.map((task) => <li key={task}>{task}</li>)}
+                </ul>
+              ) : null}
+            </div>
+          </div>
+        ))}
+      </div>
+    </>
+  );
+}
+
+function CvExampleSection({ example }: { example: CvExample }) {
+  const experience = <CvBlock title="Berufliche Erfahrung" stations={example.experience} />;
+  const education = <CvBlock title="Ausbildungen / Weiterbildungen" stations={example.education} />;
+
+  return (
+    <section id={example.id} className="mb-10 scroll-mt-24 bg-white rounded-2xl border border-gray-100 p-5 shadow-sm sm:p-8">
+      <h2 className="text-2xl font-semibold text-[#111827] mb-3">{example.heading}</h2>
+      <p className="text-[#64748B] text-sm mb-6">{example.intro}</p>
+
+      <div className="bg-white border border-gray-200 rounded-xl p-5 text-sm text-[#111827] font-sans shadow-inner sm:p-8">
+        <div className="border-b-2 border-[#111827] pb-1 mb-4">
+          <p className="font-bold text-base">Lebenslauf</p>
+        </div>
+
+        <div className="flex justify-between items-start gap-4 mb-6">
+          <table className="text-sm w-full max-w-xs">
+            <tbody className="align-top">
+              {example.person.map(([label, value]) => (
+                <tr key={label} className="leading-relaxed">
+                  <td className="pr-6 text-[#374151] whitespace-nowrap align-top">{label}</td>
+                  <td className="whitespace-pre-line">{value}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <div className="w-20 h-24 bg-gray-200 border border-gray-300 flex-shrink-0 rounded-sm overflow-hidden sm:w-24 sm:h-28">
+            <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">Foto</div>
+          </div>
+        </div>
+
+        {example.profile ? (
+          <>
+            <div className="border-b border-[#111827] pb-1 mb-3">
+              <p className="font-bold text-sm">Profil</p>
+            </div>
+            <p className="mb-5 text-xs leading-relaxed text-[#374151]">{example.profile}</p>
+          </>
+        ) : null}
+
+        {example.firstSection === "education" ? (
+          <>
+            {education}
+            {experience}
+          </>
+        ) : (
+          <>
+            {experience}
+            {education}
+          </>
+        )}
+
+        <div className="border-b border-[#111827] pb-1 mb-3">
+          <p className="font-bold text-sm">Kenntnisse &amp; Fähigkeiten</p>
+        </div>
+        <div className="space-y-2 text-xs text-[#374151]">
+          <div className="flex flex-col gap-1 sm:flex-row sm:gap-6">
+            <div className="w-36 flex-shrink-0">Sprachen</div>
+            <div>
+              {example.languages.map(([language, level]) => (
+                <div key={language} className="flex gap-6"><span className="w-24">{language}</span><span>{level}</span></div>
+              ))}
+            </div>
+          </div>
+          {example.skills.map(([label, value]) => (
+            <div key={label} className="flex flex-col gap-1 sm:flex-row sm:gap-6">
+              <div className="w-36 flex-shrink-0">{label}</div>
+              <div>{value}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <h3 className="mt-6 mb-2 text-base font-semibold text-[#111827]">Darauf kommt es bei diesem Beispiel an</h3>
+      <ul className="list-disc space-y-1 pl-5 text-sm text-[#374151]">
+        {example.tips.map((tip) => <li key={tip}>{tip}</li>)}
+      </ul>
+    </section>
+  );
+}
+
 export default function LebenslaufBeispiel() {
   return (
     <>
-      <Script
-        id="faq-schema"
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "FAQPage",
-            mainEntity: faqData.map((faq) => ({
-              "@type": "Question",
-              name: faq.question,
-              acceptedAnswer: {
-                "@type": "Answer",
-                text: faq.answer,
-              },
-            })),
-          }),
-        }}
-      />
+      <GuideSchema path="/lebenslauf-beispiel" faqs={faqData} />
       <main className="bg-[#F8FAFC] min-h-screen">
         <div className="max-w-4xl mx-auto px-4 py-12">
 
@@ -74,129 +283,32 @@ export default function LebenslaufBeispiel() {
             </p>
           </div>
 
-          <section className="mb-10 bg-white rounded-2xl border border-gray-100 p-8 shadow-sm">
-            <h2 className="text-2xl font-semibold text-[#111827] mb-4">Lebenslauf Beispiel: Erfahrene Fachkraft</h2>
-            <p className="text-[#64748B] text-sm mb-6">
-              Dieses Beispiel zeigt einen typischen Lebenslauf für eine Fachkraft mit 8–10 Jahren Berufserfahrung im Schweizer Format.
-            </p>
+          <nav aria-label="Beispiele auf dieser Seite" className="mb-10 rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+            <p className="mb-3 text-sm font-semibold uppercase tracking-wide text-[#204878]">Drei Lebenslauf-Beispiele</p>
+            <ol className="grid gap-3 sm:grid-cols-3">
+              {cvExamples.map((example, index) => (
+                <li key={example.id}>
+                  <a href={`#${example.id}`} className="block rounded-xl bg-[#F8FAFC] p-4 text-[#204878] transition hover:bg-blue-50">
+                    <span className="block text-xs font-semibold text-[#64748B]">Beispiel {index + 1}</span>
+                    <span className="font-semibold">{example.label}</span>
+                  </a>
+                </li>
+              ))}
+            </ol>
+          </nav>
 
-            {/* CV Preview — styled like the Swiss Lebenslauf format */}
-            <div className="bg-white border border-gray-200 rounded-xl p-8 text-sm text-[#111827] font-sans shadow-inner">
-
-              {/* Header: title + underline */}
-              <div className="border-b-2 border-[#111827] pb-1 mb-4">
-                <p className="font-bold text-base">Lebenslauf / Profil</p>
-              </div>
-
-              {/* Personal info table + photo */}
-              <div className="flex justify-between items-start mb-6">
-                <table className="text-sm w-full max-w-xs">
-                  <tbody className="align-top">
-                    {[
-                      ["Name", "Max Mustermann"],
-                      ["Adresse", "Musterstrasse 12\n5000 Musterstadt"],
-                      ["Tel.", "076 000 00 00"],
-                      ["E-Mail", "max.mustermann@muster.ch"],
-                      ["Geburtsdatum", "10. Januar 1990"],
-                      ["Zivilstand", "verheiratet, 2 Kinder / ledig"],
-                      ["Heimatort", "Musterstadt, Schweiz"],
-                    ].map(([label, value]) => (
-                      <tr key={label} className="leading-relaxed">
-                        <td className="pr-6 text-[#374151] whitespace-nowrap align-top">{label}</td>
-                        <td className="whitespace-pre-line">{value}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-                <div className="w-24 h-28 bg-gray-200 border border-gray-300 flex-shrink-0 rounded-sm ml-4 overflow-hidden">
-                  {/* Photo placeholder */}
-                  <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">Foto</div>
-                </div>
-              </div>
-
-              {/* Berufliche Erfahrung */}
-              <div className="border-b border-[#111827] pb-1 mb-3">
-                <p className="font-bold text-sm">Berufliche Erfahrung</p>
-              </div>
-              <div className="mb-5 space-y-4">
-                {[
-                  {
-                    dates: "02.2022 – heute",
-                    title: "Senior Marketing Managerin, Musterfirma AG, Zürich",
-                    tasks: ["Leitung des digitalen Marketings (Budget CHF 2 Mio.)", "Führung eines 5-köpfigen Teams", "Steigerung der organischen Reichweite um 45 %", "Einführung Marketing-Automation (HubSpot)", "Koordination mit externen Agenturen"],
-                  },
-                  {
-                    dates: "05.2020 – 02.2022",
-                    title: "Marketing Managerin, Zweite Firma GmbH, Basel",
-                    tasks: ["Aufbau des Content-Marketing-Bereichs", "Planung und Umsetzung von Kampagnen", "Erstellung von Reportings und KPI-Analysen", "Zusammenarbeit mit Produktmanagement"],
-                  },
-                  {
-                    dates: "03.2019 – 05.2020",
-                    title: "Marketing Assistant, Dritte AG, Bern",
-                    tasks: ["Unterstützung bei Events und Messen", "Pflege von Social-Media-Kanälen", "Grafische Aufbereitung von Präsentationen"],
-                  },
-                ].map((job) => (
-                  <div key={job.dates} className="flex gap-6">
-                    <div className="w-36 flex-shrink-0 text-[#374151] font-medium text-xs pt-0.5">{job.dates}</div>
-                    <div>
-                      <p className="font-bold text-xs mb-1">{job.title}</p>
-                      <ul className="list-disc list-inside space-y-0.5 text-xs text-[#374151]">
-                        {job.tasks.map((t) => <li key={t}>{t}</li>)}
-                      </ul>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* Ausbildungen */}
-              <div className="border-b border-[#111827] pb-1 mb-3">
-                <p className="font-bold text-sm">Ausbildungen / Weiterbildungen</p>
-              </div>
-              <div className="mb-5 space-y-2">
-                {[
-                  ["02.2020 – 06.2020", "Weiterbildung zur Personalassistentin, Musterschule AG"],
-                  ["08.2015 – 07.2018", "Ausbildung zur Kauffrau AG, Musterschule AG"],
-                ].map(([dates, desc]) => (
-                  <div key={dates} className="flex gap-6 text-xs text-[#374151]">
-                    <div className="w-36 flex-shrink-0">{dates}</div>
-                    <div>{desc}</div>
-                  </div>
-                ))}
-              </div>
-
-              {/* Kenntnisse */}
-              <div className="border-b border-[#111827] pb-1 mb-3">
-                <p className="font-bold text-sm">Kenntnisse &amp; Fähigkeiten</p>
-              </div>
-              <div className="space-y-2 text-xs text-[#374151]">
-                <div className="flex gap-6">
-                  <div className="w-36 flex-shrink-0">Fremdsprachen</div>
-                  <div>
-                    <div className="flex gap-6"><span className="w-24">Deutsch</span><span>Muttersprache</span></div>
-                    <div className="flex gap-6"><span className="w-24">Englisch</span><span>Gute Kenntnisse</span></div>
-                    <div className="flex gap-6"><span className="w-24">Französisch</span><span>Gute Kenntnisse</span></div>
-                  </div>
-                </div>
-                <div className="flex gap-6">
-                  <div className="w-36 flex-shrink-0">Führerschein</div>
-                  <div>Kategorie B</div>
-                </div>
-                <div className="flex gap-6">
-                  <div className="w-36 flex-shrink-0">Programme</div>
-                  <div>SAP, MS Office, HubSpot, Adobe Creative Suite</div>
-                </div>
-              </div>
-
-            </div>
-          </section>
+          {cvExamples.map((example) => (
+            <CvExampleSection key={example.id} example={example} />
+          ))}
 
           <section className="mb-10">
-            <h2 className="text-2xl font-semibold text-[#111827] mb-4">Was macht dieses Beispiel stark?</h2>
+            <h2 className="text-2xl font-semibold text-[#111827] mb-4">Was macht diese Beispiele stark?</h2>
             <ul className="space-y-2 mb-4">
               {[
                 <><strong>Konkrete Zahlen:</strong> Budgetverantwortung, Teamgrösse, Prozentangaben – das schafft Glaubwürdigkeit</>,
                 <><strong>Aktivverben:</strong> «Leitete», «baute auf», «steigerte» – keine passive Sprache</>,
                 <><strong>Relevante Stationen:</strong> Nur Stellen, die für die Zielposition relevant sind</>,
+                <><strong>Gewichtung nach Karrierestufe:</strong> Beim Berufseinstieg stehen Ausbildung und Praktika oben, bei Führungspersonen ein kurzes Profil mit Verantwortung und Ergebnissen</>,
                 <><strong>Klare Struktur:</strong> Überschriften, einheitliche Formatierung, kein Informationsüberfluss</>,
                 <><strong>Spezifische Tools:</strong> Software-Kenntnisse konkret benannt, nicht nur «MS Office»</>,
               ].map((item, i) => (
@@ -270,23 +382,7 @@ export default function LebenslaufBeispiel() {
             </div>
           </section>
 
-          {/* CTA */}
-          <section className="bg-[#204878] rounded-2xl p-8 text-white text-center">
-            <h2 className="text-2xl font-semibold mb-3">Professionelle Unterstützung bei Ihrer Bewerbung</h2>
-            <p className="text-blue-100/80 mb-6 max-w-xl mx-auto">
-              Unsere Experten mit über 10 Jahren Recruiting-Erfahrung begleiten Sie auf dem Weg zu Ihrer neuen Stelle.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Link href="/service-cv"
-                className="inline-flex items-center justify-center px-6 py-3 bg-white text-[#204878] font-semibold rounded-xl hover:bg-blue-50 transition-colors duration-200">
-                Lebenslauf erstellen lassen
-              </Link>
-              <Link href="/service"
-                className="inline-flex items-center justify-center px-6 py-3 bg-white/10 text-white font-medium rounded-xl border border-white/20 hover:bg-white/20 transition-colors duration-200">
-                Komplette Bewerbung
-              </Link>
-            </div>
-          </section>
+          <GuideCta path="/lebenslauf-beispiel" />
 
         </div>
       </main>

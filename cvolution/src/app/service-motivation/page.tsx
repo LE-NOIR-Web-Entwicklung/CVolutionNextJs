@@ -1,10 +1,13 @@
 import { ServiceDetailPage } from "@/components/ServiceDetailPage";
+import { metaFor } from "@/lib/seo-pages";
+
+export const metadata = metaFor("/service-motivation");
 
 export default function ServiceMotivation() {
   return (
     <ServiceDetailPage
       eyebrow="Motivationsschreiben"
-      title="Ein Schreiben, das nach Ihnen klingt."
+      title="Motivationsschreiben schreiben lassen – passend zur Stelle, authentisch im Ton"
       subtitle="Wir formulieren ein Motivationsschreiben, das Ihre Stärken zeigt, zur Stelle passt und authentisch bleibt."
       image="/images/copy-writing.png"
       imageAlt="Motivationsschreiben"
@@ -18,6 +21,15 @@ export default function ServiceMotivation() {
       closingText="Mit einem professionellen Motivationsschreiben erhöhen Sie Ihre Chancen auf ein Vorstellungsgespräch und den nächsten Karriereschritt."
       price="CHF 99"
       serviceType="motivation"
+      path="/service-motivation"
+      schemaName="Motivationsschreiben schreiben lassen"
+      offers={[{ name: "Motivationsschreiben", price: 99 }]}
+      faqs={[
+        { question: "Was kostet ein professionelles Motivationsschreiben?", answer: "Ein individuell formuliertes Motivationsschreiben kostet bei CVolution CHF 99 pro Stelle." },
+        { question: "Wie lang sollte ein Motivationsschreiben in der Schweiz sein?", answer: "Maximal eine A4-Seite. Personalverantwortliche lesen zuerst Einstieg und Schluss – deshalb formulieren wir diese besonders präzise und auf die Stelle bezogen." },
+        { question: "Klingt das Schreiben danach noch nach mir?", answer: "Ja. Wir erarbeiten Ihre Argumente gemeinsam mit Ihnen und achten darauf, dass Ton und Inhalt zu Ihrer Person passen. Ein Schreiben, das austauschbar klingt, überzeugt niemanden." },
+        { question: "Was brauchen Sie für die Erstellung?", answer: "Das Stelleninserat, Ihren aktuellen Lebenslauf und ein paar Stichworte, warum Sie die Stelle interessiert. Den Rest klären wir bei Bedarf mit Ihnen." },
+      ]}
     />
   );
 }

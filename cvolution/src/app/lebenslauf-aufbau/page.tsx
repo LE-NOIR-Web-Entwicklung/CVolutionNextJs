@@ -1,13 +1,9 @@
-import type { Metadata } from "next";
 import Link from "next/link";
-import Script from "next/script";
+import { GuideCta } from "@/components/content/GuideCta";
+import { GuideSchema } from "@/components/seo/GuideSchema";
+import { metaFor } from "@/lib/seo-pages";
 
-export const metadata: Metadata = {
-  title: "Lebenslauf Aufbau Schweiz 2026 | Struktur & Gliederung erklärt",
-  description:
-    "So bauen Sie Ihren Schweizer Lebenslauf richtig auf: Schritt-für-Schritt-Anleitung mit allen Pflichtabschnitten, Tipps zur Gliederung und Beispielen.",
-  alternates: { canonical: "https://cvolution.ch/lebenslauf-aufbau" },
-};
+export const metadata = metaFor("/lebenslauf-aufbau", { type: "article" });
 
 const faqData = [
   {
@@ -45,21 +41,7 @@ const faqData = [
 export default function LebenslaufAufbauPage() {
   return (
     <>
-      <Script
-        id="faq-schema"
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "FAQPage",
-            mainEntity: faqData.map((faq) => ({
-              "@type": "Question",
-              name: faq.question,
-              acceptedAnswer: { "@type": "Answer", text: faq.answer },
-            })),
-          }),
-        }}
-      />
+      <GuideSchema path="/lebenslauf-aufbau" faqs={faqData} />
       <main className="bg-[#F8FAFC] min-h-screen">
         <div className="max-w-4xl mx-auto px-4 py-12">
 
@@ -221,21 +203,7 @@ export default function LebenslaufAufbauPage() {
             </div>
           </section>
 
-          <section className="bg-[#204878] rounded-2xl p-8 text-white text-center">
-            <h2 className="text-2xl font-semibold mb-3">Professionelle Unterstützung bei Ihrer Bewerbung</h2>
-            <p className="text-blue-100/80 mb-6 max-w-xl mx-auto">
-              Wir analysieren Ihren bestehenden Lebenslauf und erstellen für Sie eine optimierte Version –
-              strukturiert, überzeugend und auf Ihre Zielposition zugeschnitten.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Link href="/service-cv" className="inline-flex items-center justify-center px-6 py-3 bg-white text-[#204878] font-semibold rounded-xl hover:bg-blue-50 transition-colors duration-200">
-                Lebenslauf erstellen lassen
-              </Link>
-              <Link href="/service" className="inline-flex items-center justify-center px-6 py-3 bg-white/10 text-white font-medium rounded-xl border border-white/20 hover:bg-white/20 transition-colors duration-200">
-                Komplette Bewerbung
-              </Link>
-            </div>
-          </section>
+          <GuideCta path="/lebenslauf-aufbau" />
         </div>
       </main>
     </>

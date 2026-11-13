@@ -4,6 +4,10 @@ import type { Metadata } from "next";
 import { ArrowLeft, CalendarDays, Clock } from "lucide-react";
 import { getPublishedBlogPost, getPublishedBlogPosts } from "@/lib/public-blog";
 import { formatPostDate, getCoverImageUrl, getPostDate } from "@/lib/blog-display";
+import { GuideCta } from "@/components/content/GuideCta";
+import { JsonLd } from "@/components/seo/JsonLd";
+import { articleSchema, breadcrumbSchema, pageMetadata } from "@/lib/seo";
+import { ctaForTopic } from "@/lib/seo-pages";
 
 type BlogDetailProps = {
   params: Promise<{ slug: string }>;
@@ -102,16 +106,17 @@ export async function generateMetadata({ params }: BlogDetailProps): Promise<Met
   const post = await getPublishedBlogPost(slug);
   if (!post) return {};
 
-  return {
-    title: `${post.title} | CVolution Blog`,
-    description: post.excerpt || "CVolution Blogbeitrag rund um Bewerbung und Karriere.",
-    openGraph: {
-      title: post.title,
-      description: post.excerpt || undefined,
-      images: getCoverImageUrl(post) ? [getCoverImageUrl(post)] : undefined,
-      type: "article",
-    },
-  };
+  const suffixed = `${post.title} | CVolution`;
+  const title = suffixed.length <= 60 ? suffixed : post.title;
+  const description = (post.excerpt || "CVolution Blogbeitrag rund um Bewerbung und Karriere in der Schweiz.").slice(0, 155);
+
+  return pageMetadata({
+    title,
+    description,
+    path: `/blog/${post.slug}`,
+    image: getCoverImageUrl(post) || undefined,
+    type: "article",
+  });
 }
 
 export async function generateStaticParams() {
@@ -126,6 +131,23 @@ export default async function BlogDetailPage({ params }: BlogDetailProps) {
 
   return (
     <main className="min-h-screen bg-white text-slate-950">
+      <JsonLd
+        data={[
+          articleSchema({
+            title: post.title,
+            description: post.excerpt || post.title,
+            path: `/blog/${post.slug}`,
+            datePublished: post.published_at || post.created_at,
+            dateModified: post.updated_at || post.published_at || post.created_at,
+            image: getCoverImageUrl(post) || undefined,
+          }),
+          breadcrumbSchema([
+            { name: "Startseite", path: "/" },
+            { name: "Blog", path: "/blog" },
+            { name: post.title, path: `/blog/${post.slug}` },
+          ]),
+        ]}
+      />
       <article>
         <header className="border-b border-slate-200 bg-[#f7f9fc]">
           <div className="mx-auto max-w-4xl px-6 py-12 lg:py-16">
@@ -169,8 +191,11 @@ export default async function BlogDetailPage({ params }: BlogDetailProps) {
           </div>
         )}
 
-        <div className="mx-auto max-w-3xl space-y-7 px-6 pb-20 pt-4">
+        <div className="mx-auto max-w-3xl space-y-7 px-6 pb-12 pt-4">
           {renderContent(post.content)}
+        </div>
+        <div className="mx-auto max-w-3xl px-6 pb-20">
+          <GuideCta cta={ctaForTopic(`${post.title} ${post.tags.join(" ")}`)} />
         </div>
       </article>
     </main>

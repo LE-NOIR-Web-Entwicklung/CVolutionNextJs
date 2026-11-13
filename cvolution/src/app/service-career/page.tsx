@@ -1,10 +1,13 @@
 import { ServiceDetailPage } from "@/components/ServiceDetailPage";
+import { metaFor } from "@/lib/seo-pages";
+
+export const metadata = metaFor("/service-career");
 
 export default function ServiceCareer() {
   return (
     <ServiceDetailPage
       eyebrow="Laufbahnberatung"
-      title="Mehr Klarheit für Ihren beruflichen Weg."
+      title="Laufbahnberatung: mehr Klarheit für Ihren beruflichen Weg"
       subtitle="Wir analysieren Ihre Ziele, Interessen und Kompetenzen und entwickeln mit Ihnen konkrete nächste Schritte."
       image="/images/talk.png"
       imageAlt="Laufbahnberatung"
@@ -19,6 +22,14 @@ export default function ServiceCareer() {
       price="CHF 149"
       priceSuffix="/ Stunde"
       serviceType="career"
+      path="/service-career"
+      schemaName="Laufbahnberatung"
+      offers={[{ name: "Laufbahnberatung", price: 149, unitText: "Stunde" }]}
+      faqs={[
+        { question: "Was kostet eine Laufbahnberatung?", answer: "Die Laufbahnberatung kostet CHF 149 pro Stunde. Wie viele Sitzungen sinnvoll sind, hängt von Ihrer Fragestellung ab – oft bringt bereits ein Gespräch Klarheit über die nächsten Schritte." },
+        { question: "Für wen eignet sich eine Laufbahnberatung?", answer: "Für Personen, die unzufrieden im aktuellen Job sind, eine Neuorientierung oder einen Branchenwechsel planen, eine Weiterbildung abwägen oder sich auf eine Führungsrolle vorbereiten." },
+        { question: "Was ist das Ergebnis der Beratung?", answer: "Sie kennen Ihre Stärken und Ziele genauer und haben konkrete nächste Schritte – zum Beispiel passende Stellenprofile, eine Weiterbildungsentscheidung oder einen Plan für Ihre Bewerbungen." },
+      ]}
     />
   );
 }
