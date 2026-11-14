@@ -12,6 +12,7 @@ import { COUPON_SERVICE_KEYS, type ServiceKey } from '@/lib/services';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import BlogAdminPanel from './BlogAdminPanel';
 import { CVPdfDocument } from '@/components/CVExport/pdf/CVPdfDocument';
+import { downloadBlob } from '@/lib/download-blob';
 import {
   Select,
   SelectContent,
@@ -591,12 +592,7 @@ const AdminContent: React.FC = () => {
         />
       );
       const blob = await pdf(doc).toBlob();
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = getCvFileName(userData.profile);
-      link.click();
-      window.URL.revokeObjectURL(url);
+      downloadBlob(blob, getCvFileName(userData.profile));
     } catch (error) {
       console.error('Admin CV export failed:', error);
       toast({

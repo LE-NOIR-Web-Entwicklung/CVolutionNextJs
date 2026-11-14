@@ -144,7 +144,7 @@ export default function LebenslaufVorlagePage() {
               <ul className="space-y-1 text-[#374151] text-sm">
                 <li>• Leitung eines 5-köpfigen Teams für digitale Marketingkampagnen</li>
                 <li>• Steigerung der organischen Reichweite um 40 % innerhalb von 12 Monaten</li>
-                <li>• Verwaltung eines Jahresbudgets von CHF 200'000</li>
+                <li>• Verwaltung eines Jahresbudgets von CHF 200&apos;000</li>
                 <li>• Einführung eines neuen CRM-Systems (Salesforce) für 80 Mitarbeitende</li>
               </ul>
             </div>

@@ -51,7 +51,7 @@ function dateLabel(value: string | null) {
 }
 
 export function ApplicationsSection({ hasSelfServiceAccess, onRequirePayment, onExportCv, incomingApplication, onDirtyChange, routeApplicationId, onRouteChange }: Props) {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [applications, setApplications] = useState<Application[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
@@ -85,7 +85,9 @@ export function ApplicationsSection({ hasSelfServiceAccess, onRequirePayment, on
   const viewCounts = useMemo(() => Object.fromEntries(VIEWS.map(([value]) => [value, applications.filter((application) => matchesApplicationView(application, value)).length])) as Record<ApplicationView, number>, [applications]);
 
   const refresh = useCallback(async (signal?: AbortSignal) => {
-    if (!user) { setLoading(false); return; }
+    // Stay in the loading state until the session is known, otherwise a deep link
+    // such as /dashboard/bewerbungen/<id> is resolved against an empty list.
+    if (!user) { if (!authLoading) setLoading(false); return; }
     setLoading(true);
     setLoadError('');
     try {
@@ -96,7 +98,7 @@ export function ApplicationsSection({ hasSelfServiceAccess, onRequirePayment, on
     } finally {
       if (!signal?.aborted) setLoading(false);
     }
-  }, [user]);
+  }, [user, authLoading]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -344,10 +346,10 @@ export function ApplicationsSection({ hasSelfServiceAccess, onRequirePayment, on
             </div>
           </div>
           <div>
-            <h2 ref={detailHeading} tabIndex={-1} className="break-words text-xl font-semibold text-slate-950 sm:text-2xl">{saved ? saved.job_title : 'Neue Bewerbung erfassen'}</h2>
+            <h2 ref={detailHeading} tabIndex={-1} className="[overflow-wrap:anywhere] text-xl font-semibold text-slate-950 sm:text-2xl">{saved ? saved.job_title : 'Neue Bewerbung erfassen'}</h2>
             {saved && (
               <p className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-slate-600">
-                <span className="break-words">{saved.company}</span>
+                <span className="min-w-0 [overflow-wrap:anywhere]">{saved.company}</span>
                 <Badge variant="outline" className={statusStyles[saved.status]}>{APPLICATION_STATUSES[saved.status]}</Badge>
                 <span className="text-xs text-slate-500">Zuletzt gespeichert am {dateLabel(saved.updated_at.slice(0, 10))}</span>
               </p>
@@ -463,7 +465,7 @@ export function ApplicationsSection({ hasSelfServiceAccess, onRequirePayment, on
         </div>
       ) : (
         <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-6" aria-busy={loading}>
-          <div className="flex items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <h2 ref={listHeading} tabIndex={-1} className="text-xl font-semibold text-slate-950">Bewerbungen</h2>
             <div className="flex shrink-0 gap-2">
               <Button type="button" variant="outline" onClick={exportAll} disabled={exporting || loading} aria-label="Daten exportieren" title="Daten exportieren" className={outlineButton}>
@@ -496,9 +498,9 @@ export function ApplicationsSection({ hasSelfServiceAccess, onRequirePayment, on
                 <li key={application.id}>
                   <button type="button" onClick={() => open(application)} className="group flex w-full flex-col gap-3 rounded-lg px-3 py-4 text-left transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#204878] sm:flex-row sm:items-center sm:justify-between">
                     <div className="min-w-0">
-                      <p className="break-words font-semibold text-slate-950">{application.job_title}</p>
-                      <p className="mt-1 break-words text-sm text-slate-600">{application.company}</p>
-                      {application.next_action && <p className={`mt-1.5 break-words text-xs ${isActionDue(application) ? 'font-medium text-amber-700' : 'text-slate-500'}`}>{application.next_action}{application.next_action_at ? ` · bis ${dateLabel(application.next_action_at)}` : ''}</p>}
+                      <p className="[overflow-wrap:anywhere] font-semibold text-slate-950">{application.job_title}</p>
+                      <p className="mt-1 [overflow-wrap:anywhere] text-sm text-slate-600">{application.company}</p>
+                      {application.next_action && <p className={`mt-1.5 [overflow-wrap:anywhere] text-xs ${isActionDue(application) ? 'font-medium text-amber-700' : 'text-slate-500'}`}>{application.next_action}{application.next_action_at ? ` · bis ${dateLabel(application.next_action_at)}` : ''}</p>}
                     </div>
                     <div className="flex shrink-0 items-center gap-3">
                       <Badge variant="outline" className={statusStyles[application.status]}>{APPLICATION_STATUSES[application.status]}</Badge>

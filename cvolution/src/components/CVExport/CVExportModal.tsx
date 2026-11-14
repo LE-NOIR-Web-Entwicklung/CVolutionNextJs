@@ -7,6 +7,7 @@ import { CVDesignSelector, CVDesign } from './CVDesignSelector';
 import { CVPdfDocument } from './pdf/CVPdfDocument';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { downloadBlob } from '@/lib/download-blob';
 
 
 interface CVExportModalProps {
@@ -44,12 +45,7 @@ export const CVExportModal: React.FC<CVExportModalProps> = ({
       />
     );
     const blob = await pdf(doc).toBlob();
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'Lebenslauf.pdf';
-    a.click();
-    window.URL.revokeObjectURL(url);
+    downloadBlob(blob, 'Lebenslauf.pdf');
     setLoading(false);
   };
 
@@ -79,12 +75,7 @@ export const CVExportModal: React.FC<CVExportModalProps> = ({
       }
 
       const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'Lebenslauf.docx';
-      a.click();
-      window.URL.revokeObjectURL(url);
+      downloadBlob(blob, 'Lebenslauf.docx');
     } catch (error) {
       toast({
         title: 'Word-Export fehlgeschlagen',

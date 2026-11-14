@@ -84,16 +84,16 @@ export default function LohnvorstellungBewerbung() {
             begründen müssen Sie die Zahl im Schreiben nicht.
           </p>
           <GuideTemplate label="Mit Spanne">
-            Meine Lohnvorstellung liegt bei CHF 85'000 bis 90'000 brutto pro Jahr. Ich freue mich darauf, Sie in einem
+            Meine Lohnvorstellung liegt bei CHF 85&apos;000 bis 90&apos;000 brutto pro Jahr. Ich freue mich darauf, Sie in einem
             persönlichen Gespräch von meiner Motivation zu überzeugen.
           </GuideTemplate>
           <GuideTemplate label="Mit festem Betrag und Eintrittstermin">
-            Für diese Position stelle ich mir einen Jahreslohn von CHF 88'000 brutto vor. Ich bin ab dem 1. März verfügbar
+            Für diese Position stelle ich mir einen Jahreslohn von CHF 88&apos;000 brutto vor. Ich bin ab dem 1. März verfügbar
             und freue mich auf Ihre Einladung.
           </GuideTemplate>
           <GuideTemplate label="Teilzeit">
-            Meine Lohnvorstellung beträgt CHF 92'000 brutto pro Jahr bei einem Pensum von 100 %, für das ausgeschriebene
-            80-%-Pensum entsprechend CHF 73'600.
+            Meine Lohnvorstellung beträgt CHF 92&apos;000 brutto pro Jahr bei einem Pensum von 100 %, für das ausgeschriebene
+            80-%-Pensum entsprechend CHF 73&apos;600.
           </GuideTemplate>
           <p>
             Vermeiden Sie «nach Vereinbarung» oder «marktüblich», wenn ausdrücklich nach einer Zahl gefragt ist. Mehr
@@ -109,7 +109,7 @@ export default function LohnvorstellungBewerbung() {
           </p>
           <GuideTemplate label="Antwortbeispiel">
             «Mit meinen sechs Jahren Erfahrung im Rechnungswesen und dem eidgenössischen Fachausweis sehe ich mich bei CHF
-            98'000 im Jahr. Das entspricht dem, was für vergleichbare Stellen im Raum Zürich bezahlt wird.»
+            98&apos;000 im Jahr. Das entspricht dem, was für vergleichbare Stellen im Raum Zürich bezahlt wird.»
           </GuideTemplate>
           <GuideTemplate label="Wenn Sie zuerst mehr über die Stelle wissen möchten">
             «Das hängt für mich auch von der Verantwortung und den Nebenleistungen ab. Können Sie mir sagen, welches
