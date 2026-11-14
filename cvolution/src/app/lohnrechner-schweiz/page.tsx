@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import { FaqSection } from "@/components/content/FaqSection";
 import { GuideCta } from "@/components/content/GuideCta";
 import { RelatedGuides } from "@/components/content/RelatedGuides";
@@ -6,7 +7,7 @@ import { SalaryCalculator } from "@/components/salary/SalaryCalculator";
 import { GuideSchema } from "@/components/seo/GuideSchema";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { SITE_URL, pageMetadata, type Faq } from "@/lib/seo";
-import { PAGE_META, guideFor, guidesForService } from "@/lib/seo-pages";
+import { PAGE_META, guideFor, guidesForService, isHiddenPath } from "@/lib/seo-pages";
 import {
   MEDIAN_MONTHLY_2024,
   bvgEmployeeRate,
@@ -24,6 +25,7 @@ const PATH = "/lohnrechner-schweiz";
 export const revalidate = 3600;
 
 export function generateMetadata() {
+  if (isHiddenPath(PATH)) return { robots: { index: false, follow: false } };
   const year = String(payrollYearFor());
   const meta = PAGE_META[PATH];
   const withYear = (text: string) => text.replace(/\b20\d\d\b/g, year);
@@ -71,6 +73,8 @@ function faqsFor(config: PayrollConfig, typicalShare: number): Faq[] {
 }
 
 export default function LohnrechnerSchweiz() {
+  // Temporarily switched off (see HIDDEN_PATHS in seo-pages.ts).
+  if (isHiddenPath(PATH)) notFound();
   const payrollYear = payrollYearFor();
   const config = payrollConfig(payrollYear);
   const examples = examplesFor(payrollYear);

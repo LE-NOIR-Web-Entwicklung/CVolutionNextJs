@@ -6,7 +6,7 @@ import { GuideCta } from "@/components/content/GuideCta";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { LSE_SOURCE_URL, LSE_YEAR, type LseValue } from "@/data/bfs-lse-berufsgruppen";
 import { SITE_URL, articleSchema, breadcrumbSchema, pageMetadata, type Faq } from "@/lib/seo";
-import { guideFor } from "@/lib/seo-pages";
+import { guideFor, isHiddenPath } from "@/lib/seo-pages";
 import { LSE_TOTAL, SALARY_JOBS, chf, jobForGroup, lseGroup, salaryJob, salaryJobTitle } from "@/lib/salary-jobs";
 import { calculatePayroll } from "@/lib/swiss-payroll";
 
@@ -70,7 +70,7 @@ export default async function SalaryJobPage({ params }: Props) {
     },
     {
       question: `Wie viel bleibt netto?`,
-      answer: `Bei einem Bruttolohn von ${chf(median)} (12 Monatslöhne, Alter 35) bleiben nach AHV, ALV, Pensionskasse (gesetzliches Minimum) und NBU rund ${chf(net.netPerPayment)} pro Monat. Ihren eigenen Nettolohn berechnen Sie im Lohnrechner.`,
+      answer: `Bei einem Bruttolohn von ${chf(median)} (12 Monatslöhne, Alter 35) bleiben nach AHV, ALV, Pensionskasse (gesetzliches Minimum) und NBU rund ${chf(net.netPerPayment)} pro Monat.${isHiddenPath("/lohnrechner-schweiz") ? "" : " Ihren eigenen Nettolohn berechnen Sie im Lohnrechner."}`,
     },
   ];
   if (group.women && group.men) {
@@ -139,11 +139,13 @@ export default async function SalaryJobPage({ params }: Props) {
             <div className="rounded-2xl bg-white p-5 ring-1 ring-[#dce5ef]">
               <p className="text-sm text-[#607089]">Netto pro Monat, ca.</p>
               <p className="mt-1 text-3xl font-semibold tabular-nums text-[#101828]">{chf(net.netPerPayment)}</p>
-              <p className="mt-1 text-sm text-[#607089]">
-                <Link href="/lohnrechner-schweiz" className="font-semibold text-[#204878] hover:underline">
-                  Eigenen Lohn berechnen
-                </Link>
-              </p>
+              {!isHiddenPath("/lohnrechner-schweiz") && (
+                <p className="mt-1 text-sm text-[#607089]">
+                  <Link href="/lohnrechner-schweiz" className="font-semibold text-[#204878] hover:underline">
+                    Eigenen Lohn berechnen
+                  </Link>
+                </p>
+              )}
             </div>
           </div>
 

@@ -115,7 +115,6 @@ export default function Footer() {
                 { name: "Bewerbung nach Kündigung", href: "/bewerbung-nach-kuendigung" },
                 { name: "Bewerbungsgespräch Tipps", href: "/bewerbungsgespraech-tipps" },
                 { name: "Lohn verhandeln", href: "/lohn-verhandeln-schweiz" },
-                { name: "Lohnrechner Schweiz", href: "/lohnrechner-schweiz" },
                 { name: "Lohn nach Beruf", href: "/lohn-nach-beruf" },
                 { name: "Lohn nach Kanton", href: "/lohn-nach-kanton" },
                 { name: "Lohnerhöhung fordern", href: "/lohnerhoehung-fordern" },

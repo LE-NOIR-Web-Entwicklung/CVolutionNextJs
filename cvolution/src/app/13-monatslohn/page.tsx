@@ -4,7 +4,7 @@ import { GuideLink, GuideList, GuidePage, GuideSection, GuideTable } from "@/com
 import { RelatedGuides } from "@/components/content/RelatedGuides";
 import { GuideSchema } from "@/components/seo/GuideSchema";
 import type { Faq } from "@/lib/seo";
-import { guideFor, guidesForService, metaFor } from "@/lib/seo-pages";
+import { guideFor, guidesForService, isHiddenPath, metaFor } from "@/lib/seo-pages";
 import { MEDIAN_MONTHLY_2024, formatChf } from "@/lib/swiss-payroll";
 
 export const metadata = metaFor("/13-monatslohn", { type: "article" });
@@ -165,10 +165,12 @@ export default function DreizehnterMonatslohn() {
               </>,
             ]}
           />
-          <p>
-            Was netto übrig bleibt, zeigt der <GuideLink href="/lohnrechner-schweiz">Lohnrechner</GuideLink> – dort können
-            Sie 12 oder 13 Monatslöhne einstellen.
-          </p>
+          {!isHiddenPath("/lohnrechner-schweiz") && (
+            <p>
+              Was netto übrig bleibt, zeigt der <GuideLink href="/lohnrechner-schweiz">Lohnrechner</GuideLink> – dort können
+              Sie 12 oder 13 Monatslöhne einstellen.
+            </p>
+          )}
         </GuideSection>
 
         <FaqSection faqs={faqs} heading="Häufige Fragen zum 13. Monatslohn" className="mt-12" />

@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 import { SITE_URL } from "@/lib/seo";
-import { GUIDES, PAGE_META, type PagePath } from "@/lib/seo-pages";
+import { GUIDES, PAGE_META, isHiddenPath, type PagePath } from "@/lib/seo-pages";
 import { getPublishedBlogPosts } from "@/lib/public-blog";
 import { SALARY_JOBS } from "@/lib/salary-jobs";
 
@@ -31,7 +31,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
   const guidePaths = new Set<string>(GUIDES.map((guide) => guide.path));
 
-  const pages: MetadataRoute.Sitemap = (Object.keys(PAGE_META) as PagePath[]).map((path) => ({
+  const pages: MetadataRoute.Sitemap = (Object.keys(PAGE_META) as PagePath[]).filter((path) => !isHiddenPath(path)).map((path) => ({
     url: `${SITE_URL}${path === "/" ? "" : path}`,
     lastModified: now,
     changeFrequency: path === "/" || path === "/blog" ? "weekly" : guidePaths.has(path) ? "monthly" : "monthly",

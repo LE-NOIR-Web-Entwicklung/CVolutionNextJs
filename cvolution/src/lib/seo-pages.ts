@@ -275,7 +275,17 @@ const CTA_SELF: ServiceCta = {
   button: "Self-Service starten",
 };
 
-export const GUIDES: Guide[] = [
+/**
+ * Pages that are temporarily switched off: they return 404, are left out of the sitemap
+ * and are not linked anywhere. Remove a path here to publish the page again.
+ */
+export const HIDDEN_PATHS: ReadonlySet<string> = new Set(["/lohnrechner-schweiz"]);
+
+export function isHiddenPath(path: string) {
+  return HIDDEN_PATHS.has(path);
+}
+
+const ALL_GUIDES: Guide[] = [
   { path: "/lohnrechner-schweiz", label: "Lohnrechner Brutto-Netto", teaser: "Nettolohn berechnen und mit dem Median vergleichen.", category: "Lohn", service: CTA_SALARY },
   { path: "/lohn-nach-beruf", label: "Lohn nach Beruf", teaser: "Medianlöhne aller Berufe nach BFS.", category: "Lohn", service: CTA_SALARY },
   { path: "/lohn-nach-kanton", label: "Lohn nach Kanton", teaser: "Medianlöhne nach Region und Branche.", category: "Lohn", service: CTA_SALARY },
@@ -300,8 +310,12 @@ export const GUIDES: Guide[] = [
   { path: "/rav-bewerbung-tipps", label: "RAV Bewerbung", teaser: "Arbeitsbemühungen richtig erfüllen.", category: "RAV", service: CTA_RAV },
 ];
 
+/** Guides that are live and may be listed or linked. */
+export const GUIDES: Guide[] = ALL_GUIDES.filter((guide) => !isHiddenPath(guide.path));
+
+/** Looks up any guide, hidden ones included, so their service CTA keeps working on other pages. */
 export function guideFor(path: string) {
-  return GUIDES.find((guide) => guide.path === path);
+  return ALL_GUIDES.find((guide) => guide.path === path);
 }
 
 /** Guides shown on each service page, most relevant first. */
@@ -317,7 +331,9 @@ export const SERVICE_GUIDES: Record<string, PagePath[]> = {
 };
 
 export function guidesForService(servicePath: string) {
-  return (SERVICE_GUIDES[servicePath] || []).map((path) => guideFor(path)).filter((g): g is Guide => Boolean(g));
+  return (SERVICE_GUIDES[servicePath] || [])
+    .filter((path) => !isHiddenPath(path))
+    .map((path) => guideFor(path)).filter((g): g is Guide => Boolean(g));
 }
 
 /** Picks the paid service a blog post should lead to, based on its title and tags. */

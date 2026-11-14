@@ -5,7 +5,7 @@ import { RelatedGuides } from "@/components/content/RelatedGuides";
 import { GuideSchema } from "@/components/seo/GuideSchema";
 import { LSE_REGION_SOURCE_URL, LSE_REGION_YEAR, type LseRegionValue } from "@/data/bfs-lse-grossregionen";
 import type { Faq } from "@/lib/seo";
-import { guideFor, guidesForService, metaFor } from "@/lib/seo-pages";
+import { guideFor, guidesForService, isHiddenPath, metaFor } from "@/lib/seo-pages";
 import { chf } from "@/lib/salary-jobs";
 import { REGION_BRANCHES, REGION_TOTAL, SALARY_REGIONS, regionRow } from "@/lib/salary-regions";
 
@@ -189,8 +189,12 @@ export default function LohnNachKanton() {
             ]}
           />
           <p>
-            Vergleichen Sie Angebote deshalb immer netto und nach fixen Kosten. Den Nettolohn nach Sozialabzügen zeigt
-            der <GuideLink href="/lohnrechner-schweiz">Lohnrechner</GuideLink>.
+            Vergleichen Sie Angebote deshalb immer netto und nach fixen Kosten.
+            {!isHiddenPath("/lohnrechner-schweiz") && (
+              <>
+                {" "}Den Nettolohn nach Sozialabzügen zeigt der <GuideLink href="/lohnrechner-schweiz">Lohnrechner</GuideLink>.
+              </>
+            )}
           </p>
         </GuideSection>
 

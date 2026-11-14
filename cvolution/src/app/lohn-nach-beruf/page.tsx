@@ -4,7 +4,7 @@ import { GuideCta } from "@/components/content/GuideCta";
 import { GuideSchema } from "@/components/seo/GuideSchema";
 import { LSE_GROUPS, LSE_SOURCE_URL, LSE_YEAR } from "@/data/bfs-lse-berufsgruppen";
 import type { Faq } from "@/lib/seo";
-import { guideFor, metaFor } from "@/lib/seo-pages";
+import { guideFor, isHiddenPath, metaFor } from "@/lib/seo-pages";
 import { LSE_TOTAL, SALARY_JOBS, chf, jobForGroup, lseGroup } from "@/lib/salary-jobs";
 
 export const metadata = metaFor("/lohn-nach-beruf", { type: "article" });
@@ -31,7 +31,7 @@ const faqs: Faq[] = [
   },
   {
     question: "Sind die Löhne brutto oder netto?",
-    answer: "Brutto. Nach Abzug von AHV, ALV, Pensionskasse und Unfallversicherung bleiben meist 85 bis 90 Prozent. Den genauen Betrag zeigt der Lohnrechner.",
+    answer: "Brutto. Nach Abzug von AHV, ALV, Pensionskasse und Unfallversicherung bleiben meist 85 bis 90 Prozent." + (isHiddenPath("/lohnrechner-schweiz") ? "" : " Den genauen Betrag zeigt der Lohnrechner."),
   },
 ];
 
@@ -122,11 +122,16 @@ export default function LohnNachBeruf() {
               oder in einer gut zahlenden Branche arbeitet, liegt oft deutlich darüber.
             </p>
             <p className="mt-3 leading-7 text-[#40516a]">
-              Was nach den Abzügen übrig bleibt, berechnen Sie im{" "}
-              <Link href="/lohnrechner-schweiz" className="font-semibold text-[#204878] underline underline-offset-4">
-                Lohnrechner
-              </Link>
-              . Ob Ihr Lohn für Ihre konkrete Funktion fair ist, zeigt die{" "}
+              {!isHiddenPath("/lohnrechner-schweiz") && (
+                <>
+                  Was nach den Abzügen übrig bleibt, berechnen Sie im{" "}
+                  <Link href="/lohnrechner-schweiz" className="font-semibold text-[#204878] underline underline-offset-4">
+                    Lohnrechner
+                  </Link>
+                  .{" "}
+                </>
+              )}
+              Ob Ihr Lohn für Ihre konkrete Funktion fair ist, zeigt die{" "}
               <Link href="/service-salary" className="font-semibold text-[#204878] underline underline-offset-4">
                 persönliche Lohnanalyse
               </Link>
