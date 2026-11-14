@@ -40,3 +40,16 @@ body {
 .animate-float {
   animation: float 3s ease-in-out infinite;
 }
+
+/* Long German compounds ("Bewerbungsgespräch", "Betriebswirtschafter") and example
+   file names are wider than a phone screen at heading sizes. break-word only
+   applies when a word would otherwise overflow, so normal layouts are unchanged. */
+h1, h2, h3, h4, p, li, dt, dd, td, th, blockquote {
+  overflow-wrap: break-word;
+}
+
+@media (max-width: 639px) {
+  h1, h2 {
+    hyphens: auto;
+  }
+}

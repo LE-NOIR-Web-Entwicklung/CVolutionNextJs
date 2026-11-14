@@ -1,4 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
+import { downloadBlob } from './download-blob';
 
 export class MotivationLetterRequestError extends Error {
   constructor(message: string, public status: number) { super(message); }
@@ -22,12 +23,5 @@ export async function downloadMotivationLetterDocx({ applicationId, letter, jobT
     const result = await response.json().catch(() => null);
     throw new MotivationLetterRequestError(result?.error || 'Das DOCX konnte nicht erstellt werden.', response.status);
   }
-  const url = URL.createObjectURL(await response.blob());
-  const link = window.document.createElement('a');
-  link.href = url;
-  link.download = `motivationsschreiben-${slugify(company || jobTitle || 'cvolution')}.docx`;
-  window.document.body.appendChild(link);
-  link.click();
-  link.remove();
-  URL.revokeObjectURL(url);
+  downloadBlob(await response.blob(), `motivationsschreiben-${slugify(company || jobTitle || 'cvolution')}.docx`);
 }

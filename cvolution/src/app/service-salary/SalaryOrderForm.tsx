@@ -245,7 +245,7 @@ export function SalaryOrderForm({ variant }: { variant: SalaryOrderVariant }) {
             <div className="max-w-3xl mx-auto bg-white rounded-2xl border border-gray-100 shadow-sm p-8 md:p-12">
               <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-8">
                 <div>
-                  <h2 className="text-2xl font-semibold text-[#111827] mb-2">Bestellung</h2>
+                  <h1 className="text-2xl font-semibold text-[#111827] mb-2">Bestellung</h1>
                   <p className="text-sm text-[#64748B]">{config.label}</p>
                 </div>
                 <div className="sm:text-right">

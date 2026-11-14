@@ -443,4 +443,6 @@ export const ProfileSection = React.forwardRef<{ saveProfile: () => void }, {}>(
     </CvPanel>
   );
 });
-  export default ProfileSection;
+ProfileSection.displayName = "ProfileSection";
+
+export default ProfileSection;

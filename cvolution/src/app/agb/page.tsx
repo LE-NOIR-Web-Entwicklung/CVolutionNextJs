@@ -10,7 +10,7 @@ export default function AGB() {
           <section>
             <h2 className="text-xl font-bold text-[#111827] mb-3">1. Geltungsbereich</h2>
             <p className="text-[#374151] leading-relaxed">
-              Diese Allgemeinen Geschäftsbedingungen (AGB) gelten für alle Geschäftsbeziehungen zwischen der CVolution GmbH (nachfolgend „wir", „uns", „unser/e") und unseren Kunden. Sie sind Bestandteil aller Verträge, die wir mit unseren Kunden über unsere angebotenen Dienstleistungen und Produkte abschliessen.
+              Diese Allgemeinen Geschäftsbedingungen (AGB) gelten für alle Geschäftsbeziehungen zwischen der CVolution GmbH (nachfolgend „wir“, „uns“, „unser/e“) und unseren Kunden. Sie sind Bestandteil aller Verträge, die wir mit unseren Kunden über unsere angebotenen Dienstleistungen und Produkte abschliessen.
             </p>
           </section>
 

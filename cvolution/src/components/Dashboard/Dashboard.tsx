@@ -67,10 +67,13 @@ export const Dashboard: React.FC = () => {
     else window.history.pushState(null, '', path);
   }, []);
 
+  // Old links such as /dashboard#applications. This runs on mount, before the
+  // App Router has patched the History API, so a raw replaceState would change
+  // the URL without updating usePathname; router.replace keeps both in sync.
   useEffect(() => {
     const area = legacyDashboardHashArea(window.location.hash);
-    if (area && window.location.pathname === '/dashboard') window.history.replaceState(null, '', dashboardPath(area));
-  }, []);
+    if (area && window.location.pathname === '/dashboard') router.replace(dashboardPath(area), { scroll: false });
+  }, [router]);
 
   useEffect(() => {
     setMotivationDraft({ form: emptyMotivationForm(), letter: '' });

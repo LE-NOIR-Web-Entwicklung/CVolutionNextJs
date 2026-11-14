@@ -339,4 +339,6 @@ function parseMonthYearToDate(str?: string | null) {
     </CvPanel>
   );
 });
+EducationSection.displayName = "EducationSection";
+
 export default EducationSection;
