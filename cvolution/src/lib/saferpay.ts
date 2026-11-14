@@ -22,12 +22,24 @@ export const SAFERPAY_SELF_SUBSCRIPTION = {
   paymentMethods: getSelfSubscriptionPaymentMethods(),
 };
 
+const SUPPORTED_SHOP_WALLETS = ["APPLEPAY", "GOOGLEPAY"];
+
+// Wallets are off unless SAFERPAY_SHOP_WALLETS is set, e.g. "APPLEPAY,GOOGLEPAY".
+// Unknown values are dropped so a typo cannot break the payment page request.
+function getShopWallets() {
+  return (process.env.SAFERPAY_SHOP_WALLETS || "")
+    .split(",")
+    .map((wallet) => wallet.trim().toUpperCase())
+    .filter((wallet) => SUPPORTED_SHOP_WALLETS.includes(wallet));
+}
+
 export const SAFERPAY_SHOP = {
   currencyCode: process.env.SAFERPAY_SHOP_CURRENCY || "CHF",
   paymentMethods: (process.env.SAFERPAY_SHOP_PAYMENT_METHODS || DEFAULT_SHOP_PAYMENT_METHODS.join(","))
     .split(",")
     .map((method) => method.trim().toUpperCase())
     .filter(Boolean),
+  wallets: getShopWallets(),
 };
 
 export function getSaferpayConfig() {
