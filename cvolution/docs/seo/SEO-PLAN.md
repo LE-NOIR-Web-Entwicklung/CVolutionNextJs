@@ -271,7 +271,7 @@ Reihenfolge = empfohlene Produktionsreihenfolge (Lohn-Cluster zuerst, weil dort 
 | # | Pfad | Ziel-Keyword | Intention | Gliederung (H2) | Führt zu |
 |---|---|---|---|---|---|
 | 1 ✅ | `/lohnrechner-schweiz` | lohnrechner schweiz | Tool / informativ | Brutto-Netto-Rechner (Client-Tool: AHV/IV/EO 5.3 %, ALV 1.1 %, BVG-Schätzung nach Alter) · So lesen Sie das Ergebnis · Warum Rechner nicht alles zeigen · FAQ | Lohnanalyse PDF |
-| 2 | `/lohn-nach-beruf` (Hub) + `/lohn/[beruf]` | lohn [beruf] schweiz (z. B. «lohn kaufmann schweiz», «lohn pflegefachfrau») | informativ | Lohnspanne nach Erfahrung · nach Kanton · nach Branche · Was den Lohn erhöht · FAQ. Start mit 10 Berufen mit hohem Suchvolumen, Daten aus der BFS-LSE (Quelle nennen) | Lohnanalyse |
+| 2 ✅ | `/lohn-nach-beruf` (Hub) + `/lohn/[beruf]` | lohn [beruf] schweiz (z. B. «lohn kaufmann schweiz», «lohn pflegefachfrau») | informativ | Lohnspanne nach Erfahrung · nach Kanton · nach Branche · Was den Lohn erhöht · FAQ. Start mit 10 Berufen mit hohem Suchvolumen, Daten aus der BFS-LSE (Quelle nennen) | Lohnanalyse |
 | 3 | `/lohn-nach-kanton` | lohn zürich / lohn nach kanton schweiz | informativ | Medianlöhne nach Grossregion (BFS) · Kaufkraft und Steuern · Pendeln lohnt sich? · FAQ | Lohnanalyse |
 | 4 | `/lohnverhandlung-tipps` | lohnverhandlung tipps | informativ | **Nicht neu bauen:** `/lohn-verhandeln-schweiz` deckt das ab. Stattdessen dort H2 «Lohnverhandlung: 10 Tipps» ergänzen, damit keine zwei Seiten um das Keyword konkurrieren | – |
 | 5 | `/lohnerhoehung-fordern` | lohnerhöhung verlangen / lohnerhöhung brief | informativ + Vorlage | Wann fragen · Wie viel ist realistisch (%) · Gesprächsleitfaden · E-Mail-Vorlage · Was tun bei Nein | Lohnanalyse mit Gespräch |

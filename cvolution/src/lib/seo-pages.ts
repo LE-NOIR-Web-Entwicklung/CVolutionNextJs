@@ -170,6 +170,11 @@ export const PAGE_META = {
     description:
       "Kostenloser Brutto-Netto-Rechner für die Schweiz 2026: AHV, ALV, Pensionskasse und NBU berechnen und Ihren Lohn mit dem Medianlohn vergleichen.",
   },
+  "/lohn-nach-beruf": {
+    title: "Lohn nach Beruf Schweiz: Medianlöhne aller Berufe",
+    description:
+      "Was verdient man in der Schweiz? Medianlöhne für alle Berufsgruppen nach offiziellen BFS-Zahlen, mit Detailseiten nach Alter und Geschlecht.",
+  },
   "/rav-bewerbung-tipps": {
     title: "RAV Bewerbung: Arbeitsbemühungen richtig nachweisen",
     description:
@@ -246,6 +251,7 @@ const CTA_SELF: ServiceCta = {
 
 export const GUIDES: Guide[] = [
   { path: "/lohnrechner-schweiz", label: "Lohnrechner Brutto-Netto", teaser: "Nettolohn berechnen und mit dem Median vergleichen.", category: "Lohn", service: CTA_SALARY },
+  { path: "/lohn-nach-beruf", label: "Lohn nach Beruf", teaser: "Medianlöhne aller Berufe nach BFS.", category: "Lohn", service: CTA_SALARY },
   { path: "/lohnanalyse-schweiz", label: "Lohnanalyse Schweiz", teaser: "Lohn selbst vergleichen und fair einordnen.", category: "Lohn", service: CTA_SALARY },
   { path: "/lohn-verhandeln-schweiz", label: "Lohn verhandeln", teaser: "Strategien und Formulierungen für mehr Lohn.", category: "Lohn", service: CTA_SALARY },
   { path: "/lebenslauf-beispiel", label: "Lebenslauf Beispiel", teaser: "Drei vollständige Muster für jede Karrierestufe.", category: "Lebenslauf", service: CTA_CV },
@@ -270,7 +276,7 @@ export function guideFor(path: string) {
 
 /** Guides shown on each service page, most relevant first. */
 export const SERVICE_GUIDES: Record<string, PagePath[]> = {
-  "/service-salary": ["/lohnrechner-schweiz", "/lohnanalyse-schweiz", "/lohn-verhandeln-schweiz", "/bewerbungsgespraech-tipps"],
+  "/service-salary": ["/lohnrechner-schweiz", "/lohn-nach-beruf", "/lohnanalyse-schweiz", "/lohn-verhandeln-schweiz", "/bewerbungsgespraech-tipps"],
   "/service-cv": ["/lebenslauf-beispiel", "/lebenslauf-vorlage-schweiz", "/lebenslauf-aufbau", "/lebenslauf-format-schweiz", "/lebenslauf-fehler", "/lebenslauf-student"],
   "/service-motivation": ["/motivationsschreiben-tipps", "/bewerbung-vorlage-schweiz", "/bewerbung-schreiben"],
   "/service-career": ["/lebenslauf-quereinsteiger", "/bewerbung-nach-kuendigung", "/bewerbungsgespraech-tipps"],
