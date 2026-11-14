@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import type { Metadata } from "next";
 import { ArrowLeft, CalendarDays, Clock } from "lucide-react";
 import { getPublishedBlogPost, getPublishedBlogPosts } from "@/lib/public-blog";
@@ -8,10 +8,21 @@ import { GuideCta } from "@/components/content/GuideCta";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { articleSchema, breadcrumbSchema, pageMetadata } from "@/lib/seo";
 import { ctaForTopic } from "@/lib/seo-pages";
+import { blogRedirectTarget } from "@/lib/blog-redirects";
 
 type BlogDetailProps = {
   params: Promise<{ slug: string }>;
 };
+
+/**
+ * Loads the post, or redirects a renamed slug to its new URL once a post with the new slug is
+ * published. Until the rename happens in the admin panel, the old slug keeps working.
+ */
+async function loadPost(slug: string) {
+  const target = blogRedirectTarget(slug);
+  if (target && (await getPublishedBlogPost(target))) permanentRedirect(`/blog/${target}`);
+  return getPublishedBlogPost(slug);
+}
 
 function readingTime(content: string) {
   const words = content.trim().split(/\s+/).filter(Boolean).length;
@@ -103,7 +114,7 @@ function renderContent(content: string) {
 
 export async function generateMetadata({ params }: BlogDetailProps): Promise<Metadata> {
   const { slug } = await params;
-  const post = await getPublishedBlogPost(slug);
+  const post = await loadPost(slug);
   if (!post) return {};
 
   const suffixed = `${post.title} | CVolution`;
@@ -126,7 +137,7 @@ export async function generateStaticParams() {
 
 export default async function BlogDetailPage({ params }: BlogDetailProps) {
   const { slug } = await params;
-  const post = await getPublishedBlogPost(slug);
+  const post = await loadPost(slug);
   if (!post) notFound();
 
   return (

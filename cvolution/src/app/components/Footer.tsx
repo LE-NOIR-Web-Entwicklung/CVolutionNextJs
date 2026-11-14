@@ -117,6 +117,10 @@ export default function Footer() {
                 { name: "Lohn verhandeln", href: "/lohn-verhandeln-schweiz" },
                 { name: "Lohnrechner Schweiz", href: "/lohnrechner-schweiz" },
                 { name: "Lohn nach Beruf", href: "/lohn-nach-beruf" },
+                { name: "Lohn nach Kanton", href: "/lohn-nach-kanton" },
+                { name: "Lohnerhöhung fordern", href: "/lohnerhoehung-fordern" },
+                { name: "Lohnvorstellung Bewerbung", href: "/lohnvorstellung-bewerbung" },
+                { name: "13. Monatslohn", href: "/13-monatslohn" },
                 { name: "Lohnanalyse Schweiz", href: "/lohnanalyse-schweiz" },
                 { name: "RAV Bewerbung Tipps", href: "/rav-bewerbung-tipps" },
               ].map((item) => (

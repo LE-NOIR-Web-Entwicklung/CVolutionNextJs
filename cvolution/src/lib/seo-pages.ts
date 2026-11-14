@@ -175,6 +175,26 @@ export const PAGE_META = {
     description:
       "Was verdient man in der Schweiz? Medianlöhne für alle Berufsgruppen nach offiziellen BFS-Zahlen, mit Detailseiten nach Alter und Geschlecht.",
   },
+  "/lohn-nach-kanton": {
+    title: "Lohn nach Kanton: Medianlöhne der Schweiz 2024",
+    description:
+      "Wo verdient man am meisten? Medianlöhne nach Grossregion und Kanton (BFS 2024), Branchenvergleich, Kaufkraft und ob sich Pendeln für mehr Lohn lohnt.",
+  },
+  "/lohnerhoehung-fordern": {
+    title: "Lohnerhöhung fordern: Tipps, Prozente & E-Mail-Vorlage",
+    description:
+      "Wann und wie viel Lohnerhöhung verlangen? Realistische Prozentsätze, Gesprächsleitfaden in 5 Schritten, E-Mail-Vorlage und was Sie bei einem Nein tun.",
+  },
+  "/lohnvorstellung-bewerbung": {
+    title: "Lohnvorstellung Bewerbung: Formulierungen & Beispiele",
+    description:
+      "Lohnvorstellung in der Bewerbung angeben: Muss das sein, brutto oder netto, Spanne oder Betrag? Mit Formulierungen für Motivationsschreiben und Gespräch.",
+  },
+  "/13-monatslohn": {
+    title: "13. Monatslohn Schweiz: Pflicht, Berechnung, Kündigung",
+    description:
+      "Ist der 13. Monatslohn in der Schweiz Pflicht? So wird er berechnet, was bei Kündigung und Probezeit gilt und wie Sie ihn im Lohnvergleich einrechnen.",
+  },
   "/rav-bewerbung-tipps": {
     title: "RAV Bewerbung: Arbeitsbemühungen richtig nachweisen",
     description:
@@ -206,6 +226,12 @@ export type ServiceCta = {
   button: string;
 };
 
+const CTA_SALARY_CALL: ServiceCta = {
+  href: "/service-salary",
+  heading: "Mit Zahlen ins Lohngespräch",
+  text: "Die Lohnanalyse mit Gespräch zeigt Ihren Marktwert nach Funktion, Branche und Kanton – und wir bereiten gemeinsam Ihre Argumente vor. CHF 119.",
+  button: "Lohnanalyse mit Gespräch",
+};
 const CTA_CV: ServiceCta = {
   href: "/service-cv",
   heading: "Lieber gleich einen fertigen Lebenslauf?",
@@ -252,8 +278,12 @@ const CTA_SELF: ServiceCta = {
 export const GUIDES: Guide[] = [
   { path: "/lohnrechner-schweiz", label: "Lohnrechner Brutto-Netto", teaser: "Nettolohn berechnen und mit dem Median vergleichen.", category: "Lohn", service: CTA_SALARY },
   { path: "/lohn-nach-beruf", label: "Lohn nach Beruf", teaser: "Medianlöhne aller Berufe nach BFS.", category: "Lohn", service: CTA_SALARY },
+  { path: "/lohn-nach-kanton", label: "Lohn nach Kanton", teaser: "Medianlöhne nach Region und Branche.", category: "Lohn", service: CTA_SALARY },
   { path: "/lohnanalyse-schweiz", label: "Lohnanalyse Schweiz", teaser: "Lohn selbst vergleichen und fair einordnen.", category: "Lohn", service: CTA_SALARY },
   { path: "/lohn-verhandeln-schweiz", label: "Lohn verhandeln", teaser: "Strategien und Formulierungen für mehr Lohn.", category: "Lohn", service: CTA_SALARY },
+  { path: "/lohnerhoehung-fordern", label: "Lohnerhöhung fordern", teaser: "Zeitpunkt, Prozente und E-Mail-Vorlage.", category: "Lohn", service: CTA_SALARY_CALL },
+  { path: "/lohnvorstellung-bewerbung", label: "Lohnvorstellung Bewerbung", teaser: "Richtig angeben und begründen.", category: "Lohn", service: CTA_SALARY },
+  { path: "/13-monatslohn", label: "13. Monatslohn", teaser: "Pflicht, Berechnung und Kündigung.", category: "Lohn", service: CTA_SALARY },
   { path: "/lebenslauf-beispiel", label: "Lebenslauf Beispiel", teaser: "Drei vollständige Muster für jede Karrierestufe.", category: "Lebenslauf", service: CTA_CV },
   { path: "/lebenslauf-vorlage-schweiz", label: "Lebenslauf Vorlage", teaser: "Schweizer Vorlage mit Aufbau und Pflichtangaben.", category: "Lebenslauf", service: CTA_CV },
   { path: "/lebenslauf-aufbau", label: "Lebenslauf Aufbau", teaser: "Die richtige Gliederung Schritt für Schritt.", category: "Lebenslauf", service: CTA_CV },
@@ -276,9 +306,9 @@ export function guideFor(path: string) {
 
 /** Guides shown on each service page, most relevant first. */
 export const SERVICE_GUIDES: Record<string, PagePath[]> = {
-  "/service-salary": ["/lohnrechner-schweiz", "/lohn-nach-beruf", "/lohnanalyse-schweiz", "/lohn-verhandeln-schweiz", "/bewerbungsgespraech-tipps"],
+  "/service-salary": ["/lohnrechner-schweiz", "/lohn-nach-beruf", "/lohn-nach-kanton", "/lohnanalyse-schweiz", "/lohn-verhandeln-schweiz", "/lohnerhoehung-fordern", "/lohnvorstellung-bewerbung", "/13-monatslohn", "/bewerbungsgespraech-tipps"],
   "/service-cv": ["/lebenslauf-beispiel", "/lebenslauf-vorlage-schweiz", "/lebenslauf-aufbau", "/lebenslauf-format-schweiz", "/lebenslauf-fehler", "/lebenslauf-student"],
-  "/service-motivation": ["/motivationsschreiben-tipps", "/bewerbung-vorlage-schweiz", "/bewerbung-schreiben"],
+  "/service-motivation": ["/motivationsschreiben-tipps", "/bewerbung-vorlage-schweiz", "/bewerbung-schreiben", "/lohnvorstellung-bewerbung"],
   "/service-career": ["/lebenslauf-quereinsteiger", "/bewerbung-nach-kuendigung", "/bewerbungsgespraech-tipps"],
   "/service-check": ["/lebenslauf-fehler", "/bewerbung-schweiz", "/bewerbung-schreiben"],
   "/service-linkedin": ["/bewerbung-schweiz", "/lebenslauf-aufbau", "/bewerbung-nach-kuendigung"],
