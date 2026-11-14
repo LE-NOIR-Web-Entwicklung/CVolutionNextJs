@@ -137,8 +137,8 @@ export default function LebenslaufAufbauPage() {
           <section className="mb-10 bg-white rounded-2xl border border-gray-100 p-8 shadow-sm">
             <h2 className="text-2xl font-semibold text-[#111827] mb-4">Beispiel: Vollständiger Lebenslauf-Kopf</h2>
             <div className="bg-[#F8FAFC] rounded-xl p-6 border border-gray-100">
-              <div className="flex justify-between items-start">
-                <div>
+              <div className="flex justify-between items-start gap-4">
+                <div className="min-w-0 [overflow-wrap:anywhere]">
                   <p className="font-bold text-[#111827] text-lg">Maria Müller</p>
                   <p className="text-[#64748B] text-sm">Musterstrasse 12, 8001 Zürich</p>
                   <p className="text-[#64748B] text-sm">+41 79 123 45 67</p>
@@ -146,7 +146,7 @@ export default function LebenslaufAufbauPage() {
                   <p className="text-[#64748B] text-sm">Schweizer Staatsangehörige</p>
                   <p className="text-[#64748B] text-sm">linkedin.com/in/mariamueller</p>
                 </div>
-                <div className="w-20 h-24 bg-gray-200 rounded-lg flex items-center justify-center text-xs text-gray-500">Foto</div>
+                <div className="w-20 h-24 flex-shrink-0 bg-gray-200 rounded-lg flex items-center justify-center text-xs text-gray-500">Foto</div>
               </div>
             </div>
           </section>
