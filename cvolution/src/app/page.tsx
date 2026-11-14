@@ -2,13 +2,11 @@ import Image from "next/image";
 import { FaLinkedin, FaPhone, FaEnvelope } from "react-icons/fa";
 import Link from "next/link";
 import { OFFER_CARDS } from "@/lib/service-offers";
-import { metaFor, GUIDES } from "@/lib/seo-pages";
-import { RelatedGuides } from "@/components/content/RelatedGuides";
+import { metaFor } from "@/lib/seo-pages";
+import { GuideHub } from "@/components/content/GuideHub";
 
 export const metadata = metaFor("/");
 
-// All Ratgeber pages, salary topics first: the homepage is the strongest page for internal links.
-const HOME_GUIDES = GUIDES;
 
 export default function Home() {
   return (
@@ -41,23 +39,21 @@ export default function Home() {
               1000+ Kunden bereits erfolgreich unterstützt
             </div>
 
-            {/* Headline: keyword H1 as kicker, brand slogan as display text */}
-            <h1 className="mb-4 text-sm font-semibold uppercase tracking-[0.14em] text-white/80 sm:text-base">
-              Bewerbungsservice Schweiz: Lebenslauf, Lohnanalyse &amp; Laufbahnberatung
-            </h1>
-            <p className="max-w-5xl text-[clamp(2.85rem,12vw,7.25rem)] font-semibold leading-[0.94] mb-6 text-white [text-wrap:balance]">
-              Unsere Bewerbung,{" "}
-              <br className="hidden sm:block" />
-              <span className="text-white/72">
-                deine Entwicklung!
+            {/* H1: brand slogan as display text, keyword line as its subtitle */}
+            <h1 className="mb-4 flex max-w-5xl flex-col items-center text-white">
+              <span className="text-[clamp(2.85rem,12vw,7.25rem)] font-semibold leading-[0.94] [text-wrap:balance]">
+                Unsere Bewerbung,{" "}
+                <br className="hidden sm:block" />
+                <span className="text-white/72">deine Entwicklung!</span>
               </span>
-            </p>
+              <span className="mt-6 max-w-2xl text-lg font-medium leading-7 text-white/90 [text-wrap:balance] sm:text-xl sm:leading-8">
+                Bewerbungsservice Schweiz für Lebenslauf, Lohnanalyse und Laufbahnberatung
+              </span>
+            </h1>
 
             {/* Subheadline */}
-            <p className="max-w-2xl text-base leading-8 text-white/74 sm:text-lg mb-8">
-              Mit über 10 Jahren Erfahrung im Recruiting unterstützen wir bei Lebenslauf,
-              Lohnanalyse und Laufbahnberatung. Oder Sie erstellen Ihre Bewerbung
-              selbst, mit Self-Service und Downloads.
+            <p className="mb-8 max-w-xl text-base leading-7 text-white/70 [text-wrap:pretty]">
+              Über 10 Jahre Recruiting-Erfahrung. Oder Sie erstellen Ihre Bewerbung selbst, mit Self-Service und Downloads.
             </p>
 
             {/* CTA Buttons */}
@@ -156,20 +152,7 @@ export default function Home() {
 
       {/* Ratgeber Section */}
       <section id="ratgeber" className="bg-white px-5 py-20 text-[#142033] sm:px-6 sm:py-24">
-        <div className="mx-auto max-w-6xl">
-          <RelatedGuides
-            guides={HOME_GUIDES}
-            heading="Ratgeber für Ihre Bewerbung in der Schweiz"
-            intro="Kostenlose Anleitungen, Muster und Lohnwissen von unseren Recruiting-Profis – vom Lebenslauf bis zur Lohnverhandlung."
-          />
-          <p className="mt-6 text-sm text-[#607089]">
-            Weitere Artikel finden Sie im{" "}
-            <Link href="/blog" className="font-semibold text-[#204878] hover:underline">
-              Karriere-Blog
-            </Link>
-            .
-          </p>
-        </div>
+        <GuideHub />
       </section>
 
       {/* Team Section */}
