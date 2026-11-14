@@ -5,48 +5,80 @@ import { RelatedGuides } from "@/components/content/RelatedGuides";
 import { SalaryCalculator } from "@/components/salary/SalaryCalculator";
 import { GuideSchema } from "@/components/seo/GuideSchema";
 import { JsonLd } from "@/components/seo/JsonLd";
-import { SITE_URL, type Faq } from "@/lib/seo";
-import { guideFor, guidesForService, metaFor } from "@/lib/seo-pages";
-import { BVG, MEDIAN_MONTHLY_2024, PAYROLL_YEAR, RATES, calculatePayroll, formatChf } from "@/lib/swiss-payroll";
-
-export const metadata = metaFor("/lohnrechner-schweiz", { type: "article" });
+import { SITE_URL, pageMetadata, type Faq } from "@/lib/seo";
+import { PAGE_META, guideFor, guidesForService } from "@/lib/seo-pages";
+import {
+  MEDIAN_MONTHLY_2024,
+  bvgEmployeeRate,
+  calculatePayroll,
+  formatChf,
+  formatPercent,
+  payrollConfig,
+  payrollYearFor,
+  type PayrollConfig,
+} from "@/lib/swiss-payroll";
 
 const PATH = "/lohnrechner-schweiz";
 
+// Rebuild hourly, so the page (title, examples, calculator default) switches to the new payroll year on 1 January.
+export const revalidate = 3600;
+
+export function generateMetadata() {
+  const year = String(payrollYearFor());
+  const meta = PAGE_META[PATH];
+  const withYear = (text: string) => text.replace(/\b20\d\d\b/g, year);
+  return pageMetadata({ title: withYear(meta.title), description: withYear(meta.description), path: PATH, type: "article" });
+}
+
+function chf(value: number) {
+  return `CHF ${value.toLocaleString("de-CH")}`;
+}
+
 // Worked examples are computed from the same rules as the calculator, so they never drift apart.
-const examples = [5000, MEDIAN_MONTHLY_2024, 9000].map((monthly) => ({
-  monthly,
-  result: calculatePayroll({ gross: monthly, period: "month", payments: 13, workload: 100, age: 35, otherPercent: 1.5 }),
-}));
+function examplesFor(year: number) {
+  return [5000, MEDIAN_MONTHLY_2024, 9000].map((monthly) => ({
+    monthly,
+    result: calculatePayroll({ gross: monthly, period: "month", payments: 13, workload: 100, age: 35, otherPercent: 1.5, year }),
+  }));
+}
 
-const typicalShare = (examples[1].result.totalDeductions / examples[1].result.annualGross) * 100;
-
-const faqs: Faq[] = [
-  {
-    question: "Wie viel wird in der Schweiz vom Bruttolohn abgezogen?",
-    answer: `Ohne Quellensteuer meist zwischen 10 und 15 Prozent. Bei einem Monatslohn von ${formatChf(MEDIAN_MONTHLY_2024)} und Alter 35 sind es nach den gesetzlichen Mindestsätzen rund ${typicalShare.toFixed(0)} Prozent. Die grössten Posten sind AHV/IV/EO (5.3 %) und die Pensionskasse, deren Beitrag mit dem Alter steigt.`,
-  },
-  {
-    question: "Wie hoch ist der Medianlohn in der Schweiz?",
-    answer: `Gemäss Lohnstrukturerhebung des Bundesamts für Statistik lag der Medianlohn 2024 bei ${formatChf(MEDIAN_MONTHLY_2024)} brutto pro Monat für eine Vollzeitstelle, inklusive anteiligem 13. Monatslohn. Die Hälfte der Vollzeitbeschäftigten verdient mehr, die andere Hälfte weniger.`,
-  },
-  {
-    question: "Ist der 13. Monatslohn in der Schweiz Pflicht?",
-    answer:
-      "Nein. Ein 13. Monatslohn ist weit verbreitet, aber nur geschuldet, wenn er im Arbeitsvertrag oder im Gesamtarbeitsvertrag vereinbart ist. Ist er vereinbart, wird er bei einem unterjährigen Austritt anteilsmässig ausbezahlt.",
-  },
-  {
-    question: "Was ist der koordinierte Lohn bei der Pensionskasse?",
-    answer: `Der Teil des Jahreslohns, auf den die Pensionskassenbeiträge berechnet werden: Jahreslohn bis höchstens CHF ${BVG.upperLimit.toLocaleString("de-CH")} minus Koordinationsabzug von CHF ${BVG.coordinationDeduction.toLocaleString("de-CH")}. Unter einem Jahreslohn von CHF ${BVG.entryThreshold.toLocaleString("de-CH")} besteht keine obligatorische Pensionskasse.`,
-  },
-  {
-    question: "Warum weicht meine Lohnabrechnung vom Rechner ab?",
-    answer:
-      "Viele Pensionskassen verlangen höhere Beiträge als das gesetzliche Minimum, und die Sätze für NBU und Krankentaggeld unterscheiden sich je nach Arbeitgeber. Dazu kommen allenfalls Quellensteuer, Kinderzulagen oder Spesen. Die genauen Sätze finden Sie auf Ihrer Lohnabrechnung.",
-  },
-];
+function faqsFor(config: PayrollConfig, typicalShare: number): Faq[] {
+  const { bvg } = config;
+  return [
+    {
+      question: "Wie viel wird in der Schweiz vom Bruttolohn abgezogen?",
+      answer: `Ohne Quellensteuer meist zwischen 10 und 15 Prozent. Bei einem Monatslohn von ${formatChf(MEDIAN_MONTHLY_2024)} und Alter 35 sind es nach den gesetzlichen Mindestsätzen rund ${typicalShare.toFixed(0)} Prozent. Die grössten Posten sind AHV/IV/EO (${formatPercent(config.ahvIvEo)}) und die Pensionskasse, deren Beitrag mit dem Alter steigt.`,
+    },
+    {
+      question: "Wie hoch ist der Medianlohn in der Schweiz?",
+      answer: `Gemäss Lohnstrukturerhebung des Bundesamts für Statistik lag der Medianlohn 2024 bei ${formatChf(MEDIAN_MONTHLY_2024)} brutto pro Monat für eine Vollzeitstelle, inklusive anteiligem 13. Monatslohn. Die Hälfte der Vollzeitbeschäftigten verdient mehr, die andere Hälfte weniger.`,
+    },
+    {
+      question: "Ist der 13. Monatslohn in der Schweiz Pflicht?",
+      answer:
+        "Nein. Ein 13. Monatslohn ist weit verbreitet, aber nur geschuldet, wenn er im Arbeitsvertrag oder im Gesamtarbeitsvertrag vereinbart ist. Ist er vereinbart, wird er bei einem unterjährigen Austritt anteilsmässig ausbezahlt.",
+    },
+    {
+      question: "Was ist der koordinierte Lohn bei der Pensionskasse?",
+      answer: `Der Teil des Jahreslohns, auf den die Pensionskassenbeiträge berechnet werden: Jahreslohn bis höchstens ${chf(bvg.upperLimit)} minus Koordinationsabzug von ${chf(bvg.coordinationDeduction)} (Stand ${config.year}). Unter einem Jahreslohn von ${chf(bvg.entryThreshold)} besteht keine obligatorische Pensionskasse.`,
+    },
+    {
+      question: "Warum weicht meine Lohnabrechnung vom Rechner ab?",
+      answer:
+        "Viele Pensionskassen verlangen höhere Beiträge als das gesetzliche Minimum, und die Sätze für NBU und Krankentaggeld unterscheiden sich je nach Arbeitgeber. Dazu kommen allenfalls Quellensteuer, Kinderzulagen oder Spesen. Die genauen Sätze finden Sie auf Ihrer Lohnabrechnung.",
+    },
+  ];
+}
 
 export default function LohnrechnerSchweiz() {
+  const payrollYear = payrollYearFor();
+  const config = payrollConfig(payrollYear);
+  const examples = examplesFor(payrollYear);
+  const typicalShare = (examples[1].result.totalDeductions / examples[1].result.annualGross) * 100;
+  const faqs = faqsFor(config, typicalShare);
+  const bvgRates = config.bvg.ageCredits.map((band) => formatPercent(bvgEmployeeRate(band.from, config))).join(" / ").replace(/ %(?= \/)/g, "");
+  const bvgAges = config.bvg.ageCredits.map((band) => `${band.from}–${band.to}`).join(" / ");
+
   return (
     <main className="min-h-screen overflow-hidden bg-[#f4f7fb] text-[#142033]">
       <GuideSchema path={PATH} faqs={faqs} datePublished="2026-11-14" dateModified="2026-11-14" />
@@ -67,9 +99,9 @@ export default function LohnrechnerSchweiz() {
       <section className="relative isolate px-5 pb-16 pt-10 sm:px-6 sm:pt-12">
         <div className="absolute inset-x-0 top-0 -z-10 h-[22rem] bg-[radial-gradient(circle_at_24%_4%,rgba(32,72,120,0.16),transparent_31%),linear-gradient(180deg,#ffffff_0%,#edf4fb_100%)]" />
         <div className="mx-auto max-w-6xl">
-          <p className="mb-3 text-sm font-semibold text-[#204878]">Kostenloser Rechner · Stand {PAYROLL_YEAR}</p>
+          <p className="mb-3 text-sm font-semibold text-[#204878]">Kostenloser Rechner · Stand {payrollYear}</p>
           <h1 className="max-w-3xl text-4xl font-semibold leading-[1.05] tracking-tight text-[#101828] text-balance sm:text-5xl">
-            Lohnrechner Schweiz {PAYROLL_YEAR}: Brutto-Netto-Lohn berechnen
+            Lohnrechner Schweiz {payrollYear}: Brutto-Netto-Lohn berechnen
           </h1>
           <p className="mt-4 max-w-2xl text-base leading-7 text-[#5d6b7f] text-pretty sm:text-lg sm:leading-8">
             Geben Sie Ihren Bruttolohn ein und sehen Sie sofort, was nach AHV, ALV, Pensionskasse und Unfallversicherung
@@ -77,14 +109,14 @@ export default function LohnrechnerSchweiz() {
           </p>
 
           <div className="mt-8">
-            <SalaryCalculator />
+            <SalaryCalculator defaultYear={payrollYear} />
           </div>
 
           <article className="mt-16 max-w-3xl space-y-12">
             <section>
               <h2 className="text-2xl font-semibold tracking-tight text-[#101828] sm:text-3xl">So rechnet der Lohnrechner</h2>
               <p className="mt-3 leading-7 text-[#40516a]">
-                Der Rechner verwendet die gesetzlichen Beitragssätze für Arbeitnehmende, Stand 1. Januar {PAYROLL_YEAR}.
+                Der Rechner verwendet die gesetzlichen Beitragssätze für Arbeitnehmende, Stand 1. Januar {payrollYear}.
                 Die Pensionskasse rechnen wir mit dem gesetzlichen Minimum. Viele Kassen verlangen mehr, dann fällt Ihr
                 Nettolohn etwas tiefer aus.
               </p>
@@ -100,18 +132,21 @@ export default function LohnrechnerSchweiz() {
                   <tbody className="divide-y divide-[#e6edf5] text-[#40516a]">
                     <tr>
                       <td className="px-4 py-3 font-medium text-[#101828]">AHV / IV / EO</td>
-                      <td className="px-4 py-3 tabular-nums">5.3 %</td>
+                      <td className="px-4 py-3 tabular-nums">{formatPercent(config.ahvIvEo)}</td>
                       <td className="px-4 py-3">ganzer Bruttolohn</td>
                     </tr>
                     <tr>
                       <td className="px-4 py-3 font-medium text-[#101828]">ALV</td>
-                      <td className="px-4 py-3 tabular-nums">1.1 %</td>
-                      <td className="px-4 py-3">bis CHF {RATES.alvCeiling.toLocaleString("de-CH")} pro Jahr</td>
+                      <td className="px-4 py-3 tabular-nums">{formatPercent(config.alv)}</td>
+                      <td className="px-4 py-3">bis {chf(config.alvCeiling)} pro Jahr</td>
                     </tr>
                     <tr>
                       <td className="px-4 py-3 font-medium text-[#101828]">Pensionskasse (BVG)</td>
-                      <td className="px-4 py-3 tabular-nums">3.5 / 5 / 7.5 / 9 %</td>
-                      <td className="px-4 py-3">koordinierter Lohn, nach Alter 25–34 / 35–44 / 45–54 / 55–65</td>
+                      <td className="px-4 py-3 tabular-nums">{bvgRates}</td>
+                      <td className="px-4 py-3">
+                        koordinierter Lohn, nach Alter {bvgAges}; Koordinationsabzug {chf(config.bvg.coordinationDeduction)},
+                        ab Jahreslohn {chf(config.bvg.entryThreshold)}
+                      </td>
                     </tr>
                     <tr>
                       <td className="px-4 py-3 font-medium text-[#101828]">NBU / KTG</td>
@@ -191,7 +226,7 @@ export default function LohnrechnerSchweiz() {
             <FaqSection faqs={faqs} heading="Häufige Fragen zum Lohnrechner" />
 
             <p className="text-xs leading-5 text-[#607089]">
-              Quellen: Bundesamt für Sozialversicherungen (Beitragssätze und BVG-Grenzbeträge {PAYROLL_YEAR}), Bundesamt für
+              Quellen: Bundesamt für Sozialversicherungen (Beitragssätze und BVG-Grenzbeträge {payrollYear}), Bundesamt für
               Statistik (Lohnstrukturerhebung 2024). Alle Angaben ohne Gewähr; massgebend ist Ihre Lohnabrechnung.
             </p>
           </article>
