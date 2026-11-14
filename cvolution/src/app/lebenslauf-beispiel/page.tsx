@@ -197,13 +197,13 @@ function CvExampleSection({ example }: { example: CvExample }) {
           <p className="font-bold text-base">Lebenslauf</p>
         </div>
 
-        <div className="flex justify-between items-start gap-4 mb-6">
-          <table className="text-sm w-full max-w-xs">
+        <div className="flex flex-col-reverse items-start gap-4 mb-6 sm:flex-row sm:justify-between">
+          <table className="text-xs w-full min-w-0 table-fixed sm:text-sm sm:max-w-sm">
             <tbody className="align-top">
               {example.person.map(([label, value]) => (
                 <tr key={label} className="leading-relaxed">
-                  <td className="pr-6 text-[#374151] whitespace-nowrap align-top">{label}</td>
-                  <td className="whitespace-pre-line">{value}</td>
+                  <td className="w-28 pr-3 text-[#374151] whitespace-nowrap align-top sm:w-32 sm:pr-6">{label}</td>
+                  <td className="whitespace-pre-line [overflow-wrap:anywhere]">{value}</td>
                 </tr>
               ))}
             </tbody>
