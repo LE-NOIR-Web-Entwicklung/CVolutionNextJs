@@ -2,6 +2,7 @@ import type { MetadataRoute } from "next";
 import { SITE_URL } from "@/lib/seo";
 import { GUIDES, PAGE_META, type PagePath } from "@/lib/seo-pages";
 import { getPublishedBlogPosts } from "@/lib/public-blog";
+import { SALARY_JOBS } from "@/lib/salary-jobs";
 
 // Rebuilt at most once per hour so new blog posts show up without a deploy.
 export const revalidate = 3600;
@@ -37,6 +38,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: PRIORITY[path] ?? (guidePaths.has(path) ? 0.75 : 0.6),
   }));
 
+  const jobs: MetadataRoute.Sitemap = SALARY_JOBS.map((job) => ({
+    url: `${SITE_URL}/lohn/${job.slug}`,
+    lastModified: now,
+    changeFrequency: "yearly",
+    priority: 0.7,
+  }));
+
   const posts = await getPublishedBlogPosts();
   const blog: MetadataRoute.Sitemap = posts.map((post) => ({
     url: `${SITE_URL}/blog/${post.slug}`,
@@ -45,5 +53,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.6,
   }));
 
-  return [...pages, ...blog];
+  return [...pages, ...jobs, ...blog];
 }
