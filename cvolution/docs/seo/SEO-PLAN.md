@@ -256,11 +256,11 @@ Die Texte reden Leser teils mit «du» an («bewirb-dich», «wie-du»). Beim Um
 
 **Ablauf je Artikel:**
 
-1. Im Admin-Panel Slug, Titel und Excerpt ändern.
-2. In `src/lib/blog-redirects.ts` den Eintrag `{ from: "<alter-slug>", to: "<neuer-slug>" }` ergänzen.
-3. Deployen.
+1. ✅ Die sieben Weiterleitungen oben stehen bereits in `src/lib/blog-redirects.ts`.
+2. Im Admin-Panel Slug, Titel und Excerpt ändern – oder alle sieben auf einmal mit `docs/seo/blog-slugs-d4.sql` (Supabase SQL-Editor).
+3. Texte von «du» auf «Sie» umstellen (nur im Admin-Panel).
 
-Die alte URL antwortet dann mit 308. **Reihenfolge einhalten:** Die Weiterleitung erst eintragen, wenn der neue Slug existiert, sonst landet die alte URL auf einem 404.
+Die Reihenfolge spielt keine Rolle mehr: `/blog/[slug]` leitet eine alte URL erst mit 308 weiter, wenn ein veröffentlichter Artikel mit dem neuen Slug existiert. Bis dahin zeigt die alte URL weiter den Artikel. Für weitere Umbenennungen genügt ein neuer Eintrag in `blog-redirects.ts`.
 
 Ausserdem umgesetzt: Am Ende jedes Blogartikels steht ein passender Service-CTA, gewählt anhand von Titel und Tags (`ctaForTopic` in `seo-pages.ts`).
 
@@ -272,11 +272,11 @@ Reihenfolge = empfohlene Produktionsreihenfolge (Lohn-Cluster zuerst, weil dort 
 |---|---|---|---|---|---|
 | 1 ✅ | `/lohnrechner-schweiz` | lohnrechner schweiz | Tool / informativ | Brutto-Netto-Rechner (Client-Tool: AHV/IV/EO 5.3 %, ALV 1.1 %, BVG-Schätzung nach Alter) · So lesen Sie das Ergebnis · Warum Rechner nicht alles zeigen · FAQ | Lohnanalyse PDF |
 | 2 ✅ | `/lohn-nach-beruf` (Hub) + `/lohn/[beruf]` | lohn [beruf] schweiz (z. B. «lohn kaufmann schweiz», «lohn pflegefachfrau») | informativ | Lohnspanne nach Erfahrung · nach Kanton · nach Branche · Was den Lohn erhöht · FAQ. Start mit 10 Berufen mit hohem Suchvolumen, Daten aus der BFS-LSE (Quelle nennen) | Lohnanalyse |
-| 3 | `/lohn-nach-kanton` | lohn zürich / lohn nach kanton schweiz | informativ | Medianlöhne nach Grossregion (BFS) · Kaufkraft und Steuern · Pendeln lohnt sich? · FAQ | Lohnanalyse |
+| 3 ✅ | `/lohn-nach-kanton` | lohn zürich / lohn nach kanton schweiz | informativ | Medianlöhne nach Grossregion (BFS) · Kaufkraft und Steuern · Pendeln lohnt sich? · FAQ | Lohnanalyse |
 | 4 | `/lohnverhandlung-tipps` | lohnverhandlung tipps | informativ | **Nicht neu bauen:** `/lohn-verhandeln-schweiz` deckt das ab. Stattdessen dort H2 «Lohnverhandlung: 10 Tipps» ergänzen, damit keine zwei Seiten um das Keyword konkurrieren | – |
-| 5 | `/lohnerhoehung-fordern` | lohnerhöhung verlangen / lohnerhöhung brief | informativ + Vorlage | Wann fragen · Wie viel ist realistisch (%) · Gesprächsleitfaden · E-Mail-Vorlage · Was tun bei Nein | Lohnanalyse mit Gespräch |
-| 6 | `/lohnvorstellung-bewerbung` | lohnvorstellung bewerbung | informativ | Muss ich sie angeben? · Formulierung im Motivationsschreiben · Antwort im Gespräch · Brutto vs. Gesamtpaket | Lohnanalyse |
-| 7 | `/13-monatslohn` | 13. monatslohn schweiz | informativ | Pflicht oder nicht? · Berechnung (pro rata) · bei Kündigung · im Lohnvergleich richtig einrechnen | Lohnanalyse |
+| 5 ✅ | `/lohnerhoehung-fordern` | lohnerhöhung verlangen / lohnerhöhung brief | informativ + Vorlage | Wann fragen · Wie viel ist realistisch (%) · Gesprächsleitfaden · E-Mail-Vorlage · Was tun bei Nein | Lohnanalyse mit Gespräch |
+| 6 ✅ | `/lohnvorstellung-bewerbung` | lohnvorstellung bewerbung | informativ | Muss ich sie angeben? · Formulierung im Motivationsschreiben · Antwort im Gespräch · Brutto vs. Gesamtpaket | Lohnanalyse |
+| 7 ✅ | `/13-monatslohn` | 13. monatslohn schweiz | informativ | Pflicht oder nicht? · Berechnung (pro rata) · bei Kündigung · im Lohnvergleich richtig einrechnen | Lohnanalyse |
 | 8 | `/arbeitszeugnis-schweiz` | arbeitszeugnis schweiz / zeugniscodes | informativ | Zwischen- vs. Schlusszeugnis · Anspruch (OR 330a) · Zeugnissprache entschlüsseln (Tabelle) · Zeugnis anfechten | Dossier-Check |
 | 9 | `/arbeitszeugnis-formulierungen` | arbeitszeugnis formulierungen | informativ | Noten 1–4 in Formulierungen · Warnsignale · Beispielzeugnis | Dossier-Check |
 | 10 | `/rav-anmeldung` | rav anmelden / arbeitslos melden | informativ | Wann anmelden (spätestens 1. Tag) · Unterlagen · Ablauf Erstgespräch · Taggeld kurz erklärt · weiter zu Arbeitsbemühungen | RAV-Unterstützung |
@@ -285,6 +285,8 @@ Reihenfolge = empfohlene Produktionsreihenfolge (Lohn-Cluster zuerst, weil dort 
 | 13 | `/motivationsschreiben-ki` | motivationsschreiben ki / chatgpt | informativ | Was KI gut kann, was nicht · Prompt-Beispiel · so wird es persönlich · Erkennen Recruiter KI? | Self-Service + Masterprompts |
 | 14 | `/kuendigung-schreiben` | kündigung schreiben vorlage schweiz | Vorlage | Fristen nach OR · Vorlage · Einschreiben? · Was nach der Kündigung zu tun ist → `/bewerbung-nach-kuendigung` | Laufbahnberatung |
 | 15 | `/linkedin-profil-tipps` | linkedin profil optimieren tipps | informativ | Headline-Formeln · Info-Text-Vorlage · Open to Work: ja oder nein? · Checkliste | LinkedIn-Optimierung |
+
+Zu #2: `/lohn/[beruf]` hat inzwischen 23 Berufe (11 + 12 weitere, je eine eigene BFS-Berufsgruppe). Zu #3: Das BFS veröffentlicht Löhne nach 7 Grossregionen, nicht pro Kanton (Tabelle T1_gr, Import `scripts/import-bfs-lse-regionen.py`); die Seite ordnet jeden Kanton seiner Region zu.
 
 Zu #1: Ein echter Brutto-Netto-Rechner ist der stärkste Traffic-Hebel. Er braucht aber korrekte Sozialversicherungssätze. Die Sätze (AHV/IV/EO 5.3 %, ALV 1.1 % bis CHF 148'200) bitte vor Livegang mit dem aktuellen Jahr abgleichen. Quellensteuer und Kirchensteuer würde ich bewusst weglassen und als Hinweis auf die Lohnanalyse nutzen.
 
@@ -295,7 +297,8 @@ Zu #1: Ein echter Brutto-Netto-Rechner ist der stärkste Traffic-Hebel. Er brauc
 - [x] D3 `/lebenslauf-beispiel` mit 3 Beispielen
 - [x] Service-Seiten: Keyword-H1, je 3–4 FAQs, Ratgeber-Links (114–170 → 225–353 Wörter)
 - [ ] D3 Ausbau der 5 Ratgeber oben
-- [ ] D4 Blog-Slugs im Admin ändern + Redirects eintragen
+- [x] D4 Redirects eingetragen (greifen automatisch nach der Umbenennung)
+- [ ] D4 Blog-Slugs, Titel und Excerpts im Admin ändern (oder `blog-slugs-d4.sql`), Texte auf «Sie»
 - [ ] D5 Seiten 1–3 in den nächsten 4 Wochen, danach 2 Seiten pro Woche
 - [ ] Prüfen: Rich Results Test für `/service-salary` zeigt FAQPage, Service, BreadcrumbList
 

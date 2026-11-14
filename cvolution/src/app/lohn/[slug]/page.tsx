@@ -5,7 +5,7 @@ import { FaqSection } from "@/components/content/FaqSection";
 import { GuideCta } from "@/components/content/GuideCta";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { LSE_SOURCE_URL, LSE_YEAR, type LseValue } from "@/data/bfs-lse-berufsgruppen";
-import { SITE_URL, articleSchema, breadcrumbSchema, faqSchema, pageMetadata, type Faq } from "@/lib/seo";
+import { SITE_URL, articleSchema, breadcrumbSchema, pageMetadata, type Faq } from "@/lib/seo";
 import { guideFor } from "@/lib/seo-pages";
 import { LSE_TOTAL, SALARY_JOBS, chf, jobForGroup, lseGroup, salaryJob, salaryJobTitle } from "@/lib/salary-jobs";
 import { calculatePayroll } from "@/lib/swiss-payroll";
@@ -88,7 +88,6 @@ export default async function SalaryJobPage({ params }: Props) {
             { name: "Lohn nach Beruf", path: "/lohn-nach-beruf" },
             { name: `Lohn ${job.keyword}`, path },
           ]),
-          faqSchema(faqs),
           {
             "@context": "https://schema.org",
             "@type": "Occupation",

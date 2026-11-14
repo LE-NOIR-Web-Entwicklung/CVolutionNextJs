@@ -1,5 +1,4 @@
 import type { NextConfig } from "next";
-import { BLOG_SLUG_REDIRECTS } from "./src/lib/blog-redirects";
 
 const nextConfig: NextConfig = {
   outputFileTracingRoot: __dirname,
@@ -28,13 +27,8 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  async redirects() {
-    return BLOG_SLUG_REDIRECTS.map(({ from, to }) => ({
-      source: `/blog/${from}`,
-      destination: `/blog/${to}`,
-      permanent: true,
-    }));
-  },
+  // Renamed blog slugs are redirected in src/app/blog/[slug]/page.tsx (see src/lib/blog-redirects.ts),
+  // so the redirect only fires once the new slug exists in Supabase.
   eslint: {
     ignoreDuringBuilds: true,
   },
