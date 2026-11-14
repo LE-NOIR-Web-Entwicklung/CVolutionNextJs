@@ -13,6 +13,8 @@ import { calculatePayroll } from "@/lib/swiss-payroll";
 type Props = { params: Promise<{ slug: string }> };
 
 export const dynamicParams = false;
+// Rebuild hourly, so the net pay estimate switches to the new payroll year on 1 January.
+export const revalidate = 3600;
 
 export function generateStaticParams() {
   return SALARY_JOBS.map((job) => ({ slug: job.slug }));
@@ -236,7 +238,7 @@ export default async function SalaryJobPage({ params }: Props) {
             </a>
             , Tabelle T17. Standardisierter Bruttomonatslohn (Vollzeit, 40 Stunden, inkl. 1/12 des 13. Monatslohns),
             privater und öffentlicher Sektor.{hasUncertain ? " ≈ = statistisch weniger zuverlässiger Wert." : ""} Nettolohn
-            geschätzt mit den gesetzlichen Abzügen 2026.
+            geschätzt mit den gesetzlichen Abzügen {net.year}.
           </p>
 
           <div className="mt-12">

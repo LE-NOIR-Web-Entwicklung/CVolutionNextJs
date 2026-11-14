@@ -3,7 +3,14 @@
 import Link from "next/link";
 import { useId, useMemo, useState } from "react";
 import { trackFunnel } from "@/lib/funnel";
-import { MEDIAN_MONTHLY_2024, calculatePayroll, formatChf, type PayrollInput } from "@/lib/swiss-payroll";
+import {
+  MEDIAN_MONTHLY_2024,
+  calculatePayroll,
+  formatChf,
+  payrollConfig,
+  selectablePayrollYears,
+  type PayrollInput,
+} from "@/lib/swiss-payroll";
 
 const field =
   "w-full rounded-xl border border-[#d5e1ee] bg-white px-4 py-3 text-base text-[#101828] tabular-nums focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#204878]";
@@ -21,7 +28,12 @@ function Segmented<T extends string | number>({
   onChange: (value: T) => void;
 }) {
   return (
-    <div role="radiogroup" aria-label={name} className="grid grid-cols-2 gap-1 rounded-xl bg-[#eef4fb] p-1">
+    <div
+      role="radiogroup"
+      aria-label={name}
+      className="grid gap-1 rounded-xl bg-[#eef4fb] p-1"
+      style={{ gridTemplateColumns: `repeat(${options.length}, minmax(0, 1fr))` }}
+    >
       {options.map((option) => (
         <button
           key={String(option.value)}
@@ -40,8 +52,13 @@ function Segmented<T extends string | number>({
   );
 }
 
-export function SalaryCalculator() {
+/**
+ * `defaultYear` comes from the server render (the payroll year in force), so server and client
+ * render the same numbers. The page revalidates, so it moves to the new year on 1 January.
+ */
+export function SalaryCalculator({ defaultYear }: { defaultYear: number }) {
   const id = useId();
+  const [year, setYear] = useState(defaultYear);
   const [gross, setGross] = useState("6500");
   const [period, setPeriod] = useState<PayrollInput["period"]>("month");
   const [payments, setPayments] = useState<PayrollInput["payments"]>(13);
@@ -61,10 +78,13 @@ export function SalaryCalculator() {
         workload: parse(workload) || 100,
         age: parse(age) || 35,
         otherPercent: Number.isFinite(parse(otherPercent)) ? parse(otherPercent) : 0,
+        year,
       }),
-    [gross, period, payments, workload, age, otherPercent]
+    [gross, period, payments, workload, age, otherPercent, year]
   );
 
+  const years = selectablePayrollYears(defaultYear);
+  const nextYear = years.find((y) => y > year);
   const hasValue = result.annualGross > 0;
   const delta = result.medianDeltaPercent;
   const deltaText =
@@ -157,13 +177,30 @@ export function SalaryCalculator() {
             <input id={`${id}-other`} inputMode="decimal" value={otherPercent} onChange={(e) => setOtherPercent(e.target.value)} className={field} />
             <p className="mt-1 text-xs text-[#607089]">Steht auf Ihrer Lohnabrechnung, oft 1–2 %.</p>
           </div>
+
+          {years.length > 1 ? (
+            <div className="sm:col-span-2">
+              <p className={label}>Lohnjahr</p>
+              <Segmented
+                name="Lohnjahr"
+                value={year}
+                onChange={setYear}
+                options={years.map((y) => ({ value: y, label: String(y) }))}
+              />
+              <p className="mt-1 text-xs text-[#607089]">
+                {nextYear
+                  ? `Ab 1. Januar ${nextYear} gelten neue BVG-Grenzbeträge (Koordinationsabzug CHF ${payrollConfig(nextYear).bvg.coordinationDeduction.toLocaleString("de-CH")}).`
+                  : `Beitragssätze und BVG-Grenzbeträge gültig ab 1. Januar ${year}.`}
+              </p>
+            </div>
+          ) : null}
         </div>
 
       </form>
 
       <div className="contents lg:sticky lg:top-24 lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:flex lg:flex-col lg:gap-4">
         <div aria-live="polite" className="order-2 rounded-3xl bg-[#173d66] p-6 lg:order-none text-white shadow-xl shadow-[#173d66]/15">
-          <p className="text-sm font-medium text-white/70">Nettolohn pro Monat</p>
+          <p className="text-sm font-medium text-white/70">Nettolohn pro Monat · {result.year}</p>
           <p className="mt-1 text-4xl font-semibold tabular-nums">{hasValue ? formatChf(result.netPerPayment) : "–"}</p>
           <p className="mt-1 text-sm text-white/70">
             × {payments} Monatslöhne = {hasValue ? formatChf(result.annualNet) : "–"} pro Jahr
