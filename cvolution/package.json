@@ -6,7 +6,9 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test": "node --test tests/*.test.cjs",
+    "check:seo": "node scripts/check-seo-meta.mjs"
   },
   "dependencies": {
     "@radix-ui/react-accordion": "^1.2.11",
@@ -36,7 +38,6 @@
     "@react-pdf/renderer": "^4.3.0",
     "@supabase/supabase-js": "^2.50.2",
     "@tanstack/react-query": "^5.81.4",
-    "@types/react-router-dom": "^5.3.3",
     "@vercel/analytics": "^1.5.0",
     "base64-js": "^0.0.8",
     "class-variance-authority": "^0.7.1",
@@ -63,7 +64,6 @@
     "react-hook-form": "^7.60.0",
     "react-icons": "^5.5.0",
     "react-resizable-panels": "^3.0.3",
-    "react-router-dom": "^7.6.2",
     "recharts": "^3.0.0",
     "resend": "^4.6.0",
     "sharp": "^0.35.3",

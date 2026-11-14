@@ -1,0 +1,51 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: cvolution
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: cvolution/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      # The applications DB tests start a throwaway PostgreSQL cluster with
+      # initdb/pg_ctl. The runner image ships PostgreSQL, but not on PATH.
+      - name: Put PostgreSQL binaries on PATH
+        run: ls -d /usr/lib/postgresql/*/bin | sort -V | tail -1 >> "$GITHUB_PATH"
+
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      - name: Unit and database tests
+        run: npm test
+
+      - name: SEO metadata check
+        run: npm run check:seo
+
+      - name: Production build
+        run: npm run build
+        env:
+          NEXT_TELEMETRY_DISABLED: 1
