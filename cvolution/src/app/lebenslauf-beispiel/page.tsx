@@ -19,7 +19,7 @@ const faqData = [
   {
     question: "Welches Lebenslauf-Beispiel passt zu mir?",
     answer:
-      "Wenn Sie gerade die Lehre oder das Studium abgeschlossen haben, orientieren Sie sich am Beispiel Berufseinstieg: Ausbildung zuerst. Mit einigen Jahren Erfahrung passt das Beispiel Fachkraft. Als Kader oder Führungsperson ergänzen Sie ein kurzes Profil mit Führungsspanne und Ergebnissen, wie im dritten Beispiel.",
+      "Wenn Sie gerade die Lehre oder das Studium abgeschlossen haben, orientieren Sie sich am Beispiel Berufseinstieg: Lehrbetrieb, Praktika und Nebenjobs füllen die Berufserfahrung, die Ausbildung folgt direkt danach. Mit einigen Jahren Erfahrung passt das Beispiel Fachkraft. Als Kader oder Führungsperson ergänzen Sie ein kurzes Profil mit Führungsspanne und Ergebnissen, wie im dritten Beispiel.",
   },
   {
     question: "Wie unterscheidet sich ein Schweizer Lebenslauf von einem deutschen?",
@@ -76,7 +76,6 @@ const cvExamples: CvExample[] = [
         ["Geburtsdatum", "14. März 2006"],
         ["Nationalität", "Schweiz"],
       ],
-      firstSection: "education",
       education: [
         { dates: "08.2022 – 07.2025", role: "Kauffrau EFZ, Profil E", org: "Musterversicherung AG, Aarau", tasks: ["Abschlussnote 5.2", "Berufsmaturität kaufmännisch, BMS Aarau"] },
         { dates: "08.2019 – 07.2022", role: "Bezirksschule", org: "Aarau" },
@@ -90,7 +89,7 @@ const cvExamples: CvExample[] = [
       skills: [["Programme", "MS Office (Excel fortgeschritten), SAP Grundkenntnisse"], ["Interessen", "Handball (Juniorentrainerin), Fotografie"]],
     },
     tips: [
-      "Ausbildung steht vor der Berufserfahrung, weil sie aktuell das stärkste Argument ist.",
+      "Auch die Lehre zählt als Berufserfahrung: Einsätze im Lehrbetrieb gehören mit Tätigkeiten in diesen Abschnitt.",
       "Noten und Berufsmaturität gehören hinein, wenn sie gut sind.",
       "Nebenjobs und Vereinstätigkeit zeigen Zuverlässigkeit und Verantwortung.",
     ],
@@ -113,7 +112,6 @@ const cvExamples: CvExample[] = [
         ["Geburtsdatum", "10. Januar 1990"],
         ["Nationalität", "Schweiz"],
       ],
-      firstSection: "experience",
       experience: [
         { dates: "02.2022 – heute", role: "Senior Marketing Manager", org: "Musterfirma AG, Zürich", tasks: ["Leitung des digitalen Marketings (Budget CHF 2 Mio.)", "Führung eines 5-köpfigen Teams", "Steigerung der organischen Reichweite um 45 %", "Einführung von Marketing-Automation (HubSpot)"] },
         { dates: "05.2019 – 01.2022", role: "Marketing Manager", org: "Zweite Firma GmbH, Basel", tasks: ["Aufbau des Content-Marketings von Grund auf", "Planung und Umsetzung von 12 Kampagnen pro Jahr", "Reporting und KPI-Analysen für die Geschäftsleitung"] },
@@ -152,7 +150,6 @@ const cvExamples: CvExample[] = [
       ],
       profile:
         "Finanzchefin mit über 20 Jahren Erfahrung in Industrie und Handel, davon 12 Jahre in Führungsfunktionen. Schwerpunkte: Transformation des Finanzbereichs, Controlling und Finanzierung im Wachstum.",
-      firstSection: "experience",
       experience: [
         { dates: "04.2018 – heute", role: "CFO und Mitglied der Geschäftsleitung", org: "Muster Industrie AG, Zug (Umsatz CHF 320 Mio., 900 Mitarbeitende)", tasks: ["Führung von Finanzen, Controlling, IT und HR mit 35 Mitarbeitenden", "Umstellung auf Swiss GAAP FER und Verkürzung des Monatsabschlusses von 12 auf 5 Tage", "Refinanzierung über CHF 80 Mio. zu besseren Konditionen"] },
         { dates: "01.2012 – 03.2018", role: "Leiterin Controlling", org: "Handels AG, Luzern", tasks: ["Aufbau eines konzernweiten Reportings für 14 Gesellschaften", "Führung von 8 Mitarbeitenden"] },
@@ -272,7 +269,7 @@ export default function LebenslaufBeispiel() {
                 <><strong>Konkrete Zahlen:</strong> Budgetverantwortung, Teamgrösse, Prozentangaben – das schafft Glaubwürdigkeit</>,
                 <><strong>Aktivverben:</strong> «Leitete», «baute auf», «steigerte» – keine passive Sprache</>,
                 <><strong>Relevante Stationen:</strong> Nur Stellen, die für die Zielposition relevant sind</>,
-                <><strong>Gewichtung nach Karrierestufe:</strong> Beim Berufseinstieg stehen Ausbildung und Praktika oben, bei Führungspersonen ein kurzes Profil mit Verantwortung und Ergebnissen</>,
+                <><strong>Gewichtung nach Karrierestufe:</strong> Berufserfahrung steht immer vor Aus- und Weiterbildungen; beim Berufseinstieg zählen Lehre, Praktika und Nebenjobs, bei Führungspersonen ein kurzes Profil mit Verantwortung und Ergebnissen</>,
                 <><strong>Klare Struktur:</strong> Überschriften, einheitliche Formatierung, kein Informationsüberfluss</>,
                 <><strong>Spezifische Tools:</strong> Software-Kenntnisse konkret benannt, nicht nur «MS Office»</>,
               ].map((item, i) => (

@@ -31,7 +31,6 @@ export type CvData = {
   position: string;
   contact: [string, string][];
   profile?: string;
-  firstSection: "experience" | "education";
   experience: CvStation[];
   education: CvStation[];
   languages: [string, string][];
@@ -176,7 +175,8 @@ function Klassisch({ data }: { data: CvData }) {
         </>
       ) : null}
 
-      {data.firstSection === "education" ? <>{education}{experience}</> : <>{experience}{education}</>}
+      {experience}
+      {education}
 
       <KlassischHeading>Kenntnisse &amp; Fähigkeiten</KlassischHeading>
       <SkillRows data={data} labelClass="" />
@@ -291,7 +291,8 @@ function ModernZeitlos({ data, variant }: { data: CvData; variant: "modern" | "z
           </>
         ) : null}
 
-        {data.firstSection === "education" ? <>{education}{experience}</> : <>{experience}{education}</>}
+        {experience}
+      {education}
 
         <ModernHeading modern={modern}>Kenntnisse &amp; Fähigkeiten</ModernHeading>
         <SkillRows data={data} labelClass="" />

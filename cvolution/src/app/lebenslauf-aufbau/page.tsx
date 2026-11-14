@@ -115,8 +115,8 @@ export default function LebenslaufAufbauPage() {
 
             <h3 className="text-xl font-semibold text-[#111827] mb-3">4. Ausbildung und Weiterbildungen</h3>
             <p className="text-[#374151] leading-relaxed mb-6">
-              Führen Sie Ihre Ausbildungen ebenfalls antichronologisch auf. Für Berufseinsteiger steht dieser
-              Abschnitt oft vor der Berufserfahrung. Nennen Sie auch relevante Kurse, Zertifikate und
+              Führen Sie Ihre Ausbildungen ebenfalls antichronologisch auf. Dieser Abschnitt folgt immer nach der
+              Berufserfahrung – auch bei Berufseinsteigern. Nennen Sie auch relevante Kurse, Zertifikate und
               Weiterbildungen – diese zeigen Lernbereitschaft und aktuelle Fachkenntnisse.
             </p>
 

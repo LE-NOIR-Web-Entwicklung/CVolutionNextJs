@@ -123,9 +123,8 @@ export default function LebenslaufQuereinsteiger() {
                   "Persönliche Angaben + Foto",
                   "Profil / Zusammenfassung (3–4 Sätze, inkl. Wechselwunsch positiv formuliert)",
                   "Kernkompetenzen (thematisch: Projektmanagement | Kommunikation | IT)",
-                  "Weiterbildungen und Zertifikate (Neues zuerst)",
                   "Berufserfahrung (chronologisch, umgekehrt)",
-                  "Ausbildung",
+                  "Aus- und Weiterbildungen, inkl. neuer Zertifikate (Neues zuerst)",
                   "Sprachen und weitere Kenntnisse",
                 ].map((item, i) => (
                   <li key={i} className="flex items-start gap-2 text-[#374151]">

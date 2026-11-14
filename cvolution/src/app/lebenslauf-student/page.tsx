@@ -57,16 +57,17 @@ export default function LebenslaufStudent() {
           <section className="mb-10">
             <h2 className="text-2xl font-semibold text-[#111827] mb-4">Aufbau des Studenten-Lebenslaufs</h2>
             <p className="text-[#374151] leading-relaxed mb-4">
-              Für Berufseinsteiger empfiehlt sich ein leicht angepasster Aufbau gegenüber dem klassischen Lebenslauf:
-              Die Ausbildung steht vor der Berufserfahrung, da sie das Fundament Ihres Profils ist.
+              Auch als Berufseinsteiger behalten Sie den klassischen Aufbau bei: Die Berufserfahrung steht vor der
+              Ausbildung. Praktika, Studentenjobs und Werkstudentenstellen füllen diesen Abschnitt, die Ausbildung folgt
+              direkt danach und wird ausführlich beschrieben.
             </p>
             <h3 className="text-xl font-semibold text-[#111827] mb-3">Empfohlene Reihenfolge</h3>
             <ul className="space-y-2 mb-4">
               {[
                 <><strong>Persönliche Angaben:</strong> Name, Adresse, Telefon, E-Mail, LinkedIn-Profil (optional)</>,
                 <><strong>Kurzprofil / Zusammenfassung (optional):</strong> 2–3 Sätze, die Ihre Stärken und Karriereziele benennen</>,
-                <><strong>Ausbildung:</strong> Studium, Matura/Berufsmatura, relevante Zertifikate</>,
                 <><strong>Berufserfahrung:</strong> Praktika, Studentenjobs, Werkstudentenstellen</>,
+                <><strong>Aus- und Weiterbildungen:</strong> Studium, Matura/Berufsmatura, relevante Zertifikate</>,
                 <><strong>Projekte und Engagement:</strong> Hochschulprojekte, Verein, Freiwilligenarbeit</>,
                 <><strong>Kenntnisse:</strong> Sprachen, IT, Soft Skills (mit Belegen)</>,
               ].map((item, i) => (
