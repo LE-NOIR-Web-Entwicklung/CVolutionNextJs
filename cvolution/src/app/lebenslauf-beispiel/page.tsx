@@ -5,9 +5,8 @@ import { metaFor } from "@/lib/seo-pages";
 import { SERVICE_DOWNLOADS_PATH } from "@/lib/service-downloads";
 import {
   CV_TEMPLATE_LABEL,
-  CvPaper,
   CvTemplatePreview,
-  KlassischStation,
+  KlassischSnippet,
   type CvData,
   type CvStation,
   type CvTemplate,
@@ -29,17 +28,17 @@ const faqData = [
   {
     question: "Welche Angaben sind im Schweizer Lebenslauf Pflicht?",
     answer:
-      "Pflichtangaben: Name, Adresse, Telefon, E-Mail, Berufserfahrung mit Daten und Arbeitgebern, Ausbildung. Empfohlen: Nationalität, Geburtsdatum, Sprachkenntnisse, IT-Kenntnisse. Optional: Interessen, LinkedIn-Profil.",
+      "Unsere Vorlagen enthalten genau diese Angaben: Name, Adresse, Telefon, E-Mail, Geburtsdatum, Zivilstand und Heimatort mit Foto, danach Berufliche Erfahrung, Aus- & Weiterbildungen sowie Kenntnisse & Fähigkeiten mit Fremdsprachen, Führerschein und Programmen. Weitere Abschnitte braucht es nicht.",
   },
   {
     question: "Soll ich mein Geburtsdatum im Lebenslauf angeben?",
     answer:
-      "In der Schweiz ist das Geburtsdatum verbreitet und wird von vielen Arbeitgebern erwartet. Es ist keine Pflicht, aber üblich. Auch die Nationalität wird häufig angegeben – besonders relevant für Arbeitgebende, die wissen müssen, ob eine Arbeitsbewilligung benötigt wird.",
+      "In der Schweiz ist das Geburtsdatum verbreitet und wird von vielen Arbeitgebern erwartet. Es ist keine Pflicht, aber üblich. Dazu gehören Zivilstand und Heimatort. Ohne Schweizer Bürgerrecht nennen Sie statt des Heimatorts Nationalität und Bewilligung, damit Arbeitgebende sehen, ob eine Arbeitsbewilligung nötig ist.",
   },
   {
-    question: "Was ist der Unterschied zwischen einem antichronologischen und einem funktionalen Lebenslauf?",
+    question: "Soll ich meinen Lebenslauf antichronologisch oder nach Kompetenzen aufbauen?",
     answer:
-      "Antichronologisch (Standard): Neueste Stelle zuerst – zeigt aktuellen Stand der Karriere. Funktional: Kompetenzen im Vordergrund, Berufserfahrung sekundär – geeignet für Quereinsteiger. Kombiniert: beides vereint – für komplexe Profile.",
+      "Antichronologisch: Die neueste Stelle steht zuoberst, die Berufliche Erfahrung kommt immer vor den Aus- & Weiterbildungen. So sind alle CVolution-Vorlagen aufgebaut. Kompetenzen zeigen Sie in den Tätigkeiten der einzelnen Stationen – auch als Quereinsteiger.",
   },
   {
     question: "Wie beschreibe ich meine Aufgaben im Lebenslauf am besten?",
@@ -69,24 +68,24 @@ const cvExamples: CvExample[] = [
     cv: {
       name: "Laura Muster",
       position: "Kauffrau EFZ mit Berufsmaturität",
-      contact: [
-        ["Adresse", "Bahnhofstrasse 5\n5000 Aarau"],
-        ["Tel.", "079 000 00 00"],
-        ["E-Mail", "laura.muster@muster.ch"],
-        ["Geburtsdatum", "14. März 2006"],
-        ["Nationalität", "Schweiz"],
-      ],
+      address: "Bahnhofstrasse 5\n5000 Aarau",
+      phone: "079 000 00 00",
+      email: "laura.muster@muster.ch",
+      birthdate: "14. März 2006",
+      civilStatus: "ledig",
+      origin: "Aarau, Schweiz",
       education: [
         { dates: "08.2022 – 07.2025", role: "Kauffrau EFZ, Profil E", org: "Musterversicherung AG, Aarau", tasks: ["Abschlussnote 5.2", "Berufsmaturität kaufmännisch, BMS Aarau"] },
         { dates: "08.2019 – 07.2022", role: "Bezirksschule", org: "Aarau" },
       ],
       experience: [
         { dates: "08.2025 – heute", role: "Sachbearbeiterin Kundendienst (befristet)", org: "Musterversicherung AG, Aarau", tasks: ["Bearbeitung von rund 40 Kundenanfragen pro Tag per Telefon und E-Mail", "Erfassung von Policenänderungen im Kernsystem"] },
+        { dates: "2022 – heute", role: "Juniorentrainerin Handball (ehrenamtlich)", org: "Handballclub Aarau", tasks: ["Training von 14 Juniorinnen U13, zweimal pro Woche"] },
         { dates: "08.2022 – 07.2025", role: "Lernende Kauffrau", org: "Musterversicherung AG, Aarau", tasks: ["Einsätze in Schadenabteilung, Buchhaltung und Empfang", "Eigenständige Betreuung des Lernenden-Instagram-Kanals"] },
         { dates: "2021 – 2024", role: "Aushilfe Verkauf (Samstage)", org: "Musterbäckerei, Aarau" },
       ],
       languages: [["Deutsch", "Muttersprache"], ["Englisch", "B2 (First Certificate)"], ["Französisch", "B1"]],
-      skills: [["Programme", "MS Office (Excel fortgeschritten), SAP Grundkenntnisse"], ["Interessen", "Handball (Juniorentrainerin), Fotografie"]],
+      programs: "MS Office (Excel fortgeschritten), SAP Grundkenntnisse",
     },
     tips: [
       "Auch die Lehre zählt als Berufserfahrung: Einsätze im Lehrbetrieb gehören mit Tätigkeiten in diesen Abschnitt.",
@@ -104,14 +103,12 @@ const cvExamples: CvExample[] = [
     cv: {
       name: "Max Mustermann",
       position: "Senior Marketing Manager",
-      contact: [
-        ["Name", "Max Mustermann"],
-        ["Adresse", "Musterstrasse 12\n8000 Zürich"],
-        ["Tel.", "076 000 00 00"],
-        ["E-Mail", "max.mustermann@muster.ch"],
-        ["Geburtsdatum", "10. Januar 1990"],
-        ["Nationalität", "Schweiz"],
-      ],
+      address: "Musterstrasse 12\n8000 Zürich",
+      phone: "076 000 00 00",
+      email: "max.mustermann@muster.ch",
+      birthdate: "10. Januar 1990",
+      civilStatus: "verheiratet, 2 Kinder",
+      origin: "Zürich, Schweiz",
       experience: [
         { dates: "02.2022 – heute", role: "Senior Marketing Manager", org: "Musterfirma AG, Zürich", tasks: ["Leitung des digitalen Marketings (Budget CHF 2 Mio.)", "Führung eines 5-köpfigen Teams", "Steigerung der organischen Reichweite um 45 %", "Einführung von Marketing-Automation (HubSpot)"] },
         { dates: "05.2019 – 01.2022", role: "Marketing Manager", org: "Zweite Firma GmbH, Basel", tasks: ["Aufbau des Content-Marketings von Grund auf", "Planung und Umsetzung von 12 Kampagnen pro Jahr", "Reporting und KPI-Analysen für die Geschäftsleitung"] },
@@ -122,12 +119,13 @@ const cvExamples: CvExample[] = [
         { dates: "09.2014 – 07.2017", role: "Bachelor of Science in Betriebsökonomie", org: "Fachhochschule Nordwestschweiz" },
         { dates: "08.2010 – 07.2013", role: "Kaufmann EFZ mit Berufsmaturität", org: "Muster AG, Bern" },
       ],
-      languages: [["Deutsch", "Muttersprache"], ["Englisch", "C1, verhandlungssicher"], ["Französisch", "B2"]],
-      skills: [["Führerschein", "Kategorie B"], ["Programme", "HubSpot, Google Analytics 4, Adobe Creative Suite, MS Office"]],
+      languages: [["Deutsch", "Muttersprache"], ["Englisch", "C1"], ["Französisch", "B2"]],
+      driverLicense: "Kategorie B",
+      programs: "HubSpot, Google Analytics 4, Adobe Creative Suite, MS Office",
     },
     tips: [
       "Jede Station nennt Verantwortung und mindestens ein messbares Ergebnis.",
-      "Weiterbildungen (CAS) zeigen, dass das Profil aktuell bleibt.",
+      "Weiterbildungen (CAS) zeigen, dass das Fachwissen aktuell bleibt.",
       "Ältere Stationen sind kürzer beschrieben als die aktuelle Stelle.",
     ],
   },
@@ -141,13 +139,12 @@ const cvExamples: CvExample[] = [
     cv: {
       name: "Andrea Beispiel",
       position: "CFO und Mitglied der Geschäftsleitung",
-      contact: [
-        ["Adresse", "Seeweg 3\n6300 Zug"],
-        ["Tel.", "078 000 00 00"],
-        ["E-Mail", "andrea.beispiel@muster.ch"],
-        ["Geburtsdatum", "2. Juni 1978"],
-        ["Nationalität", "Schweiz"],
-      ],
+      address: "Seeweg 3\n6300 Zug",
+      phone: "078 000 00 00",
+      email: "andrea.beispiel@muster.ch",
+      birthdate: "2. Juni 1978",
+      civilStatus: "verheiratet",
+      origin: "Zug, Schweiz",
       experience: [
         { dates: "04.2018 – heute", role: "CFO und Mitglied der Geschäftsleitung", org: "Muster Industrie AG, Zug (Umsatz CHF 320 Mio., 900 Mitarbeitende)", tasks: ["Führung von Finanzen, Controlling, IT und HR mit 35 Mitarbeitenden", "Umstellung auf Swiss GAAP FER und Verkürzung des Monatsabschlusses von 12 auf 5 Tage", "Refinanzierung über CHF 80 Mio. zu besseren Konditionen"] },
         { dates: "01.2012 – 03.2018", role: "Leiterin Controlling", org: "Handels AG, Luzern", tasks: ["Aufbau eines konzernweiten Reportings für 14 Gesellschaften", "Führung von 8 Mitarbeitenden"] },
@@ -159,7 +156,8 @@ const cvExamples: CvExample[] = [
         { dates: "1998 – 2002", role: "lic. oec. publ.", org: "Universität Zürich" },
       ],
       languages: [["Deutsch", "Muttersprache"], ["Englisch", "C2"], ["Französisch", "C1"]],
-      skills: [["Mandate", "Stiftungsrätin Pensionskasse Muster (seit 2020)"], ["Programme", "SAP S/4HANA, Power BI"]],
+      driverLicense: "Kategorie B",
+      programs: "SAP S/4HANA, Power BI",
     },
     tips: [
       "Die Position in der Kopfzeile zeigt sofort, auf welcher Ebene sich die Person bewirbt.",
@@ -290,21 +288,11 @@ export default function LebenslaufBeispiel() {
             <div className="space-y-5">
               <div>
                 <p className="mb-2 inline-flex rounded-full bg-red-50 px-3 py-1 text-xs font-semibold text-red-700">Schwach</p>
-                <CvPaper>
-                  <div className="px-5 py-5 sm:px-10 sm:py-7">
-                    <p className="mb-3 border-b border-black pb-0.5 text-[13px] font-bold sm:text-[15px]">Berufliche Erfahrung</p>
-                    <KlassischStation station={beforeStation} />
-                  </div>
-                </CvPaper>
+                <KlassischSnippet title="Berufliche Erfahrung" stations={[beforeStation]} />
               </div>
               <div>
                 <p className="mb-2 inline-flex rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-green-700">Stark</p>
-                <CvPaper>
-                  <div className="px-5 py-5 sm:px-10 sm:py-7">
-                    <p className="mb-3 border-b border-black pb-0.5 text-[13px] font-bold sm:text-[15px]">Berufliche Erfahrung</p>
-                    <KlassischStation station={afterStation} />
-                  </div>
-                </CvPaper>
+                <KlassischSnippet title="Berufliche Erfahrung" stations={[afterStation]} />
               </div>
             </div>
           </section>

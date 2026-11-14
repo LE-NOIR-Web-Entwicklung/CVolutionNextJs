@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { KlassischSnippet } from "@/components/content/CvTemplatePreview";
 import { GuideCta } from "@/components/content/GuideCta";
 import { GuideSchema } from "@/components/seo/GuideSchema";
 import { metaFor } from "@/lib/seo-pages";
@@ -134,12 +135,10 @@ Beilagen: Lebenslauf, Arbeitszeugnisse, Diplome`}
               <h3 className="font-semibold text-[#111827] mb-3">Empfohlene Abschnitte</h3>
               <ul className="space-y-2">
                 {[
-                  "Persönliche Angaben (Name, Adresse, Kontakt, Nationalität, Geburtsdatum)",
-                  "Berufserfahrung (umgekehrt chronologisch, mit Funktionsbeschreibung)",
-                  "Ausbildung (umgekehrt chronologisch)",
-                  "Weiterbildungen und Zertifikate",
-                  "Kenntnisse (Sprachen, IT, weitere Fähigkeiten)",
-                  "Interessen (optional, nur wenn relevant)",
+                  "Persönliche Angaben mit Foto (Name, Adresse, Tel., E-Mail, Geburtsdatum, Zivilstand, Heimatort)",
+                  "Berufliche Erfahrung (umgekehrt chronologisch, mit Tätigkeiten)",
+                  "Aus- & Weiterbildungen (umgekehrt chronologisch, inkl. Zertifikate)",
+                  "Kenntnisse & Fähigkeiten (Fremdsprachen, Führerschein, Programme)",
                 ].map((item, i) => (
                   <li key={i} className="flex items-start gap-2 text-[#374151]">
                     <svg className="w-5 h-5 text-[#204878] flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
@@ -151,19 +150,19 @@ Beilagen: Lebenslauf, Arbeitszeugnisse, Diplome`}
               </ul>
             </div>
             <p className="text-[#374151] leading-relaxed mb-4">
-              Für jeden Abschnitt der Berufserfahrung empfehlen wir folgende Struktur:
+              Jede Station der beruflichen Erfahrung ist so aufgebaut wie in unseren Vorlagen:
             </p>
-            <div className="bg-[#F8FAFC] rounded-xl p-6 border border-gray-100">
-              <p className="text-[#374151] font-mono text-sm">
-                <strong>Funktionsbezeichnung</strong>, Unternehmensname AG, Ort | Monat Jahr – Monat Jahr
-                <br />
-                – [Aufgabe/Ergebnis 1]
-                <br />
-                – [Aufgabe/Ergebnis 2]
-                <br />
-                – [Aufgabe/Ergebnis 3]
-              </p>
-            </div>
+            <KlassischSnippet
+              title="Berufliche Erfahrung"
+              stations={[
+                {
+                  dates: "MM.JJJJ – heute",
+                  role: "Funktionsbezeichnung",
+                  org: "Unternehmen AG, Ort",
+                  tasks: ["Tätigkeit oder Ergebnis 1", "Tätigkeit oder Ergebnis 2", "Tätigkeit oder Ergebnis 3"],
+                },
+              ]}
+            />
           </section>
 
           <section className="mb-10">

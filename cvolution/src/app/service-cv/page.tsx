@@ -27,7 +27,7 @@ export default function ServiceCV() {
       faqs={[
         { question: "Was kostet es, einen Lebenslauf schreiben zu lassen?", answer: "Bei CVolution kostet ein professionell erstellter Lebenslauf CHF 99. Darin enthalten sind die Analyse Ihrer bisherigen Laufbahn, die inhaltliche Überarbeitung und die Gestaltung nach Schweizer Standard." },
         { question: "Welche Unterlagen brauchen Sie von mir?", answer: "Am besten Ihren bisherigen Lebenslauf oder Ihr LinkedIn-Profil, Ihre Arbeitszeugnisse und – falls vorhanden – das Inserat der Stelle, auf die Sie sich bewerben möchten. Fehlt etwas, fragen wir gezielt nach." },
-        { question: "Ist der Lebenslauf auf eine bestimmte Stelle zugeschnitten?", answer: "Ja. Wir richten Profil, Reihenfolge und Formulierungen auf die gewünschte Position und Branche aus. So sehen Personalverantwortliche auf den ersten Blick, warum Sie passen." },
+        { question: "Ist der Lebenslauf auf eine bestimmte Stelle zugeschnitten?", answer: "Ja. Wir richten Tätigkeiten, Gewichtung und Formulierungen auf die gewünschte Position und Branche aus. So sehen Personalverantwortliche auf den ersten Blick, warum Sie passen." },
         { question: "Kann ich den Lebenslauf später selbst anpassen?", answer: "Ja. Sie erhalten Ihren Lebenslauf so, dass Sie ihn für weitere Bewerbungen selbst aktualisieren können. Für laufende Bewerbungen eignet sich zusätzlich unser Self-Service." },
       ]}
     />

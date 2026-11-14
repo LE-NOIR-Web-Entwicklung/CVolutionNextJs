@@ -6,7 +6,8 @@ import type { ReactNode } from "react";
  * - klassisch: Personalien-Tabelle, Zeitachse links, schwarze Trennlinien
  * - modern:    farbige Seitenleisten, grosser Name in Akzentfarbe
  * - zeitlos:   grosser schwarzer Name, feine graue Linien, viel Weissraum
- * Farben, Abschnittstitel und Reihenfolge folgen den Word-Vorlagen in private-downloads/.
+ * Farben, Abschnittstitel, Felder und Reihenfolge folgen den Word-Vorlagen in private-downloads/.
+ * Bewusst ohne Profil- oder Interessen-Abschnitt: Die Vorlagen haben keinen.
  */
 
 export type CvTemplate = "klassisch" | "modern" | "zeitlos";
@@ -26,15 +27,45 @@ export type CvStation = {
   tasks?: string[];
 };
 
+/** Felder exakt wie in den Word-Vorlagen – keine weiteren Abschnitte (kein Profil, keine Interessen). */
 export type CvData = {
   name: string;
+  /** Musterposition unter dem Namen (Modern/Zeitlos) */
   position: string;
-  contact: [string, string][];
+  /** zweizeilig: "Strasse Nr\nPLZ Ort" */
+  address: string;
+  phone: string;
+  email: string;
+  birthdate: string;
+  civilStatus: string;
+  /** Heimatort, z. B. "Aarau, Schweiz" */
+  origin: string;
   experience: CvStation[];
   education: CvStation[];
   languages: [string, string][];
-  skills: [string, string][];
+  driverLicense?: string;
+  programs?: string;
 };
+
+/** Die Abschnitte der Vorlagen in ihrer festen Reihenfolge – für Ratgeber-Texte. */
+export const CV_STRUCTURE = [
+  "Persönliche Angaben mit Foto: Name, Adresse, Tel., E-Mail, Geburtsdatum, Zivilstand, Heimatort",
+  "Berufliche Erfahrung: antichronologisch, Funktion, Firma und Ort, Monat/Jahr, Tätigkeiten als Aufzählung",
+  "Aus- & Weiterbildungen: antichronologisch, Abschluss, Schule und Ort, Monat/Jahr",
+  "Kenntnisse & Fähigkeiten: Fremdsprachen mit Niveau, Führerschein, Programme",
+] as const;
+
+function contactRows(data: CvData, variant: CvTemplate): [string, string][] {
+  const rows: [string, string][] = [
+    ["Adresse", data.address],
+    ["Tel.", data.phone],
+    ["E-Mail", data.email],
+    [variant === "klassisch" ? "Geburtsdatum" : "Geb.", data.birthdate],
+    ["Zivilstand", data.civilStatus],
+    ["Heimatort", data.origin],
+  ];
+  return variant === "klassisch" ? [["Name", data.name], ...rows] : rows;
+}
 
 const ACCENT = "#156082";
 const MUTED = "#A6A6A6";
@@ -52,17 +83,6 @@ function longDates(dates: string): string {
       return month ? `${month} ${y}` : match;
     })
     .replace(/\bheute\b/, "Heute");
-}
-
-/** Klassisch zeigt Kurzformen wie in der Word-Vorlage */
-function klassischLabel(label: string): string {
-  return label === "Telefon" ? "Tel." : label;
-}
-
-function modernLabel(label: string): string {
-  if (label === "Geburtsdatum") return "Geb.";
-  if (label === "Telefon") return "Tel.";
-  return label;
 }
 
 function PhotoPlaceholder({ className }: { className: string }) {
@@ -101,12 +121,14 @@ function SkillRows({ data, labelClass }: { data: CvData; labelClass: string }) {
           ))}
         </div>
       </div>
-      {data.skills.map(([label, value]) => (
-        <div key={label} className="grid grid-cols-[6.5rem_1fr] gap-x-3 sm:grid-cols-[8.5rem_1fr]">
-          <div className={labelClass}>{label}</div>
-          <div>{value}</div>
-        </div>
-      ))}
+      {([["Führerschein", data.driverLicense], ["Programme", data.programs]] as const).map(([label, value]) =>
+        value ? (
+          <div key={label} className="grid grid-cols-[6.5rem_1fr] gap-x-3 sm:grid-cols-[8.5rem_1fr]">
+            <div className={labelClass}>{label}</div>
+            <div>{value}</div>
+          </div>
+        ) : null,
+      )}
     </div>
   );
 }
@@ -131,6 +153,43 @@ export function KlassischStation({ station, boldDates = true }: { station: CvSta
   );
 }
 
+/** Kopf der Vorlage Klassisch: Titel, Personalien-Tabelle und Foto rechts. */
+export function KlassischPersonalien({ rows }: { rows: [string, string][] }) {
+  return (
+    <>
+      <p className="mb-4 border-b-[3px] border-black pb-0.5 font-bold">Lebenslauf</p>
+      <div className="flex items-start justify-between gap-3">
+        <table className="w-full min-w-0 table-fixed">
+          <tbody className="align-top">
+            {rows.map(([label, value]) => (
+              <tr key={label}>
+                <td className="w-[5.25rem] py-0.5 pr-2 sm:w-[8.5rem]">{label}</td>
+                <td className="whitespace-pre-line py-0.5 [overflow-wrap:anywhere]">{value}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <PhotoPlaceholder className="h-[4.75rem] w-[3.75rem] sm:h-[8.5rem] sm:w-[7rem]" />
+      </div>
+    </>
+  );
+}
+
+/** Ausschnitt eines Abschnitts im Design Klassisch, z. B. für Vorher/Nachher-Vergleiche. */
+export function KlassischSnippet({ title, stations }: { title: "Berufliche Erfahrung" | "Ausbildungen / Weiterbildungen"; stations: CvStation[] }) {
+  const experience = title === "Berufliche Erfahrung";
+  return (
+    <CvPaper>
+      <div className="px-5 py-5 sm:px-10 sm:py-7">
+        <p className="mb-3 border-b border-black pb-0.5 text-[13px] font-bold sm:text-[15px]">{title}</p>
+        <div className={experience ? "space-y-4" : "space-y-2.5"}>
+          {stations.map((s) => <KlassischStation key={s.dates + s.role} station={s} boldDates={experience} />)}
+        </div>
+      </div>
+    </CvPaper>
+  );
+}
+
 function Klassisch({ data }: { data: CvData }) {
   const experience = (
     <>
@@ -151,22 +210,7 @@ function Klassisch({ data }: { data: CvData }) {
 
   return (
     <div className="px-5 py-6 sm:px-10 sm:py-9">
-      <p className="mb-4 border-b-[3px] border-black pb-0.5 font-bold">Lebenslauf / Profil</p>
-
-      <div className="flex items-start justify-between gap-4">
-        <table className="w-full min-w-0 table-fixed">
-          <tbody className="align-top">
-            {data.contact.map(([label, value]) => (
-              <tr key={label}>
-                <td className="w-[5.5rem] py-0.5 pr-2 sm:w-[8.5rem]">{klassischLabel(label)}</td>
-                <td className="whitespace-pre-line py-0.5 [overflow-wrap:anywhere]">{value}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        <PhotoPlaceholder className="h-[5.5rem] w-[4.5rem] sm:h-[8.5rem] sm:w-[7rem]" />
-      </div>
-
+      <KlassischPersonalien rows={contactRows(data, "klassisch")} />
 
       {experience}
       {education}
@@ -268,18 +312,17 @@ function ModernZeitlos({ data, variant }: { data: CvData; variant: "modern" | "z
         <ModernHeading modern={modern}>Kontaktdaten</ModernHeading>
         <table className="w-full min-w-0 table-fixed">
           <tbody className="align-top">
-            {data.contact.map(([label, value]) => (
+            {contactRows(data, variant).map(([label, value]) => (
               <tr key={label}>
-                <td className="w-[5.5rem] py-1 pr-2 sm:w-[6rem]">{modernLabel(label)}</td>
+                <td className="w-[5.5rem] py-1 pr-2 sm:w-[6rem]">{label}</td>
                 <td className="whitespace-pre-line py-1 [overflow-wrap:anywhere]">{value}</td>
               </tr>
             ))}
           </tbody>
         </table>
 
-
         {experience}
-      {education}
+        {education}
 
         <ModernHeading modern={modern}>Kenntnisse &amp; Fähigkeiten</ModernHeading>
         <SkillRows data={data} labelClass="" />
