@@ -103,6 +103,7 @@ async function save(manager) {
 test('first successful save returns to the overview while later edits stay open', options, async (t) => {
   const { page, manager, state } = await fixture(t);
   await create(manager);
+  await closeLetter(manager);
   state.failSave = true;
   await manager.getByRole('button', { name: 'Bewerbung speichern', exact: true }).first().click();
   await manager.getByRole('alert').filter({ hasText: 'Test: Speichern fehlgeschlagen' }).waitFor();
@@ -123,8 +124,10 @@ test('first successful save returns to the overview while later edits stay open'
 test('application journey saves separate letters, survives refresh and reuses the CV export', options, async (t) => {
   const { page, manager, state } = await fixture(t);
   await create(manager);
+  await closeLetter(manager);
   await manager.getByLabel('Nächste Aktion am', { exact: true }).fill('02.11.2026');
   await manager.getByLabel('Nächster Schritt', { exact: true }).fill('Nachfassen');
+  await manager.getByRole('button', { name: 'Schreiben erstellen', exact: true }).click();
   await page.getByRole('dialog').getByRole('button', { name: 'Erstellen', exact: true }).click();
   await manager.getByLabel('Bewerbungen durchsuchen').waitFor();
   assert.equal(state.records.length, 1);
@@ -143,7 +146,7 @@ test('application journey saves separate letters, survives refresh and reuses th
   await page.getByRole('dialog').getByRole('heading', { name: 'CV Exportieren' }).waitFor();
   await page.getByRole('dialog').getByRole('button', { name: 'Abbrechen' }).click();
   await page.reload();
-  await manager.getByRole('button').filter({ hasText: 'Projektleitung' }).click();
+  // The detail URL survives the reload, so the application reopens directly.
   await manager.getByRole('button', { name: 'Öffnen', exact: true }).click();
   await page.getByRole('dialog').getByRole('article').filter({ hasText: 'Zweiter Absatz.' }).waitFor();
   await page.getByRole('dialog').getByRole('button', { name: 'Bearbeiten', exact: true }).click();
@@ -167,6 +170,7 @@ test('application journey saves separate letters, survives refresh and reuses th
 test('save, load and conflict failures keep input; deletion requires confirmation', options, async (t) => {
   const { page, manager, state } = await fixture(t);
   await create(manager);
+  await closeLetter(manager);
   state.failSave = true;
   await manager.getByRole('button', { name: 'Bewerbung speichern', exact: true }).first().click();
   await manager.getByRole('alert').filter({ hasText: 'Test: Speichern fehlgeschlagen' }).waitFor();
@@ -225,7 +229,7 @@ test('standalone letters transfer to applications and stored data remains usable
   state.paid = false;
   await page.reload();
   await manager.getByRole('button').filter({ hasText: 'Transfer AG' }).click();
-  await manager.getByRole('button', { name: 'Abo aktivieren', exact: true }).waitFor();
+  await manager.getByRole('button', { name: 'Self-Service-Abo aktivieren', exact: true }).waitFor();
   await manager.getByRole('button', { name: 'Öffnen', exact: true }).click();
   await page.getByRole('dialog').getByRole('button', { name: 'Text', exact: true }).click();
   assert.equal(await page.getByRole('dialog').getByLabel('Gespeichertes Schreiben', { exact: true }).getAttribute('readonly'), '');
@@ -237,6 +241,8 @@ test('standalone letters transfer to applications and stored data remains usable
   await download;
   assert.equal(state.words[0].applicationId, state.records[0].id);
   assert.match(state.records[0].motivation_letter, /Transfer AG/);
+  // The data export lives in the overview header.
+  await manager.getByRole('button', { name: 'Übersicht', exact: true }).click();
   const exportDownload = page.waitForEvent('download');
   await manager.getByRole('button', { name: 'Daten exportieren' }).click();
   const exported = await exportDownload;
@@ -245,6 +251,8 @@ test('standalone letters transfer to applications and stored data remains usable
   await manager.getByRole('button', { name: 'Bewerbung erfassen', exact: true }).click();
   await page.getByRole('dialog').waitFor();
   await page.keyboard.press('Escape');
+  // Expired subscriptions can still delete stored applications from the detail view.
+  await manager.getByRole('button').filter({ hasText: 'Transfer AG' }).click();
   page.once('dialog', (dialog) => dialog.accept());
   await manager.getByRole('button', { name: 'Löschen', exact: true }).click();
   await manager.getByRole('heading', { name: 'Ihre erste Bewerbung beginnt hier' }).waitFor();
@@ -300,6 +308,7 @@ test('failed advert imports keep inputs and permit manual entry', options, async
 test('subscription expiry during editing blocks saving and opens the subscription dialog', options, async (t) => {
   const { page, manager, state } = await fixture(t);
   await create(manager);
+  await closeLetter(manager);
   state.paid = false;
   await manager.getByRole('button', { name: 'Bewerbung speichern', exact: true }).first().click();
   await page.getByRole('dialog').waitFor();
@@ -325,6 +334,7 @@ test('standalone advert-only letters still download without creating an applicat
 test('internal site navigation warns before discarding unsaved application input', options, async (t) => {
   const { page, manager } = await fixture(t);
   await create(manager);
+  await closeLetter(manager);
   let warned = false;
   page.once('dialog', async (dialog) => { warned = true; await dialog.dismiss(); });
   await page.getByRole('link', { name: 'Home', exact: true }).first().click();
@@ -337,6 +347,7 @@ test('detail views have their own URL, follow browser history and survive a relo
   const { page, manager, state } = await fixture(t);
   assert.equal(new URL(page.url()).pathname, '/dashboard/bewerbungen');
   await create(manager);
+  await closeLetter(manager);
   assert.equal(new URL(page.url()).pathname, '/dashboard/bewerbungen/neu');
   await manager.getByRole('button', { name: 'Bewerbung speichern', exact: true }).first().click();
   await manager.getByLabel('Bewerbungen durchsuchen').waitFor();
@@ -408,7 +419,7 @@ test('date fields use Swiss formatting, validate input and retain calendar selec
   await manager.getByRole('button', { name: 'Bewerbung speichern', exact: true }).first().click();
   await manager.getByLabel('Bewerbungen durchsuchen').waitFor();
   assert.equal(state.records[0].applied_at, '2026-11-03');
-  assert.equal(state.records[0].deadline, '2026-11-30');
+  assert.equal(state.records[0].interview1_at, '2026-11-30');
   assert.equal(state.records[0].next_action_at, '2026-11-18');
   await page.reload();
   await manager.getByRole('button').filter({ hasText: 'Projektleitung' }).click();
@@ -432,6 +443,7 @@ test('date fields use Swiss formatting, validate input and retain calendar selec
 test('calendar month navigation keeps its height, placement and page scroll stable', options, async (t) => {
   const { page, manager } = await fixture(t);
   await create(manager);
+  await closeLetter(manager);
   await manager.getByLabel('Nächste Aktion am', { exact: true }).fill('23.02.2027');
   const trigger = manager.getByRole('button', { name: 'Kalender: Nächste Aktion am', exact: true });
   const calendar = page.getByRole('dialog', { name: 'Datum auswählen: Nächste Aktion am', exact: true });
@@ -466,6 +478,7 @@ test('calendar month navigation keeps its height, placement and page scroll stab
 test('responsive layouts, labels, focus and document ids remain usable', options, async (t) => {
   const { page, manager, state } = await fixture(t);
   await create(manager, 'Unternehmen'.repeat(10), 'Projektleitung'.repeat(8));
+  await closeLetter(manager);
   await manager.getByRole('button', { name: 'Bewerbung speichern', exact: true }).first().click();
   await manager.getByRole('button').filter({ hasText: 'Projektleitung'.repeat(8) }).click();
   for (const width of [375, 768, 1440]) {

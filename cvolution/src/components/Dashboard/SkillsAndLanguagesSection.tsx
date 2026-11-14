@@ -653,4 +653,6 @@ const SkillsAndLanguagesSection = React.forwardRef<{ saveSkillsAndLanguages: () 
     </div>
   );
 });
+SkillsAndLanguagesSection.displayName = "SkillsAndLanguagesSection";
+
 export default SkillsAndLanguagesSection;

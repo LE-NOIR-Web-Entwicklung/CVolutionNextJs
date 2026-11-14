@@ -533,4 +533,6 @@ function formatMonthYear(dateStr?: string | null) {
     </CvPanel>
   );
 });
+ExperienceSection.displayName = "ExperienceSection";
+
 export default ExperienceSection;

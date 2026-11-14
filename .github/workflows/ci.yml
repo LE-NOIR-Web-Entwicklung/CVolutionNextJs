@@ -39,6 +39,9 @@ jobs:
       - name: Typecheck
         run: npx tsc --noEmit
 
+      - name: Lint
+        run: npm run lint
+
       - name: Unit and database tests
         run: npm test
 
@@ -49,3 +52,21 @@ jobs:
         run: npm run build
         env:
           NEXT_TELEMETRY_DISABLED: 1
+
+      # Journey tests drive the dashboard in Chromium against the local build.
+      # Supabase and every API call are intercepted, so nothing leaves the runner.
+      - name: Install Chromium for browser tests
+        run: npx playwright install --with-deps chromium
+
+      - name: Browser journey tests
+        run: |
+          npm start -- -p 3000 > /tmp/next.log 2>&1 &
+          for i in $(seq 1 60); do curl -sf -o /dev/null http://localhost:3000/ && break; sleep 1; done
+          npm run test:browser
+        env:
+          APPLICATIONS_BROWSER_URL: http://localhost:3000
+          NEXT_TELEMETRY_DISABLED: 1
+
+      - name: Server log on failure
+        if: failure()
+        run: tail -n 100 /tmp/next.log || true

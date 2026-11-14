@@ -73,7 +73,7 @@ export default function DreizehnterMonatslohn() {
           <GuideList
             items={[
               <>
-                <strong className="font-semibold text-[#101828]">Arbeitsvertrag:</strong> «Der Lohn beträgt CHF 6'000 brutto
+                <strong className="font-semibold text-[#101828]">Arbeitsvertrag:</strong> «Der Lohn beträgt CHF 6&apos;000 brutto
                 pro Monat, 13 × pro Jahr ausbezahlt.»
               </>,
               <>
@@ -151,12 +151,12 @@ export default function DreizehnterMonatslohn() {
             items={[
               <>
                 <strong className="font-semibold text-[#101828]">Angebote vergleichen:</strong> Rechnen Sie immer auf den
-                Jahreslohn hoch. CHF 6'500 × 13 sind mehr als CHF 7'000 × 12.
+                Jahreslohn hoch. CHF 6&apos;500 × 13 sind mehr als CHF 7&apos;000 × 12.
               </>,
               <>
                 <strong className="font-semibold text-[#101828]">Lohnstatistiken:</strong> Die Medianlöhne des BFS (Schweiz:{" "}
-                {formatChf(MEDIAN_MONTHLY_2024)}) enthalten bereits 1/12 des 13. Monatslohns. Wer 13 × CHF 6'500 verdient,
-                vergleicht also CHF 7'042 mit dem Median.
+                {formatChf(MEDIAN_MONTHLY_2024)}) enthalten bereits 1/12 des 13. Monatslohns. Wer 13 × CHF 6&apos;500 verdient,
+                vergleicht also CHF 7&apos;042 mit dem Median.
               </>,
               <>
                 <strong className="font-semibold text-[#101828]">Lohnvorstellung:</strong> Nennen Sie in der Bewerbung den

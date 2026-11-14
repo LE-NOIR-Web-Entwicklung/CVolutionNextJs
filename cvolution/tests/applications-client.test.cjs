@@ -89,14 +89,24 @@ test('data export contains the overview columns and cleans up its temporary down
   const link = { click() { clicked = true; }, remove() { removed = true; } };
   global.document = { createElement: () => link, body: { appendChild() {} } };
   const rows = [{ ...valid(), motivation_letter: 'Absatz eins.\n\nAbsatz zwei.' }];
-  await client.downloadApplications([{ ...rows[0], company: '=Formel & <Partner>', status: 'interview2', interview2_at: '2026-11-20', created_at: '2026-11-01T00:00:00Z', updated_at: '2026-11-02T00:00:00Z' }]);
-  assert.equal(exportBlob.type, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-  const zip = await require('jszip').loadAsync(await exportBlob.arrayBuffer());
-  const sheet = await zip.file('xl/worksheets/sheet1.xml').async('string');
-  assert.ok(zip.file('[Content_Types].xml') && zip.file('xl/workbook.xml'));
-  for (const text of ['Gespräch 2', '20.11.2026', 'Inserat-Link', '=Formel &amp; &lt;Partner&gt;']) assert.ok(sheet.includes(text), text);
-  for (const text of ['Absatz eins.', 'Notizen', 'Motivationsschreiben', 'Nächster Schritt']) assert.ok(!sheet.includes(text), text);
-  assert.ok(!sheet.includes('<f>'), 'Values are never written as formulas');
+  // The object URL is released after a delay so the browser can start the download.
+  const { DOWNLOAD_URL_REVOKE_DELAY_MS } = require('../src/lib/download-blob.ts');
+  const realSetTimeout = global.setTimeout;
+  let releaseUrl;
+  global.setTimeout = (callback, delay, ...args) => (delay === DOWNLOAD_URL_REVOKE_DELAY_MS ? (releaseUrl = callback, 0) : realSetTimeout(callback, delay, ...args));
+  try {
+    await client.downloadApplications([{ ...rows[0], company: '=Formel & <Partner>', status: 'interview2', interview2_at: '2026-11-20', created_at: '2026-11-01T00:00:00Z', updated_at: '2026-11-02T00:00:00Z' }]);
+    assert.equal(exportBlob.type, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    const zip = await require('jszip').loadAsync(await exportBlob.arrayBuffer());
+    const sheet = await zip.file('xl/worksheets/sheet1.xml').async('string');
+    assert.ok(zip.file('[Content_Types].xml') && zip.file('xl/workbook.xml'));
+    for (const text of ['Gespräch 2', '20.11.2026', 'Inserat-Link', '=Formel &amp; &lt;Partner&gt;']) assert.ok(sheet.includes(text), text);
+    for (const text of ['Absatz eins.', 'Notizen', 'Motivationsschreiben', 'Nächster Schritt']) assert.ok(!sheet.includes(text), text);
+    assert.ok(!sheet.includes('<f>'), 'Values are never written as formulas');
+  } finally { global.setTimeout = realSetTimeout; }
   assert.equal(link.download, 'cvolution-bewerbungen.xlsx');
-  assert.ok(clicked && removed && revoked);
+  assert.ok(clicked && removed);
+  assert.ok(!revoked, 'The URL stays valid while the download starts');
+  releaseUrl();
+  assert.ok(revoked);
 });

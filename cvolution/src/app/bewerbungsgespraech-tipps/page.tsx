@@ -122,10 +122,10 @@ export default function BewerbungsgespraechTippsPage() {
           </section>
 
           <section className="mb-10">
-            <h2 className="text-2xl font-semibold text-[#111827] mb-4">Do's und Don'ts im Bewerbungsgespräch</h2>
+            <h2 className="text-2xl font-semibold text-[#111827] mb-4">Do&apos;s und Don&apos;ts im Bewerbungsgespräch</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="bg-green-50 rounded-xl border border-green-100 p-5">
-                <h3 className="font-semibold text-green-800 mb-3">Do's</h3>
+                <h3 className="font-semibold text-green-800 mb-3">Do&apos;s</h3>
                 <ul className="space-y-2">
                   {[
                     "Pünktlich erscheinen (5–10 Min. früher)",
@@ -142,7 +142,7 @@ export default function BewerbungsgespraechTippsPage() {
                 </ul>
               </div>
               <div className="bg-red-50 rounded-xl border border-red-100 p-5">
-                <h3 className="font-semibold text-red-800 mb-3">Don'ts</h3>
+                <h3 className="font-semibold text-red-800 mb-3">Don&apos;ts</h3>
                 <ul className="space-y-2">
                   {[
                     "Über frühere Arbeitgeber negativ sprechen",
