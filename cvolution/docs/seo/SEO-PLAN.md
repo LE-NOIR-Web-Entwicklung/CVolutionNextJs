@@ -257,7 +257,7 @@ Die Texte reden Leser teils mit «du» an («bewirb-dich», «wie-du»). Beim Um
 **Ablauf je Artikel:**
 
 1. ✅ Die sieben Weiterleitungen oben stehen bereits in `src/lib/blog-redirects.ts`.
-2. Im Admin-Panel Slug, Titel und Excerpt ändern – oder alle sieben auf einmal mit `docs/seo/blog-slugs-d4.sql` (Supabase SQL-Editor).
+2. ✅ Slug, Titel und Excerpt der sieben Artikel geändert (`docs/seo/blog-slugs-d4.sql`, ausgeführt am 14.11.2026).
 3. Texte von «du» auf «Sie» umstellen (nur im Admin-Panel).
 
 Die Reihenfolge spielt keine Rolle mehr: `/blog/[slug]` leitet eine alte URL erst mit 308 weiter, wenn ein veröffentlichter Artikel mit dem neuen Slug existiert. Bis dahin zeigt die alte URL weiter den Artikel. Für weitere Umbenennungen genügt ein neuer Eintrag in `blog-redirects.ts`.
@@ -298,7 +298,8 @@ Zu #1: Ein echter Brutto-Netto-Rechner ist der stärkste Traffic-Hebel. Er brauc
 - [x] Service-Seiten: Keyword-H1, je 3–4 FAQs, Ratgeber-Links (114–170 → 225–353 Wörter)
 - [ ] D3 Ausbau der 5 Ratgeber oben
 - [x] D4 Redirects eingetragen (greifen automatisch nach der Umbenennung)
-- [ ] D4 Blog-Slugs, Titel und Excerpts im Admin ändern (oder `blog-slugs-d4.sql`), Texte auf «Sie»
+- [x] D4 Blog-Slugs, Titel und Excerpts geändert (`blog-slugs-d4.sql`, ausgeführt am 14.11.2026)
+- [ ] D4 Artikeltexte von «du» auf «Sie» umstellen (Admin-Panel)
 - [ ] D5 Seiten 1–3 in den nächsten 4 Wochen, danach 2 Seiten pro Woche
 - [ ] Prüfen: Rich Results Test für `/service-salary` zeigt FAQPage, Service, BreadcrumbList
 
