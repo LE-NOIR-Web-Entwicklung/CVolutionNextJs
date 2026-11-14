@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { CvPaper } from "@/components/content/CvTemplatePreview";
 import { GuideCta } from "@/components/content/GuideCta";
 import { GuideSchema } from "@/components/seo/GuideSchema";
 import { metaFor } from "@/lib/seo-pages";
@@ -136,19 +137,31 @@ export default function LebenslaufAufbauPage() {
 
           <section className="mb-10 bg-white rounded-2xl border border-gray-100 p-8 shadow-sm">
             <h2 className="text-2xl font-semibold text-[#111827] mb-4">Beispiel: Vollständiger Lebenslauf-Kopf</h2>
-            <div className="bg-[#F8FAFC] rounded-xl p-6 border border-gray-100">
-              <div className="flex justify-between items-start gap-4">
-                <div className="min-w-0 [overflow-wrap:anywhere]">
-                  <p className="font-bold text-[#111827] text-lg">Maria Müller</p>
-                  <p className="text-[#64748B] text-sm">Musterstrasse 12, 8001 Zürich</p>
-                  <p className="text-[#64748B] text-sm">+41 79 123 45 67</p>
-                  <p className="text-[#64748B] text-sm">maria.mueller@email.ch</p>
-                  <p className="text-[#64748B] text-sm">Schweizer Staatsangehörige</p>
-                  <p className="text-[#64748B] text-sm">linkedin.com/in/mariamueller</p>
+            <CvPaper>
+              <div className="px-5 py-6 sm:px-10 sm:py-8">
+                <p className="mb-4 border-b-[3px] border-black pb-0.5 font-bold">Lebenslauf / Profil</p>
+                <div className="flex items-start justify-between gap-4">
+                  <table className="w-full min-w-0 table-fixed">
+                    <tbody className="align-top">
+                      {[
+                        ["Name", "Maria Müller"],
+                        ["Adresse", "Musterstrasse 12\n8001 Zürich"],
+                        ["Tel.", "079 123 45 67"],
+                        ["E-Mail", "maria.mueller@email.ch"],
+                        ["Nationalität", "Schweiz"],
+                        ["LinkedIn", "linkedin.com/in/mariamueller"],
+                      ].map(([label, value]) => (
+                        <tr key={label}>
+                          <td className="w-[5.5rem] py-0.5 pr-2 sm:w-[8.5rem]">{label}</td>
+                          <td className="whitespace-pre-line py-0.5 [overflow-wrap:anywhere]">{value}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  <div aria-hidden="true" className="flex h-[5.5rem] w-[4.5rem] flex-shrink-0 items-center justify-center border border-black bg-gray-200 text-[10px] text-gray-500 sm:h-[8.5rem] sm:w-[7rem]">Foto</div>
                 </div>
-                <div className="w-20 h-24 flex-shrink-0 bg-gray-200 rounded-lg flex items-center justify-center text-xs text-gray-500">Foto</div>
               </div>
-            </div>
+            </CvPaper>
           </section>
 
           <section className="mb-10">
