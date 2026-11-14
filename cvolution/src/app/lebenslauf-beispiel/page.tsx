@@ -19,7 +19,7 @@ const faqData = [
   {
     question: "Welches Lebenslauf-Beispiel passt zu mir?",
     answer:
-      "Wenn Sie gerade die Lehre oder das Studium abgeschlossen haben, orientieren Sie sich am Beispiel Berufseinstieg: Lehrbetrieb, Praktika und Nebenjobs füllen die Berufserfahrung, die Ausbildung folgt direkt danach. Mit einigen Jahren Erfahrung passt das Beispiel Fachkraft. Als Kader oder Führungsperson ergänzen Sie ein kurzes Profil mit Führungsspanne und Ergebnissen, wie im dritten Beispiel.",
+      "Wenn Sie gerade die Lehre oder das Studium abgeschlossen haben, orientieren Sie sich am Beispiel Berufseinstieg: Lehrbetrieb, Praktika und Nebenjobs füllen die Berufserfahrung, die Ausbildung folgt direkt danach. Mit einigen Jahren Erfahrung passt das Beispiel Fachkraft. Als Kader oder Führungsperson nennen Sie bei jeder Station Führungsspanne, Budget und Ergebnisse, wie im dritten Beispiel.",
   },
   {
     question: "Wie unterscheidet sich ein Schweizer Lebenslauf von einem deutschen?",
@@ -136,7 +136,7 @@ const cvExamples: CvExample[] = [
     label: "Führungsperson",
     heading: "Lebenslauf Beispiel: Führungsperson",
     intro:
-      "Für Kader und Führungspersonen mit langjähriger Erfahrung. Ein kurzes Profil oben fasst Führungsspanne, Budget und Erfolge zusammen.",
+      "Für Kader und Führungspersonen mit langjähriger Erfahrung. Führungsspanne, Budget und Erfolge stehen direkt bei den einzelnen Stationen.",
     template: "zeitlos",
     cv: {
       name: "Andrea Beispiel",
@@ -148,8 +148,6 @@ const cvExamples: CvExample[] = [
         ["Geburtsdatum", "2. Juni 1978"],
         ["Nationalität", "Schweiz"],
       ],
-      profile:
-        "Finanzchefin mit über 20 Jahren Erfahrung in Industrie und Handel, davon 12 Jahre in Führungsfunktionen. Schwerpunkte: Transformation des Finanzbereichs, Controlling und Finanzierung im Wachstum.",
       experience: [
         { dates: "04.2018 – heute", role: "CFO und Mitglied der Geschäftsleitung", org: "Muster Industrie AG, Zug (Umsatz CHF 320 Mio., 900 Mitarbeitende)", tasks: ["Führung von Finanzen, Controlling, IT und HR mit 35 Mitarbeitenden", "Umstellung auf Swiss GAAP FER und Verkürzung des Monatsabschlusses von 12 auf 5 Tage", "Refinanzierung über CHF 80 Mio. zu besseren Konditionen"] },
         { dates: "01.2012 – 03.2018", role: "Leiterin Controlling", org: "Handels AG, Luzern", tasks: ["Aufbau eines konzernweiten Reportings für 14 Gesellschaften", "Führung von 8 Mitarbeitenden"] },
@@ -164,7 +162,7 @@ const cvExamples: CvExample[] = [
       skills: [["Mandate", "Stiftungsrätin Pensionskasse Muster (seit 2020)"], ["Programme", "SAP S/4HANA, Power BI"]],
     },
     tips: [
-      "Das Profil oben beantwortet in drei Zeilen: Wer, welche Ebene, welche Erfolge.",
+      "Die Position in der Kopfzeile zeigt sofort, auf welcher Ebene sich die Person bewirbt.",
       "Unternehmensgrösse und Führungsspanne geben Ergebnissen den Massstab.",
       "Frühe Stationen werden zusammengefasst – der Lebenslauf bleibt bei zwei Seiten.",
     ],
@@ -269,7 +267,7 @@ export default function LebenslaufBeispiel() {
                 <><strong>Konkrete Zahlen:</strong> Budgetverantwortung, Teamgrösse, Prozentangaben – das schafft Glaubwürdigkeit</>,
                 <><strong>Aktivverben:</strong> «Leitete», «baute auf», «steigerte» – keine passive Sprache</>,
                 <><strong>Relevante Stationen:</strong> Nur Stellen, die für die Zielposition relevant sind</>,
-                <><strong>Gewichtung nach Karrierestufe:</strong> Berufserfahrung steht immer vor Aus- und Weiterbildungen; beim Berufseinstieg zählen Lehre, Praktika und Nebenjobs, bei Führungspersonen ein kurzes Profil mit Verantwortung und Ergebnissen</>,
+                <><strong>Gewichtung nach Karrierestufe:</strong> Berufserfahrung steht immer vor Aus- und Weiterbildungen; beim Berufseinstieg zählen Lehre, Praktika und Nebenjobs, bei Führungspersonen Führungsspanne, Budget und Ergebnisse</>,
                 <><strong>Klare Struktur:</strong> Überschriften, einheitliche Formatierung, kein Informationsüberfluss</>,
                 <><strong>Spezifische Tools:</strong> Software-Kenntnisse konkret benannt, nicht nur «MS Office»</>,
               ].map((item, i) => (

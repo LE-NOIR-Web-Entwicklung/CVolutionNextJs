@@ -30,7 +30,6 @@ export type CvData = {
   name: string;
   position: string;
   contact: [string, string][];
-  profile?: string;
   experience: CvStation[];
   education: CvStation[];
   languages: [string, string][];
@@ -168,12 +167,6 @@ function Klassisch({ data }: { data: CvData }) {
         <PhotoPlaceholder className="h-[5.5rem] w-[4.5rem] sm:h-[8.5rem] sm:w-[7rem]" />
       </div>
 
-      {data.profile ? (
-        <>
-          <KlassischHeading>Profil</KlassischHeading>
-          <p>{data.profile}</p>
-        </>
-      ) : null}
 
       {experience}
       {education}
@@ -284,12 +277,6 @@ function ModernZeitlos({ data, variant }: { data: CvData; variant: "modern" | "z
           </tbody>
         </table>
 
-        {data.profile ? (
-          <>
-            <ModernHeading modern={modern}>Profil</ModernHeading>
-            <p>{data.profile}</p>
-          </>
-        ) : null}
 
         {experience}
       {education}
