@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { KlassischSnippet, type CvStation } from "@/components/content/CvTemplatePreview";
 import { GuideCta } from "@/components/content/GuideCta";
 import { GuideSchema } from "@/components/seo/GuideSchema";
 import { metaFor } from "@/lib/seo-pages";
@@ -33,6 +34,36 @@ const faqData = [
   },
 ];
 
+const educationWeak: CvStation = { dates: "2020 – 2024", role: "BSc Betriebswirtschaft", org: "Universität Zürich" };
+
+const educationStrong: CvStation = {
+  dates: "09.2020 – 07.2024",
+  role: "Bachelor of Science in Betriebswirtschaft",
+  org: "Universität Zürich",
+  tasks: [
+    "Schwerpunkte: Marketing, Strategisches Management (Durchschnitt 5,2)",
+    "Bachelorarbeit: «Nachhaltigkeitskommunikation in Schweizer KMU» (Note 5,5)",
+  ],
+};
+
+const internshipWeak: CvStation = {
+  dates: "Sommer 2023",
+  role: "Marketing Praktikum",
+  org: "Firma XY",
+  tasks: ["Social Media, Texte schreiben, Marktanalysen"],
+};
+
+const internshipStrong: CvStation = {
+  dates: "06.2023 – 08.2023",
+  role: "Praktikant Marketing",
+  org: "Firma XY AG, Zürich",
+  tasks: [
+    "Eigenverantwortliche Betreuung des Instagram-Kanals (Reichweite +23 %)",
+    "Erstellung von Wettbewerbsanalysen für 3 Produktlaunches",
+    "Mitarbeit bei der Konzeption einer E-Mail-Kampagne (Öffnungsrate 38 %)",
+  ],
+};
+
 export default function LebenslaufStudent() {
   return (
     <>
@@ -57,18 +88,17 @@ export default function LebenslaufStudent() {
           <section className="mb-10">
             <h2 className="text-2xl font-semibold text-[#111827] mb-4">Aufbau des Studenten-Lebenslaufs</h2>
             <p className="text-[#374151] leading-relaxed mb-4">
-              Für Berufseinsteiger empfiehlt sich ein leicht angepasster Aufbau gegenüber dem klassischen Lebenslauf:
-              Die Ausbildung steht vor der Berufserfahrung, da sie das Fundament Ihres Profils ist.
+              Auch als Berufseinsteiger behalten Sie den klassischen Aufbau bei: Die Berufserfahrung steht vor der
+              Ausbildung. Praktika, Studentenjobs und Werkstudentenstellen füllen diesen Abschnitt, die Ausbildung folgt
+              direkt danach und wird ausführlich beschrieben.
             </p>
-            <h3 className="text-xl font-semibold text-[#111827] mb-3">Empfohlene Reihenfolge</h3>
+            <h3 className="text-xl font-semibold text-[#111827] mb-3">Reihenfolge wie in unseren Vorlagen</h3>
             <ul className="space-y-2 mb-4">
               {[
-                <><strong>Persönliche Angaben:</strong> Name, Adresse, Telefon, E-Mail, LinkedIn-Profil (optional)</>,
-                <><strong>Kurzprofil / Zusammenfassung (optional):</strong> 2–3 Sätze, die Ihre Stärken und Karriereziele benennen</>,
-                <><strong>Ausbildung:</strong> Studium, Matura/Berufsmatura, relevante Zertifikate</>,
-                <><strong>Berufserfahrung:</strong> Praktika, Studentenjobs, Werkstudentenstellen</>,
-                <><strong>Projekte und Engagement:</strong> Hochschulprojekte, Verein, Freiwilligenarbeit</>,
-                <><strong>Kenntnisse:</strong> Sprachen, IT, Soft Skills (mit Belegen)</>,
+                <><strong>Persönliche Angaben mit Foto:</strong> Name, Adresse, Tel., E-Mail, Geburtsdatum, Zivilstand, Heimatort</>,
+                <><strong>Berufliche Erfahrung:</strong> Praktika, Studentenjobs, Werkstudentenstellen, regelmässiges Engagement</>,
+                <><strong>Aus- &amp; Weiterbildungen:</strong> Studium, Matura/Berufsmatura, relevante Zertifikate – Projekte und Abschlussarbeit als Punkte darunter</>,
+                <><strong>Kenntnisse &amp; Fähigkeiten:</strong> Fremdsprachen, Führerschein, Programme</>,
               ].map((item, i) => (
                 <li key={i} className="flex items-start gap-2 text-[#374151]">
                   <svg className="w-5 h-5 text-[#204878] flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
@@ -85,22 +115,14 @@ export default function LebenslaufStudent() {
             <p className="text-[#374151] leading-relaxed mb-4">
               Die Ausbildung ist Ihr wichtigstes Kapitel. Gehen Sie über reine Fakten hinaus:
             </p>
-            <div className="space-y-4">
-              <div className="bg-[#F8FAFC] rounded-xl p-6 border border-gray-100">
-                <h3 className="font-semibold text-[#111827] mb-2">Beispiel – schwach</h3>
-                <p className="text-[#64748B] italic">
-                  BSc Betriebswirtschaft, Universität Zürich, 2020–2024
-                </p>
+            <div className="space-y-5">
+              <div>
+                <p className="mb-2 inline-flex rounded-full bg-red-50 px-3 py-1 text-xs font-semibold text-red-700">Schwach</p>
+                <KlassischSnippet title="Ausbildungen / Weiterbildungen" stations={[educationWeak]} />
               </div>
-              <div className="bg-[#F8FAFC] rounded-xl p-6 border border-gray-100">
-                <h3 className="font-semibold text-[#111827] mb-2">Beispiel – stark</h3>
-                <p className="text-[#374151] italic">
-                  BSc Betriebswirtschaft, Universität Zürich, 2020–2024
-                  <br />
-                  Schwerpunkte: Marketing, Strategisches Management | Durchschnitt: 5,2
-                  <br />
-                  Bachelorarbeit: «Nachhaltigkeitskommunikation in Schweizer KMU» (Note 5,5)
-                </p>
+              <div>
+                <p className="mb-2 inline-flex rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-green-700">Stark</p>
+                <KlassischSnippet title="Ausbildungen / Weiterbildungen" stations={[educationStrong]} />
               </div>
             </div>
             <ul className="space-y-2 mt-4">
@@ -126,26 +148,14 @@ export default function LebenslaufStudent() {
               Praktika sind für Berufseinsteiger Gold wert. Beschreiben Sie nicht nur die Tätigkeit, sondern Ihre
               konkreten Beiträge und Lernerfolge.
             </p>
-            <div className="space-y-4">
-              <div className="bg-[#F8FAFC] rounded-xl p-6 border border-gray-100">
-                <h3 className="font-semibold text-[#111827] mb-2">Beispiel – schwach</h3>
-                <p className="text-[#64748B] italic">
-                  Marketing Praktikum, Firma XY, Sommer 2023
-                  <br />
-                  – Social Media, Texte schreiben, Marktanalysen
-                </p>
+            <div className="space-y-5">
+              <div>
+                <p className="mb-2 inline-flex rounded-full bg-red-50 px-3 py-1 text-xs font-semibold text-red-700">Schwach</p>
+                <KlassischSnippet title="Berufliche Erfahrung" stations={[internshipWeak]} />
               </div>
-              <div className="bg-[#F8FAFC] rounded-xl p-6 border border-gray-100">
-                <h3 className="font-semibold text-[#111827] mb-2">Beispiel – stark</h3>
-                <p className="text-[#374151] italic">
-                  Marketing Praktikant, Firma XY AG, Zürich | Jun–Aug 2023
-                  <br />
-                  – Eigenverantwortliche Betreuung des Instagram-Kanals (Reichweite +23 %)
-                  <br />
-                  – Erstellung von Wettbewerbsanalysen für 3 Produktlaunches
-                  <br />
-                  – Mitarbeit bei der Konzeption einer E-Mail-Kampagne (Öffnungsrate: 38 %)
-                </p>
+              <div>
+                <p className="mb-2 inline-flex rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-green-700">Stark</p>
+                <KlassischSnippet title="Berufliche Erfahrung" stations={[internshipStrong]} />
               </div>
             </div>
           </section>
@@ -153,7 +163,9 @@ export default function LebenslaufStudent() {
           <section className="mb-10">
             <h2 className="text-2xl font-semibold text-[#111827] mb-4">Engagement und Projekte als Ersatz für Berufserfahrung</h2>
             <p className="text-[#374151] leading-relaxed mb-4">
-              Wer noch wenig Berufserfahrung hat, kann mit anderen Aktivitäten punkten:
+              Wer noch wenig Berufserfahrung hat, kann mit anderen Aktivitäten punkten. Ein eigener Abschnitt ist dafür
+              nicht nötig: Regelmässiges Engagement steht als Station unter «Berufliche Erfahrung», Hochschulprojekte
+              und Auslandssemester als Punkte bei der jeweiligen Ausbildung.
             </p>
             <ul className="space-y-2 mb-4">
               {[

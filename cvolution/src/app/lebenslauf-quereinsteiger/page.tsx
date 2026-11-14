@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { KlassischSnippet, type CvStation } from "@/components/content/CvTemplatePreview";
 import { GuideCta } from "@/components/content/GuideCta";
 import { GuideSchema } from "@/components/seo/GuideSchema";
 import { metaFor } from "@/lib/seo-pages";
@@ -9,7 +10,7 @@ const faqData = [
   {
     question: "Muss ich im Lebenslauf erklären, warum ich die Branche wechsle?",
     answer:
-      "Nein – das ist Aufgabe des Motivationsschreibens. Im Lebenslauf listen Sie Ihre Stationen und Kompetenzen auf. Fügen Sie allenfalls ein kurzes Profil (3–4 Sätze) ganz oben ein, das Ihren Quereinstieg positiv rahmt.",
+      "Nein – das ist Aufgabe des Motivationsschreibens. Im Lebenslauf zeigen Sie mit Ihren Stationen, Tätigkeiten und Weiterbildungen, was Sie für die neue Branche mitbringen. Den Wechsel selbst begründen Sie im Motivationsschreiben.",
   },
   {
     question: "Wie kann ich fehlende Branchenerfahrung kompensieren?",
@@ -19,7 +20,7 @@ const faqData = [
   {
     question: "Welches Lebenslauf-Format eignet sich für Quereinsteiger?",
     answer:
-      "Ein funktionales oder kombiniertes Format kann sinnvoll sein: Zuerst Kompetenzen nach Themen gruppieren, dann erst die chronologische Berufserfahrung. So treten Ihre übertragbaren Fähigkeiten in den Vordergrund, bevor die Branchenferne auffällt.",
+      "Derselbe Aufbau wie für alle: Persönliche Angaben, Berufliche Erfahrung, Aus- & Weiterbildungen, Kenntnisse & Fähigkeiten – so sind alle CVolution-Vorlagen gegliedert. Ihre übertragbaren Fähigkeiten zeigen Sie in den Tätigkeiten jeder Station, neue Zertifikate stehen zuoberst bei den Aus- & Weiterbildungen.",
   },
   {
     question: "Wie erkläre ich Lücken im Lebenslauf beim Quereinstieg?",
@@ -29,8 +30,25 @@ const faqData = [
   {
     question: "Lohnt es sich, den Lebenslauf für jede Stelle anzupassen?",
     answer:
-      "Ja, besonders als Quereinsteiger. Betonen Sie jeweils die Kompetenzen, die für die Zielstelle am relevantesten sind. Die Reihenfolge der Stichworte in Ihrer Kompetenzliste kann bereits entscheidend sein.",
+      "Ja, besonders als Quereinsteiger. Betonen Sie jeweils die Kompetenzen, die für die Zielstelle am relevantesten sind. Schon die Reihenfolge der Tätigkeiten bei jeder Station kann entscheidend sein: Was für die Zielstelle zählt, steht zuoberst.",
   },
+];
+
+const changerExperience: CvStation = {
+  dates: "03.2017 – heute",
+  role: "Projektleiterin Logistik",
+  org: "Muster Logistik AG, Basel",
+  tasks: [
+    "Rekrutierung und Einarbeitung von 15 neuen Mitarbeitenden pro Jahr",
+    "Führung eines Teams von 6 Personen inkl. Mitarbeitergespräche",
+    "Konzeption und Durchführung interner Schulungen zu neuen Prozessen",
+    "Leitung von Optimierungsprojekten mit bis zu 20 Beteiligten",
+  ],
+};
+
+const changerEducation: CvStation[] = [
+  { dates: "09.2023 – 06.2024", role: "CAS HR-Management", org: "Fachhochschule Nordwestschweiz" },
+  { dates: "08.2009 – 07.2012", role: "Kauffrau EFZ", org: "Muster Spedition AG, Basel" },
 ];
 
 export default function LebenslaufQuereinsteiger() {
@@ -105,28 +123,21 @@ export default function LebenslaufQuereinsteiger() {
             </ul>
           </section>
 
-          <section className="mb-10 bg-white rounded-2xl border border-gray-100 p-8 shadow-sm">
-            <h2 className="text-2xl font-semibold text-[#111827] mb-4">Lebenslauf-Format für Quereinsteiger wählen</h2>
+          <section className="mb-10 bg-white rounded-2xl border border-gray-100 p-5 shadow-sm sm:p-8">
+            <h2 className="text-2xl font-semibold text-[#111827] mb-4">Aufbau des Lebenslaufs für Quereinsteiger</h2>
             <p className="text-[#374151] leading-relaxed mb-4">
-              Das klassische chronologische Format stellt die Branchenferne sofort in den Vordergrund. Für Quereinsteiger
-              eignen sich zwei alternative Ansätze:
-            </p>
-            <h3 className="text-xl font-semibold text-[#111827] mb-3">Kombiniertes Format (empfohlen)</h3>
-            <p className="text-[#374151] leading-relaxed mb-4">
-              Beginn mit einem Kompetenzprofil, das Ihre Stärken thematisch gruppiert – gefolgt von der chronologischen
-              Berufserfahrung. So sieht der Arbeitgeber zuerst, was Sie können, bevor er sieht, woher Sie kommen.
+              Auch beim Branchenwechsel bleibt der Aufbau gleich – genau so, wie er in unseren Lebenslauf-Vorlagen
+              angelegt ist. Arbeitgeber finden sich sofort zurecht, und Ihre übertragbaren Kompetenzen stehen dort, wo
+              sie gelesen werden: bei den Tätigkeiten jeder Station.
             </p>
             <div className="bg-[#F8FAFC] rounded-xl p-6 border border-gray-100">
-              <h4 className="font-semibold text-[#111827] mb-3">Struktur: Kombiniertes Format</h4>
+              <h3 className="font-semibold text-[#111827] mb-3">Struktur wie in den Vorlagen</h3>
               <ul className="space-y-2">
                 {[
-                  "Persönliche Angaben + Foto",
-                  "Profil / Zusammenfassung (3–4 Sätze, inkl. Wechselwunsch positiv formuliert)",
-                  "Kernkompetenzen (thematisch: Projektmanagement | Kommunikation | IT)",
-                  "Weiterbildungen und Zertifikate (Neues zuerst)",
-                  "Berufserfahrung (chronologisch, umgekehrt)",
-                  "Ausbildung",
-                  "Sprachen und weitere Kenntnisse",
+                  "Persönliche Angaben mit Foto: Name, Adresse, Tel., E-Mail, Geburtsdatum, Zivilstand, Heimatort",
+                  "Berufliche Erfahrung (antichronologisch) – Tätigkeiten mit Bezug zur Zielbranche zuoberst",
+                  "Aus- & Weiterbildungen (antichronologisch) – neue Zertifikate für die Zielbranche zuoberst",
+                  "Kenntnisse & Fähigkeiten: Fremdsprachen, Führerschein, Programme",
                 ].map((item, i) => (
                   <li key={i} className="flex items-start gap-2 text-[#374151]">
                     <svg className="w-5 h-5 text-[#204878] flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
@@ -162,20 +173,16 @@ export default function LebenslaufQuereinsteiger() {
             </ul>
           </section>
 
-          <section className="mb-10 bg-white rounded-2xl border border-gray-100 p-8 shadow-sm">
-            <h2 className="text-2xl font-semibold text-[#111827] mb-4">Profil-Abschnitt als Einstieg nutzen</h2>
-            <p className="text-[#374151] leading-relaxed mb-4">
-              Ein kurzes Profil am Anfang des Lebenslaufs ist für Quereinsteiger besonders wertvoll. Es gibt Ihnen die
-              Möglichkeit, den Kontext zu setzen:
+          <section className="mb-10 bg-white rounded-2xl border border-gray-100 p-5 shadow-sm sm:p-8">
+            <h2 className="text-2xl font-semibold text-[#111827] mb-4">Beispiel: Von der Logistik ins HR</h2>
+            <p className="text-[#374151] leading-relaxed mb-5">
+              Eine Projektleiterin aus der Logistik bewirbt sich im HR. Statt eines zusätzlichen Abschnitts stellt sie
+              die Tätigkeiten mit HR-Bezug an den Anfang und führt den neuen CAS zuoberst bei den Weiterbildungen auf –
+              im Design «Klassisch» unserer Vorlagen:
             </p>
-            <div className="bg-[#F8FAFC] rounded-xl p-6 border border-gray-100">
-              <h3 className="font-semibold text-[#111827] mb-2">Beispiel Profil-Abschnitt</h3>
-              <p className="text-[#374151] italic">
-                «Erfahrene Projektleiterin mit 8 Jahren Erfahrung in der Logistikbranche, aktuell im gezielten
-                Übergang in den Bereich HR. Abgeschlossener CAS HR-Management (FHNW, 2024). Ich bringe ausgeprägte
-                Kommunikations- und Organisationskompetenz mit und möchte diese künftig in der Personalentwicklung
-                einsetzen.»
-              </p>
+            <div className="space-y-4">
+              <KlassischSnippet title="Berufliche Erfahrung" stations={[changerExperience]} />
+              <KlassischSnippet title="Ausbildungen / Weiterbildungen" stations={changerEducation} />
             </div>
           </section>
 

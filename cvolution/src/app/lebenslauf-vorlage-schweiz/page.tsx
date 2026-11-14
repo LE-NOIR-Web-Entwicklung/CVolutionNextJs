@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { KlassischSnippet } from "@/components/content/CvTemplatePreview";
 import { GuideCta } from "@/components/content/GuideCta";
 import { GuideSchema } from "@/components/seo/GuideSchema";
 import { metaFor } from "@/lib/seo-pages";
@@ -77,14 +78,11 @@ export default function LebenslaufVorlagePage() {
             <h3 className="text-xl font-semibold text-[#111827] mb-3">Aufbau einer Schweizer Lebenslauf-Vorlage</h3>
             <ul className="space-y-2 mb-4">
               {[
-                "Persönliche Angaben (Name, Adresse, Telefon, E-Mail, Geburtsdatum, Nationalität)",
-                "Professionelles Bewerbungsfoto (rechtsbündig oben)",
-                "Berufserfahrung (antichronologisch – aktuellste Stelle zuerst)",
-                "Ausbildung und Weiterbildungen",
-                "Sprachkenntnisse mit Niveauangabe",
-                "IT- und Fachkenntnisse",
-                "Hobbys und persönliche Interessen (optional, aber oft positiv bewertet)",
-                "Referenzen auf Anfrage oder direkte Nennung",
+                "Persönliche Angaben: Name, Adresse, Tel., E-Mail, Geburtsdatum, Zivilstand, Heimatort",
+                "Professionelles Bewerbungsfoto",
+                "Berufliche Erfahrung (antichronologisch – aktuellste Stelle zuerst, Tätigkeiten als Aufzählung)",
+                "Aus- & Weiterbildungen (antichronologisch)",
+                "Kenntnisse & Fähigkeiten: Fremdsprachen mit Niveau, Führerschein, Programme",
               ].map((item, i) => (
                 <li key={i} className="flex items-start gap-2 text-[#374151]">
                   <svg className="w-5 h-5 text-[#204878] flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
@@ -133,21 +131,27 @@ export default function LebenslaufVorlagePage() {
           </section>
 
           {/* Section 4 – Example */}
-          <section className="mb-10 bg-white rounded-2xl border border-gray-100 p-8 shadow-sm">
+          <section className="mb-10 bg-white rounded-2xl border border-gray-100 p-5 shadow-sm sm:p-8">
             <h2 className="text-2xl font-semibold text-[#111827] mb-4">Beispiel: Berufserfahrung korrekt formulieren</h2>
             <p className="text-[#374151] leading-relaxed mb-4">
-              So sieht ein gut strukturierter Berufserfahrungs-Eintrag aus:
+              So sieht ein gut strukturierter Eintrag in der Vorlage «Klassisch» aus:
             </p>
-            <div className="bg-[#F8FAFC] rounded-xl p-6 border border-gray-100">
-              <p className="font-semibold text-[#111827]">Projektleiter Marketing | Muster AG, Zürich</p>
-              <p className="text-sm text-[#64748B] mb-3">März 2020 – heute</p>
-              <ul className="space-y-1 text-[#374151] text-sm">
-                <li>• Leitung eines 5-köpfigen Teams für digitale Marketingkampagnen</li>
-                <li>• Steigerung der organischen Reichweite um 40 % innerhalb von 12 Monaten</li>
-                <li>• Verwaltung eines Jahresbudgets von CHF 200&apos;000</li>
-                <li>• Einführung eines neuen CRM-Systems (Salesforce) für 80 Mitarbeitende</li>
-              </ul>
-            </div>
+            <KlassischSnippet
+              title="Berufliche Erfahrung"
+              stations={[
+                {
+                  dates: "03.2020 – heute",
+                  role: "Projektleiter Marketing",
+                  org: "Muster AG, Zürich",
+                  tasks: [
+                    "Leitung eines 5-köpfigen Teams für digitale Marketingkampagnen",
+                    "Steigerung der organischen Reichweite um 40 % innerhalb von 12 Monaten",
+                    "Verwaltung eines Jahresbudgets von CHF 200\u2019000",
+                    "Einführung eines neuen CRM-Systems (Salesforce) für 80 Mitarbeitende",
+                  ],
+                },
+              ]}
+            />
           </section>
 
           {/* Internal links */}

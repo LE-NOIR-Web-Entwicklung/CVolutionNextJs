@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { CvPaper, KlassischPersonalien } from "@/components/content/CvTemplatePreview";
 import { GuideCta } from "@/components/content/GuideCta";
 import { GuideSchema } from "@/components/seo/GuideSchema";
 import { metaFor } from "@/lib/seo-pages";
@@ -29,7 +30,7 @@ const faqData = [
   {
     question: "Soll ich auch ehrenamtliche Tätigkeiten angeben?",
     answer:
-      "Ja, Freiwilligenarbeit und Vereinsengagement werden in der Schweiz sehr positiv bewertet. Sie zeigen soziale Verantwortung und persönliche Interessen. Fügen Sie diese Tätigkeiten im Abschnitt 'Weitere Aktivitäten' oder 'Hobbys & Interessen' ein.",
+      "Ja, Freiwilligenarbeit und Vereinsengagement werden in der Schweiz sehr positiv bewertet. Sie zeigen soziale Verantwortung und persönliche Interessen. Führen Sie ein regelmässiges Engagement als eigene Station unter «Berufliche Erfahrung» auf, z. B. «Juniorentrainerin (ehrenamtlich), Handballclub Aarau», mit Zeitraum und Tätigkeiten.",
   },
   {
     question: "Wie gehe ich mit älteren Ausbildungen oder Abschlüssen um?",
@@ -76,25 +77,18 @@ export default function LebenslaufAufbauPage() {
 
             <h3 className="text-xl font-semibold text-[#111827] mb-3">1. Persönliche Angaben & Foto</h3>
             <p className="text-[#374151] leading-relaxed mb-3">
-              Der Kopf Ihres Lebenslaufs enthält Ihre vollständigen Kontaktdaten. Fügen Sie ein professionelles Foto
+              Der Kopf Ihres Lebenslaufs enthält Ihre Personalien – genau diese Felder sehen unsere Vorlagen vor. Fügen Sie ein professionelles Foto
               ein – in der Schweiz ist dies nach wie vor Standard und wird von den meisten Arbeitgebern erwartet.
             </p>
             <ul className="space-y-1 mb-6 text-[#374151]">
-              {["Vollständiger Name", "Adresse mit PLZ und Ort", "Telefonnummer (Mobiltelefon)", "E-Mail-Adresse (professionell)", "Geburtsdatum", "Nationalität / Arbeitserlaubnis"].map((item, i) => (
+              {["Name", "Adresse mit PLZ und Ort", "Telefonnummer (Mobiltelefon)", "E-Mail-Adresse (professionell)", "Geburtsdatum", "Zivilstand", "Heimatort (ohne Schweizer Bürgerrecht: Nationalität und Bewilligung)"].map((item, i) => (
                 <li key={i} className="flex items-start gap-2">
                   <span className="text-[#204878] font-bold mt-0.5">•</span> {item}
                 </li>
               ))}
             </ul>
 
-            <h3 className="text-xl font-semibold text-[#111827] mb-3">2. Profil oder Zusammenfassung (optional)</h3>
-            <p className="text-[#374151] leading-relaxed mb-6">
-              Ein zwei- bis dreizeiliges Profil am Anfang des Lebenslaufs gewinnt in der Schweiz zunehmend an
-              Bedeutung. Fassen Sie Ihre wichtigsten Kompetenzen und Ihr Karriereziel prägnant zusammen. Dieser
-              Abschnitt ist besonders für Führungskräfte und Quereinsteiger wertvoll.
-            </p>
-
-            <h3 className="text-xl font-semibold text-[#111827] mb-3">3. Berufserfahrung</h3>
+            <h3 className="text-xl font-semibold text-[#111827] mb-3">2. Berufliche Erfahrung</h3>
             <p className="text-[#374151] leading-relaxed mb-3">
               Dies ist das Herzstück Ihres Lebenslaufs. Listen Sie alle relevanten Anstellungen antichronologisch auf.
               Pro Stelle gehören folgende Informationen hinein:
@@ -112,43 +106,39 @@ export default function LebenslaufAufbauPage() {
               ))}
             </ul>
 
-            <h3 className="text-xl font-semibold text-[#111827] mb-3">4. Ausbildung und Weiterbildungen</h3>
+            <h3 className="text-xl font-semibold text-[#111827] mb-3">3. Aus- &amp; Weiterbildungen</h3>
             <p className="text-[#374151] leading-relaxed mb-6">
-              Führen Sie Ihre Ausbildungen ebenfalls antichronologisch auf. Für Berufseinsteiger steht dieser
-              Abschnitt oft vor der Berufserfahrung. Nennen Sie auch relevante Kurse, Zertifikate und
+              Führen Sie Ihre Ausbildungen ebenfalls antichronologisch auf. Dieser Abschnitt folgt immer nach der
+              Berufserfahrung – auch bei Berufseinsteigern. Nennen Sie auch relevante Kurse, Zertifikate und
               Weiterbildungen – diese zeigen Lernbereitschaft und aktuelle Fachkenntnisse.
             </p>
 
-            <h3 className="text-xl font-semibold text-[#111827] mb-3">5. Sprach- und IT-Kenntnisse</h3>
+            <h3 className="text-xl font-semibold text-[#111827] mb-3">4. Kenntnisse &amp; Fähigkeiten</h3>
             <p className="text-[#374151] leading-relaxed mb-6">
-              Sprachkenntnisse sind in der mehrsprachigen Schweiz besonders relevant. Geben Sie für jede Sprache
-              das Kompetenzniveau an. Bei IT-Kenntnissen reicht eine übersichtliche Liste der wichtigsten Programme
-              und Tools mit kurzer Niveauangabe (Grundkenntnisse, fortgeschritten, Experte).
-            </p>
-
-            <h3 className="text-xl font-semibold text-[#111827] mb-3">6. Interessen und weitere Aktivitäten</h3>
-            <p className="text-[#374151] leading-relaxed mb-4">
-              Dieser Abschnitt ist optional, aber in der Schweiz wird er von Personalverantwortlichen oft gelesen.
-              Er vermittelt ein Bild Ihrer Persönlichkeit. Wählen Sie Hobbys, die etwas über Ihre Charaktereigenschaften
-              aussagen – Teamarbeit, Ausdauer, Kreativität oder Führungsqualitäten.
+              Der letzte Abschnitt hat drei Zeilen: Fremdsprachen, Führerschein und Programme. Sprachkenntnisse sind
+              in der mehrsprachigen Schweiz besonders relevant – geben Sie für jede Sprache das Niveau an. Bei den
+              Programmen reicht eine übersichtliche Liste der wichtigsten Tools mit kurzer Niveauangabe. Mehr
+              Abschnitte braucht Ihr Lebenslauf nicht.
             </p>
           </section>
 
           <section className="mb-10 bg-white rounded-2xl border border-gray-100 p-8 shadow-sm">
             <h2 className="text-2xl font-semibold text-[#111827] mb-4">Beispiel: Vollständiger Lebenslauf-Kopf</h2>
-            <div className="bg-[#F8FAFC] rounded-xl p-6 border border-gray-100">
-              <div className="flex justify-between items-start gap-4">
-                <div className="min-w-0 [overflow-wrap:anywhere]">
-                  <p className="font-bold text-[#111827] text-lg">Maria Müller</p>
-                  <p className="text-[#64748B] text-sm">Musterstrasse 12, 8001 Zürich</p>
-                  <p className="text-[#64748B] text-sm">+41 79 123 45 67</p>
-                  <p className="text-[#64748B] text-sm">maria.mueller@email.ch</p>
-                  <p className="text-[#64748B] text-sm">Schweizer Staatsangehörige</p>
-                  <p className="text-[#64748B] text-sm">linkedin.com/in/mariamueller</p>
-                </div>
-                <div className="w-20 h-24 flex-shrink-0 bg-gray-200 rounded-lg flex items-center justify-center text-xs text-gray-500">Foto</div>
+            <CvPaper>
+              <div className="px-5 py-6 sm:px-10 sm:py-8">
+                <KlassischPersonalien
+                  rows={[
+                    ["Name", "Maria Müller"],
+                    ["Adresse", "Musterstrasse 12\n8001 Zürich"],
+                    ["Tel.", "079 123 45 67"],
+                    ["E-Mail", "maria.mueller@email.ch"],
+                    ["Geburtsdatum", "3. Mai 1992"],
+                    ["Zivilstand", "ledig"],
+                    ["Heimatort", "Zürich, Schweiz"],
+                  ]}
+                />
               </div>
-            </div>
+            </CvPaper>
           </section>
 
           <section className="mb-10">
