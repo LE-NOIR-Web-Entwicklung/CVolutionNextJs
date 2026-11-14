@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { trackFunnel } from "@/lib/funnel";
+import { PaymentLogos } from "@/components/PaymentLogos";
 import { ArrowRight, ShoppingCart } from "lucide-react";
 import { clearCart, readCart, writeCart, type CartItem } from "@/lib/cart";
 import {
@@ -857,6 +858,12 @@ export default function CartPage() {
                   >
                     {isSubmitting ? "Checkout wird erstellt..." : "Jetzt bezahlen"}
                   </button>
+                  <div className="space-y-2 pt-1 text-center">
+                    <p className="text-xs text-[#64748B]">
+                      Sichere Zahlung über Worldline/Saferpay · TWINT, Karte, Apple Pay oder Google Pay
+                    </p>
+                    <PaymentLogos />
+                  </div>
                 </div>
               </div>
             </form>

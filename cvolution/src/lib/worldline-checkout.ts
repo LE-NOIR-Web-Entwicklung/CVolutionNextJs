@@ -40,6 +40,7 @@ export async function initializeWorldlineCheckout(params: {
       Url: params.returnUrl,
     },
     ...(SAFERPAY_SHOP.paymentMethods.length > 0 ? { PaymentMethods: SAFERPAY_SHOP.paymentMethods } : {}),
+    ...(SAFERPAY_SHOP.wallets.length > 0 ? { Wallets: SAFERPAY_SHOP.wallets } : {}),
     ...(saferpayConfig.paymentPageConfigSet ? { ConfigSet: saferpayConfig.paymentPageConfigSet } : {}),
   };
 
