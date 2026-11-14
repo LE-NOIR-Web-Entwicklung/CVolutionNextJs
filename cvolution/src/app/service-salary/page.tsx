@@ -69,7 +69,7 @@ const salaryFaqs: Faq[] = [
   {
     question: "Wie viel sollte ich verdienen?",
     answer:
-      "Eine allgemeingültige Zahl gibt es nicht. Ihr marktgerechter Lohn hängt von Funktion, Branche, Kanton, Ausbildung, Berufserfahrung, Pensum und Führungsverantwortung ab. Zur Orientierung: Der monatliche Bruttomedianlohn in der Schweiz lag gemäss Lohnstrukturerhebung des BFS 2022 bei rund CHF 6'788. Unsere Lohnanalyse zeigt Ihnen, in welcher Bandbreite Ihr Lohn für Ihr Profil liegen sollte.",
+      "Eine allgemeingültige Zahl gibt es nicht. Ihr marktgerechter Lohn hängt von Funktion, Branche, Kanton, Ausbildung, Berufserfahrung, Pensum und Führungsverantwortung ab. Zur Orientierung: Der monatliche Bruttomedianlohn in der Schweiz lag gemäss Lohnstrukturerhebung des BFS 2024 bei CHF 7'024 (Vollzeit). Unsere Lohnanalyse zeigt Ihnen, in welcher Bandbreite Ihr Lohn für Ihr Profil liegen sollte.",
   },
   {
     question: "Wie funktioniert eine Lohnanalyse?",

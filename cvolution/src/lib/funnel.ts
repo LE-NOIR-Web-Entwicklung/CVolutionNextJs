@@ -5,6 +5,7 @@ import { track } from "@vercel/analytics";
  * add_to_cart -> checkout_started -> payment_redirect -> order_confirmed | payment_failed
  */
 type FunnelEvent =
+  | { name: "calculator_used" }
   | { name: "add_to_cart"; service: string }
   | { name: "checkout_started"; items: number; total: number }
   | { name: "checkout_error"; reason: string }

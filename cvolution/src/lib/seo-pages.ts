@@ -165,6 +165,11 @@ export const PAGE_META = {
     description:
       "Lohn selbst vergleichen: Welche Quellen zuverlässig sind, welche Faktoren den Lohn bestimmen und ab wann sich eine Lohnverhandlung lohnt.",
   },
+  "/lohnrechner-schweiz": {
+    title: "Lohnrechner Schweiz 2026: Brutto-Netto berechnen",
+    description:
+      "Kostenloser Brutto-Netto-Rechner für die Schweiz 2026: AHV, ALV, Pensionskasse und NBU berechnen und Ihren Lohn mit dem Medianlohn vergleichen.",
+  },
   "/rav-bewerbung-tipps": {
     title: "RAV Bewerbung: Arbeitsbemühungen richtig nachweisen",
     description:
@@ -240,6 +245,7 @@ const CTA_SELF: ServiceCta = {
 };
 
 export const GUIDES: Guide[] = [
+  { path: "/lohnrechner-schweiz", label: "Lohnrechner Brutto-Netto", teaser: "Nettolohn berechnen und mit dem Median vergleichen.", category: "Lohn", service: CTA_SALARY },
   { path: "/lohnanalyse-schweiz", label: "Lohnanalyse Schweiz", teaser: "Lohn selbst vergleichen und fair einordnen.", category: "Lohn", service: CTA_SALARY },
   { path: "/lohn-verhandeln-schweiz", label: "Lohn verhandeln", teaser: "Strategien und Formulierungen für mehr Lohn.", category: "Lohn", service: CTA_SALARY },
   { path: "/lebenslauf-beispiel", label: "Lebenslauf Beispiel", teaser: "Drei vollständige Muster für jede Karrierestufe.", category: "Lebenslauf", service: CTA_CV },
@@ -264,7 +270,7 @@ export function guideFor(path: string) {
 
 /** Guides shown on each service page, most relevant first. */
 export const SERVICE_GUIDES: Record<string, PagePath[]> = {
-  "/service-salary": ["/lohnanalyse-schweiz", "/lohn-verhandeln-schweiz", "/bewerbungsgespraech-tipps"],
+  "/service-salary": ["/lohnrechner-schweiz", "/lohnanalyse-schweiz", "/lohn-verhandeln-schweiz", "/bewerbungsgespraech-tipps"],
   "/service-cv": ["/lebenslauf-beispiel", "/lebenslauf-vorlage-schweiz", "/lebenslauf-aufbau", "/lebenslauf-format-schweiz", "/lebenslauf-fehler", "/lebenslauf-student"],
   "/service-motivation": ["/motivationsschreiben-tipps", "/bewerbung-vorlage-schweiz", "/bewerbung-schreiben"],
   "/service-career": ["/lebenslauf-quereinsteiger", "/bewerbung-nach-kuendigung", "/bewerbungsgespraech-tipps"],

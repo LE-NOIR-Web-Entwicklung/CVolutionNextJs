@@ -19,7 +19,7 @@ const faqData = [
   {
     question: "Was ist der Medianlohn in der Schweiz?",
     answer:
-      "Gemäss der Lohnstrukturerhebung des BFS lag der monatliche Bruttomedianlohn 2022 bei rund CHF 6'788. Das heisst, die Hälfte der Arbeitnehmenden verdient mehr, die andere Hälfte weniger. Für aussagekräftige Vergleiche sollten Sie branchenspezifische Zahlen verwenden.",
+      "Gemäss der Lohnstrukturerhebung des BFS lag der monatliche Bruttomedianlohn 2024 bei CHF 7'024 (Vollzeit, inkl. anteiligem 13. Monatslohn). Das heisst, die Hälfte der Arbeitnehmenden verdient mehr, die andere Hälfte weniger. Für aussagekräftige Vergleiche sollten Sie branchenspezifische Zahlen verwenden.",
   },
   {
     question: "Wie erkenne ich eine unfaire Entlöhnung?",
