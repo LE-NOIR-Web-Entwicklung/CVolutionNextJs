@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { trackFunnel } from "@/lib/funnel";
 import { ArrowRight, ShoppingCart } from "lucide-react";
 import { clearCart, readCart, writeCart, type CartItem } from "@/lib/cart";
 import {
@@ -270,6 +271,17 @@ export default function CartPage() {
   }
 
   function updateSalaryDetails(serviceType: ShopProductKey, patch: Partial<SalaryDetails>) {
+    // Mirror name and e-mail into the contact block so salary customers type them only once.
+    // A contact field is only overwritten while it is empty or still equal to the mirrored value.
+    const previous = salaryDetails[serviceType] || emptySalaryDetails;
+    const mirror = (value: string | undefined, prev: string, contact: string, set: (next: string) => void) => {
+      if (value !== undefined && (contact === "" || contact === prev)) set(value);
+    };
+    mirror(patch.firstName, previous.firstName, firstName, setFirstName);
+    mirror(patch.lastName, previous.lastName, lastName, setLastName);
+    mirror(patch.email, previous.email, email, setEmail);
+    mirror(patch.emailConfirmation, previous.emailConfirmation, emailConfirmation, setEmailConfirmation);
+
     setSalaryDetails((current) => ({
       ...current,
       [serviceType]: {
@@ -392,12 +404,12 @@ export default function CartPage() {
                 <input type="file" accept=".pdf,.doc,.docx,.png,.jpg,.jpeg" onChange={(event) => updateSalaryDetails(serviceType, { salaryFile: event.target.files?.[0] || null })} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#204878] focus:border-transparent transition" />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-[#111827] mb-1">Aktueller Lebenslauf</label>
+                <label className="block text-xs font-semibold text-[#111827] mb-1">Aktueller Lebenslauf (oder LinkedIn-Profil) *</label>
                 <input type="file" accept=".pdf,.doc,.docx" onChange={(event) => updateSalaryDetails(serviceType, { cvFile: event.target.files?.[0] || null })} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#204878] focus:border-transparent transition" />
               </div>
             </div>
             <div>
-              <label className="block text-xs font-semibold text-[#111827] mb-1">LinkedIn Profil</label>
+              <label className="block text-xs font-semibold text-[#111827] mb-1">LinkedIn Profil (oder Lebenslauf hochladen) *</label>
               <input type="text" inputMode="url" value={details.linkedinUrl} onChange={(event) => updateSalaryDetails(serviceType, { linkedinUrl: event.target.value })} placeholder="www.linkedin.com/in/..." className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#204878] focus:border-transparent transition" />
             </div>
             <div>
@@ -563,6 +575,7 @@ export default function CartPage() {
         if (isSalaryService(item.serviceType)) {
           const salaryError = validateSalaryLine(item.serviceType);
           if (salaryError) {
+            trackFunnel({ name: "checkout_error", reason: salaryError.slice(0, 80) });
             setError(salaryError);
             setIsSubmitting(false);
             return;
@@ -643,6 +656,7 @@ export default function CartPage() {
         };
       }));
 
+      trackFunnel({ name: "checkout_started", items: items.length, total });
       const res = await fetch("/api/worldline/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -666,11 +680,13 @@ export default function CartPage() {
       setItems([]);
 
       if (data.requiresPayment && data.paymentUrl) {
+        trackFunnel({ name: "payment_redirect", total });
         window.location.href = data.paymentUrl;
       } else {
         window.location.href = data.redirectUrl || "/confirmation?success=true&service=warenkorb";
       }
     } catch (checkoutError) {
+      trackFunnel({ name: "checkout_error", reason: checkoutError instanceof Error ? checkoutError.message.slice(0, 80) : "unknown" });
       setError(checkoutError instanceof Error ? checkoutError.message : "Checkout fehlgeschlagen.");
       setIsSubmitting(false);
     }

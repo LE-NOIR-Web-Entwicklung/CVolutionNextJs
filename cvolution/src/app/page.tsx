@@ -1,138 +1,24 @@
-"use client"
-
-import { useState } from "react";
 import Image from "next/image";
 import { FaLinkedin, FaPhone, FaEnvelope } from "react-icons/fa";
 import Link from "next/link";
-import { AddToCartButton } from "@/components/AddToCartButton";
 import { OFFER_CARDS } from "@/lib/service-offers";
+import { metaFor } from "@/lib/seo-pages";
+import { GuideHub } from "@/components/content/GuideHub";
+
+export const metadata = metaFor("/");
+
 
 export default function Home() {
-  const slides = [
-    {
-      title: "Lebenslauf",
-      description: "Ein professioneller Lebenslauf ist der Schlüssel zu einem erfolgreichen Bewerbungsprozess.",
-      link: "/service-cv"
-    },
-    {
-      title: "Lohnanalyse",
-      description: "Erhalten Sie eine fundierte Einschätzung Ihrer aktuellen Vergütung im Vergleich zu branchenüblichen Standards.",
-      link: "/service-salary"
-    },
-    {
-      title: "Laufbahn-Beratung",
-      description: "Unsere Laufbahnberatung bietet Ihnen Orientierung und Unterstützung.",
-      link: "/service-career"
-    },
-  ];
-
-  const [currentSlide, setCurrentSlide] = useState(0);
-
-  const nextSlide = () => {
-    setCurrentSlide((prev) => (prev + 1) % slides.length);
-  };
-
-  const prevSlide = () => {
-    setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length);
-  };
-
   return (
     <div className="min-h-screen flex flex-col">
-      {/* Hero Section */}
-      {/* <section className="relative min-h-[88vh] flex flex-col items-center justify-center bg-[#0F172A] overflow-hidden">
-        {/* Base gradient 
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_#1e3a5f_0%,_#0F172A_70%)]" />
-        {/* Ambient glow behind content 
-        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] rounded-full bg-[#204878]/30 blur-3xl pointer-events-none" />
-        {/* Subtle top edge highlight 
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-
-        <div className="relative z-10 text-center max-w-4xl mx-auto px-6 py-32">
-          {/* Icon 
-          <div className="flex justify-center mb-10">
-            <div className="relative">
-              <div className="absolute inset-0 rounded-2xl bg-white/10 blur-xl scale-110" />
-              <Image
-                src={`/images/slider-${currentSlide + 1}.png`}
-                alt={`Extra Image ${currentSlide + 1}`}
-                width={96}
-                height={96}
-                className="relative rounded-2xl drop-shadow-[0_10px_30px_rgba(0,0,0,0.4)] animate-float"
-              />
-            </div>
-          </div>
-
-          {/* Headline
-          <h1 className="text-5xl sm:text-6xl md:text-7xl font-semibold text-white leading-tight tracking-tight mb-6">
-            {slides[currentSlide].title}
-          </h1>
-
-          {/* Description
-          <p className="text-lg text-blue-100/80 leading-relaxed max-w-xl mx-auto mb-10">
-            {slides[currentSlide].description}
-          </p>
-
-          {/* CTA Buttons
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <a
-              href={slides[currentSlide].link}
-              className="px-7 py-3.5 bg-white text-[#204878] font-semibold rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 text-sm"
-            >
-              Jetzt buchen
-            </a>
-            <a
-              href="/service"
-              className="px-7 py-3.5 border border-white/20 bg-white/10 text-white font-medium rounded-xl hover:bg-white/20 hover:-translate-y-0.5 transition-all duration-300 text-sm backdrop-blur-sm"
-            >
-              Alle Leistungen →
-            </a>
-          </div>
-        </div>
-
-        {/* Slider Controls
-        <button
-          onClick={prevSlide}
-          className="absolute top-1/2 left-6 -translate-y-1/2 w-10 h-10 flex items-center justify-center bg-white/10 hover:bg-white/20 text-white rounded-full transition-colors duration-200 backdrop-blur-sm border border-white/10"
-          aria-label="Vorheriger Slide"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-          </svg>
-        </button>
-        <button
-          onClick={nextSlide}
-          className="absolute top-1/2 right-6 -translate-y-1/2 w-10 h-10 flex items-center justify-center bg-white/10 hover:bg-white/20 text-white rounded-full transition-colors duration-200 backdrop-blur-sm border border-white/10"
-          aria-label="Nächster Slide"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-          </svg>
-        </button>
-
-        {/* Dots Indicator 
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-2">
-          {slides.map((_, index) => (
-            <button
-              key={index}
-              onClick={() => setCurrentSlide(index)}
-              className={`transition-all duration-300 rounded-full ${
-                index === currentSlide
-                  ? "w-6 h-2 bg-white"
-                  : "w-2 h-2 bg-white/30 hover:bg-white/50"
-              }`}
-              aria-label={`Slide ${index + 1}`}
-            />
-          ))}
-        </div>
-      </section> */}
       <section className="relative min-h-[calc(100svh-4rem)] flex items-center text-white overflow-hidden bg-[#102a45]">
         {/* Hero background image */}
         <Image
           src="/images/hero2.png"
-          alt="Hero background"
+          alt=""
           fill
           sizes="100vw"
-          quality={100}
+          quality={75}
           className="object-cover object-center scale-[1.03] saturate-[0.92] contrast-[1.08]"
           priority
         />
@@ -153,20 +39,21 @@ export default function Home() {
               1000+ Kunden bereits erfolgreich unterstützt
             </div>
 
-            {/* Headline */}
-            <h1 className="max-w-5xl text-[clamp(2.85rem,12vw,7.25rem)] font-semibold leading-[0.94] mb-6 text-white [text-wrap:balance]">
-              Unsere Bewerbung,{" "}
-              <br className="hidden sm:block" />
-              <span className="text-white/72">
-                deine Entwicklung!
+            {/* H1: brand slogan as display text, keyword line as its subtitle */}
+            <h1 className="mb-4 flex max-w-5xl flex-col items-center text-white">
+              <span className="text-[clamp(2.85rem,12vw,7.25rem)] font-semibold leading-[0.94] [text-wrap:balance]">
+                Unsere Bewerbung,{" "}
+                <br className="hidden sm:block" />
+                <span className="text-white/72">deine Entwicklung!</span>
+              </span>
+              <span className="mt-6 max-w-2xl text-lg font-medium leading-7 text-white/90 [text-wrap:balance] sm:text-xl sm:leading-8">
+                Bewerbungsservice Schweiz für Lebenslauf, Lohnanalyse und Laufbahnberatung
               </span>
             </h1>
 
             {/* Subheadline */}
-            <p className="max-w-2xl text-base leading-8 text-white/74 sm:text-lg mb-8">
-              Mit über 10 Jahren Erfahrung im Recruiting unterstützen wir bei Lebenslauf,
-              Lohnanalyse und Laufbahnberatung. Oder Sie erstellen Ihre Bewerbung
-              selbst, mit Self-Service und Downloads.
+            <p className="mb-8 max-w-xl text-base leading-7 text-white/70 [text-wrap:pretty]">
+              Über 10 Jahre Recruiting-Erfahrung. Oder Sie erstellen Ihre Bewerbung selbst, mit Self-Service und Downloads.
             </p>
 
             {/* CTA Buttons */}
@@ -196,30 +83,6 @@ export default function Home() {
                 Alle Angebote ansehen
               </Link>
             </div>
-
-            {/* Service Highlights */}
-            {/* <div className="grid w-full max-w-[18.5rem] grid-cols-2 justify-items-stretch gap-2 text-xs sm:flex sm:max-w-6xl sm:flex-wrap sm:justify-center sm:text-sm lg:flex-nowrap">
-              {[
-                { label: "Lohnanalyse", href: "/service-salary" },
-                { label: "Laufbahnberatung", href: "/service-career" },
-                { label: "Lebenslauf", href: "/service-cv" },
-                { label: "LinkedIn Profil", href: "/service-linkedin" },
-                { label: "Motivationsschreiben", href: "/service-motivation" },
-                { label: "CV Check", href: "/service-check" },
-                { label: "Self-Service", href: "/self" },
-              ].map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className="group inline-flex min-h-9 items-center justify-center gap-1.5 rounded-full border border-white/14 bg-white/[0.08] px-3 py-2 text-white/72 shadow-[inset_0_1px_0_rgba(255,255,255,0.10),0_0.75rem_2rem_rgba(4,18,34,0.10)] backdrop-blur-md transition duration-300 hover:-translate-y-0.5 hover:border-white/28 hover:bg-white/[0.15] hover:text-white sm:min-h-10 sm:justify-start sm:gap-2 sm:px-4"
-                >
-                  <svg className="h-2.5 w-2.5 flex-shrink-0 text-white/48 transition duration-300 group-hover:text-white/88 sm:h-3 sm:w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                  </svg>
-                  {item.label}
-                </Link>
-              ))}
-            </div> */}
 
           </div>
         </div>
@@ -280,13 +143,6 @@ export default function Home() {
                   >
                     <p>Angebot ansehen <span aria-hidden="true" className="transition group-hover:translate-x-1">→</span></p>
                   </Link>
-                  {/* {!product.hasMultipleVariants && (
-                    <AddToCartButton
-                      serviceType={product.serviceType}
-                      productName={product.name}
-                      className="inline-flex w-full items-center justify-center rounded-xl bg-[#204878] px-3 py-3 text-center text-sm font-semibold text-white shadow-lg shadow-[#204878]/20 transition duration-200 hover:-translate-y-0.5 hover:bg-[#173d66] active:translate-y-0"
-                    />
-                  )} */}
                 </div>
               </article>
             ))}
@@ -294,14 +150,19 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Ratgeber Section */}
+      <section id="ratgeber" className="bg-white px-5 py-20 text-[#142033] sm:px-6 sm:py-24">
+        <GuideHub />
+      </section>
+
       {/* Team Section */}
       <section className="relative py-24 overflow-hidden">
         <Image
           src="/images/teamsectionbg.png"
-          alt="Team section background"
+          alt=""
           fill
           sizes="100vw"
-          quality={100}
+          quality={75}
           className="object-cover object-[70%] md:object-center"
         />
         <div className="absolute inset-0 bg-transparent md:bg-[#193961]/60" />
@@ -343,6 +204,8 @@ export default function Home() {
                     src={member.image}
                     alt={member.name}
                     fill
+                    sizes="(min-width: 768px) 96px, 144px"
+                    quality={75}
                     className="rounded-full object-cover object-top"
                   />
                 </div>

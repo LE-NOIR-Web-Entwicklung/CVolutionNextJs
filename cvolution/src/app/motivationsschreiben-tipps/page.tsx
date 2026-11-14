@@ -1,13 +1,9 @@
-import type { Metadata } from "next";
 import Link from "next/link";
-import Script from "next/script";
+import { GuideCta } from "@/components/content/GuideCta";
+import { GuideSchema } from "@/components/seo/GuideSchema";
+import { metaFor } from "@/lib/seo-pages";
 
-export const metadata: Metadata = {
-  title: "Motivationsschreiben Tipps Schweiz 2026 | So überzeugen Sie Arbeitgeber",
-  description:
-    "Die wichtigsten Tipps für ein überzeugendes Motivationsschreiben auf dem Schweizer Arbeitsmarkt. Konkrete Ratschläge von erfahrenen Recruiting-Experten.",
-  alternates: { canonical: "https://cvolution.ch/motivationsschreiben-tipps" },
-};
+export const metadata = metaFor("/motivationsschreiben-tipps", { type: "article" });
 
 const faqData = [
   {
@@ -40,21 +36,7 @@ const faqData = [
 export default function MotivationsschreibenTippsPage() {
   return (
     <>
-      <Script
-        id="faq-schema"
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "FAQPage",
-            mainEntity: faqData.map((faq) => ({
-              "@type": "Question",
-              name: faq.question,
-              acceptedAnswer: { "@type": "Answer", text: faq.answer },
-            })),
-          }),
-        }}
-      />
+      <GuideSchema path="/motivationsschreiben-tipps" faqs={faqData} />
       <main className="bg-[#F8FAFC] min-h-screen">
         <div className="max-w-4xl mx-auto px-4 py-12">
 
@@ -188,20 +170,7 @@ export default function MotivationsschreibenTippsPage() {
             </div>
           </section>
 
-          <section className="bg-[#204878] rounded-2xl p-8 text-white text-center">
-            <h2 className="text-2xl font-semibold mb-3">Professionelle Unterstützung bei Ihrer Bewerbung</h2>
-            <p className="text-blue-100/80 mb-6 max-w-xl mx-auto">
-              Gemeinsam erarbeiten wir Ihr individuelles Motivationsschreiben – überzeugend, klar und auf den Punkt.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Link href="/service-motivation" className="inline-flex items-center justify-center px-6 py-3 bg-white text-[#204878] font-semibold rounded-xl hover:bg-blue-50 transition-colors duration-200">
-                Jetzt Beratung buchen
-              </Link>
-              <Link href="/service" className="inline-flex items-center justify-center px-6 py-3 bg-white/10 text-white font-medium rounded-xl border border-white/20 hover:bg-white/20 transition-colors duration-200">
-                Komplette Bewerbung
-              </Link>
-            </div>
-          </section>
+          <GuideCta path="/motivationsschreiben-tipps" />
         </div>
       </main>
     </>

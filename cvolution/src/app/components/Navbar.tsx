@@ -79,7 +79,7 @@ export default function Navbar() {
         <div className="max-w-6xl mx-auto px-6 flex items-center justify-between h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center">
-            <img src="/images/logo-nobg.png" className="h-9" style={{filter: "invert(24%) sepia(57%) saturate(600%) hue-rotate(185deg) brightness(40%) contrast(95%)"}} alt="Logo" />
+            <img src="/images/logo-header.png" width={170} height={36} className="h-9 w-auto" style={{filter: "invert(24%) sepia(57%) saturate(600%) hue-rotate(185deg) brightness(40%) contrast(95%)"}} alt="CVolution Startseite" />
           </Link>
 
           {/* Desktop Menu */}

@@ -1,15 +1,15 @@
-import type { Metadata } from "next";
 import { ServiceDownloadCard } from "@/components/ServiceDownloadCard";
 import {
   SERVICE_DOWNLOAD_MAX_PER_DOCUMENT,
   SERVICE_DOWNLOAD_VALID_DAYS,
   SERVICE_DOWNLOAD_OFFERS,
 } from "@/lib/service-downloads";
+import { RelatedGuides } from "@/components/content/RelatedGuides";
+import { JsonLd } from "@/components/seo/JsonLd";
+import { serviceSchema } from "@/lib/seo";
+import { guidesForService, metaFor } from "@/lib/seo-pages";
 
-export const metadata: Metadata = {
-  title: "Downloads: Masterprompts und Lebenslauf-Vorlagen | CVolution",
-  description: "Masterprompts für Ihr Motivationsschreiben mit KI und Lebenslauf-Vorlagen für Word. CHF 19.90 pro Dokument oder alle 5 für CHF 49.90.",
-};
+export const metadata = metaFor("/service-downloads");
 
 const STEPS = [
   { title: "Dokumente wählen", text: "Legen Sie die gewünschten Dokumente in den Warenkorb und bezahlen Sie wie gewohnt." },
@@ -20,6 +20,18 @@ const STEPS = [
 export default function ServiceDownloads() {
   return (
     <main className="min-h-screen overflow-hidden bg-[#f4f7fb] text-[#142033]">
+      <JsonLd
+        data={serviceSchema({
+          name: "Lebenslauf-Vorlagen und Masterprompts zum Download",
+          description: "Lebenslauf-Vorlagen für Word und Masterprompts für das Motivationsschreiben mit KI.",
+          path: "/service-downloads",
+          serviceType: "Downloads",
+          offers: [
+            { name: "Einzelnes Dokument", price: 19.9 },
+            { name: "Komplettpaket mit allen 5 Dokumenten", price: 49.9 },
+          ],
+        })}
+      />
       <section className="relative isolate px-5 pb-16 pt-10 sm:px-6 sm:pb-20 sm:pt-12">
         <div className="absolute inset-x-0 top-0 -z-10 h-[20rem] bg-[radial-gradient(circle_at_28%_0%,rgba(32,72,120,0.14),transparent_30%),linear-gradient(180deg,#ffffff_0%,#eef4fb_100%)]" />
 
@@ -29,7 +41,7 @@ export default function ServiceDownloads() {
           </p>
           <p className="mb-3 text-sm font-semibold text-[#204878]">Downloads</p>
           <h1 className="max-w-2xl text-4xl font-semibold leading-[1.05] tracking-tight text-[#101828] text-balance sm:text-5xl">
-            Unsere Vorlagen für Ihre Bewerbung, sofort verfügbar.
+            Lebenslauf-Vorlagen für Word und KI-Prompts für Ihr Motivationsschreiben
           </h1>
           <p className="mt-4 max-w-2xl text-base leading-7 text-[#5d6b7f] text-pretty">
             Masterprompts für Ihr Motivationsschreiben mit KI und Lebenslauf-Vorlagen für Word. Jedes Dokument kostet CHF 19.90, alle 5 im Komplettpaket CHF 49.90.
@@ -55,6 +67,8 @@ export default function ServiceDownloads() {
               Die Dokumente sind auf Ihren Namen lizenziert und nur für den persönlichen Gebrauch bestimmt. Eine Weitergabe ist nicht gestattet.
             </p>
           </div>
+
+          <RelatedGuides guides={guidesForService("/service-downloads")} className="mt-14" />
         </div>
       </section>
     </main>

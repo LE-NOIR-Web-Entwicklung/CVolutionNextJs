@@ -1,9 +1,9 @@
 import Image from "next/image";
 import { FaEnvelope, FaLinkedin, FaPhone } from "react-icons/fa";
 
-export const metadata = {
-  title: "Über uns",
-};
+import { metaFor } from "@/lib/seo-pages";
+
+export const metadata = metaFor("/about");
 
 const stats = [
   ["10+", "Jahre Recruiting-Erfahrung"],
@@ -144,7 +144,7 @@ export default function About() {
           alt="Team section background"
           fill
           sizes="100vw"
-          quality={100}
+          quality={75}
           className="object-cover object-[70%] md:object-center"
         />
         <div className="absolute inset-0 bg-transparent md:bg-[#193961]/60" />
@@ -169,6 +169,7 @@ export default function About() {
                     src={member.image}
                     alt={member.name}
                     fill
+                    sizes="(min-width: 768px) 96px, 144px"
                     className="rounded-full object-cover object-top"
                   />
                 </div>

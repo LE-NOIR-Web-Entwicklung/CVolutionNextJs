@@ -209,17 +209,36 @@ function Report({ analysis, onRestart, onDelete, busy }: { analysis: SalaryAnaly
 
       <aside className="flex flex-col gap-4 rounded-lg bg-[#204878] p-5 text-white sm:flex-row sm:items-center sm:justify-between sm:p-6">
         <div>
-          <h3 className="text-lg font-semibold">Lohnanalyse von unseren Experten</h3>
-          <p className="mt-1 text-sm leading-6 text-white/80">Lassen Sie Ihren Lohn von CVolution persönlich prüfen, als PDF oder mit telefonischer Besprechung.</p>
+          <h3 className="text-lg font-semibold">{RESULT_CTA[deviation.tone].heading}</h3>
+          <p className="mt-1 text-sm leading-6 text-white/80">{RESULT_CTA[deviation.tone].text}</p>
         </div>
-        <Link href="/service-salary" className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg bg-white px-5 py-2.5 text-sm font-semibold text-[#204878] transition-colors hover:bg-[#EEF4FA]">
-          Jetzt ansehen
+        <Link href="/service-salary#ablauf" className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg bg-white px-5 py-2.5 text-sm font-semibold text-[#204878] transition-colors hover:bg-[#EEF4FA]">
+          {RESULT_CTA[deviation.tone].button}
           <ArrowRight className="h-4 w-4" />
         </Link>
       </aside>
     </div>
   );
 }
+
+/** Closing call to action, matched to the result so it answers the user's next question. */
+const RESULT_CTA: Record<'positive' | 'neutral' | 'negative', { heading: string; text: string; button: string }> = {
+  negative: {
+    heading: 'Ihr Lohn liegt unter dem Markt – holen Sie sich Argumente',
+    text: 'Unsere Recruiting-Profis prüfen Ihr Ergebnis persönlich und besprechen mit Ihnen in 15 Minuten, wie Sie die Lohnerhöhung begründen. CHF 119, PDF für CHF 69.',
+    button: 'Experten-Analyse ansehen',
+  },
+  neutral: {
+    heading: 'Marktgerecht – und wie geht es weiter?',
+    text: 'Lassen Sie Ihr Ergebnis von CVolution prüfen und erfahren Sie, mit welchen Schritten Sie in die nächste Lohnstufe kommen. Als PDF ab CHF 69.',
+    button: 'Experten-Analyse ansehen',
+  },
+  positive: {
+    heading: 'Über dem Markt – sichern Sie Ihren Vorsprung',
+    text: 'Vor einem Stellenwechsel lohnt sich eine zweite Meinung: Wir prüfen Ihr Gesamtpaket und zeigen, worauf Sie bei einem neuen Angebot achten sollten. Ab CHF 69.',
+    button: 'Experten-Analyse ansehen',
+  },
+};
 
 export function SalaryAnalysisSection({ hasSelfServiceAccess, onRequirePayment, hasCvData, profileName, profileBirthdate }: Props) {
   const { user } = useAuth();

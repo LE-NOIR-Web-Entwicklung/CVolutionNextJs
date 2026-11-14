@@ -1,13 +1,10 @@
 import Link from "next/link";
-import type { Metadata } from "next";
+import { metaFor } from "@/lib/seo-pages";
 import { ArrowUpRight } from "lucide-react";
 import { BlogPostExplorer } from "@/app/blog/BlogPostExplorer";
 import { getPublishedBlogPosts } from "@/lib/public-blog";
 
-export const metadata: Metadata = {
-  title: "Blog | CVolution",
-  description: "Ratgeber, Vorlagen und konkrete Tipps rund um Bewerbung, Lebenslauf, Lohn und Karriere in der Schweiz.",
-};
+export const metadata = metaFor("/blog");
 
 export default async function BlogPage() {
   const posts = await getPublishedBlogPosts();

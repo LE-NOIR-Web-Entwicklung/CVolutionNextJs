@@ -20,7 +20,7 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
           {/* Brand + Contact */}
           <div>
-            <img src="/images/logo-nobg.png" className="h-8 mb-6" alt="CVolution Logo" />
+            <img src="/images/logo-header.png" width={151} height={32} loading="lazy" className="h-8 w-auto mb-6" alt="CVolution Logo" />
             <ul className="space-y-3 text-sm text-gray-400">
               <li>
                 <a href="mailto:info@cvolution.ch" className="hover:text-white transition-colors">

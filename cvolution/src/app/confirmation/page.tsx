@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
+import { trackFunnel } from "@/lib/funnel";
 
 function ConfirmationContent() {
   const [service, setService] = useState("");
@@ -13,6 +14,7 @@ function ConfirmationContent() {
   useEffect(() => {
     const error = searchParams?.get("error");
     if (error) {
+      trackFunnel({ name: "payment_failed", reason: error.slice(0, 80) });
       setPaymentError(true);
       return;
     }
@@ -21,6 +23,7 @@ function ConfirmationContent() {
     const serviceParam = searchParams?.get("service");
 
     if (success === "true") {
+      trackFunnel({ name: "order_confirmed", service: serviceParam || "unknown" });
       if (serviceParam) {
         setService(serviceParam);
       }
